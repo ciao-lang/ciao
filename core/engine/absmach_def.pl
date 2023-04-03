@@ -759,16 +759,20 @@ bind(hva, T0, T1) => callstmt('BindHVA', [T0,T1]).
 bind(cva, T0, T1) => callstmt('BindCVA', [T0,T1]).
 bind(sva, T0, T1) => callstmt('BindSVA', [T0,T1]).
 
+trail_if_conditional_sva(U) =>
+    if(callexp('CondStackvar', [U]), (
+        callstmt('TrailPushCheck', [(~w)^.trail_top,tagp(sva, addr(U))])
+    )).
+
+u_val(X, Y) => cunify(X, Y).
+
 % segfault patch -- jf
 % 'U' is a 'Yb(I)' expression.
-% TODO:[oc-merge] trail_if_conditional_sva
-get_first_value(U, V) =>
-    if(callexp('CondStackvar', [U]), (
-      callstmt('TrailPushCheck', [(~w)^.trail_top,tagp(sva, addr(U))]),
-      U <- V
-    ), (
-      U <- V
-    )).
+% TODO:[oc-merge] was get_first_value
+u_fval(V, U) =>
+    % TODO: assume U is a SVA tagged var
+    trail_if_conditional_sva(U),
+    U <- V.
 
 un_voidr(X), [[ mode(r) ]] =>
     (~s) <- callexp('HeapOffset', [(~s), X]).
@@ -778,53 +782,31 @@ un_voidr(X), [[ mode(w) ]] =>
     do_while(callexp('ConstrHVA', [tk('H')]), (tk('--'),I)),
     '}'.
 
-u1(var(X)), [[ mode(r) ]] =>
+un_var(X), [[ mode(r) ]] =>
     ref_heap_next(X).
-u1(var(X)), [[ mode(w) ]] =>
+un_var(X), [[ mode(w) ]] =>
     load(hva,X).
 
-u1(xval(X)), [[ mode(r) ]] =>
+un_val(X), [[ mode(r) ]] =>
     '{',
     localv(tagged, T1), ref_heap_next(T1),
-    cunify(X, T1),
+    u_val(X, T1),
     '}'.
-u1(xval(X)), [[ mode(w) ]] =>
+un_val(X), [[ mode(w) ]] =>
     heap_push(X).
 
-u1(yval(Y)), [[ mode(r) ]] =>
+un_fval(Y) =>
     '{',
-    localv(tagged, T1), ref_heap_next(T1),
-    localv(tagged, T0), T0 <- Y,
-    cunify(T0, T1),
-    '}'.
-u1(yval(Y)), [[ mode(w) ]] =>
-    cachedreg('H', H),
-    callstmt('HeapPushRefStack', [H,addr(Y)]).
-
-u1(yfval(Y)), [[ mode(r) ]] =>
-    '{',
-    localv(tagged, T0), ref_heap_next(T0),
-    get_first_value(Y,T0),
-    '}'.
-u1(yfval(Y)), [[ mode(w) ]] =>
-    '{',
-    localv(tagged, T0), load(hva,T0),
-    get_first_value(Y,T0),
+    localv(tagged, T0),
+    un_var(T0),
+    u_fval(T0, Y),
     '}'.
 
-u1(xlval(X)), [[ mode(r) ]] =>
-    u1(xval(X)).
-u1(xlval(X)), [[ mode(w) ]] =>
+un_lval(X), [[ mode(r) ]] =>
+    un_val(X).
+un_lval(X), [[ mode(w) ]] =>
     '{',
     localv(tagged, T1, X),
-    unify_local_value(T1),
-    '}'.
-
-u1(ylval(Y)), [[ mode(r) ]] =>
-    u1(yval(Y)).
-u1(ylval(Y)), [[ mode(w) ]] =>
-    '{',
-    localv(tagged, T1), T1 <- Y,
     unify_local_value(T1),
     '}'.
 
@@ -1074,18 +1056,15 @@ put_yuval_yuval => decops([A,B,C,D]),
     dispatch.
 
 get_x_value => decops([A,B]),
-    cunify(B,A),
+    u_val(A,B), % TODO:[oc-merge] was reversed before oc merge
     dispatch.
 
 get_y_first_value => decops([A,B]),
-    get_first_value(B,A),
+    u_fval(A,B),
     dispatch.
 
 get_y_value => decops([A,B]),
-    '{',
-    localv(tagged, T1), T1 <- B,
-    cunify(A,T1),
-    '}',
+    u_val(A,B),
     dispatch.
 
 get_constant => decops([A,B]),
@@ -1481,15 +1460,15 @@ unify_void_4, [[ mode(w) ]] =>
     goto_ins(unify_void_3).
 
 unify_x_variable => decops([A]),
-    u1(var(A)),
+    un_var(A),
     dispatch.
 
 unify_x_value => decops([A]),
-    u1(xval(A)),
+    un_val(A),
     dispatch.
 
 unify_x_local_value => decops([A]),
-    u1(xlval(A)),
+    un_lval(A),
     dispatch.
 
 unify_y_first_variable =>
@@ -1497,19 +1476,19 @@ unify_y_first_variable =>
     goto_ins(unify_y_variable).
 
 unify_y_variable => decops([A]),
-    u1(var(A)),
+    un_var(A),
     dispatch.
 
 unify_y_first_value => decops([A]),
-    u1(yfval(A)),
+    un_fval(A),
     dispatch.
 
 unify_y_value => decops([A]),
-    u1(yval(A)),
+    un_val(A),
     dispatch.
 
 unify_y_local_value => decops([A]),
-    u1(ylval(A)),
+    un_lval(A),
     dispatch.
 
 unify_constant, [[ mode(r) ]] => decops([A]),
@@ -1596,7 +1575,7 @@ unify_nil_neck_proceed, [[ mode(w) ]] =>
 
 u2_void_xvar => decops([N,B]),
     un_voidr(N),
-    u1(var(B)),
+    un_var(B),
     dispatch.
 
 u2_void_yfvar =>
@@ -1605,42 +1584,42 @@ u2_void_yfvar =>
 
 u2_void_yvar => decops([N,B]),
     un_voidr(N),
-    u1(var(B)),
+    un_var(B),
     dispatch.
 
 u2_void_xval => decops([N,B]),
     un_voidr(N),
-    u1(xval(B)),
+    un_val(B),
     dispatch.
 
 u2_void_xlval => decops([N,B]),
     un_voidr(N),
-    u1(xlval(B)),
+    un_lval(B),
     dispatch.
 
 u2_void_yfval => decops([N,B]),
     un_voidr(N),
-    u1(yfval(B)),
+    un_fval(B),
     dispatch.
 
 u2_void_yval => decops([N,B]),
     un_voidr(N),
-    u1(yval(B)),
+    un_val(B),
     dispatch.
 
 u2_void_ylval => decops([N,B]),
     un_voidr(N),
-    u1(ylval(B)),
+    un_lval(B),
     dispatch.
 
 u2_xvar_void => decops([A,N]),
-    u1(var(A)),
+    un_var(A),
     un_voidr(N),
     dispatch.
 
 u2_xvar_xvar => decops([A,B]),
-    u1(var(A)),
-    u1(var(B)),
+    un_var(A),
+    un_var(B),
     dispatch.
 
 u2_xvar_yfvar =>
@@ -1648,33 +1627,33 @@ u2_xvar_yfvar =>
     goto_ins(u2_xvar_yvar).
 
 u2_xvar_yvar => decops([A,B]),
-    u1(var(A)),
-    u1(var(B)),
+    un_var(A),
+    un_var(B),
     dispatch.
 
 u2_xvar_xval => decops([A,B]),
-    u1(var(A)),
-    u1(xval(B)),
+    un_var(A),
+    un_val(B),
     dispatch.
 
 u2_xvar_xlval => decops([A,B]),
-    u1(var(A)),
-    u1(xlval(B)),
+    un_var(A),
+    un_lval(B),
     dispatch.
 
 u2_xvar_yfval => decops([A,B]),
-    u1(var(A)),
-    u1(yfval(B)),
+    un_var(A),
+    un_fval(B),
     dispatch.
 
 u2_xvar_yval => decops([A,B]),
-    u1(var(A)),
-    u1(yval(B)),
+    un_var(A),
+    un_val(B),
     dispatch.
 
 u2_xvar_ylval => decops([A,B]),
-    u1(var(A)),
-    u1(ylval(B)),
+    un_var(A),
+    un_lval(B),
     dispatch.
 
 u2_yfvar_void =>
@@ -1682,7 +1661,7 @@ u2_yfvar_void =>
     goto_ins(u2_yvar_void).
 
 u2_yvar_void => decops([A,N]),
-    u1(var(A)),
+    un_var(A),
     un_voidr(N),
     dispatch.
 
@@ -1691,8 +1670,8 @@ u2_yfvar_xvar =>
     goto_ins(u2_yvar_xvar).
 
 u2_yvar_xvar => decops([A,B]),
-    u1(var(A)),
-    u1(var(B)),
+    un_var(A),
+    un_var(B),
     dispatch.
 
 u2_yfvar_yvar =>
@@ -1700,8 +1679,8 @@ u2_yfvar_yvar =>
     goto_ins(u2_yvar_yvar).
 
 u2_yvar_yvar => decops([A,B]),
-    u1(var(A)),
-    u1(var(B)),
+    un_var(A),
+    un_var(B),
     dispatch.
 
 u2_yfvar_xval =>
@@ -1713,13 +1692,13 @@ u2_yfvar_xlval =>
     goto_ins(u2_yvar_xlval).
 
 u2_yvar_xval => decops([A,B]),
-    u1(var(A)),
-    u1(xval(B)),
+    un_var(A),
+    un_val(B),
     dispatch.
 
 u2_yvar_xlval => decops([A,B]),
-    u1(var(A)),
-    u1(xlval(B)),
+    un_var(A),
+    un_lval(B),
     dispatch.
 
 u2_yfvar_yval =>
@@ -1731,68 +1710,68 @@ u2_yfvar_ylval =>
     goto_ins(u2_yvar_ylval).
 
 u2_yvar_yval => decops([A,B]),
-    u1(var(A)),
-    u1(yval(B)),
+    un_var(A),
+    un_val(B),
     dispatch.
 
 u2_yvar_ylval => decops([A,B]),
-    u1(var(A)),
-    u1(ylval(B)),
+    un_var(A),
+    un_lval(B),
     dispatch.
 
 u2_yfval_void => decops([A,N]),
-    u1(yfval(A)),
+    un_fval(A),
     un_voidr(N),
     dispatch.
 
 u2_yfval_xvar => decops([A,B]),
-    u1(yfval(A)),
-    u1(var(B)),
+    un_fval(A),
+    un_var(B),
     dispatch.
 
 u2_yfval_yfval => decops([A,B]),
-    u1(yfval(A)),
-    u1(yfval(B)),
+    un_fval(A),
+    un_fval(B),
     dispatch.
 
 u2_yfval_xval => decops([A,B]),
-    u1(yfval(A)),
-    u1(xval(B)),
+    un_fval(A),
+    un_val(B),
     dispatch.
 
 u2_yfval_xlval => decops([A,B]),
-    u1(yfval(A)),
-    u1(xlval(B)),
+    un_fval(A),
+    un_lval(B),
     dispatch.
 
 u2_yfval_yval => decops([A,B]),
-    u1(yfval(A)),
-    u1(yval(B)),
+    un_fval(A),
+    un_val(B),
     dispatch.
 
 u2_yfval_ylval => decops([A,B]),
-    u1(yfval(A)),
-    u1(ylval(B)),
+    un_fval(A),
+    un_lval(B),
     dispatch.
 
 u2_xval_void => decops([A,N]),
-    u1(xval(A)),
+    un_val(A),
     un_voidr(N),
     dispatch.
 
 u2_xlval_void => decops([A,N]),
-    u1(xlval(A)),
+    un_lval(A),
     un_voidr(N),
     dispatch.
 
 u2_xval_xvar => decops([A,B]),
-    u1(xval(A)),
-    u1(var(B)),
+    un_val(A),
+    un_var(B),
     dispatch.
 
 u2_xlval_xvar => decops([A,B]),
-    u1(xlval(A)),
-    u1(var(B)),
+    un_lval(A),
+    un_var(B),
     dispatch.
 
 u2_xval_yfvar =>
@@ -1804,143 +1783,143 @@ u2_xlval_yfvar =>
     goto_ins(u2_xlval_yvar).
 
 u2_xval_yvar => decops([A,B]),
-    u1(xval(A)),
-    u1(var(B)),
+    un_val(A),
+    un_var(B),
     dispatch.
 
 u2_xlval_yvar => decops([A,B]),
-    u1(xlval(A)),
-    u1(var(B)),
+    un_lval(A),
+    un_var(B),
     dispatch.
 
 u2_xval_xval => decops([A,B]),
-    u1(xval(A)),
-    u1(xval(B)),
+    un_val(A),
+    un_val(B),
     dispatch.
 
 u2_xval_xlval => decops([A,B]),
-    u1(xval(A)),
-    u1(xlval(B)),
+    un_val(A),
+    un_lval(B),
     dispatch.
 
 u2_xlval_xval => decops([A,B]),
-    u1(xlval(A)),
-    u1(xval(B)),
+    un_lval(A),
+    un_val(B),
     dispatch.
 
 u2_xlval_xlval => decops([A,B]),
-    u1(xlval(A)),
-    u1(xlval(B)),
+    un_lval(A),
+    un_lval(B),
     dispatch.
 
 u2_xval_yfval => decops([A,B]),
-    u1(xval(A)),
-    u1(yfval(B)),
+    un_val(A),
+    un_fval(B),
     dispatch.
 
 u2_xlval_yfval => decops([A,B]),
-    u1(xlval(A)),
-    u1(yfval(B)),
+    un_lval(A),
+    un_fval(B),
     dispatch.
 
 u2_xval_yval => decops([A,B]),
-    u1(xval(A)),
-    u1(yval(B)),
+    un_val(A),
+    un_val(B),
     dispatch.
 
 u2_xval_ylval => decops([A,B]),
-    u1(xval(A)),
-    u1(ylval(B)),
+    un_val(A),
+    un_lval(B),
     dispatch.
 
 u2_xlval_yval => decops([A,B]),
-    u1(xlval(A)),
-    u1(yval(B)),
+    un_lval(A),
+    un_val(B),
     dispatch.
 
 u2_xlval_ylval => decops([A,B]),
-    u1(xlval(A)),
-    u1(ylval(B)),
+    un_lval(A),
+    un_lval(B),
     dispatch.
 
 u2_yval_void => decops([A,N]),
-    u1(yval(A)),
+    un_val(A),
     un_voidr(N),
     dispatch.
 
 u2_ylval_void => decops([A,N]),
-    u1(ylval(A)),
+    un_lval(A),
     un_voidr(N),
     dispatch.
 
 u2_yval_xvar => decops([A,B]),
-    u1(yval(A)),
-    u1(var(B)),
+    un_val(A),
+    un_var(B),
     dispatch.
 
 u2_ylval_xvar => decops([A,B]),
-    u1(ylval(A)),
-    u1(var(B)),
+    un_lval(A),
+    un_var(B),
     dispatch.
 
 u2_yval_yvar => decops([A,B]),
-    u1(yval(A)),
-    u1(var(B)),
+    un_val(A),
+    un_var(B),
     dispatch.
 
 u2_ylval_yvar => decops([A,B]),
-    u1(ylval(A)),
-    u1(var(B)),
+    un_lval(A),
+    un_var(B),
     dispatch.
 
 u2_yval_yfval => decops([A,B]),
-    u1(yval(A)),
-    u1(yfval(B)),
+    un_val(A),
+    un_fval(B),
     dispatch.
 
 u2_ylval_yfval => decops([A,B]),
-    u1(ylval(A)),
-    u1(yfval(B)),
+    un_lval(A),
+    un_fval(B),
     dispatch.
 
 u2_yval_xval => decops([A,B]),
-    u1(yval(A)),
-    u1(xval(B)),
+    un_val(A),
+    un_val(B),
     dispatch.
 
 u2_yval_xlval => decops([A,B]),
-    u1(yval(A)),
-    u1(xlval(B)),
+    un_val(A),
+    un_lval(B),
     dispatch.
 
 u2_ylval_xval => decops([A,B]),
-    u1(ylval(A)),
-    u1(xval(B)),
+    un_lval(A),
+    un_val(B),
     dispatch.
 
 u2_ylval_xlval => decops([A,B]),
-    u1(ylval(A)),
-    u1(xlval(B)),
+    un_lval(A),
+    un_lval(B),
     dispatch.
 
 u2_yval_yval => decops([A,B]),
-    u1(yval(A)),
-    u1(yval(B)),
+    un_val(A),
+    un_val(B),
     dispatch.
 
 u2_yval_ylval => decops([A,B]),
-    u1(yval(A)),
-    u1(ylval(B)),
+    un_val(A),
+    un_lval(B),
     dispatch.
 
 u2_ylval_yval => decops([A,B]),
-    u1(ylval(A)),
-    u1(yval(B)),
+    un_lval(A),
+    un_val(B),
     dispatch.
 
 u2_ylval_ylval => decops([A,B]),
-    u1(ylval(A)),
-    u1(ylval(B)),
+    un_lval(A),
+    un_lval(B),
     dispatch.
 
 bump_counter => decops([A]),
