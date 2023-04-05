@@ -434,9 +434,22 @@ simp((A ; B), M, Store0, Store, R) :- nonvar(A), !,
 simp(A, M, Store0, Store, R) :-
     simp_lit(A, M, Store0, Store, R).
 
-list_to_conj([], true) :- !.
-list_to_conj([X], X) :- !.
-list_to_conj([X|Xs], (X,Y)) :- list_to_conj(Xs, Y).
+% List to conjunction
+list_to_conj([], A) :- !, A = true.
+list_to_conj([A], A) :- !.
+list_to_conj([A|As], (A,Bs)) :-
+    list_to_conj(As, Bs).
+
+% Conjunction to list
+conj_to_list(A, Xs) :-
+    conj_to_list_(A, Xs, []).
+
+conj_to_list_(A, Xs, Xs0) :- var(A), !, Xs = [A|Xs0].
+conj_to_list_((A,B), Xs, Xs0) :- !,
+    conj_to_list_(A, Xs, Xs1),
+    conj_to_list_(B, Xs1, Xs0).
+conj_to_list_(true, Xs, Xs0) :- !, Xs = Xs0.
+conj_to_list_(A, [A|Xs], Xs).
 
 simp_lit([As], M, Store0, Store, R) :- is_list(As), !, % [[...]] notation
     simp_constrs(As, M, Store0, Store),
@@ -566,6 +579,8 @@ simp_constr_(A =< B, _M, _) :- !, A =< B.
 simp_constr_(A >= B, _M, _) :- !, A >= B.
 simp_constr_(A = B, _M, _) :- !, A = B.
 simp_constr_(A \= B, _M, _) :- !, A \= B.
+simp_constr_(conj_to_list(A,B), _M, _) :- !,
+    conj_to_list(A,B).
 simp_constr_(atom_concat(A,B,C), _M, _) :- !,
     atom_concat(A,B,C).
 simp_constr_(uppercase(Ins, InsUp), _M, _) :- !,
