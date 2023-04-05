@@ -5,7 +5,8 @@
 /***************************************************************************/
 
 #define INS_OPCOUNT 263
-absmachdef_t abscurr = {
+#define Fs(Ty) FTYPE_size(Ty)
+absmachdef_t abscurr= {
 .ftype_id_i = 10,
 .ftype_id_o = 15,
 .ins_info = (ftype_base_t *[]){
@@ -271,8 +272,7 @@ FTYPE_STR(2,BRACES(19,7)),
 FTYPE_STR(1,BRACES(7)),
 FTYPE_STR(1,BRACES(8)),
 FTYPE_STR(2,BRACES(3,8)),
-FTYPE_STR0()
-},
+FTYPE_STR0()},
 .ins_n = 263,
 .ftype_info = (ftype_base_t *[]){
 FTYPE_STR0(),
@@ -280,25 +280,24 @@ FTYPE_STR0(),
 FTYPE_STR0(),
 FTYPE_ARRAY(10,17),
 FTYPE_ARRAY(10,18),
-FTYPE_BASIC(FTYPE_size(f_C),9,6),
-FTYPE_BASIC(FTYPE_size(f_E),7,6),
+FTYPE_BASIC(Fs(f_C),9,6),
+FTYPE_BASIC(Fs(f_E),7,6),
 FTYPE_BLOB(),
-FTYPE_BASIC(FTYPE_size(f_e),8,8),
-FTYPE_BASIC(FTYPE_size(f_f),5,6),
-FTYPE_BASIC(FTYPE_size(f_i),8,8),
-FTYPE_BASIC(FTYPE_size(f_l),2,6),
+FTYPE_BASIC(Fs(f_e),8,8),
+FTYPE_BASIC(Fs(f_f),5,6),
+FTYPE_BASIC(Fs(f_i),8,8),
+FTYPE_BASIC(Fs(f_l),2,6),
 FTYPE_STR(2,BRACES(11,10)),
-FTYPE_BASIC(FTYPE_size(f_p),3,3),
-FTYPE_BASIC(FTYPE_size(f_t),6,6),
-FTYPE_BASIC(FTYPE_size(f_o),8,8),
-FTYPE_BASIC(FTYPE_size(f_x),8,8),
-FTYPE_BASIC(FTYPE_size(f_y),8,8),
-FTYPE_BASIC(FTYPE_size(f_z),8,8),
-FTYPE_BASIC(FTYPE_size(f_Q),8,8)
-},
+FTYPE_BASIC(Fs(f_p),3,3),
+FTYPE_BASIC(Fs(f_t),6,6),
+FTYPE_BASIC(Fs(f_o),8,8),
+FTYPE_BASIC(Fs(f_x),8,8),
+FTYPE_BASIC(Fs(f_y),8,8),
+FTYPE_BASIC(Fs(f_z),8,8),
+FTYPE_BASIC(Fs(f_Q),8,8)},
 .ftype_n = 20,
-.q_pad1 = 128 * 4,
-.q_pad2 = 1152 * 4,
+.q_pad1 = (128*4),
+.q_pad2 = (1152*4),
 .tagged_size = sizeof(tagged_t),
 .size_align = sizeof(tagged_t)
 };
