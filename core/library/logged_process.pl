@@ -3,6 +3,12 @@
 :- doc(title, "Logged processes").
 :- doc(author, "Jose F. Morales").
 
+% TODO: MH: Optional: perhaps be able to (optionally) provide a
+%       pattern that describes how errors (or warnings, notes, etc.)
+%       are formatted by the external command so that it is not
+%       necessary to only rely on the status returned (at an
+%       efficiency price or course)?
+
 :- doc(module, "A wrapper on top of @pred{process_call/3} with some
    logging facilities. It the process does not exit with error status
    0, some special action is taken.
