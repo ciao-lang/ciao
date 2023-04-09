@@ -92,7 +92,7 @@ exec_decl(putmax(K, V), M) :- !,
     ).
 % TODO: Hack to prepare decls from rules
 exec_decl([As], M) :- is_list(As), !,
-    simp_constrs(As, M, [], _Store).
+    simp_constrs(As, M, [], _Store). % TODO: may fail
 % TODO: Hack to execute rules from list
 exec_decl('$exec_decls'(Xs), M) :- !,
     list_to_conj(Xs, G),
@@ -145,7 +145,7 @@ code_to_file_(M, Code, File) :-
     this_eng_def(M, Eng),
     %
     code_to_cexp(Code, M, CExp),
-    cexp_to_str(CExp, String, []),
+    cexp_to_str(CExp, M, String, []),
     % Emit files in the right builddir path
     emugen_code_dir(Eng, File, DestDir),
     mkpath(DestDir),
@@ -168,11 +168,14 @@ this_eng_def(M, Eng) :-
 % ---------------------------------------------------------------------------
 
 code_to_cexp(code(Code), M, CExp) :-
-    emit_code(Code, M, [indent(0)], CExp, []).
+    emit_code(Code, M, [indent(0)], CExp).
 
-emit_code(G, M, Store) -->
-    { tr_solve(G, M, Store, Body, _Store) },
-    [Body].
+emit_code(G, M, Store, CExp) :-
+    tr_solve(G, M, Store, CExp, _Store),
+    ( collect_prims(CExp, M, '$decl'/1, Post, []) -> true
+    ; throw(cannot_collect_code_prims(G))
+    ),
+    exec_decl('$exec_decls'(Post), M).
 
 % ---------------------------------------------------------------------------
 % Error handler and diagnosis
@@ -223,32 +226,37 @@ transparent_string("\n"||Xs, "\\n"||Ys) :- !,
 transparent_string([X|Xs], [X|Ys]) :- integer(X),
     transparent_string(Xs, Ys).
 
-cexp_to_str(X) --> { is_list(X) }, !, cexp_to_str_(X). % (flatten)
+cexp_to_str(X, M) --> { is_list(X) }, !, cexp_to_str_(X, M). % (flatten)
 % Annotation for resolution step (ignore)
-cexp_to_str('$rs'(_G,X)) --> !, cexp_to_str(X).
+cexp_to_str('$rs'(_G,X), M) --> !, cexp_to_str(X, M).
+% Ignore post translation decls
+cexp_to_str('$decl'(_), _M) --> !, [].
+% Conditional block
+cexp_to_str(cond_blk(CondKey,A), M) --> !,
+    ( { get_tkval(CondKey, M, true) } -> cexp_to_str(A, M) ; [] ).
 % layout, tokens
-cexp_to_str((A,B)) --> !, cexp_to_str(A), cexp_to_str(B).
-cexp_to_str(true) --> !.
-cexp_to_str(X) --> { number(X) }, !, emit_number(X).
-cexp_to_str(tk(X)) --> !, emit_atom(X).
-cexp_to_str(tk_nl) --> !, "\n".
-cexp_to_str(tk_bb(N)) --> !, fmt_bb(N).
-cexp_to_str(tk_string(X)) --> !, emit_qstring(X).
-cexp_to_str(tk_number(X)) --> !, emit_number(X).
+cexp_to_str((A,B), M) --> !, cexp_to_str(A, M), cexp_to_str(B, M).
+cexp_to_str(true, _) --> !.
+cexp_to_str(X, _) --> { number(X) }, !, emit_number(X).
+cexp_to_str(tk(X), _) --> !, emit_atom(X).
+cexp_to_str(tk_nl, _) --> !, "\n".
+cexp_to_str(tk_bb(N), _) --> !, fmt_bb(N).
+cexp_to_str(tk_string(X), _) --> !, emit_qstring(X).
+cexp_to_str(tk_number(X), _) --> !, emit_number(X).
 %
-cexp_to_str(callexp(N, Xs)) --> !, emit_atom(N), "(", emit_args(Xs), ")".
+cexp_to_str(callexp(N, Xs), M) --> !, emit_atom(N), "(", emit_args(Xs, M), ")".
 %
-cexp_to_str(X) --> { throw(internal_error_bad_cexp(X)) }.
+cexp_to_str(X, _M) --> { throw(internal_error_bad_cexp(X)) }.
 
-cexp_to_str_([]) --> [].
-cexp_to_str_([X|Xs]) --> cexp_to_str(X), cexp_to_str_(Xs).
+cexp_to_str_([], _M) --> [].
+cexp_to_str_([X|Xs], M) --> cexp_to_str(X, M), cexp_to_str_(Xs, M).
 
-emit_args([]) --> !.
-emit_args([X]) --> !,
-    cexp_to_str(X).
-emit_args([X|Xs]) --> 
-    cexp_to_str(X), ",",
-    emit_args(Xs).
+emit_args([], _) --> !.
+emit_args([X], M) --> !,
+    cexp_to_str(X, M).
+emit_args([X|Xs], M) --> 
+    cexp_to_str(X, M), ",",
+    emit_args(Xs, M).
 
 fmt_bb(N) --> { N =< 0 }, !, "".
 fmt_bb(N) --> " ", { N1 is N - 1 }, fmt_bb(N1).
@@ -358,77 +366,46 @@ store_replace(Store0, Constr, Store) :-
     Store = [Constr|Store0].
 
 % ---------------------------------------------------------------------------
-% TODO: Implement better strategies
-% TODO: do something with final Store?
+% TODO: simplify/improve diagnosis (no trie is needed now)
 
 % Rewrite G as Body
 % Throw exceptions for diagnosis.
 tr_solve(G, M, Store0, Body, Store) :-
     '$metachoice'(Chpt0),
-    tr_solve_(G, M, Store0, Store1, positive, Body1), 
+    simp(G, M, Store0, Store1, Body1), 
     '$metachoice'(Chpt),
     ChptDepth is Chpt-Chpt0,
-    ( ChptDepth > 0 -> message(note, ['nondet translation! (', ChptDepth, ') ', G]), fail
+    ( ChptDepth > 0 ->
+        message(note, ['nondet translation! (', ChptDepth, ') ', G]), 
+        throw(single_translation_multiple_choicepoints)
     ; true
     ),
-    !,
-    Store = Store1,
-    Body = Body1.
-tr_solve(G, M, Store0, Body, Store) :-
-    % TODO: more efficient?
-    tr_solve_set(G, M, Store0, positive, BodyStores),
-    ( BodyStores = [] ->
-        % Repeat translation to collect all failed translations
-        tr_solve_set(G, M, Store0, all, AllBodyStores),
-        unzip(AllBodyStores, Bodies, _),
-        throw(no_translation_for(Bodies, Store0))
-    ; BodyStores = [_,_|_] ->
-        % Repeat translation to collect multiple translations
-        tr_solve_set(G, M, Store0, positive, AllBodyStores),
-        unzip(AllBodyStores, Bodies, _),
-        throw(multiple_possible_translations(Bodies, Store0))
-    ; BodyStores = [Body-Store],
-      throw(single_translation_multiple_choicepoints) % TODO: since first clause of tr_solve failed
+    ( Store1 = '$fail_store' ->
+        throw(no_translation_for([Body1], Store0))
+    ; Store = Store1,
+      Body = Body1
     ).
 
-% Obtain the set of all translations to G, Store0 (for error diagnosis)
-% (see tr_solve_)
-% TODO: rules should be deterministic; do not use bagof
-tr_solve_set(G, M, Store0, Sign, BodyStores) :-
-    ( bagof(Body-Store, tr_solve_(G, M, Store0, Store, Sign, Body), BodyStores0) ->
-        BodyStores = BodyStores0
-    ; BodyStores = []
-    ).
-
-% unzip a list of pairs
-unzip([], [], []).
-unzip([X-Y|XYs], [X|Xs], [Y|Ys]) :- unzip(XYs, Xs, Ys).
-
-% Obtain translations (non-deterministically) to G given Store0.
+% Translate G
 % If Sign=positive, we get successful translations.
-% If Sign=all, we get all translations (including failed). 
+% If Sign=all, we get failed translations
 tr_solve_(G, M, Store0, Store, Sign, Body) :-
     simp(G, M, Store0, Store, Body),
-    ( Sign = positive -> \+ Store = '$fail'
+    ( Sign = positive -> \+ Store = '$fail_store'
     ; Sign = all -> true
     ).
 
-simp((A,B), M, Store0, Store, R) :- !,
+simp((A,B), M, Store0, Store, R) :- !, % TODO: emit lists, avoid simp_conj
     simp(A, M, Store0, Store1, A1),
-    ( Store1 = '$fail' ->
-        R = A1
+    ( Store1 = '$fail_store' ->
+        Store = Store1, R = A1
     ; simp(B, M, Store1, Store, B1),
       simp_conj(A1, B1, R)
     ).
 % Constraint as guard (committed choice)
 simp((CA ; B), M, Store0, Store, R) :- nonvar(CA), CA = (C->A), nonvar(C), C = [C0], is_list(C0), !,
-    ( simp_constrs(C0, M, Store0, Store1), \+ Store1 = '$fail' ->
+    ( simp_constrs(C0, M, Store0, Store1) ->
         simp(A, M, Store1, Store, R)
-    ; simp(B, M, Store0, Store, R)
-    ).
-% Choose one alternative
-simp((A ; B), M, Store0, Store, R) :- nonvar(A), !,
-    ( simp(A, M, Store0, Store, R)
     ; simp(B, M, Store0, Store, R)
     ).
 simp(A, M, Store0, Store, R) :-
@@ -452,10 +429,9 @@ conj_to_list_(true, Xs, Xs0) :- !, Xs = Xs0.
 conj_to_list_(A, [A|Xs], Xs).
 
 simp_lit([As], M, Store0, Store, R) :- is_list(As), !, % [[...]] notation
-    simp_constrs(As, M, Store0, Store),
-    ( Store = '$fail' ->
-        R = '$fail_lit'
-    ; R = true
+    ( simp_constrs(As, M, Store0, Store1) ->
+        Store = Store1, R = true
+    ; Store = '$fail_store', R = '$fail_lit'
     ).
 simp_lit('$foreach'(Xs, P), M, Store0, Store, R) :- !,
     foreach(Xs, P, M, Store0, Store, Code, []),
@@ -468,6 +444,9 @@ simp_lit('$foreach_sep'(Sep, Xs, P), M, Store0, Store, R) :- !,
 simp_lit(callexp(N,Args), M, Store0, Store, R) :- !,
     R = callexp(N,Args2),
     simpargs(Args, M, Store0, Store, Args2).
+simp_lit(cond_blk(Cond,X), M, Store0, Store, R) :- !,
+    R = cond_blk(Cond,X2),
+    simp_lit(X, M, Store0, Store, X2).
 simp_lit(G, _M, Store0, Store, R) :-
     prim_lit(G, G2), % (primitive, no translation)
     !,
@@ -523,26 +502,24 @@ unfold_lit(G, M, Store0, Store, R) :-
       R = '$rs'(G, R0)
     ),
     % Obtain clause definitions that match G
-    % (or set store to '$fail' state if there is no one)
-    ( rule_def(G, M, Guard, Def),
-      simp_constrs(Guard, M, Store0, Store1),
-      \+ Store1 = '$fail'
-      -> % (first where guard holds)
+    % (or set store to '$fail_store' state if there is no one)
+    ( rule_def(G, M, Guard, Def), % TODO: use single side unification; speedup indexing
+      simp_constrs(Guard, M, Store0, Store1) -> % (first where guard holds)
         simp(Def, M, Store1, Store, R0)
     ; % no solution
-      Store = '$fail',
+      Store = '$fail_store',
       R0 = '$fail_lit'
     ).
 
+% (may fail)
 simp_constrs([], _M, Store, Store).
 simp_constrs([C|Cs], M, Store0, Store) :-
     simp_constr(C, M, Store0, Store1),
-    ( Store1 = '$fail' ->
-        Store = Store1
-    ; simp_constrs(Cs, M, Store1, Store)
-    ).
+    simp_constrs(Cs, M, Store1, Store).
 
-% TODO: use constraints and solve lazily
+% TODO: better error handling
+% TODO: check instantiation or delay, allow user-defined built-ins
+% (may fail)
 simp_constr(update(Constraint), _M, Store0, Store) :- !,
     store_replace(Store0, Constraint, Store).
 simp_constr(newid(Prefix, Id), _M, Store0, Store) :- !,
@@ -556,23 +533,14 @@ simp_constr(newid(Prefix, Id), _M, Store0, Store) :- !,
     Id = tk(IdAtm),
     N1 is N + 1,
     store_replace(Store0, emugen_id_counter(N1), Store).
+simp_constr(Constraint, M, Store, Store) :-
+    simp_constr_(Constraint, M, Store). % (may fail)
 
-simp_constr(Constraint, M, Store0, Store) :-
-    ( simp_constr_(Constraint, M, Store0) ->
-        Store = Store0
-    ; % no possible code
-      Store = '$fail'
-    ).
-
-% TODO: check instantiation or delay, allow user-defined built-ins
-% TODO: Check negation
 simp_constr_(not(G), M, Store) :- !,
     \+ simp_constr_(G, M, Store).
 simp_constr_(integer(A), _M, _) :- !, integer(A).
 simp_constr_(atom(A), _M, _) :- !, atom(A).
-% TODO: Check arithmetic
-simp_constr_(A is B, _M, _) :- !,
-    A is B.
+simp_constr_(A is B, _M, _) :- !, A is B.
 simp_constr_(A < B, _M, _) :- !, A < B.
 simp_constr_(A > B, _M, _) :- !, A > B.
 simp_constr_(A =< B, _M, _) :- !, A =< B.
@@ -631,28 +599,23 @@ simp_conj(A, B, (A, B)).
 % Reduce G and collect and filtered primitive elems
 collect_and_filter(G, M, What, Store, Insns) :-
     tr_solve(G, M, Store, Body, _),
-    ( clean_rs(Body,Body1) -> true
-    ; throw(cannot_clean_rs(G, What))
-    ),
-    ( collect_prims(Body1, M, What, Insns, []) -> true
+    ( collect_prims(Body, M, What, Insns, []) -> true
     ; throw(cannot_collect_prims(G, What))
     ).
 
-clean_rs((A, B), R) :- !,
-    clean_rs(A, A2),
-    clean_rs(B, B2),
-    R = (A2, B2).
-clean_rs('$rs'(_G, X), R) :- !,
-    clean_rs(X, R).
-clean_rs(X, X).
-
 % collect primitives
+collect_prims(X, M, What) --> { is_list(X) }, !, collect_prims_(X, M, What). % (flatten)
+collect_prims('$rs'(_, X), M, What) --> !,
+    collect_prims(X, M, What).
 collect_prims(true, _M, _What) --> !.
 collect_prims((A,B), M, What) --> !,
     collect_prims(A, M, What),
     collect_prims(B, M, What).
 collect_prims(G, _M, What) --> { prim_filter(G, What) }, !, [G].
 collect_prims(_, _, _) --> [].
+
+collect_prims_([], _M, _What) --> [].
+collect_prims_([X|Xs], M, What) --> collect_prims(X, M, What), collect_prims_(Xs, M, What).
 
 prim_filter(X, F/N) :- nonvar(X), functor(X, F, N).
 
