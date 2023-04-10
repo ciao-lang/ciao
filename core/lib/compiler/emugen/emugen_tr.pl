@@ -1,4 +1,4 @@
-:- module(emugen_tr, [], [dcg, fsyntax, assertions, datafacts]).
+:- module(emugen_tr, [], [dcg, hiord, fsyntax, assertions, datafacts]).
 
 :- doc(title, "Generator of bytecode emulator").
 :- doc(author, "Jose F. Morales").
@@ -18,6 +18,7 @@
 :- use_module(library(stream_utils), [string_to_file/2]).
 :- use_module(library(lists)).
 :- use_module(library(pathnames), [path_concat/3]).
+:- use_module(library(format_to_string), [format_to_string/3]).
 :- use_module(ciaobld(eng_defs), [emugen_code_dir/3]).
 
 :- export(emugen_sent/3).
@@ -56,7 +57,12 @@ emugen_decl(native_export(Item, File), M) :- !,
 emugen_decl(ftype_def(FType, Id, Format), M) :- !,
     add_ftype_def(FType, Id, Format, M).
 emugen_decl('$decl'(Spec), M) :- !,
-    put_tkval('\006\dot'(rule(Spec),level), M, decl).
+    Spec = F/N, functor(Rule, F, N), 
+    set_rule_kind(Rule, M, decl).
+emugen_decl(rkind(_Spec, []), _M) :- !. % TODO: ignored
+emugen_decl(rkind(Spec, [grammar]), M) :- !,
+    Spec = F/N, functor(Rule, F, N), 
+    set_rule_kind(Rule, M, grammar).
 emugen_decl(engine_opts(Opts), M) :- !,
     assertz_fact(engine_opts(Opts, M)).
 emugen_decl(engine_stubmain(Opts), M) :- !,
@@ -74,9 +80,7 @@ exec_decl((A,B), M) :- !,
     exec_decl(A, M),
     exec_decl(B, M).
 exec_decl(G, M) :-
-    % TODO: detect loops!
-    functor(G, F, N),
-    get_tkval('\006\dot'(rule(F/N),level), M, decl),
+    get_rule_kind(G, M, decl),
     !,
     ( clause_def(G, M, Def) -> true ; fail ), % (once)
     exec_decl(Def, M).
@@ -105,19 +109,23 @@ exec_decl('$decl'(G), M) :- !, exec_decl(G, M).
 
 :- use_module(engine(runtime_control), [statistics/2]).
 
-emugen_statistics.
-%emugen_statistics :- fail.
+:- compilation_fact(stats).
+
+:- meta_predicate with_stats(?, goal).
+:- if(defined(stats)).
+with_stats(Event, G) :-
+    message(note, ['emugen: starting ', Event]),
+    statistics(runtime, [T0|_]),
+    call(G),
+    statistics(runtime, [T1|_]),
+    T is floor(T1 - T0),
+    message(note, ['emugen: ended ', Event, ' (', T, 'ms.)']).
+:- else.
+with_stats(_, G) :- call(G).
+:- endif.
 
 generate_code(M) :-
-    ( emugen_statistics ->
-        message(note, ['Generating code for ', M]),
-        statistics(runtime, [T0|_]),
-        generate_code_(M),
-        statistics(runtime, [T1|_]),
-        T is floor(T1 - T0),
-        message(note, ['Code generated in ', T, 'ms.'])
-    ; generate_code_(M)
-    ).
+    with_stats(gencode, generate_code_(M)).
 
 generate_code_(M) :-
     catch(generate_code__(M), E, handler(E)).
@@ -172,9 +180,7 @@ code_to_cexp(code(Code), M, CExp) :-
 
 emit_code(G, M, Store, CExp) :-
     tr_solve(G, M, Store, CExp, _Store),
-    ( collect_prims(CExp, M, '$decl'/1, Post, []) -> true
-    ; throw(cannot_collect_code_prims(G))
-    ),
+    collect_prims(CExp, M, '$decl'/1, Post, []),
     exec_decl('$exec_decls'(Post), M).
 
 % ---------------------------------------------------------------------------
@@ -244,7 +250,7 @@ cexp_to_str(tk_bb(N), _) --> !, fmt_bb(N).
 cexp_to_str(tk_string(X), _) --> !, emit_qstring(X).
 cexp_to_str(tk_number(X), _) --> !, emit_number(X).
 %
-cexp_to_str(callexp(N, Xs), M) --> !, emit_atom(N), "(", emit_args(Xs, M), ")".
+cexp_to_str('$fcall'(N, Xs), M) --> !, emit_atom(N), "(", emit_args(Xs, M), ")".
 %
 cexp_to_str(X, _M) --> { throw(internal_error_bad_cexp(X)) }.
 
@@ -294,6 +300,8 @@ emit_string([X|Xs]) --> [X], emit_string(Xs).
 :- data clause_def/3.
 % rule_def(Head, M, Guard, Body). % (_ => _) rules
 :- data rule_def/4.
+% rule_kind(Head, M, Kind). % kind of rule
+:- data rule_kind/3.
 
 % engine_opts(Opts, M).
 :- data engine_opts/2.
@@ -312,6 +320,7 @@ clean_db(M) :-
     retractall_fact(tkval(_,M,_,_)),
     retractall_fact(clause_def(_,M,_)),
     retractall_fact(rule_def(_,M,_,_)),
+    retractall_fact(rule_kind(_,M,_)),
     %
     retractall_fact(engine_opts(_,M)),
     retractall_fact(engine_stubmain(_,M)).
@@ -330,6 +339,14 @@ get_tkval(Key, M, Val) :-
     tkhash(Key, Idx),
     current_fact(tkval(Idx, M, Key, Val0)), !,
     Val = Val0.
+
+set_rule_kind(Rule, M, Kind) :-
+    retractall_fact(rule_kind(Rule, M, _)),
+    assertz_fact(rule_kind(Rule, M, Kind)).
+
+get_rule_kind(Rule, M, Kind) :-
+    current_fact(rule_kind(Rule, M, Kind0)), !,
+    Kind = Kind0.
 
 add_ftype_def(FType, Id, Format, M) :-
     assertz_fact(ftype_def(FType, M, Id, Format)),
@@ -356,14 +373,24 @@ store_tell(Store, Constr) :-
     !.
 
 % Replace a constraint in a store
-store_replace(Store0, Constr, Store) :-
+store_replace(Store0, Constr, Store, PrevConstr) :-
+    functor(Constr, N, A),
+    functor(PrevConstr, N, A),
+    select(PrevConstr, Store0, Store1),
+    !,
+    Store = [Constr|Store1].
+store_replace(Store0, Constr, Store, '$none') :-
+    Store = [Constr|Store0].
+
+% Delete a constraint from a store
+store_del(Store0, Constr, Store) :-
     functor(Constr, N, A),
     functor(Constr0, N, A),
     select(Constr0, Store0, Store1),
     !,
     Store = [Constr|Store1].
-store_replace(Store0, Constr, Store) :-
-    Store = [Constr|Store0].
+store_del(Store0, _Constr, Store) :-
+    Store = Store0.
 
 % ---------------------------------------------------------------------------
 % TODO: simplify/improve diagnosis (no trie is needed now)
@@ -411,27 +438,16 @@ simp((CA ; B), M, Store0, Store, R) :- nonvar(CA), CA = (C->A), nonvar(C), C = [
 simp(A, M, Store0, Store, R) :-
     simp_lit(A, M, Store0, Store, R).
 
-% List to conjunction
-list_to_conj([], A) :- !, A = true.
-list_to_conj([A], A) :- !.
-list_to_conj([A|As], (A,Bs)) :-
-    list_to_conj(As, Bs).
-
-% Conjunction to list
-conj_to_list(A, Xs) :-
-    conj_to_list_(A, Xs, []).
-
-conj_to_list_(A, Xs, Xs0) :- var(A), !, Xs = [A|Xs0].
-conj_to_list_((A,B), Xs, Xs0) :- !,
-    conj_to_list_(A, Xs, Xs1),
-    conj_to_list_(B, Xs1, Xs0).
-conj_to_list_(true, Xs, Xs0) :- !, Xs = Xs0.
-conj_to_list_(A, [A|Xs], Xs).
-
 simp_lit([As], M, Store0, Store, R) :- is_list(As), !, % [[...]] notation
     ( simp_constrs(As, M, Store0, Store1) ->
         Store = Store1, R = true
     ; Store = '$fail_store', R = '$fail_lit'
+    ).
+simp_lit('$with'(Constraint, G), M, Store0, Store, R) :- !,
+    store_replace(Store0, Constraint, Store1, PrevConstraint),
+    simp(G, M, Store1, Store2, R),
+    ( PrevConstraint = '$none' -> store_del(Store2, Constraint, Store)
+    ; store_replace(Store2, PrevConstraint, Store, _)
     ).
 simp_lit('$foreach'(Xs, P), M, Store0, Store, R) :- !,
     foreach(Xs, P, M, Store0, Store, Code, []),
@@ -441,21 +457,20 @@ simp_lit('$foreach_sep'(Sep, Xs, P), M, Store0, Store, R) :- !,
     % Like $foreach but emits Sep 
     foreach_sep(Xs, Sep, P, M, Store0, Store, Code, []),
     R = Code.
-simp_lit(callexp(N,Args), M, Store0, Store, R) :- !,
-    R = callexp(N,Args2),
+simp_lit('$fcall'(N,Args), M, Store0, Store, R) :- !,
+    R = '$fcall'(N,Args2),
     simpargs(Args, M, Store0, Store, Args2).
 simp_lit(cond_blk(Cond,X), M, Store0, Store, R) :- !,
     R = cond_blk(Cond,X2),
-    simp_lit(X, M, Store0, Store, X2).
+    simp(X, M, Store0, Store, X2).
+simp_lit('$unfold'(G), M, Store0, Store, R) :- !, % (explicit for translation of prims)
+    unfold_lit(G, M, Store0, Store, R).
 simp_lit(G, _M, Store0, Store, R) :-
     prim_lit(G, G2), % (primitive, no translation)
     !,
     Store = Store0,
     R = G2.
 simp_lit(G, M, Store0, Store, R) :- 
-    % TODO: detect unfold loops!
-    % TODO: allow multi-passes (delay translation if we do not
-    % have enough information)
     unfold_lit(G, M, Store0, Store, R).
 
 prim_lit(G, G) :- integer(G).
@@ -469,7 +484,7 @@ prim_lit(prim(G), G).
 
 simpargs([], _M, Store, Store, []).
 simpargs([X|Xs], M, Store0, Store, [Y|Ys]) :-
-    simp(X, M, Store0, Store1, Y),
+    simp(expr(X), M, Store0, Store1, Y), % TODO: hardwired 'expr'
     simpargs(Xs, M, Store1, Store, Ys).
 
 % TODO: add a level to tr_solve
@@ -493,9 +508,12 @@ foreach_(X, P, M, Store0, Store) -->
     { tr_solve(G, M, Store0, Body, Store) },
     [Body].
 
+% TODO: detect unfold loops!
+% TODO: improve multi-passes (e.g., see label treatment)
 unfold_lit(G, M, Store0, Store, R) :-
-    ( functor(G, F, N),
-      get_tkval('\006\dot'(rule(F/N),level), M, grammar) ->
+    ( get_rule_kind(G, M, grammar) ->
+        %functor(G, F, N),
+        % get_tkval('\006\dot'(rule(F/N),level), M, grammar) ->
         % Do not annotate grammar level rules
         R = R0
     ; % Mark resolution step
@@ -521,18 +539,16 @@ simp_constrs([C|Cs], M, Store0, Store) :-
 % TODO: check instantiation or delay, allow user-defined built-ins
 % (may fail)
 simp_constr(update(Constraint), _M, Store0, Store) :- !,
-    store_replace(Store0, Constraint, Store).
+    store_replace(Store0, Constraint, Store, _PrevConstraint).
 simp_constr(newid(Prefix, Id), _M, Store0, Store) :- !,
-    ( store_tell(Store0, emugen_id_counter(N)) -> true
-    ; N = 0
+    % TODO: implement update?
+    store_replace(Store0, emugen_id_counter(N1), Store, Prev),
+    ( Prev = '$none' -> N = 0 
+    ; Prev = emugen_id_counter(N)
     ),
-    number_codes(N, NCs),
-    atom_codes(Prefix, PrefixCs),
-    append(PrefixCs, NCs, IdCs),
-    atom_codes(IdAtm, IdCs),
+    prefix_num(Prefix, N, IdAtm),
     Id = tk(IdAtm),
-    N1 is N + 1,
-    store_replace(Store0, emugen_id_counter(N1), Store).
+    N1 is N + 1.
 simp_constr(Constraint, M, Store, Store) :-
     simp_constr_(Constraint, M, Store). % (may fail)
 
@@ -551,9 +567,13 @@ simp_constr_(conj_to_list(A,B), _M, _) :- !,
     conj_to_list(A,B).
 simp_constr_(atom_concat(A,B,C), _M, _) :- !,
     atom_concat(A,B,C).
+simp_constr_(prefix_num(Prefix,N,Id), _M, _) :- !,
+    prefix_num(Prefix,N,Id).
 simp_constr_(uppercase(Ins, InsUp), _M, _) :- !,
     emit_uppercase(Ins, InsUp0, []),
     atom_codes(InsUp, InsUp0).
+simp_constr_(format_to_string(Format, Args, Str), _M, _) :- !,
+    format_to_string(Format, Args, Str).
 simp_constr_(get(K, V), M, _Store) :- !,
     get_tkval(K, M, V).
 simp_constr_(ftype_def(FType, Id, Format), M, _Store) :- !,
@@ -599,9 +619,7 @@ simp_conj(A, B, (A, B)).
 % Reduce G and collect and filtered primitive elems
 collect_and_filter(G, M, What, Store, Insns) :-
     tr_solve(G, M, Store, Body, _),
-    ( collect_prims(Body, M, What, Insns, []) -> true
-    ; throw(cannot_collect_prims(G, What))
-    ).
+    collect_prims(Body, M, What, Insns, []).
 
 % collect primitives
 collect_prims(X, M, What) --> { is_list(X) }, !, collect_prims_(X, M, What). % (flatten)
@@ -621,4 +639,29 @@ prim_filter(X, F/N) :- nonvar(X), functor(X, F, N).
 
 map_ftype_id([]) := [].
 map_ftype_id([X|Xs]) := [ftype_id(X)| ~map_ftype_id(Xs)].
+
+prefix_num(Prefix, N, IdAtm) :-
+    number_codes(N, NCs),
+    atom_codes(Prefix, PrefixCs),
+    append(PrefixCs, NCs, IdCs),
+    atom_codes(IdAtm, IdCs).
+
+% ---------------------------------------------------------------------------
+
+% List to conjunction
+list_to_conj([], A) :- !, A = true.
+list_to_conj([A], A) :- !.
+list_to_conj([A|As], (A,Bs)) :-
+    list_to_conj(As, Bs).
+
+% Conjunction to list
+conj_to_list(A, Xs) :-
+    conj_to_list_(A, Xs, []).
+
+conj_to_list_(A, Xs, Xs0) :- var(A), !, Xs = [A|Xs0].
+conj_to_list_((A,B), Xs, Xs0) :- !,
+    conj_to_list_(A, Xs, Xs1),
+    conj_to_list_(B, Xs1, Xs0).
+conj_to_list_(true, Xs, Xs0) :- !, Xs = Xs0.
+conj_to_list_(A, [A|Xs], Xs).
 
