@@ -6,41 +6,46 @@
 
 extern instance_clock_t def_clock;
 extern instance_clock_t use_clock;
-#define LoadH (H=(w->heap_top))
-#define StoreH ((w->heap_top)=H)
 #define BcOPCODE BcFetchOPCODE()
-#define BcP(Ty,X) (*(FTYPE_ctype(Ty) *)BCoff(P,(X)))
+#define BcP(Ty,X) ((*(FTYPE_ctype(Ty) *)BCoff(P,(X))))
 #define Fs(Ty) FTYPE_size(Ty)
 CVOID__PROTO(wam__2,goal_descriptor_t * desc,definition_t * start_func);
 CVOID__PROTO(wam,goal_descriptor_t * desc) {
-definition_t * func = ((definition_t *)(NULL));
+definition_t * func = (definition_t *)NULL;
 goto again;
 again:
+{
 EXCEPTION__CATCH({
 CVOID__CALL(wam__2, desc, func);
 return;
-}, {
+}
+, {
 choice_t * b;
-if (!(IsDeep())) {
-B = (w->choice);
-if (!(IsShallowTry())) {
+if (!IsDeep()) {
+B = w->choice;
+if (!IsShallowTry()) {
 NECK_RETRY_PATCH(B);
-  } else {
-(B->next_alt) = (w->next_alt);
-(B->frame) = (w->frame);
-(B->next_insn) = (w->next_insn);
-(B->local_top) = (w->local_top);
+    }
+ else {
+B->next_alt = w->next_alt;
+B->frame = w->frame;
+B->next_insn = w->next_insn;
+B->local_top = w->local_top;
 intmach_t vr0 = ChoiceArity(B);
 for (intmach_t vr1 = 0;
 vr1<vr0;vr1++) {
-(B->x)[vr1] = (w->x)[vr1];
+B->x[vr1] = w->x[vr1];
+      }
+
+if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
+choice_overflow(w,2*CHOICEPAD*sizeof(tagged_t),TRUE);
+      }
+
     }
-if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),(w->trail_top))) {
-choice_overflow(w,((2*CHOICEPAD)*sizeof(tagged_t)),TRUE);
-    }
-  }
+
 SetDeep();
-}
+  }
+
 X(0) = MakeSmall(ErrCode);
 X(1) = GET_ATOM(ErrFuncName);
 X(2) = MakeSmall(ErrFuncArity);
@@ -48,7 +53,9 @@ X(4) = Culprit;
 X(3) = MakeSmall(ErrArgNo);
 func = address_error;
 goto again;
-});
+}
+);
+}
 }
 CVOID__PROTO(wam__2,goal_descriptor_t * desc,definition_t * start_func) {
 bcp_t p;
@@ -68,30 +75,36 @@ ei = ~0;
 ON_DEBUG({
 if (debug_threads) {
 fprintf(stderr,"Worker state address is %p\n",desc);
+    }
+
   }
-});
+);
 if (start_func!=NULL) {
-P = ((bcp_t)(start_func));
-B = (w->choice);
-LoadH;
+P = (bcp_t)start_func;
+B = w->choice;
+H = w->heap_top;
 goto switch_on_pred;
-}
-if ((desc!=NULL&&((desc->action)&BACKTRACKING))) {
+  }
+
+if (desc!=NULL&&desc->action&BACKTRACKING) {
 RECOVER_WAM_STATE;
 goto fail;
-}
-goto r_proceed;
+  }
+
+goto r_op64;
 escape_to_p2:
-{tagged_t vr2;
+{
+tagged_t vr2;
 tagged_t vr3;
-vr2 = PointerToTerm(((Func->code).intinfo));
-if ((Func->arity)==0) {
-vr3 = (Func->printname);
-} else {
+vr2 = PointerToTerm(Func->code.intinfo);
+if (Func->arity==0) {
+vr3 = Func->printname;
+  }
+ else {
 vr3 = Tagp(STR,H);
-HeapPush(H,SetArity((Func->printname),(Func->arity)));
+HeapPush(H,SetArity(Func->printname,Func->arity));
 for (intmach_t vr4 = 0;
-vr4<(Func->arity);vr4++) {
+vr4<Func->arity;vr4++) {
 tagged_t vr5 = X(vr4);
 if (TaggedIsSVA(vr5)) {
 tagged_t vr6;
@@ -101,26 +114,34 @@ if (vr6==vr5) {
 BindSVA(vr5,Tagp(HVA,H));
 PreLoadHVA(vr5,H);
 break;
-        }
+          }
+
 vr5 = vr6;
-      } while (TaggedIsSVA(vr5));
-    }
+        }
+ while (TaggedIsSVA(vr5));
+      }
+
 HeapPush(H,vr5);
+    }
+
   }
-}
+
 P = ptemp;
 X(0) = vr3;
 X(1) = vr2;
-}goto switch_on_pred;
+goto switch_on_pred;
+  }
 escape_to_p:
-{tagged_t vr7;
-if ((Func->arity)==0) {
-vr7 = (Func->printname);
-} else {
+{
+tagged_t vr7;
+if (Func->arity==0) {
+vr7 = Func->printname;
+  }
+ else {
 vr7 = Tagp(STR,H);
-HeapPush(H,SetArity((Func->printname),(Func->arity)));
+HeapPush(H,SetArity(Func->printname,Func->arity));
 for (intmach_t vr8 = 0;
-vr8<(Func->arity);vr8++) {
+vr8<Func->arity;vr8++) {
 tagged_t vr9 = X(vr8);
 if (TaggedIsSVA(vr9)) {
 tagged_t vr10;
@@ -130,17 +151,24 @@ if (vr10==vr9) {
 BindSVA(vr9,Tagp(HVA,H));
 PreLoadHVA(vr9,H);
 break;
-        }
+          }
+
 vr9 = vr10;
-      } while (TaggedIsSVA(vr9));
-    }
+        }
+ while (TaggedIsSVA(vr9));
+      }
+
 HeapPush(H,vr9);
+    }
+
   }
-}
+
 P = ptemp;
 X(0) = vr7;
-}goto switch_on_pred;
+goto switch_on_pred;
+  }
 enter_predicate:
+{
 ON_ANDPARALLEL({
 if (Suspend==TOSUSPEND) {
 Suspend = SUSPENDED;
@@ -148,22 +176,26 @@ Wait_Acquire_lock(Waiting_For_Work_Lock);
 Cond_Var_Wait(Waiting_For_Work_Cond_Var,Waiting_For_Work_Lock);
 Suspend = RELEASED;
 Release_lock(Waiting_For_Work_Lock);
+    }
+
   }
-});
+);
 if (TestEventOrHeapWarnOverflow(H)) {
-int wake_count;
+int wake_cnt;
 if (Stop_This_Goal(w)) {
 goto exit_toplevel;
-  }
-wake_count = WakeCount();
-if (HeapCharAvailable(H)<=(CALLPAD+((4*wake_count)*sizeof(tagged_t)))) {
+    }
+
+wake_cnt = WakeCount();
+if (HeapCharAvailable(H)<=CALLPAD+4*wake_cnt*sizeof(tagged_t)) {
 SETUP_PENDING_CALL(E,address_true);
-StoreH;
-heap_overflow(w,(2*(CALLPAD+((4*wake_count)*sizeof(tagged_t)))));
-LoadH;
-  }
-if (wake_count>0) {
-if (wake_count==1) {
+w->heap_top = H;
+heap_overflow(w,2*(CALLPAD+4*wake_cnt*sizeof(tagged_t)));
+H = w->heap_top;
+    }
+
+if (wake_cnt>0) {
+if (wake_cnt==1) {
 SETUP_PENDING_CALL(E,address_uvc);
 collect_one_pending_unification(w);
 tagged_t vr11;
@@ -171,29 +203,38 @@ DEREF(vr11,X(1));
 if (TaggedIsCVA(vr11)) {
 X(1) = vr11;
 Setfunc(address_ucc);
+        }
+
       }
-    } else {
+ else {
 SETUP_PENDING_CALL(E,address_pending_unifications);
-StoreH;
-collect_pending_unifications(w,wake_count);
-LoadH;
+w->heap_top = H;
+collect_pending_unifications(w,wake_cnt);
+H = w->heap_top;
+      }
+
     }
-  }
-if (OffStacktop((w->frame),Stack_Warn)) {
+
+if (OffStacktop(w->frame,Stack_Warn)) {
 SETUP_PENDING_CALL(E,address_true);
 stack_overflow(w);
-  }
+    }
+
 UnsetEvent();
 if (TestCIntEvent()) {
 SETUP_PENDING_CALL(E,address_help);
 control_c_normal(w);
+    }
+
   }
-}
+
 goto switch_on_pred;
+  }
 switch_on_pred:
-ei = (Func->enter_instr);
+ei = Func->enter_instr;
 goto switch_on_pred_sub;
 switch_on_pred_sub:
+{
 switch (ei) {
 case ENTER_FASTCODE_INDEXED:
 goto enter_undefined;
@@ -202,232 +243,294 @@ goto enter_undefined;
 case ENTER_UNDEFINED:
 enter_undefined:
 PredTrace("U",Func);
-ptemp = ((bcp_t)(address_undefined_goal));
+ptemp = (bcp_t)address_undefined_goal;
 goto escape_to_p;
 case ENTER_INTERPRETED:
-ptemp = ((bcp_t)(address_interpret_c_goal));
+ptemp = (bcp_t)address_interpret_c_goal;
 goto escape_to_p2;
 case ENTER_C:
+{
 PredTrace("C",Func);
-StoreH;
-{intmach_t vr12 = (((cbool0_t)(((Func->code).proc))))(w);
+w->heap_top = H;
+intmach_t vr12 = ((cbool0_t)Func->code.proc)(w);
 if (Expanded_Worker!=NULL) {
 ON_DEBUG({
 fprintf(stderr,"wam() detected worker expanded by C predicate\n");
-    });
+      }
+);
 if (desc==NULL) {
 fprintf(stderr,"bug: invalid WAM expansion\n");
 abort();
-    }
+      }
+
 w = Expanded_Worker;
-(desc->worker_registers) = w;
+desc->worker_registers = w;
 Expanded_Worker = NULL;
-  }
+    }
+
 if (vr12) {
-goto r_proceed;
-  } else {
+goto r_op64;
+    }
+ else {
 goto fail;
-  }
-}case BUILTIN_TRUE:
+    }
+
+    }
+case BUILTIN_TRUE:
 PredTrace("B",Func);
-goto w_proceed;
+goto w_op64;
 case BUILTIN_FAIL:
 PredTrace("B",Func);
 goto fail;
 case BUILTIN_CURRENT_INSTANCE:
 PredTrace("B",Func);
-StoreH;
-((w->misc)->ins) = CFUN__EVAL(current_instance0);
-if (((w->misc)->ins)==NULL) {
+w->heap_top = H;
+w->misc->ins = CFUN__EVAL(current_instance0);
+if (w->misc->ins==NULL) {
 goto fail;
-  }
-P = ((bcp_t)((((w->misc)->ins)->emulcode)));
-goto ReadMode;
+    }
+
+P = (bcp_t)w->misc->ins->emulcode;
+goto r_dispatch;
 case BUILTIN_COMPILE_TERM:
+{
 PredTrace("B",Func);
-StoreH;
+w->heap_top = H;
 {worker_t * vr13;
-if (!(compile_term(w,(&vr13)))) {
+if (!compile_term(w,&vr13)) {
 goto fail;
-  }
+    }
+
 if (vr13!=NULL) {
 if (desc==NULL) {
 fprintf(stderr,"bug: invalid WAM expansion\n");
 abort();
-    }
+      }
+
 w = vr13;
-(desc->worker_registers) = w;
+desc->worker_registers = w;
 ON_DEBUG({
 fprintf(stderr,"Reallocation of wrb detected in wam()\n");
-    });
-  }
-}goto r_proceed;
+      }
+);
+    }
+
+}goto r_op64;
+    }
 case BUILTIN_INSTANCE:
 PredTrace("B",Func);
 LoadHVA(X(3),H);
-((w->misc)->ins) = TaggedToInstance(X(2));
-P = ((bcp_t)((((w->misc)->ins)->emulcode)));
-goto WriteMode;
+w->misc->ins = TaggedToInstance(X(2));
+P = (bcp_t)w->misc->ins->emulcode;
+goto w_dispatch;
 case BUILTIN_GELER:
+{
 PredTrace("B",Func);
-{tagged_t vr14 = X(0);
+tagged_t vr14 = X(0);
 DerefSwitch0(vr14,{
-;  });
+;    }
+);
 tagged_t vr15;
 vr15 = X(1);
 DerefSwitch0(vr15,{
-;  });
-Setfunc(find_definition(predicates_location,vr15,(&(w->structure)),TRUE));
-StoreH;
+;    }
+);
+Setfunc(find_definition(predicates_location,vr15,&w->structure,TRUE));
+w->heap_top = H;
 CVOID__CALL(SUSPEND_T3_ON_T1,Func,vr15,vr14);
-LoadH;
-}goto w_proceed;
+H = w->heap_top;
+goto w_op64;
+    }
 case BUILTIN_NODEBUGCALL:
+{
 PredTrace("B",Func);
-{tagged_t vr16 = X(0);
+tagged_t vr16 = X(0);
 DerefSwitch(vr16,X(0),{
-;  });
-Setfunc(find_definition(predicates_location,vr16,(&(w->structure)),FALSE));
+;    }
+);
+Setfunc(find_definition(predicates_location,vr16,&w->structure,FALSE));
 if (Func==NULL) {
 goto fail;
-  }
-ei = (Func->enter_instr);
+    }
+
+ei = Func->enter_instr;
 goto call4;
-}case BUILTIN_SYSCALL:
+    }
+case BUILTIN_SYSCALL:
+{
 PredTrace("B",Func);
-{tagged_t vr17 = X(0);
+tagged_t vr17 = X(0);
 DerefSwitch(vr17,X(0),{
-;  });
-Setfunc(find_definition(predicates_location,vr17,(&(w->structure)),FALSE));
+;    }
+);
+Setfunc(find_definition(predicates_location,vr17,&w->structure,FALSE));
 if (Func==NULL) {
 Setfunc(address_undefined_goal);
 goto switch_on_pred;
-  }
-ei = (Func->enter_instr);
+    }
+
+ei = Func->enter_instr;
 goto call4;
-}call4:
+    }
+call4:
+{
 switch (ei) {
 case ENTER_INTERPRETED:
-X(1) = PointerToTerm(((Func->code).intinfo));
+X(1) = PointerToTerm(Func->code.intinfo);
 Setfunc(address_interpret_goal);
 goto switch_on_pred;
 case BUILTIN_DIF:
+{
 PredTrace("B",Func);
-{tagged_t * vr18 = (w->structure);
+tagged_t * vr18 = w->structure;
 tagged_t vr19;
 RefHeapNext(vr19,vr18);
 X(0) = vr19;
 tagged_t vr20;
 RefHeapNext(vr20,vr18);
 X(1) = vr20;
-}goto dif0;
+goto dif0;
+      }
 case SPYPOINT:
-if (!(((Func->properties).wait))) {
+if (!Func->properties.wait) {
 goto call5;
-    }
+      }
+
 goto call_waitpoint;
 case WAITPOINT:
+{
 call_waitpoint:
-{tagged_t vr21;
+{
+tagged_t vr21;
 tagged_t vr22;
-RefHeap(vr21,(w->structure));
+RefHeap(vr21,w->structure);
 DerefSwitch(vr21,vr22,{
 tagged_t vr23;
 vr23 = X(0);
-StoreH;
+w->heap_top = H;
 CVOID__CALL(SUSPEND_T3_ON_T1,Func,vr23,vr22);
-LoadH;
-goto w_proceed;
-    });
-}goto call5;
+H = w->heap_top;
+goto w_op64;
+      }
+);
+goto call5;
+      }
+      }
 call5:
-ei = (Func->predtyp);
+ei = Func->predtyp;
 goto call4;
 default:
-{intmach_t vr24 = (Func->arity);
+{
+intmach_t vr24 = Func->arity;
 if (vr24!=0) {
-tagged_t * vr25 = (w->x);
-tagged_t * vr26 = (w->structure);
+tagged_t * vr25 = w->x;
+tagged_t * vr26 = w->structure;
 do {
 PushRefHeapNext(vr25,vr26);
-      } while (--vr24);
+        }
+ while (--vr24);
+      }
+
+goto switch_on_pred_sub;
+      }
     }
-}goto switch_on_pred_sub;
-  }case BUILTIN_CALL:
+    }
+case BUILTIN_CALL:
+{
 PredTrace("B",Func);
-{tagged_t vr27 = X(0);
+tagged_t vr27 = X(0);
 DerefSwitch(vr27,X(0),{
-;  });
-Setfunc(find_definition(predicates_location,vr27,(&(w->structure)),FALSE));
+;    }
+);
+Setfunc(find_definition(predicates_location,vr27,&w->structure,FALSE));
 if (Func==NULL) {
 Setfunc(address_undefined_goal);
 goto switch_on_pred;
-  }
+    }
+
 if (Current_Debugger_Mode!=atom_off) {
 Setfunc(address_trace);
 goto switch_on_pred;
-  }
-ei = (Func->enter_instr);
+    }
+
+ei = Func->enter_instr;
 goto call4;
-}case BUILTIN_DIF:
+    }
+case BUILTIN_DIF:
+{
 dif0:
+{
 PredTrace("B",Func);
-{tagged_t vr28 = X(0);
+tagged_t vr28 = X(0);
 DerefSwitch0(vr28,{
-;  });
+;    }
+);
 tagged_t vr29 = X(1);
 DerefSwitch0(vr29,{
-;  });
-(w->structure) = NULL;
+;    }
+);
+w->structure = NULL;
 if (vr28==vr29) {
 goto fail;
-  } else if ((!(IsVar((vr28&vr29)))&&(IsAtomic(vr28)||IsAtomic(vr29)))) {
-goto w_proceed;
-  } else {
+    }
+ else if (!IsVar(vr28&vr29)&&(IsAtomic(vr28)||IsAtomic(vr29))) {
+goto w_op64;
+    }
+ else {
 X(0) = vr28;
 X(1) = vr29;
-StoreH;
-goto dif2;
-  }
-}dif2:
-if (!(prolog_dif(w,Func))) {
+w->heap_top = H;
+if (!prolog_dif(w,Func)) {
 goto fail;
-  }
-goto r_proceed;
+      }
+
+goto r_op64;
+    }
+
+    }
+    }
 case BUILTIN_ABORT:
+{
 PredTrace("B",Func);
-{tagged_t vr30 = X(0);
+tagged_t vr30 = X(0);
 DerefSwitch0(vr30,{
-;  });
-((w->misc)->exit_code) = GetSmall(vr30);
-}(w->previous_choice) = InitialChoice;
+;    }
+);
+w->misc->exit_code = GetSmall(vr30);
+w->previous_choice = InitialChoice;
 PROFILE__HOOK_CUT;
-B = (w->previous_choice);
+B = w->previous_choice;
 SetChoice(B);
-TRACE_CHPT_CUT((w->choice));
-ConcChptCleanUp(TopConcChpt,(w->choice));
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt,w->choice);
 goto fail;
+    }
 case SPYPOINT:
 if (Current_Debugger_Mode!=atom_off) {
-ptemp = ((bcp_t)(address_trace));
+ptemp = (bcp_t)address_trace;
 goto escape_to_p;
-  }
-if (!(((Func->properties).wait))) {
+    }
+
+if (!Func->properties.wait) {
 goto nowait;
-  }
+    }
+
 goto waitpoint;
 case WAITPOINT:
+{
 waitpoint:
-{tagged_t vr31 = X(0);
+{
+tagged_t vr31 = X(0);
 DerefSwitch(vr31,X(0),{
 tagged_t vr32;
-if ((Func->arity)==0) {
-vr32 = (Func->printname);
-    } else {
+if (Func->arity==0) {
+vr32 = Func->printname;
+      }
+ else {
 vr32 = Tagp(STR,H);
-HeapPush(H,SetArity((Func->printname),(Func->arity)));
+HeapPush(H,SetArity(Func->printname,Func->arity));
 for (intmach_t vr33 = 0;
-vr33<(Func->arity);vr33++) {
+vr33<Func->arity;vr33++) {
 tagged_t vr34 = X(vr33);
 if (TaggedIsSVA(vr34)) {
 tagged_t vr35;
@@ -437,3449 +540,4378 @@ if (vr35==vr34) {
 BindSVA(vr34,Tagp(HVA,H));
 PreLoadHVA(vr34,H);
 break;
-            }
+              }
+
 vr34 = vr35;
-          } while (TaggedIsSVA(vr34));
-        }
+            }
+ while (TaggedIsSVA(vr34));
+          }
+
 HeapPush(H,vr34);
+        }
+
       }
-    }
+
 vr31 = X(0);
 if (TaggedIsSVA(vr31)) {
 RefSVA(vr31,X(0));
-    }
-StoreH;
+      }
+
+w->heap_top = H;
 CVOID__CALL(SUSPEND_T3_ON_T1,Func,vr32,vr31);
-LoadH;
-goto w_proceed;
-  });
-}goto nowait;
+H = w->heap_top;
+goto w_op64;
+    }
+);
+goto nowait;
 nowait:
-ei = (Func->predtyp);
+ei = Func->predtyp;
 goto switch_on_pred_sub;
+    }
+    }
 case BREAKPOINT:
-ei = (Func->predtyp);
+ei = Func->predtyp;
 goto switch_on_pred_sub;
 case ENTER_PROFILEDCODE_INDEXED:
 goto enter_compactcode_indexed;
 case ENTER_COMPACTCODE_INDEXED:
+{
 enter_compactcode_indexed:
+{
 PredTrace("E",Func);
-{tagged_t vr36 = X(0);
+tagged_t vr36 = X(0);
 DerefSwitch(vr36,X(0),{
-alts = (((Func->code).incoreinfo)->varcase);
+alts = Func->code.incoreinfo->varcase;
 goto w_tryeach;
-  });
+    }
+);
 tagged_t vr37;
-StoreH;
-if ((vr36&TagBitComplex)) {
-if ((vr36&TagBitFunctor)) {
+w->heap_top = H;
+if (vr36&TagBitComplex) {
+if (vr36&TagBitFunctor) {
 S = TaggedToArg(vr36,0);
 vr37 = HeapNext(S);
-    } else {
+      }
+ else {
 S = TagpPtr(LST,vr36);
-alts = (((Func->code).incoreinfo)->lstcase);
+alts = Func->code.incoreinfo->lstcase;
 goto r_tryeach;
+      }
+
     }
-  } else {
+ else {
 vr37 = vr36;
-  }
+    }
+
 intmach_t vr38;
-sw_on_key_t * Htab = (((Func->code).incoreinfo)->othercase);
+sw_on_key_t * Htab = Func->code.incoreinfo->othercase;
 vr38 = 0;
 tagged_t vr39;
 vr39 = vr37;
-vr37&=(Htab->mask);
+vr37&=Htab->mask;
 sw_on_key_node_t * HtabNode;
 do {
 HtabNode = SW_ON_KEY_NODE_FROM_OFFSET(Htab,vr37);
-if (((HtabNode->key)==vr39||!((HtabNode->key)))) {
+if (HtabNode->key==vr39||!HtabNode->key) {
 break;
-    }
+      }
+
 vr38+=sizeof(sw_on_key_node_t);
-vr37 = ((vr37+vr38)&(Htab->mask));
-  } while (TRUE);
-alts = ((HtabNode->value).try_chain);
+vr37 = vr37+vr38&Htab->mask;
+    }
+ while (TRUE);
+alts = HtabNode->value.try_chain;
 goto r_tryeach;
-}case ENTER_PROFILEDCODE:
+    }
+    }
+case ENTER_PROFILEDCODE:
 goto enter_compactcode;
 case ENTER_COMPACTCODE:
 enter_compactcode:
 PredTrace("E",Func);
-alts = (((Func->code).incoreinfo)->varcase);
+alts = Func->code.incoreinfo->varcase;
 goto w_tryeach;
-}fail:
+  }
+  }
+fail:
+{
 PROFILE__HOOK_FAIL;
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr,"Failing: node = %p, previous_choice = %p, conc. node = %p\n",(w->choice),(w->previous_choice),TopConcChpt);
-  }
-if ((((w->misc)->top_conc_chpt)<(w->choice)&&((w->misc)->top_conc_chpt)<(w->previous_choice))) {
+fprintf(stderr,"Failing: node = %p, previous_choice = %p, conc. node = %p\n",w->choice,w->previous_choice,TopConcChpt);
+    }
+
+if (w->misc->top_conc_chpt<w->choice&&w->misc->top_conc_chpt<w->previous_choice) {
 fprintf(stderr,"********** what happened here?\n");
+    }
+
   }
-});
+);
 ResetWakeCount();
-B = (w->choice);
+B = w->choice;
 ON_TABLING({
-MAKE_TRAIL_CACTUS_STACK;});
+MAKE_TRAIL_CACTUS_STACK;  }
+);
 {tagged_t vr40;
 tagged_t vr41;
 tagged_t * vr42;
-vr42 = (w->trail_top);
-vr41 = ((tagged_t)(TrailTopUnmark((B->trail_top))));
+vr42 = w->trail_top;
+vr41 = (tagged_t)TrailTopUnmark(B->trail_top);
 if (TrailYounger(vr42,vr41)) {
 do {
 PlainUntrail(vr42,vr40,{
-(w->trail_top) = vr42;
-(w->frame) = (B->frame);
-(w->next_insn) = (B->next_insn);
+w->trail_top = vr42;
+w->frame = B->frame;
+w->next_insn = B->next_insn;
 SetE(NodeLocalTop(B));
-(E->frame) = (w->frame);
-(E->next_insn) = (w->next_insn);
-(w->frame) = E;
-(w->next_insn) = failcode;
-(w->local_top) = ((frame_t *)(Offset(E,EToY0)));
-LoadH;
+E->frame = w->frame;
+E->next_insn = w->next_insn;
+w->frame = E;
+w->next_insn = failcode;
+w->local_top = (frame_t *)Offset(E,EToY0);
+H = w->heap_top;
 X(0) = vr40;
-Setfunc(find_definition(predicates_location,vr40,(&(w->structure)),FALSE));
+Setfunc(find_definition(predicates_location,vr40,&w->structure,FALSE));
 if (Func==NULL) {
 Setfunc(address_undefined_goal);
 goto switch_on_pred;
-      }
-ei = (Func->enter_instr);
+        }
+
+ei = Func->enter_instr;
 goto call4;
-    });
-  } while (TrailYounger(vr42,vr41));
-(w->trail_top) = vr42;
-}
-}(w->heap_top) = NodeGlobalTop(B);
+      }
+);
+    }
+ while (TrailYounger(vr42,vr41));
+w->trail_top = vr42;
+  }
+
+}w->heap_top = NodeGlobalTop(B);
 if (IsDeep()) {
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr,"deep backtracking, node = %p\n",(w->choice));
+fprintf(stderr,"deep backtracking, node = %p\n",w->choice);
+      }
+
     }
-  });
-(w->frame) = (B->frame);
-(w->next_insn) = (B->next_insn);
-(w->next_alt) = (B->next_alt);
-(w->local_top) = NodeLocalTop(B);
-{intmach_t vr43 = ((B->next_alt)->arity);
-(w->previous_choice) = ChoiceCont0(B,vr43);
+);
+w->frame = B->frame;
+w->next_insn = B->next_insn;
+w->next_alt = B->next_alt;
+w->local_top = NodeLocalTop(B);
+intmach_t vr43 = B->next_alt->arity;
+w->previous_choice = ChoiceCont0(B,vr43);
 SetShallowRetry();
 for (intmach_t vr44 = 0;
 vr44<vr43;vr44++) {
-(w->x)[vr44] = (B->x)[vr44];
+w->x[vr44] = B->x[vr44];
+    }
+
   }
-}}
+
 PROFILE__HOOK_REDO;
-P = ((bcp_t)((w->next_alt)));
-{try_node_t * vr45;
-vr45 = (((try_node_t *)(P))->next);
+P = (bcp_t)w->next_alt;
+try_node_t * vr45;
+vr45 = ((try_node_t *)P)->next;
 if (vr45==NULL) {
 SetDeep();
-B = (w->previous_choice);
+B = w->previous_choice;
 SetChoice(B);
 ON_TABLING({
 if (FrozenChpt(B)) {
 push_choicept(w,address_nd_fake_choicept);
+      }
+
     }
-  });
-P = (((try_node_t *)(P))->emul_p);
-if (!(IsVar(X(0)))) {
-goto ReadMode;
+);
+P = ((try_node_t *)P)->emul_p;
+if (!IsVar(X(0))) {
+goto r_dispatch;
+    }
+
+H = w->heap_top;
+goto w_dispatch;
   }
-LoadH;
-goto WriteMode;
-} else {
-CODE_CHOICE_PATCH((w->choice),vr45);
-P = (((try_node_t *)(P))->emul_p);
-if (!(IsVar(X(0)))) {
-goto ReadMode;
+ else {
+CODE_CHOICE_PATCH(w->choice,vr45);
+P = ((try_node_t *)P)->emul_p;
+if (!IsVar(X(0))) {
+goto r_dispatch;
+    }
+
+H = w->heap_top;
+goto w_dispatch;
   }
-LoadH;
-goto WriteMode;
-}
-}r_tryeach:
+
+  }
+r_tryeach:
+{
 #if defined(GAUGE)
-INCR_COUNTER(((alts->entry_counter)+1));
+INCR_COUNTER(alts->entry_counter+1);
 #endif
-P = (alts->emul_p2);
-(w->previous_choice) = (w->choice);
-{try_node_t * vr46 = (alts->next);
+P = alts->emul_p2;
+w->previous_choice = w->choice;
+try_node_t * vr46 = alts->next;
 if (vr46!=NULL) {
-B = (w->choice);
-GetFrameTop((w->local_top),B,(G->frame));
-CODE_CHOICE_NEW0(B,vr46,(w->heap_top));
+B = w->choice;
+GetFrameTop(w->local_top,B,G->frame);
+CODE_CHOICE_NEW0(B,vr46,w->heap_top);
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr,"WAM created choicepoint (r), node = %p\n",(w->choice));
+fprintf(stderr,"WAM created choicepoint (r), node = %p\n",w->choice);
+      }
+
     }
-  });
-if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),(w->trail_top))) {
-choice_overflow(w,((2*CHOICEPAD)*sizeof(tagged_t)),TRUE);
+);
+if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
+choice_overflow(w,2*CHOICEPAD*sizeof(tagged_t),TRUE);
+    }
+
   }
-} else {
+ else {
 SetDeep();
-}
-}goto ReadMode;
-ReadMode:
+  }
+
+goto r_dispatch;
+  }
+r_dispatch:
+{
 switch (BcOPCODE) {
 case 260:
-LoadH;
-goto w_inittrue;
+H = w->heap_top;
+goto w_op260;
 case 261:
-LoadH;
-goto w_firsttrue_n;
+H = w->heap_top;
+goto w_op261;
 case 0:
 P+=Fs(f_Q);
-goto r_initcall;
-r_initcall:
+goto r_op1;
 case 1:
-LoadH;
-goto w_initcall;
+r_op1:
+H = w->heap_top;
+goto w_op1;
 case 20:
 P+=Fs(f_Q);
-goto r_firstcall_n;
-r_firstcall_n:
+goto r_op21;
 case 21:
-LoadH;
-goto w_firstcall_n;
+r_op21:
+H = w->heap_top;
+goto w_op21;
 case 18:
 P+=Fs(f_Q);
-goto r_firstcall_8;
-r_firstcall_8:
+goto r_op19;
 case 19:
-LoadH;
-goto w_firstcall_8;
+r_op19:
+H = w->heap_top;
+goto w_op19;
 case 16:
 P+=Fs(f_Q);
-goto r_firstcall_7;
-r_firstcall_7:
+goto r_op17;
 case 17:
-LoadH;
-goto w_firstcall_7;
+r_op17:
+H = w->heap_top;
+goto w_op17;
 case 14:
 P+=Fs(f_Q);
-goto r_firstcall_6;
-r_firstcall_6:
+goto r_op15;
 case 15:
-LoadH;
-goto w_firstcall_6;
+r_op15:
+H = w->heap_top;
+goto w_op15;
 case 12:
 P+=Fs(f_Q);
-goto r_firstcall_5;
-r_firstcall_5:
+goto r_op13;
 case 13:
-LoadH;
-goto w_firstcall_5;
+r_op13:
+H = w->heap_top;
+goto w_op13;
 case 10:
 P+=Fs(f_Q);
-goto r_firstcall_4;
-r_firstcall_4:
+goto r_op11;
 case 11:
-LoadH;
-goto w_firstcall_4;
+r_op11:
+H = w->heap_top;
+goto w_op11;
 case 8:
 P+=Fs(f_Q);
-goto r_firstcall_3;
-r_firstcall_3:
+goto r_op9;
 case 9:
-LoadH;
-goto w_firstcall_3;
+r_op9:
+H = w->heap_top;
+goto w_op9;
 case 6:
 P+=Fs(f_Q);
-goto r_firstcall_2;
-r_firstcall_2:
+goto r_op7;
 case 7:
-LoadH;
-goto w_firstcall_2;
+r_op7:
+H = w->heap_top;
+goto w_op7;
 case 4:
 P+=Fs(f_Q);
-goto r_firstcall_1;
-r_firstcall_1:
+goto r_op5;
 case 5:
-LoadH;
-goto w_firstcall_1;
+r_op5:
+H = w->heap_top;
+goto w_op5;
 case 2:
 P+=Fs(f_Q);
-goto r_firstcall;
-r_firstcall:
+goto r_op3;
 case 3:
-LoadH;
-goto w_firstcall;
+r_op3:
+H = w->heap_top;
+goto w_op3;
 case 40:
 P+=Fs(f_Q);
-goto r_call_n;
-r_call_n:
+goto r_op41;
 case 41:
-LoadH;
-goto w_call_n;
+r_op41:
+H = w->heap_top;
+goto w_op41;
 case 38:
 P+=Fs(f_Q);
-goto r_call_8;
-r_call_8:
+goto r_op39;
 case 39:
-LoadH;
-goto w_call_8;
+r_op39:
+H = w->heap_top;
+goto w_op39;
 case 36:
 P+=Fs(f_Q);
-goto r_call_7;
-r_call_7:
+goto r_op37;
 case 37:
-LoadH;
-goto w_call_7;
+r_op37:
+H = w->heap_top;
+goto w_op37;
 case 34:
 P+=Fs(f_Q);
-goto r_call_6;
-r_call_6:
+goto r_op35;
 case 35:
-LoadH;
-goto w_call_6;
+r_op35:
+H = w->heap_top;
+goto w_op35;
 case 32:
 P+=Fs(f_Q);
-goto r_call_5;
-r_call_5:
+goto r_op33;
 case 33:
-LoadH;
-goto w_call_5;
+r_op33:
+H = w->heap_top;
+goto w_op33;
 case 30:
 P+=Fs(f_Q);
-goto r_call_4;
-r_call_4:
+goto r_op31;
 case 31:
-LoadH;
-goto w_call_4;
+r_op31:
+H = w->heap_top;
+goto w_op31;
 case 28:
 P+=Fs(f_Q);
-goto r_call_3;
-r_call_3:
+goto r_op29;
 case 29:
-LoadH;
-goto w_call_3;
+r_op29:
+H = w->heap_top;
+goto w_op29;
 case 26:
 P+=Fs(f_Q);
-goto r_call_2;
-r_call_2:
+goto r_op27;
 case 27:
-LoadH;
-goto w_call_2;
+r_op27:
+H = w->heap_top;
+goto w_op27;
 case 24:
 P+=Fs(f_Q);
-goto r_call_1;
-r_call_1:
+goto r_op25;
 case 25:
-LoadH;
-goto w_call_1;
+r_op25:
+H = w->heap_top;
+goto w_op25;
 case 22:
 P+=Fs(f_Q);
-goto r_call;
-r_call:
+goto r_op23;
 case 23:
-LoadH;
-goto w_call;
+r_op23:
+H = w->heap_top;
+goto w_op23;
 case 60:
 P+=Fs(f_Q);
-goto r_lastcall_n;
-r_lastcall_n:
+goto r_op61;
 case 61:
-LoadH;
-goto w_lastcall_n;
+r_op61:
+H = w->heap_top;
+goto w_op61;
 case 58:
 P+=Fs(f_Q);
-goto r_lastcall_8;
-r_lastcall_8:
+goto r_op59;
 case 59:
-LoadH;
-goto w_lastcall_8;
+r_op59:
+H = w->heap_top;
+goto w_op59;
 case 56:
 P+=Fs(f_Q);
-goto r_lastcall_7;
-r_lastcall_7:
+goto r_op57;
 case 57:
-LoadH;
-goto w_lastcall_7;
+r_op57:
+H = w->heap_top;
+goto w_op57;
 case 54:
 P+=Fs(f_Q);
-goto r_lastcall_6;
-r_lastcall_6:
+goto r_op55;
 case 55:
-LoadH;
-goto w_lastcall_6;
+r_op55:
+H = w->heap_top;
+goto w_op55;
 case 52:
 P+=Fs(f_Q);
-goto r_lastcall_5;
-r_lastcall_5:
+goto r_op53;
 case 53:
-LoadH;
-goto w_lastcall_5;
+r_op53:
+H = w->heap_top;
+goto w_op53;
 case 50:
 P+=Fs(f_Q);
-goto r_lastcall_4;
-r_lastcall_4:
+goto r_op51;
 case 51:
-LoadH;
-goto w_lastcall_4;
+r_op51:
+H = w->heap_top;
+goto w_op51;
 case 48:
 P+=Fs(f_Q);
-goto r_lastcall_3;
-r_lastcall_3:
+goto r_op49;
 case 49:
-LoadH;
-goto w_lastcall_3;
+r_op49:
+H = w->heap_top;
+goto w_op49;
 case 46:
 P+=Fs(f_Q);
-goto r_lastcall_2;
-r_lastcall_2:
+goto r_op47;
 case 47:
-LoadH;
-goto w_lastcall_2;
+r_op47:
+H = w->heap_top;
+goto w_op47;
 case 44:
 P+=Fs(f_Q);
-goto r_lastcall_1;
-r_lastcall_1:
+goto r_op45;
 case 45:
-LoadH;
-goto w_lastcall_1;
+r_op45:
+H = w->heap_top;
+goto w_op45;
 case 42:
 P+=Fs(f_Q);
-goto r_lastcall;
-r_lastcall:
+goto r_op43;
 case 43:
-LoadH;
-goto w_lastcall;
+r_op43:
+H = w->heap_top;
+goto w_op43;
 case 62:
-LoadH;
-P = BcP(f_p,(0+Fs(f_Q)));
+H = w->heap_top;
+P = BcP(f_p,0+Fs(f_Q));
 goto enter_predicate;
 case 63:
-LoadH;
+H = w->heap_top;
 P = BcP(f_p,0);
 goto enter_predicate;
 case 69:
-LoadH;
-goto w_put_x_void;
+H = w->heap_top;
+goto w_op69;
 case 70:
-LoadH;
-goto w_put_x_variable;
+H = w->heap_top;
+goto w_op70;
 case 85:
-Xb(BcP(f_x,0)) = Xb(BcP(f_x,(0+Fs(f_x))));
-Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_x)))) = Xb(BcP(f_x,(((0+Fs(f_x))+Fs(f_x))+Fs(f_x))));
+Xb(BcP(f_x,0)) = Xb(BcP(f_x,0+Fs(f_x)));
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x))) = Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x)+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
 case 71:
-Xb(BcP(f_x,0)) = Xb(BcP(f_x,(0+Fs(f_x))));
+Xb(BcP(f_x,0)) = Xb(BcP(f_x,0+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
 case 72:
-LoadH;
-goto w_put_x_unsafe_value;
+H = w->heap_top;
+goto w_op72;
 case 73:
-LoadH;
-goto w_put_y_first_variable;
+H = w->heap_top;
+goto w_op73;
 case 74:
-LoadH;
-goto w_put_y_variable;
+H = w->heap_top;
+goto w_op74;
 case 83:
-LoadH;
-goto w_put_yfvar_yvar;
+H = w->heap_top;
+goto w_op83;
 case 84:
-LoadH;
-goto w_put_yvar_yvar;
+H = w->heap_top;
+goto w_op84;
 case 75:
-Xb(BcP(f_x,0)) = Yb(BcP(f_y,(0+Fs(f_x))));
+Xb(BcP(f_x,0)) = Yb(BcP(f_y,0+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
 case 76:
-LoadH;
-goto w_put_y_unsafe_value;
+H = w->heap_top;
+goto w_op76;
 case 77:
-Xb(BcP(f_x,(0+Fs(f_Q)))) = BcP(f_t,((0+Fs(f_Q))+Fs(f_x)));
+Xb(BcP(f_x,0+Fs(f_Q))) = BcP(f_t,0+Fs(f_Q)+Fs(f_x));
 P+=Fs(f_Q)+Fs(f_x)+Fs(f_t);
-goto ReadMode;
+goto r_dispatch;
 case 78:
-Xb(BcP(f_x,0)) = BcP(f_t,(0+Fs(f_x)));
+Xb(BcP(f_x,0)) = BcP(f_t,0+Fs(f_x));
 P+=Fs(f_x)+Fs(f_t);
-goto ReadMode;
+goto r_dispatch;
 case 81:
 Xb(BcP(f_x,0)) = atom_nil;
 P+=Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
 case 252:
-LoadH;
-goto w_put_largeq;
+H = w->heap_top;
+goto w_op252;
 case 253:
-LoadH;
-goto w_put_large;
+H = w->heap_top;
+goto w_op253;
 case 79:
-LoadH;
-goto w_put_structureq;
+H = w->heap_top;
+goto w_op79;
 case 80:
-LoadH;
-goto w_put_structure;
+H = w->heap_top;
+goto w_op80;
 case 82:
-LoadH;
-goto w_put_list;
+H = w->heap_top;
+goto w_op82;
 case 86:
-Xb(BcP(f_x,0)) = Yb(BcP(f_y,(0+Fs(f_x))));
-Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_y)))) = Yb(BcP(f_y,(((0+Fs(f_x))+Fs(f_y))+Fs(f_x))));
+Xb(BcP(f_x,0)) = Yb(BcP(f_y,0+Fs(f_x)));
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
 case 87:
-LoadH;
-goto w_put_yval_yuval;
+H = w->heap_top;
+goto w_op87;
 case 88:
-LoadH;
-goto w_put_yuval_yval;
+H = w->heap_top;
+goto w_op88;
 case 89:
-LoadH;
-goto w_put_yuval_yuval;
-r_get_x_value:
+H = w->heap_top;
+goto w_op89;
 case 91:
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),Xb(BcP(f_x,(0+Fs(f_x))))))) {
+r_op91:
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),Xb(BcP(f_x,0+Fs(f_x))))) {
 goto fail;
-  }
+    }
+
 P+=Fs(f_x)+Fs(f_x);
-goto ReadMode;
-r_get_y_first_value:
+goto r_dispatch;
 case 94:
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_x)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_x)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_x)))) = Xb(BcP(f_x,0));
+r_op94:
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_x))) = Xb(BcP(f_x,0));
 P+=Fs(f_x)+Fs(f_y);
-goto ReadMode;
-r_get_y_value:
+goto r_dispatch;
 case 95:
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),Yb(BcP(f_y,(0+Fs(f_x))))))) {
+r_op95:
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),Yb(BcP(f_y,0+Fs(f_x))))) {
 goto fail;
-  }
+    }
+
 P+=Fs(f_x)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
 case 96:
 P+=Fs(f_Q);
-goto r_get_constant;
-r_get_constant:
+goto r_op97;
 case 97:
-{tagged_t vr47 = Xb(BcP(f_x,0));
-{tagged_t vr48;
+{
+r_op97:
+{
+tagged_t vr47 = Xb(BcP(f_x,0));
+tagged_t vr48;
 SwitchOnVar(vr47,vr48,{
-BindHVA(vr47,BcP(f_t,(0+Fs(f_x))));
-  },{
-BindCVA(vr47,BcP(f_t,(0+Fs(f_x))));
-  },{
-BindSVA(vr47,BcP(f_t,(0+Fs(f_x))));
-  },{
-if (vr47!=BcP(f_t,(0+Fs(f_x)))) {
-goto fail;
+BindHVA(vr47,BcP(f_t,0+Fs(f_x)));
     }
-  });
-}}P+=Fs(f_x)+Fs(f_t);
-goto ReadMode;
+,{
+BindCVA(vr47,BcP(f_t,0+Fs(f_x)));
+    }
+,{
+BindSVA(vr47,BcP(f_t,0+Fs(f_x)));
+    }
+,{
+if (vr47!=BcP(f_t,0+Fs(f_x))) {
+goto fail;
+      }
+
+    }
+);
+P+=Fs(f_x)+Fs(f_t);
+goto r_dispatch;
+    }
+    }
 case 254:
 P+=Fs(f_Q);
-goto r_get_large;
-r_get_large:
+goto r_op255;
 case 255:
+{
+r_op255:
+{
 {tagged_t vr49;
 vr49 = Xb(BcP(f_x,0));
-{tagged_t vr50;
+tagged_t vr50;
 SwitchOnVar(vr49,vr50,{
-BindHVA(vr49,BC_MakeBlob(w,(&BcP(f_t,(0+Fs(f_x))))));
-  },{
-BindCVA(vr49,BC_MakeBlob(w,(&BcP(f_t,(0+Fs(f_x))))));
-  },{
-BindSVA(vr49,BC_MakeBlob(w,(&BcP(f_t,(0+Fs(f_x))))));
-  },{
-BC_EqBlob(vr49,(&BcP(f_t,(0+Fs(f_x)))),{
+BindHVA(vr49,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_x))));
+    }
+,{
+BindCVA(vr49,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_x))));
+    }
+,{
+BindSVA(vr49,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_x))));
+    }
+,{
+BC_EqBlob(vr49,&BcP(f_t,0+Fs(f_x)),{
 goto fail;
-    })  });
-}}P+=Fs(f_x)+LargeSize(*((&BcP(f_t,(0+Fs(f_x))))));
-goto ReadMode;
+      }
+)    }
+);
+}P+=Fs(f_x)+LargeSize(*&BcP(f_t,0+Fs(f_x)));
+goto r_dispatch;
+    }
+    }
 case 98:
 P+=Fs(f_Q);
-goto r_get_structure;
-r_get_structure:
+goto r_op99;
 case 99:
-{tagged_t vr51 = Xb(BcP(f_x,0));
-{tagged_t vr52;
+{
+r_op99:
+{
+tagged_t vr51 = Xb(BcP(f_x,0));
+tagged_t vr52;
 SwitchOnVar(vr51,vr52,{
-LoadH;
+H = w->heap_top;
 BindHVA(vr51,Tagp(STR,H));
-HeapPush(H,BcP(f_f,(0+Fs(f_x))));
+HeapPush(H,BcP(f_f,0+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_f);
-goto WriteMode;
-  },{
-LoadH;
-BindCVA(vr51,Tagp(STR,H));
-HeapPush(H,BcP(f_f,(0+Fs(f_x))));
-P+=Fs(f_x)+Fs(f_f);
-goto WriteMode;
-  },{
-LoadH;
-BindSVA(vr51,Tagp(STR,H));
-HeapPush(H,BcP(f_f,(0+Fs(f_x))));
-P+=Fs(f_x)+Fs(f_f);
-goto WriteMode;
-  },{
-if ((!(TaggedIsSTR(vr51))||TaggedToHeadfunctor(vr51)!=BcP(f_f,(0+Fs(f_x))))) {
-goto fail;
+goto w_dispatch;
     }
+,{
+H = w->heap_top;
+BindCVA(vr51,Tagp(STR,H));
+HeapPush(H,BcP(f_f,0+Fs(f_x)));
+P+=Fs(f_x)+Fs(f_f);
+goto w_dispatch;
+    }
+,{
+H = w->heap_top;
+BindSVA(vr51,Tagp(STR,H));
+HeapPush(H,BcP(f_f,0+Fs(f_x)));
+P+=Fs(f_x)+Fs(f_f);
+goto w_dispatch;
+    }
+,{
+if (!TaggedIsSTR(vr51)||TaggedToHeadfunctor(vr51)!=BcP(f_f,0+Fs(f_x))) {
+goto fail;
+      }
+
 S = TaggedToArg(vr51,1);
 P+=Fs(f_x)+Fs(f_f);
-goto ReadMode;
-  });
-}}r_get_nil:
+goto r_dispatch;
+    }
+);
+    }
+    }
 case 100:
-{tagged_t vr53 = Xb(BcP(f_x,0));
-{tagged_t vr54;
+{
+r_op100:
+{
+tagged_t vr53 = Xb(BcP(f_x,0));
+tagged_t vr54;
 SwitchOnVar(vr53,vr54,{
 BindHVA(vr53,atom_nil);
-  },{
+    }
+,{
 BindCVA(vr53,atom_nil);
-  },{
+    }
+,{
 BindSVA(vr53,atom_nil);
-  },{
+    }
+,{
 if (vr53!=atom_nil) {
 goto fail;
+      }
+
     }
-  });
-}}P+=Fs(f_x);
-goto ReadMode;
-r_get_list:
+);
+P+=Fs(f_x);
+goto r_dispatch;
+    }
+    }
 case 101:
+{
+r_op101:
+{
 {tagged_t vr55 = Xb(BcP(f_x,0));
-{tagged_t vr56;
+tagged_t vr56;
 SwitchOnVar(vr55,vr56,{
-LoadH;
+H = w->heap_top;
 BindHVA(vr55,Tagp(LST,H));
 P+=Fs(f_x);
-goto WriteMode;
-  },{
-LoadH;
+goto w_dispatch;
+    }
+,{
+H = w->heap_top;
 BindCVA(vr55,Tagp(LST,H));
 P+=Fs(f_x);
-goto WriteMode;
-  },{
-LoadH;
+goto w_dispatch;
+    }
+,{
+H = w->heap_top;
 BindSVA(vr55,Tagp(LST,H));
 P+=Fs(f_x);
-goto WriteMode;
-  },{
-if (!(TermIsLST(vr55))) {
-goto fail;
+goto w_dispatch;
     }
+,{
+if (!TermIsLST(vr55)) {
+goto fail;
+      }
+
 S = TagpPtr(LST,vr55);
 P+=Fs(f_x);
-goto ReadMode;
-  });
-}}case 111:
-P+=Fs(f_Q);
-goto r_get_constant_neck_proceed;
-r_get_constant_neck_proceed:
-case 112:
-{tagged_t vr57 = Xb(BcP(f_x,0));
-{tagged_t vr58;
-SwitchOnVar(vr57,vr58,{
-BindHVA(vr57,BcP(f_t,(0+Fs(f_x))));
-  },{
-BindCVA(vr57,BcP(f_t,(0+Fs(f_x))));
-  },{
-BindSVA(vr57,BcP(f_t,(0+Fs(f_x))));
-  },{
-if (vr57!=BcP(f_t,(0+Fs(f_x)))) {
-goto fail;
+goto r_dispatch;
     }
-  });
-}}LoadH;
-goto w_neck_proceed;
-r_get_nil_neck_proceed:
+);
+}    }
+    }
+case 111:
+P+=Fs(f_Q);
+goto r_op112;
+case 112:
+{
+r_op112:
+{
+tagged_t vr57 = Xb(BcP(f_x,0));
+tagged_t vr58;
+SwitchOnVar(vr57,vr58,{
+BindHVA(vr57,BcP(f_t,0+Fs(f_x)));
+    }
+,{
+BindCVA(vr57,BcP(f_t,0+Fs(f_x)));
+    }
+,{
+BindSVA(vr57,BcP(f_t,0+Fs(f_x)));
+    }
+,{
+if (vr57!=BcP(f_t,0+Fs(f_x))) {
+goto fail;
+      }
+
+    }
+);
+H = w->heap_top;
+goto w_op66;
+    }
+    }
 case 113:
-{tagged_t vr59 = Xb(BcP(f_x,0));
-{tagged_t vr60;
+{
+r_op113:
+{
+tagged_t vr59 = Xb(BcP(f_x,0));
+tagged_t vr60;
 SwitchOnVar(vr59,vr60,{
 BindHVA(vr59,atom_nil);
-  },{
+    }
+,{
 BindCVA(vr59,atom_nil);
-  },{
+    }
+,{
 BindSVA(vr59,atom_nil);
-  },{
+    }
+,{
 if (vr59!=atom_nil) {
 goto fail;
+      }
+
     }
-  });
-}}LoadH;
-goto w_neck_proceed;
-r_cutb_x:
+);
+H = w->heap_top;
+goto w_op66;
+    }
+    }
 case 208:
-(w->local_top) = 0;
-(w->previous_choice) = ChoiceFromTagged(Xb(BcP(f_x,0)));
+r_op208:
+w->local_top = 0;
+w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x,0)));
 PROFILE__HOOK_CUT;
-B = (w->previous_choice);
+B = w->previous_choice;
 SetChoice(B);
-TRACE_CHPT_CUT((w->choice));
-ConcChptCleanUp(TopConcChpt,(w->choice));
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt,w->choice);
 P+=Fs(f_x);
-goto ReadMode;
-r_cutb_x_neck:
+goto r_dispatch;
 case 210:
-(w->local_top) = 0;
-(w->previous_choice) = ChoiceFromTagged(Xb(BcP(f_x,0)));
+r_op210:
+w->local_top = 0;
+w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x,0)));
 P+=Fs(f_x);
-goto r_cutb_neck;
-r_cutb_neck:
+goto r_op211;
 case 211:
+r_op211:
 PROFILE__HOOK_CUT;
-B = (w->previous_choice);
+B = w->previous_choice;
 SetChoice(B);
-TRACE_CHPT_CUT((w->choice));
-ConcChptCleanUp(TopConcChpt,(w->choice));
-if (!(IsDeep())) {
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt,w->choice);
+if (!IsDeep()) {
 SetDeep();
-if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),(w->trail_top))) {
-choice_overflow(w,((2*CHOICEPAD)*sizeof(tagged_t)),TRUE);
+if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
+choice_overflow(w,2*CHOICEPAD*sizeof(tagged_t),TRUE);
+      }
+
     }
-  }
+
 P+=0;
-goto ReadMode;
-r_cutb_x_neck_proceed:
+goto r_dispatch;
 case 212:
-(w->previous_choice) = ChoiceFromTagged(Xb(BcP(f_x,0)));
-goto r_cutb_neck_proceed;
-r_cutb_neck_proceed:
+r_op212:
+w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x,0)));
+goto r_op213;
 case 213:
+r_op213:
 PROFILE__HOOK_CUT;
-B = (w->previous_choice);
+B = w->previous_choice;
 SetChoice(B);
-TRACE_CHPT_CUT((w->choice));
-ConcChptCleanUp(TopConcChpt,(w->choice));
-if (!(IsDeep())) {
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt,w->choice);
+if (!IsDeep()) {
 SetDeep();
-if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),(w->trail_top))) {
-choice_overflow(w,((2*CHOICEPAD)*sizeof(tagged_t)),TRUE);
+if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
+choice_overflow(w,2*CHOICEPAD*sizeof(tagged_t),TRUE);
+      }
+
     }
-  }
-goto r_proceed;
-r_cute_x:
+
+goto r_op64;
 case 214:
-(w->previous_choice) = ChoiceFromTagged(Xb(BcP(f_x,0)));
-(w->local_top) = E;
+r_op214:
+w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x,0)));
+w->local_top = E;
 PROFILE__HOOK_CUT;
-B = (w->previous_choice);
+B = w->previous_choice;
 SetChoice(B);
-TRACE_CHPT_CUT((w->choice));
-ConcChptCleanUp(TopConcChpt,(w->choice));
-SetE((w->local_top));
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt,w->choice);
+SetE(w->local_top);
 P+=Fs(f_x);
-goto ReadMode;
-r_cute_x_neck:
+goto r_dispatch;
 case 216:
-(w->previous_choice) = ChoiceFromTagged(Xb(BcP(f_x,0)));
+r_op216:
+w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x,0)));
 P+=Fs(f_x);
-goto r_cute_neck;
-r_cute_neck:
+goto r_op217;
 case 217:
-(w->local_top) = E;
+r_op217:
+w->local_top = E;
 PROFILE__HOOK_CUT;
-B = (w->previous_choice);
+B = w->previous_choice;
 SetChoice(B);
-TRACE_CHPT_CUT((w->choice));
-ConcChptCleanUp(TopConcChpt,(w->choice));
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt,w->choice);
 SetDeep();
-if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),(w->trail_top))) {
-choice_overflow(w,((2*CHOICEPAD)*sizeof(tagged_t)),TRUE);
-  }
-SetE((w->local_top));
+if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
+choice_overflow(w,2*CHOICEPAD*sizeof(tagged_t),TRUE);
+    }
+
+SetE(w->local_top);
 P+=0;
-goto ReadMode;
-r_cutf_x:
+goto r_dispatch;
 case 215:
-(w->previous_choice) = ChoiceFromTagged(Xb(BcP(f_x,0)));
+r_op215:
+w->previous_choice = ChoiceFromTagged(Xb(BcP(f_x,0)));
 P+=Fs(f_x);
-goto r_cutf;
-r_cutf:
+goto r_op209;
 case 209:
+r_op209:
 PROFILE__HOOK_CUT;
-B = (w->previous_choice);
+B = w->previous_choice;
 SetChoice(B);
-TRACE_CHPT_CUT((w->choice));
-ConcChptCleanUp(TopConcChpt,(w->choice));
-SetE((w->frame));
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt,w->choice);
+SetE(w->frame);
 P+=0;
-goto ReadMode;
-r_cut_y:
+goto r_dispatch;
 case 218:
-{tagged_t vr61;
+{
+r_op218:
+{
+tagged_t vr61;
 vr61 = Yb(BcP(f_y,0));
-(w->previous_choice) = ChoiceFromTagged(vr61);
-}PROFILE__HOOK_CUT;
-B = (w->previous_choice);
+w->previous_choice = ChoiceFromTagged(vr61);
+PROFILE__HOOK_CUT;
+B = w->previous_choice;
 SetChoice(B);
-TRACE_CHPT_CUT((w->choice));
-ConcChptCleanUp(TopConcChpt,(w->choice));
-SetE((w->frame));
+TRACE_CHPT_CUT(w->choice);
+ConcChptCleanUp(TopConcChpt,w->choice);
+SetE(w->frame);
 P+=Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 219:
-Xb(BcP(f_x,0)) = ChoiceToTagged((w->previous_choice));
+Xb(BcP(f_x,0)) = ChoiceToTagged(w->previous_choice);
 P+=Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
 case 220:
 CODE_ALLOC(E);
-goto r_choice_y;
-r_choice_y:
+goto r_op221;
 case 221:
-Yb(BcP(f_y,0)) = ChoiceToTagged((w->previous_choice));
+r_op221:
+Yb(BcP(f_y,0)) = ChoiceToTagged(w->previous_choice);
 P+=Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
 case 233:
-LoadH;
-goto w_kontinue;
-r_leave:
+H = w->heap_top;
+goto w_op233;
 case 234:
-goto r_exit_toplevel;
-r_exit_toplevel:
+r_op234:
+goto r_op235;
 case 235:
+r_op235:
 goto exit_toplevel;
-r_retry_cq:
 case 237:
-if (!(IsDeep())) {
+r_op237:
+if (!IsDeep()) {
 NECK_RETRY_PATCH(B);
 SetDeep();
-  }
-if (!((((cbool0_t)(BcP(f_C,(0+Fs(f_Q))))))(w))) {
+    }
+
+if (!((cbool0_t)BcP(f_C,0+Fs(f_Q)))(w)) {
 goto fail;
-  }
-goto r_proceed;
-r_retry_c:
+    }
+
+goto r_op64;
 case 238:
-if (!(IsDeep())) {
+r_op238:
+if (!IsDeep()) {
 NECK_RETRY_PATCH(B);
 SetDeep();
-  }
-if (!((((cbool0_t)(BcP(f_C,0))))(w))) {
+    }
+
+if (!((cbool0_t)BcP(f_C,0))(w)) {
 goto fail;
-  }
-goto r_proceed;
+    }
+
+goto r_op64;
 case 104:
-{tagged_t vr62 = X(0);
+{
+{
+tagged_t vr62 = X(0);
 S = TaggedToArg(vr62,1);
-}P+=Fs(f_Q)+Fs(f_f);
-goto ReadMode;
+P+=Fs(f_Q)+Fs(f_f);
+goto r_dispatch;
+    }
+    }
 case 105:
-{tagged_t vr63 = X(0);
+{
+{
+tagged_t vr63 = X(0);
 S = TaggedToArg(vr63,1);
-}P+=Fs(f_f);
-goto ReadMode;
+P+=Fs(f_f);
+goto r_dispatch;
+    }
+    }
 case 256:
-{tagged_t vr64 = X(0);
+{
+{
+tagged_t vr64 = X(0);
 {tagged_t vr65;
 vr65 = vr64;
-{tagged_t vr66;
+tagged_t vr66;
 SwitchOnVar(vr65,vr66,{
-BindHVA(vr65,BC_MakeBlob(w,(&BcP(f_t,(0+Fs(f_Q))))));
-  },{
-BindCVA(vr65,BC_MakeBlob(w,(&BcP(f_t,(0+Fs(f_Q))))));
-  },{
-BindSVA(vr65,BC_MakeBlob(w,(&BcP(f_t,(0+Fs(f_Q))))));
-  },{
-BC_EqBlob(vr65,(&BcP(f_t,(0+Fs(f_Q)))),{
+BindHVA(vr65,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_Q))));
+    }
+,{
+BindCVA(vr65,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_Q))));
+    }
+,{
+BindSVA(vr65,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_Q))));
+    }
+,{
+BC_EqBlob(vr65,&BcP(f_t,0+Fs(f_Q)),{
 goto fail;
-    })  });
-}}}P+=Fs(f_Q)+LargeSize(*((&BcP(f_t,(0+Fs(f_Q))))));
-goto ReadMode;
+      }
+)    }
+);
+}P+=Fs(f_Q)+LargeSize(*&BcP(f_t,0+Fs(f_Q)));
+goto r_dispatch;
+    }
+    }
 case 257:
-{tagged_t vr67 = X(0);
+{
+{
+tagged_t vr67 = X(0);
 {tagged_t vr68;
 vr68 = vr67;
-{tagged_t vr69;
+tagged_t vr69;
 SwitchOnVar(vr68,vr69,{
-BindHVA(vr68,BC_MakeBlob(w,(&BcP(f_t,0))));
-  },{
-BindCVA(vr68,BC_MakeBlob(w,(&BcP(f_t,0))));
-  },{
-BindSVA(vr68,BC_MakeBlob(w,(&BcP(f_t,0))));
-  },{
-BC_EqBlob(vr68,(&BcP(f_t,0)),{
+BindHVA(vr68,BC_MakeBlob(w,&BcP(f_t,0)));
+    }
+,{
+BindCVA(vr68,BC_MakeBlob(w,&BcP(f_t,0)));
+    }
+,{
+BindSVA(vr68,BC_MakeBlob(w,&BcP(f_t,0)));
+    }
+,{
+BC_EqBlob(vr68,&BcP(f_t,0),{
 goto fail;
-    })  });
-}}}P+=LargeSize(*((&BcP(f_t,0))));
-goto ReadMode;
+      }
+)    }
+);
+}P+=LargeSize(*&BcP(f_t,0));
+goto r_dispatch;
+    }
+    }
 case 102:
 P+=Fs(f_Q)+Fs(f_t);
-goto ReadMode;
+goto r_dispatch;
 case 103:
 P+=Fs(f_t);
-goto ReadMode;
+goto r_dispatch;
 case 106:
 P+=0;
-goto ReadMode;
+goto r_dispatch;
 case 107:
-{tagged_t vr70 = X(0);
+{
+{
+tagged_t vr70 = X(0);
 S = TagpPtr(LST,vr70);
-}P+=0;
-goto ReadMode;
+P+=0;
+goto r_dispatch;
+    }
+    }
 case 108:
-Xb(BcP(f_x,(0+Fs(f_x)))) = Xb(BcP(f_x,0));
-Xb(BcP(f_x,(((0+Fs(f_x))+Fs(f_x))+Fs(f_x)))) = Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_x))));
+Xb(BcP(f_x,0+Fs(f_x))) = Xb(BcP(f_x,0));
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x)+Fs(f_x))) = Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
 case 90:
-Xb(BcP(f_x,(0+Fs(f_x)))) = Xb(BcP(f_x,0));
+Xb(BcP(f_x,0+Fs(f_x))) = Xb(BcP(f_x,0));
 P+=Fs(f_x)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
 case 92:
 CODE_ALLOC(E);
-goto r_get_y_variable;
-r_get_y_variable:
+goto r_op93;
 case 93:
-Yb(BcP(f_y,(0+Fs(f_x)))) = Xb(BcP(f_x,0));
+r_op93:
+Yb(BcP(f_y,0+Fs(f_x))) = Xb(BcP(f_x,0));
 P+=Fs(f_x)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
 case 109:
 CODE_ALLOC(E);
-goto r_get_yvar_yvar;
-r_get_yvar_yvar:
+goto r_op110;
 case 110:
-Yb(BcP(f_y,(0+Fs(f_x)))) = Xb(BcP(f_x,0));
-Yb(BcP(f_y,(((0+Fs(f_x))+Fs(f_y))+Fs(f_x)))) = Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_y))));
+r_op110:
+Yb(BcP(f_y,0+Fs(f_x))) = Xb(BcP(f_x,0));
+Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x))) = Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y)));
 P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
 case 68:
 P = BCoff(P,BcP(f_i,0));
-goto ReadMode;
-r_function_1q:
+goto r_dispatch;
 case 222:
-(w->liveinfo) = (&BcP(f_l,((((0+Fs(f_Q))+Fs(f_x))+Fs(f_x))+Fs(f_C))));
-{tagged_t vr71 = ((tagged_t)((((ctagged1_t)(BcP(f_C,(((0+Fs(f_Q))+Fs(f_x))+Fs(f_x))))))(w,Xb(BcP(f_x,((0+Fs(f_Q))+Fs(f_x)))))));
-Xb(BcP(f_x,(0+Fs(f_Q)))) = vr71;
+{
+r_op222:
+{
+w->liveinfo = &BcP(f_l,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_C));
+tagged_t vr71 = (tagged_t)((ctagged1_t)BcP(f_C,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x))));
+Xb(BcP(f_x,0+Fs(f_Q))) = vr71;
 if (ERRORTAG==vr71) {
 goto fail;
-  }
-}P+=Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_C)+Fs(f_g);
-goto ReadMode;
-r_function_1:
+    }
+
+P+=Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_C)+Fs(f_g);
+goto r_dispatch;
+    }
+    }
 case 223:
-(w->liveinfo) = (&BcP(f_l,(((0+Fs(f_x))+Fs(f_x))+Fs(f_C))));
-{tagged_t vr72 = ((tagged_t)((((ctagged1_t)(BcP(f_C,((0+Fs(f_x))+Fs(f_x))))))(w,Xb(BcP(f_x,(0+Fs(f_x)))))));
+{
+r_op223:
+{
+w->liveinfo = &BcP(f_l,0+Fs(f_x)+Fs(f_x)+Fs(f_C));
+tagged_t vr72 = (tagged_t)((ctagged1_t)BcP(f_C,0+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_x))));
 Xb(BcP(f_x,0)) = vr72;
 if (ERRORTAG==vr72) {
 goto fail;
-  }
-}P+=Fs(f_x)+Fs(f_x)+Fs(f_C)+Fs(f_g);
-goto ReadMode;
-r_function_2q:
+    }
+
+P+=Fs(f_x)+Fs(f_x)+Fs(f_C)+Fs(f_g);
+goto r_dispatch;
+    }
+    }
 case 224:
-(w->liveinfo) = (&BcP(f_l,(((((0+Fs(f_Q))+Fs(f_x))+Fs(f_x))+Fs(f_x))+Fs(f_C))));
-{tagged_t vr73 = ((tagged_t)((((ctagged2_t)(BcP(f_C,((((0+Fs(f_Q))+Fs(f_x))+Fs(f_x))+Fs(f_x))))))(w,Xb(BcP(f_x,((0+Fs(f_Q))+Fs(f_x)))),Xb(BcP(f_x,(((0+Fs(f_Q))+Fs(f_x))+Fs(f_x)))))));
-Xb(BcP(f_x,(0+Fs(f_Q)))) = vr73;
+{
+r_op224:
+{
+w->liveinfo = &BcP(f_l,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C));
+tagged_t vr73 = (tagged_t)((ctagged2_t)BcP(f_C,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x))),Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x)+Fs(f_x))));
+Xb(BcP(f_x,0+Fs(f_Q))) = vr73;
 if (ERRORTAG==vr73) {
 goto fail;
-  }
-}P+=Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C)+Fs(f_g);
-goto ReadMode;
-r_function_2:
+    }
+
+P+=Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C)+Fs(f_g);
+goto r_dispatch;
+    }
+    }
 case 225:
-(w->liveinfo) = (&BcP(f_l,((((0+Fs(f_x))+Fs(f_x))+Fs(f_x))+Fs(f_C))));
-{tagged_t vr74 = ((tagged_t)((((ctagged2_t)(BcP(f_C,(((0+Fs(f_x))+Fs(f_x))+Fs(f_x))))))(w,Xb(BcP(f_x,(0+Fs(f_x)))),Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_x)))))));
+{
+r_op225:
+{
+w->liveinfo = &BcP(f_l,0+Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C));
+tagged_t vr74 = (tagged_t)((ctagged2_t)BcP(f_C,0+Fs(f_x)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_x))),Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x))));
 Xb(BcP(f_x,0)) = vr74;
 if (ERRORTAG==vr74) {
 goto fail;
-  }
-}P+=Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C)+Fs(f_g);
-goto ReadMode;
-r_builtin_1q:
+    }
+
+P+=Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C)+Fs(f_g);
+goto r_dispatch;
+    }
+    }
 case 226:
-if (!((((cbool1_t)(BcP(f_C,((0+Fs(f_Q))+Fs(f_x))))))(w,Xb(BcP(f_x,(0+Fs(f_Q))))))) {
+r_op226:
+if (!((cbool1_t)BcP(f_C,0+Fs(f_Q)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_Q))))) {
 goto fail;
-  }
+    }
+
 P+=Fs(f_Q)+Fs(f_x)+Fs(f_C);
-goto ReadMode;
-r_builtin_1:
+goto r_dispatch;
 case 227:
-if (!((((cbool1_t)(BcP(f_C,(0+Fs(f_x))))))(w,Xb(BcP(f_x,0))))) {
+r_op227:
+if (!((cbool1_t)BcP(f_C,0+Fs(f_x)))(w,Xb(BcP(f_x,0)))) {
 goto fail;
-  }
+    }
+
 P+=Fs(f_x)+Fs(f_C);
-goto ReadMode;
-r_builtin_2q:
+goto r_dispatch;
 case 228:
-if (!((((cbool2_t)(BcP(f_C,(((0+Fs(f_Q))+Fs(f_x))+Fs(f_x))))))(w,Xb(BcP(f_x,(0+Fs(f_Q)))),Xb(BcP(f_x,((0+Fs(f_Q))+Fs(f_x))))))) {
+r_op228:
+if (!((cbool2_t)BcP(f_C,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_Q))),Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x))))) {
 goto fail;
-  }
+    }
+
 P+=Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_C);
-goto ReadMode;
-r_builtin_2:
+goto r_dispatch;
 case 229:
-if (!((((cbool2_t)(BcP(f_C,((0+Fs(f_x))+Fs(f_x))))))(w,Xb(BcP(f_x,0)),Xb(BcP(f_x,(0+Fs(f_x))))))) {
+r_op229:
+if (!((cbool2_t)BcP(f_C,0+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0)),Xb(BcP(f_x,0+Fs(f_x))))) {
 goto fail;
-  }
+    }
+
 P+=Fs(f_x)+Fs(f_x)+Fs(f_C);
-goto ReadMode;
-r_builtin_3q:
+goto r_dispatch;
 case 230:
-if (!((((cbool3_t)(BcP(f_C,((((0+Fs(f_Q))+Fs(f_x))+Fs(f_x))+Fs(f_x))))))(w,Xb(BcP(f_x,(0+Fs(f_Q)))),Xb(BcP(f_x,((0+Fs(f_Q))+Fs(f_x)))),Xb(BcP(f_x,(((0+Fs(f_Q))+Fs(f_x))+Fs(f_x))))))) {
+r_op230:
+if (!((cbool3_t)BcP(f_C,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_Q))),Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x))),Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x)+Fs(f_x))))) {
 goto fail;
-  }
+    }
+
 P+=Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C);
-goto ReadMode;
-r_builtin_3:
+goto r_dispatch;
 case 231:
-if (!((((cbool3_t)(BcP(f_C,(((0+Fs(f_x))+Fs(f_x))+Fs(f_x))))))(w,Xb(BcP(f_x,0)),Xb(BcP(f_x,(0+Fs(f_x)))),Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_x))))))) {
+r_op231:
+if (!((cbool3_t)BcP(f_C,0+Fs(f_x)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0)),Xb(BcP(f_x,0+Fs(f_x))),Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x))))) {
 goto fail;
-  }
+    }
+
 P+=Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C);
-goto ReadMode;
-r_retry_instance:
+goto r_dispatch;
 case 232:
-if ((((TaggedToRoot(X(RootArg))->behavior_on_failure)!=DYNAMIC&&!(next_instance_conc(w,(&((w->misc)->ins)))))||((TaggedToRoot(X(RootArg))->behavior_on_failure)==DYNAMIC&&!(next_instance(w,(&((w->misc)->ins))))))) {
+r_op232:
+if ((TaggedToRoot(X(RootArg))->behavior_on_failure!=DYNAMIC&&!next_instance_conc(w,&w->misc->ins))||(TaggedToRoot(X(RootArg))->behavior_on_failure==DYNAMIC&&!next_instance(w,&w->misc->ins))) {
 SetDeep();
-B = (w->previous_choice);
+B = w->previous_choice;
 SetChoice(B);
-  }
-if (((w->misc)->ins)==NULL) {
+    }
+
+if (w->misc->ins==NULL) {
 ON_DEBUG({
 if (debug_concchoicepoints) {
-if (((TaggedToRoot(X(RootArg))->behavior_on_failure)!=CONC_CLOSED&&IS_BLOCKING(X(InvocationAttr)))) {
-fprintf(stderr,"**wam(): failing on a concurrent closed pred, chpt=%p, failing chpt=%p .\n",(w->choice),TopConcChpt);
+if (TaggedToRoot(X(RootArg))->behavior_on_failure!=CONC_CLOSED&&IS_BLOCKING(X(InvocationAttr))) {
+fprintf(stderr,"**wam(): failing on a concurrent closed pred, chpt=%p, failing chpt=%p .\n",w->choice,TopConcChpt);
+          }
+
         }
-      }
+
 if (debug_conc) {
-if (((TaggedToRoot(X(RootArg))->x2_pending_on_instance)||(TaggedToRoot(X(RootArg))->x5_pending_on_instance))) {
-fprintf(stderr,"**wam(): failing with invokations pending from root, type = %d.\n",(TaggedToRoot(X(RootArg))->behavior_on_failure));
+if (TaggedToRoot(X(RootArg))->x2_pending_on_instance||TaggedToRoot(X(RootArg))->x5_pending_on_instance) {
+fprintf(stderr,"**wam(): failing with invokations pending from root, type = %d.\n",TaggedToRoot(X(RootArg))->behavior_on_failure);
+          }
+
         }
+
       }
-    });
+);
 TopConcChpt = TermToPointerOrNull(choice_t,X(PrevDynChpt));
 ON_DEBUG({
 if (debug_concchoicepoints) {
 fprintf(stderr,"New topmost concurrent chpt = %x\n",TopConcChpt);
+        }
+
       }
-    });
+);
 goto fail;
-  }
+    }
+
 ON_DEBUG({
-if ((debug_conc&&(TaggedToRoot(X(RootArg))->behavior_on_failure)!=DYNAMIC)) {
-fprintf(stderr,"*** " PRIdm "backtracking on a concurrent predicate.\n",((intmach_t)(Thread_Id)),((intmach_t)(GET_INC_COUNTER)));
+if (debug_conc&&TaggedToRoot(X(RootArg))->behavior_on_failure!=DYNAMIC) {
+fprintf(stderr,"*** " PRIdm "backtracking on a concurrent predicate.\n",(intmach_t)Thread_Id,(intmach_t)GET_INC_COUNTER);
+      }
+
+if (debug_concchoicepoints&&TaggedToRoot(X(RootArg))->behavior_on_failure!=DYNAMIC) {
+fprintf(stderr,"backtracking to chpt. = %p\n",w->choice);
+      }
+
     }
-if ((debug_concchoicepoints&&(TaggedToRoot(X(RootArg))->behavior_on_failure)!=DYNAMIC)) {
-fprintf(stderr,"backtracking to chpt. = %p\n",(w->choice));
-    }
-  });
-P = ((bcp_t)((((w->misc)->ins)->emulcode)));
-goto ReadMode;
+);
+P = (bcp_t)w->misc->ins->emulcode;
+goto r_dispatch;
 case 247:
-LoadH;
-goto w_get_constraint;
+H = w->heap_top;
+goto w_op247;
 case 114:
 S = HeapOffset(S,BcP(f_i,0));
 P+=Fs(f_i);
-goto ReadMode;
+goto r_dispatch;
 case 115:
 S = HeapOffset(S,1);
 P+=0;
-goto ReadMode;
+goto r_dispatch;
 case 116:
 S = HeapOffset(S,2);
 P+=0;
-goto ReadMode;
+goto r_dispatch;
 case 117:
 S = HeapOffset(S,3);
 P+=0;
-goto ReadMode;
+goto r_dispatch;
 case 118:
 S = HeapOffset(S,4);
 P+=0;
-goto ReadMode;
+goto r_dispatch;
 case 119:
 RefHeapNext(Xb(BcP(f_x,0)),S);
 P+=Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
 case 120:
-goto r_unify_x_local_value;
-r_unify_x_local_value:
+goto r_op121;
 case 121:
+{
+r_op121:
+{
 {tagged_t vr75;
 RefHeapNext(vr75,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr75))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr75)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 122:
 CODE_ALLOC(E);
-goto r_unify_y_variable;
-r_unify_y_variable:
+goto r_op123;
 case 123:
+r_op123:
 RefHeapNext(Yb(BcP(f_y,0)),S);
 P+=Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
 case 124:
+{
+{
 {tagged_t vr76;
 RefHeapNext(vr76,S);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
 Yb(BcP(f_y,0)) = vr76;
 }P+=Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 125:
-goto r_unify_y_local_value;
-r_unify_y_local_value:
+goto r_op126;
 case 126:
+{
+r_op126:
+{
 {tagged_t vr77;
 RefHeapNext(vr77,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr77))) {
-goto fail;
-  }
-}P+=Fs(f_y);
-goto ReadMode;
-case 127:
-P+=Fs(f_Q);
-goto r_unify_constant;
-r_unify_constant:
-case 128:
-{tagged_t vr78;
-RefHeapNext(vr78,S);
-{tagged_t vr79 = vr78;
-{tagged_t vr80;
-SwitchOnHeapVar(vr79,vr80,{
-BindHVA(vr79,BcP(f_t,0));
-  },{
-BindCVA(vr79,BcP(f_t,0));
-  },{
-if (vr79!=BcP(f_t,0)) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr77)) {
 goto fail;
     }
-  });
-}}}P+=Fs(f_t);
-goto ReadMode;
+
+}P+=Fs(f_y);
+goto r_dispatch;
+    }
+    }
+case 127:
+P+=Fs(f_Q);
+goto r_op128;
+case 128:
+{
+r_op128:
+{
+tagged_t vr78;
+RefHeapNext(vr78,S);
+tagged_t vr79 = vr78;
+tagged_t vr80;
+SwitchOnHeapVar(vr79,vr80,{
+BindHVA(vr79,BcP(f_t,0));
+    }
+,{
+BindCVA(vr79,BcP(f_t,0));
+    }
+,{
+if (vr79!=BcP(f_t,0)) {
+goto fail;
+      }
+
+    }
+);
+P+=Fs(f_t);
+goto r_dispatch;
+    }
+    }
 case 258:
 P+=Fs(f_Q);
-goto r_unify_large;
-r_unify_large:
+goto r_op259;
 case 259:
-{tagged_t vr81;
+{
+r_op259:
+{
+tagged_t vr81;
 RefHeapNext(vr81,S);
 {tagged_t vr82 = vr81;
-{tagged_t vr83;
+tagged_t vr83;
 SwitchOnHeapVar(vr82,vr83,{
-BindHVA(vr82,BC_MakeBlob(w,(&BcP(f_t,0))));
-  },{
-BindCVA(vr82,BC_MakeBlob(w,(&BcP(f_t,0))));
-  },{
-BC_EqBlob(vr82,(&BcP(f_t,0)),{
+BindHVA(vr82,BC_MakeBlob(w,&BcP(f_t,0)));
+    }
+,{
+BindCVA(vr82,BC_MakeBlob(w,&BcP(f_t,0)));
+    }
+,{
+BC_EqBlob(vr82,&BcP(f_t,0),{
 goto fail;
-    })  });
-}}}P+=LargeSize(*((&BcP(f_t,0))));
-goto ReadMode;
+      }
+)    }
+);
+}P+=LargeSize(*&BcP(f_t,0));
+goto r_dispatch;
+    }
+    }
 case 129:
 P+=Fs(f_Q);
-goto r_unify_structure;
-r_unify_structure:
+goto r_op130;
 case 130:
-{tagged_t vr84;
+{
+r_op130:
+{
+tagged_t vr84;
 RefHeapNext(vr84,S);
-{tagged_t vr85 = vr84;
-{tagged_t vr86;
+tagged_t vr85 = vr84;
+tagged_t vr86;
 SwitchOnHeapVar(vr85,vr86,{
-LoadH;
+H = w->heap_top;
 BindHVA(vr85,Tagp(STR,H));
 HeapPush(H,BcP(f_f,0));
 P+=Fs(f_f);
-goto WriteMode;
-  },{
-LoadH;
+goto w_dispatch;
+    }
+,{
+H = w->heap_top;
 BindCVA(vr85,Tagp(STR,H));
 HeapPush(H,BcP(f_f,0));
 P+=Fs(f_f);
-goto WriteMode;
-  },{
-if ((!(TaggedIsSTR(vr85))||TaggedToHeadfunctor(vr85)!=BcP(f_f,0))) {
-goto fail;
+goto w_dispatch;
     }
+,{
+if (!TaggedIsSTR(vr85)||TaggedToHeadfunctor(vr85)!=BcP(f_f,0)) {
+goto fail;
+      }
+
 S = TaggedToArg(vr85,1);
 P+=Fs(f_f);
-goto ReadMode;
-  });
-}}}case 131:
-{tagged_t vr87;
+goto r_dispatch;
+    }
+);
+    }
+    }
+case 131:
+{
+{
+tagged_t vr87;
 RefHeapNext(vr87,S);
-{tagged_t vr88 = vr87;
-{tagged_t vr89;
+tagged_t vr88 = vr87;
+tagged_t vr89;
 SwitchOnHeapVar(vr88,vr89,{
 BindHVA(vr88,atom_nil);
-  },{
+    }
+,{
 BindCVA(vr88,atom_nil);
-  },{
+    }
+,{
 if (vr88!=atom_nil) {
 goto fail;
+      }
+
     }
-  });
-}}}P+=0;
-goto ReadMode;
+);
+P+=0;
+goto r_dispatch;
+    }
+    }
 case 132:
-{tagged_t vr90;
+{
+{
+tagged_t vr90;
 RefHeapNext(vr90,S);
 {tagged_t vr91 = vr90;
-{tagged_t vr92;
+tagged_t vr92;
 SwitchOnHeapVar(vr91,vr92,{
-LoadH;
+H = w->heap_top;
 BindHVA(vr91,Tagp(LST,H));
 P+=0;
-goto WriteMode;
-  },{
-LoadH;
+goto w_dispatch;
+    }
+,{
+H = w->heap_top;
 BindCVA(vr91,Tagp(LST,H));
 P+=0;
-goto WriteMode;
-  },{
-if (!(TermIsLST(vr91))) {
-goto fail;
+goto w_dispatch;
     }
+,{
+if (!TermIsLST(vr91)) {
+goto fail;
+      }
+
 S = TagpPtr(LST,vr91);
 P+=0;
-goto ReadMode;
-  });
-}}}case 133:
+goto r_dispatch;
+    }
+);
+}    }
+    }
+case 133:
 P+=Fs(f_Q);
-goto r_unify_constant_neck_proceed;
-r_unify_constant_neck_proceed:
+goto r_op134;
 case 134:
-{tagged_t vr93;
+{
+r_op134:
+{
+tagged_t vr93;
 RefHeapNext(vr93,S);
-{tagged_t vr94 = vr93;
-{tagged_t vr95;
+tagged_t vr94 = vr93;
+tagged_t vr95;
 SwitchOnHeapVar(vr94,vr95,{
 BindHVA(vr94,BcP(f_t,0));
-  },{
+    }
+,{
 BindCVA(vr94,BcP(f_t,0));
-  },{
+    }
+,{
 if (vr94!=BcP(f_t,0)) {
 goto fail;
+      }
+
     }
-  });
-}}}LoadH;
-goto w_neck_proceed;
+);
+H = w->heap_top;
+goto w_op66;
+    }
+    }
 case 135:
-{tagged_t vr96;
+{
+{
+tagged_t vr96;
 RefHeapNext(vr96,S);
-{tagged_t vr97 = vr96;
-{tagged_t vr98;
+tagged_t vr97 = vr96;
+tagged_t vr98;
 SwitchOnHeapVar(vr97,vr98,{
 BindHVA(vr97,atom_nil);
-  },{
+    }
+,{
 BindCVA(vr97,atom_nil);
-  },{
+    }
+,{
 if (vr97!=atom_nil) {
 goto fail;
+      }
+
     }
-  });
-}}}LoadH;
-goto w_neck_proceed;
+);
+H = w->heap_top;
+goto w_op66;
+    }
+    }
 case 136:
 S = HeapOffset(S,BcP(f_i,0));
-RefHeapNext(Xb(BcP(f_x,(0+Fs(f_i)))),S);
+RefHeapNext(Xb(BcP(f_x,0+Fs(f_i))),S);
 P+=Fs(f_i)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
 case 139:
 CODE_ALLOC(E);
-goto r_u2_void_yvar;
-r_u2_void_yvar:
+goto r_op140;
 case 140:
+r_op140:
 S = HeapOffset(S,BcP(f_i,0));
-RefHeapNext(Yb(BcP(f_y,(0+Fs(f_i)))),S);
+RefHeapNext(Yb(BcP(f_y,0+Fs(f_i))),S);
 P+=Fs(f_i)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
 case 137:
-goto r_u2_void_xlval;
-r_u2_void_xlval:
+goto r_op138;
 case 138:
+{
+r_op138:
+{
 S = HeapOffset(S,BcP(f_i,0));
 {tagged_t vr99;
 RefHeapNext(vr99,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,(0+Fs(f_i)))),vr99))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_i))),vr99)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_i)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 141:
+{
+{
 S = HeapOffset(S,BcP(f_i,0));
 {tagged_t vr100;
 RefHeapNext(vr100,S);
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_i)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_i)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_i)))) = vr100;
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_i))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_i)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_i))) = vr100;
 }P+=Fs(f_i)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 142:
-goto r_u2_void_ylval;
-r_u2_void_ylval:
+goto r_op143;
 case 143:
+{
+r_op143:
+{
 S = HeapOffset(S,BcP(f_i,0));
 {tagged_t vr101;
 RefHeapNext(vr101,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,(0+Fs(f_i)))),vr101))) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_i))),vr101)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_i)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 144:
 RefHeapNext(Xb(BcP(f_x,0)),S);
-S = HeapOffset(S,BcP(f_i,(0+Fs(f_x))));
+S = HeapOffset(S,BcP(f_i,0+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_i);
-goto ReadMode;
+goto r_dispatch;
 case 145:
 RefHeapNext(Xb(BcP(f_x,0)),S);
-RefHeapNext(Xb(BcP(f_x,(0+Fs(f_x)))),S);
+RefHeapNext(Xb(BcP(f_x,0+Fs(f_x))),S);
 P+=Fs(f_x)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
 case 148:
 CODE_ALLOC(E);
-goto r_u2_xvar_yvar;
-r_u2_xvar_yvar:
+goto r_op149;
 case 149:
+r_op149:
 RefHeapNext(Xb(BcP(f_x,0)),S);
-RefHeapNext(Yb(BcP(f_y,(0+Fs(f_x)))),S);
+RefHeapNext(Yb(BcP(f_y,0+Fs(f_x))),S);
 P+=Fs(f_x)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
 case 146:
-goto r_u2_xvar_xlval;
-r_u2_xvar_xlval:
+goto r_op147;
 case 147:
+{
+r_op147:
+{
 RefHeapNext(Xb(BcP(f_x,0)),S);
 {tagged_t vr102;
 RefHeapNext(vr102,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,(0+Fs(f_x)))),vr102))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_x))),vr102)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_x)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 150:
+{
+{
 RefHeapNext(Xb(BcP(f_x,0)),S);
 {tagged_t vr103;
 RefHeapNext(vr103,S);
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_x)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_x)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_x)))) = vr103;
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_x))) = vr103;
 }P+=Fs(f_x)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 151:
-goto r_u2_xvar_ylval;
-r_u2_xvar_ylval:
+goto r_op152;
 case 152:
+{
+r_op152:
+{
 RefHeapNext(Xb(BcP(f_x,0)),S);
 {tagged_t vr104;
 RefHeapNext(vr104,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,(0+Fs(f_x)))),vr104))) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_x))),vr104)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_x)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 153:
 CODE_ALLOC(E);
-goto r_u2_yvar_void;
-r_u2_yvar_void:
+goto r_op154;
 case 154:
+r_op154:
 RefHeapNext(Yb(BcP(f_y,0)),S);
-S = HeapOffset(S,BcP(f_i,(0+Fs(f_y))));
+S = HeapOffset(S,BcP(f_i,0+Fs(f_y)));
 P+=Fs(f_y)+Fs(f_i);
-goto ReadMode;
+goto r_dispatch;
 case 155:
 CODE_ALLOC(E);
-goto r_u2_yvar_xvar;
-r_u2_yvar_xvar:
+goto r_op156;
 case 156:
+r_op156:
 RefHeapNext(Yb(BcP(f_y,0)),S);
-RefHeapNext(Xb(BcP(f_x,(0+Fs(f_y)))),S);
+RefHeapNext(Xb(BcP(f_x,0+Fs(f_y))),S);
 P+=Fs(f_y)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
 case 157:
 CODE_ALLOC(E);
-goto r_u2_yvar_yvar;
-r_u2_yvar_yvar:
+goto r_op158;
 case 158:
+r_op158:
 RefHeapNext(Yb(BcP(f_y,0)),S);
-RefHeapNext(Yb(BcP(f_y,(0+Fs(f_y)))),S);
+RefHeapNext(Yb(BcP(f_y,0+Fs(f_y))),S);
 P+=Fs(f_y)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
 case 159:
-goto r_u2_yfvar_xlval;
-r_u2_yfvar_xlval:
+goto r_op161;
 case 161:
+r_op161:
 CODE_ALLOC(E);
-goto r_u2_yvar_xlval;
+goto r_op162;
 case 160:
-goto r_u2_yvar_xlval;
-r_u2_yvar_xlval:
+goto r_op162;
 case 162:
+{
+r_op162:
+{
 RefHeapNext(Yb(BcP(f_y,0)),S);
 {tagged_t vr105;
 RefHeapNext(vr105,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,(0+Fs(f_y)))),vr105))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_y))),vr105)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_y)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 163:
-goto r_u2_yfvar_ylval;
-r_u2_yfvar_ylval:
+goto r_op165;
 case 165:
+r_op165:
 CODE_ALLOC(E);
-goto r_u2_yvar_ylval;
+goto r_op166;
 case 164:
-goto r_u2_yvar_ylval;
-r_u2_yvar_ylval:
+goto r_op166;
 case 166:
+{
+r_op166:
+{
 RefHeapNext(Yb(BcP(f_y,0)),S);
 {tagged_t vr106;
 RefHeapNext(vr106,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,(0+Fs(f_y)))),vr106))) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_y))),vr106)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_y)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 185:
+{
+{
 {tagged_t vr107;
 RefHeapNext(vr107,S);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
 Yb(BcP(f_y,0)) = vr107;
-}S = HeapOffset(S,BcP(f_i,(0+Fs(f_y))));
+}S = HeapOffset(S,BcP(f_i,0+Fs(f_y)));
 P+=Fs(f_y)+Fs(f_i);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 188:
+{
+{
 {tagged_t vr108;
 RefHeapNext(vr108,S);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
 Yb(BcP(f_y,0)) = vr108;
-}RefHeapNext(Xb(BcP(f_x,(0+Fs(f_y)))),S);
+}RefHeapNext(Xb(BcP(f_x,0+Fs(f_y))),S);
 P+=Fs(f_y)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 199:
+{
+{
 {tagged_t vr109;
 RefHeapNext(vr109,S);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
 Yb(BcP(f_y,0)) = vr109;
 }{tagged_t vr110;
 RefHeapNext(vr110,S);
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_y)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_y)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_y)))) = vr110;
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_y))) = vr110;
 }P+=Fs(f_y)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 193:
-goto r_u2_yfval_xlval;
-r_u2_yfval_xlval:
+goto r_op196;
 case 196:
+{
+r_op196:
+{
 {tagged_t vr111;
 RefHeapNext(vr111,S);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
 Yb(BcP(f_y,0)) = vr111;
 }{tagged_t vr112;
 RefHeapNext(vr112,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,(0+Fs(f_y)))),vr112))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_y))),vr112)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_y)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 202:
-goto r_u2_yfval_ylval;
-r_u2_yfval_ylval:
+goto r_op205;
 case 205:
+{
+r_op205:
+{
 {tagged_t vr113;
 RefHeapNext(vr113,S);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
 Yb(BcP(f_y,0)) = vr113;
 }{tagged_t vr114;
 RefHeapNext(vr114,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,(0+Fs(f_y)))),vr114))) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_y))),vr114)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_y)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 167:
-goto r_u2_xlval_void;
-r_u2_xlval_void:
+goto r_op168;
 case 168:
+{
+r_op168:
+{
 {tagged_t vr115;
 RefHeapNext(vr115,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr115))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr115)) {
 goto fail;
-  }
-}S = HeapOffset(S,BcP(f_i,(0+Fs(f_x))));
+    }
+
+}S = HeapOffset(S,BcP(f_i,0+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_i);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 169:
-goto r_u2_xlval_xvar;
-r_u2_xlval_xvar:
+goto r_op170;
 case 170:
+{
+r_op170:
+{
 {tagged_t vr116;
 RefHeapNext(vr116,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr116))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr116)) {
 goto fail;
-  }
-}RefHeapNext(Xb(BcP(f_x,(0+Fs(f_x)))),S);
+    }
+
+}RefHeapNext(Xb(BcP(f_x,0+Fs(f_x))),S);
 P+=Fs(f_x)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 171:
-goto r_u2_xlval_yfvar;
-r_u2_xlval_yfvar:
+goto r_op172;
 case 172:
+r_op172:
 CODE_ALLOC(E);
-goto r_u2_xlval_yvar;
+goto r_op174;
 case 173:
-goto r_u2_xlval_yvar;
-r_u2_xlval_yvar:
+goto r_op174;
 case 174:
+{
+r_op174:
+{
 {tagged_t vr117;
 RefHeapNext(vr117,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr117))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr117)) {
 goto fail;
-  }
-}RefHeapNext(Yb(BcP(f_y,(0+Fs(f_x)))),S);
+    }
+
+}RefHeapNext(Yb(BcP(f_y,0+Fs(f_x))),S);
 P+=Fs(f_x)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 175:
-goto r_u2_xval_xlval;
-r_u2_xval_xlval:
+goto r_op177;
 case 177:
-goto r_u2_xlval_xval;
-r_u2_xlval_xval:
+r_op177:
+goto r_op176;
 case 176:
-goto r_u2_xlval_xlval;
-r_u2_xlval_xlval:
+r_op176:
+goto r_op178;
 case 178:
+{
+r_op178:
+{
 {tagged_t vr118;
 RefHeapNext(vr118,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr118))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr118)) {
 goto fail;
-  }
+    }
+
 }{tagged_t vr119;
 RefHeapNext(vr119,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,(0+Fs(f_x)))),vr119))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_x))),vr119)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_x)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 179:
-goto r_u2_xlval_yfval;
-r_u2_xlval_yfval:
+goto r_op180;
 case 180:
+{
+r_op180:
+{
 {tagged_t vr120;
 RefHeapNext(vr120,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr120))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr120)) {
 goto fail;
-  }
+    }
+
 }{tagged_t vr121;
 RefHeapNext(vr121,S);
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_x)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_x)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_x)))) = vr121;
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_x))) = vr121;
 }P+=Fs(f_x)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 181:
-goto r_u2_xval_ylval;
-r_u2_xval_ylval:
+goto r_op183;
 case 183:
-goto r_u2_xlval_yval;
-r_u2_xlval_yval:
+r_op183:
+goto r_op182;
 case 182:
-goto r_u2_xlval_ylval;
-r_u2_xlval_ylval:
+r_op182:
+goto r_op184;
 case 184:
+{
+r_op184:
+{
 {tagged_t vr122;
 RefHeapNext(vr122,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr122))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr122)) {
 goto fail;
-  }
+    }
+
 }{tagged_t vr123;
 RefHeapNext(vr123,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,(0+Fs(f_x)))),vr123))) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_x))),vr123)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_x)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 186:
-goto r_u2_ylval_void;
-r_u2_ylval_void:
+goto r_op187;
 case 187:
+{
+r_op187:
+{
 {tagged_t vr124;
 RefHeapNext(vr124,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr124))) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr124)) {
 goto fail;
-  }
-}S = HeapOffset(S,BcP(f_i,(0+Fs(f_y))));
+    }
+
+}S = HeapOffset(S,BcP(f_i,0+Fs(f_y)));
 P+=Fs(f_y)+Fs(f_i);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 189:
-goto r_u2_ylval_xvar;
-r_u2_ylval_xvar:
+goto r_op190;
 case 190:
+{
+r_op190:
+{
 {tagged_t vr125;
 RefHeapNext(vr125,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr125))) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr125)) {
 goto fail;
-  }
-}RefHeapNext(Xb(BcP(f_x,(0+Fs(f_y)))),S);
+    }
+
+}RefHeapNext(Xb(BcP(f_x,0+Fs(f_y))),S);
 P+=Fs(f_y)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 191:
-goto r_u2_ylval_yvar;
-r_u2_ylval_yvar:
+goto r_op192;
 case 192:
+{
+r_op192:
+{
 {tagged_t vr126;
 RefHeapNext(vr126,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr126))) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr126)) {
 goto fail;
-  }
-}RefHeapNext(Yb(BcP(f_y,(0+Fs(f_y)))),S);
+    }
+
+}RefHeapNext(Yb(BcP(f_y,0+Fs(f_y))),S);
 P+=Fs(f_y)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 200:
-goto r_u2_ylval_yfval;
-r_u2_ylval_yfval:
+goto r_op201;
 case 201:
+{
+r_op201:
+{
 {tagged_t vr127;
 RefHeapNext(vr127,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr127))) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr127)) {
 goto fail;
-  }
+    }
+
 }{tagged_t vr128;
 RefHeapNext(vr128,S);
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_y)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_y)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_y)))) = vr128;
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_y))) = vr128;
 }P+=Fs(f_y)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 194:
-goto r_u2_yval_xlval;
-r_u2_yval_xlval:
+goto r_op197;
 case 197:
-goto r_u2_ylval_xval;
-r_u2_ylval_xval:
+r_op197:
+goto r_op195;
 case 195:
-goto r_u2_ylval_xlval;
-r_u2_ylval_xlval:
+r_op195:
+goto r_op198;
 case 198:
+{
+r_op198:
+{
 {tagged_t vr129;
 RefHeapNext(vr129,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr129))) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr129)) {
 goto fail;
-  }
+    }
+
 }{tagged_t vr130;
 RefHeapNext(vr130,S);
-if (!(CBOOL__SUCCEED(cunify,Xb(BcP(f_x,(0+Fs(f_y)))),vr130))) {
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_y))),vr130)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_y)+Fs(f_x);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 203:
-goto r_u2_yval_ylval;
-r_u2_yval_ylval:
+goto r_op206;
 case 206:
-goto r_u2_ylval_yval;
-r_u2_ylval_yval:
+r_op206:
+goto r_op204;
 case 204:
-goto r_u2_ylval_ylval;
-r_u2_ylval_ylval:
+r_op204:
+goto r_op207;
 case 207:
+{
+r_op207:
+{
 {tagged_t vr131;
 RefHeapNext(vr131,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr131))) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr131)) {
 goto fail;
-  }
+    }
+
 }{tagged_t vr132;
 RefHeapNext(vr132,S);
-if (!(CBOOL__SUCCEED(cunify,Yb(BcP(f_y,(0+Fs(f_y)))),vr132))) {
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_y))),vr132)) {
 goto fail;
-  }
+    }
+
 }P+=Fs(f_y)+Fs(f_y);
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 248:
 P+=Fs(f_Q);
-goto r_bump_counter;
-r_bump_counter:
+goto r_op249;
 case 249:
+r_op249:
 #if defined(GAUGE)
 INCR_COUNTER(BcP(f_l,0));
 #endif
 P+=Fs(f_l);
-goto ReadMode;
+goto r_dispatch;
 case 250:
 P+=Fs(f_Q);
-goto r_counted_neck;
-r_counted_neck:
+goto r_op251;
 case 251:
+r_op251:
 #if defined(GAUGE)
-if (!(IsDeep())) {
-B = (w->choice);
-if (!(IsShallowTry())) {
+if (!IsDeep()) {
+B = w->choice;
+if (!IsShallowTry()) {
 #if defined(GAUGE)
 INCR_COUNTER(BcP(f_l,0));
 #endif
-    } else {
+      }
+ else {
 #if defined(GAUGE)
-INCR_COUNTER(BcP(f_l,(0+Fs(f_l))));
+INCR_COUNTER(BcP(f_l,0+Fs(f_l)));
 #endif
+      }
+
     }
-  }
+
 #endif
 P+=Fs(f_l)+Fs(f_l);
-goto r_neck;
+goto r_op65;
 case 67:
 goto fail;
 case 245:
 P+=Fs(f_Q);
-goto r_heapmargin_call;
-r_heapmargin_call:
+goto r_op246;
 case 246:
-if (HeapCharDifference((w->heap_top),Heap_End)<((intmach_t)(BcP(f_l,0)))) {
-explicit_heap_overflow(w,(((intmach_t)(BcP(f_l,0)))*2),((FTYPE_ctype(f_i_signed))(BcP(f_i,(0+Fs(f_l))))));
-  }
+r_op246:
+if (HeapCharDifference(w->heap_top,Heap_End)<(intmach_t)BcP(f_l,0)) {
+explicit_heap_overflow(w,(intmach_t)BcP(f_l,0)*2,(FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_l)));
+    }
+
 P+=Fs(f_g);
-goto ReadMode;
-r_neck:
+goto r_dispatch;
 case 65:
-if (!(IsDeep())) {
-B = (w->choice);
-if (!(IsShallowTry())) {
+{
+r_op65:
+{
+if (!IsDeep()) {
+B = w->choice;
+if (!IsShallowTry()) {
 NECK_RETRY_PATCH(B);
-    } else {
-(B->next_alt) = (w->next_alt);
-(B->frame) = (w->frame);
-(B->next_insn) = (w->next_insn);
-(B->local_top) = (w->local_top);
+      }
+ else {
+B->next_alt = w->next_alt;
+B->frame = w->frame;
+B->next_insn = w->next_insn;
+B->local_top = w->local_top;
 intmach_t vr133 = ChoiceArity(B);
 for (intmach_t vr134 = 0;
 vr134<vr133;vr134++) {
-(B->x)[vr134] = (w->x)[vr134];
+B->x[vr134] = w->x[vr134];
+        }
+
+if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
+choice_overflow(w,2*CHOICEPAD*sizeof(tagged_t),TRUE);
+        }
+
       }
-if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),(w->trail_top))) {
-choice_overflow(w,((2*CHOICEPAD)*sizeof(tagged_t)),TRUE);
-      }
-    }
+
 SetDeep();
-SetE((w->local_top));
-  }
+SetE(w->local_top);
+    }
+
 P+=0;
-goto ReadMode;
+goto r_dispatch;
+    }
+    }
 case 236:
-LoadH;
-goto w_dynamic_neck_proceed;
+H = w->heap_top;
+goto w_op236;
 case 66:
-LoadH;
-goto w_neck_proceed;
-r_proceed:
+H = w->heap_top;
+goto w_op66;
 case 64:
-(w->local_top) = 0;
-SetE((w->frame));
-P = (w->next_insn);
+r_op64:
+w->local_top = 0;
+SetE(w->frame);
+P = w->next_insn;
 PROFILE__HOOK_PROCEED;
 P+=0;
-goto ReadMode;
+goto r_dispatch;
 #if defined(PARBACK)
 case 262:
-(w->heap_top) = TaggedToPointer(((w->choice)->x)[0]);
-LoadH;
-P = ((bcp_t)(*(TaggedToPointer(((w->choice)->x)[0]))));
-(w->next_insn) = ((w->choice)->next_insn);
+w->heap_top = TaggedToPointer(w->choice->x[0]);
+H = w->heap_top;
+P = (bcp_t)*TaggedToPointer(w->choice->x[0]);
+w->next_insn = w->choice->next_insn;
 pop_choicept(w);
 goto enter_predicate;
 #endif
 default:
 goto illop;
-}w_tryeach:
+  }
+  }
+w_tryeach:
+{
 #if defined(GAUGE)
-INCR_COUNTER((alts->entry_counter));
+INCR_COUNTER(alts->entry_counter);
 #endif
-P = (alts->emul_p);
-(w->previous_choice) = (w->choice);
-{try_node_t * vr135 = (alts->next);
+P = alts->emul_p;
+w->previous_choice = w->choice;
+try_node_t * vr135 = alts->next;
 if (vr135!=NULL) {
-B = (w->choice);
-GetFrameTop((w->local_top),B,(G->frame));
+B = w->choice;
+GetFrameTop(w->local_top,B,G->frame);
 CODE_CHOICE_NEW0(B,vr135,H);
 ON_DEBUG({
 if (debug_choicepoints) {
-fprintf(stderr,"WAM created choicepoint (r), node = %p\n",(w->choice));
+fprintf(stderr,"WAM created choicepoint (r), node = %p\n",w->choice);
+      }
+
     }
-  });
-if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),(w->trail_top))) {
-choice_overflow(w,((2*CHOICEPAD)*sizeof(tagged_t)),TRUE);
+);
+if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
+choice_overflow(w,2*CHOICEPAD*sizeof(tagged_t),TRUE);
+    }
+
   }
-} else {
+ else {
 SetDeep();
-}
-}goto WriteMode;
-WriteMode:
-switch (BcOPCODE) {
-w_inittrue:
-case 260:
-CODE_ALLOC(E);
-for (intmach_t vr136 = (BcP(f_e,0)-sizeof(tagged_t));
-vr136>=(EToY0*sizeof(tagged_t));vr136-=sizeof(tagged_t)) {
-LoadSVA(Yb(vr136));
   }
+
+goto w_dispatch;
+  }
+w_dispatch:
+{
+switch (BcOPCODE) {
+case 260:
+{
+w_op260:
+{
+CODE_ALLOC(E);
+for (intmach_t vr136 = BcP(f_e,0)-sizeof(tagged_t);
+vr136>=EToY0*sizeof(tagged_t);vr136-=sizeof(tagged_t)) {
+LoadSVA(Yb(vr136));
+    }
+
 goto firsttrue;
-w_firsttrue_n:
+    }
+    }
 case 261:
-{intmach_t vr137 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,0)));
+{
+w_op261:
+{
+intmach_t vr137 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 P+=Fs(f_i);
 for (intmach_t vr138 = vr137;
 vr138>0;vr138--) {
-{tagged_t vr139 = BcP(f_y,0);
+tagged_t vr139 = BcP(f_y,0);
 P+=Fs(f_y);
 LoadSVA(Yb(vr139));
-}  }
-}goto firsttrue;
+    }
+
+goto firsttrue;
 firsttrue:
-(E->next_insn) = (w->next_insn);
-(E->frame) = (w->frame);
-(w->frame) = E;
-(w->next_insn) = BCoff(P,Fs(f_e));
-(w->local_top) = StackCharOffset(E,BcP(f_e,0));
+E->next_insn = w->next_insn;
+E->frame = w->frame;
+w->frame = E;
+w->next_insn = BCoff(P,Fs(f_e));
+w->local_top = StackCharOffset(E,BcP(f_e,0));
 if (OffStacktop(E,Stack_Warn)) {
 SetEvent();
-  }
+    }
+
 P+=Fs(f_e);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 0:
 P+=Fs(f_Q);
-goto w_initcall;
-w_initcall:
+goto w_op1;
 case 1:
+{
+w_op1:
+{
 CODE_ALLOC(E);
-for (intmach_t vr140 = (BcP(f_e,(0+Fs(f_E)))-sizeof(tagged_t));
-vr140>=(EToY0*sizeof(tagged_t));vr140-=sizeof(tagged_t)) {
+for (intmach_t vr140 = BcP(f_e,0+Fs(f_E))-sizeof(tagged_t);
+vr140>=EToY0*sizeof(tagged_t);vr140-=sizeof(tagged_t)) {
 LoadSVA(Yb(vr140));
-  }
-goto w_firstcall;
+    }
+
+goto w_op3;
+    }
+    }
 case 20:
 P+=Fs(f_Q);
-goto w_firstcall_n;
-w_firstcall_n:
+goto w_op21;
 case 21:
-{intmach_t vr141 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,0)));
+{
+w_op21:
+{
+intmach_t vr141 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 P+=Fs(f_i);
 for (intmach_t vr142 = vr141;
 vr142>8;vr142--) {
-{tagged_t vr143 = BcP(f_y,0);
+tagged_t vr143 = BcP(f_y,0);
 P+=Fs(f_y);
 LoadSVA(Yb(vr143));
-}  }
-}goto w_firstcall_8;
+    }
+
+goto w_op19;
+    }
+    }
 case 18:
 P+=Fs(f_Q);
-goto w_firstcall_8;
-w_firstcall_8:
+goto w_op19;
 case 19:
-{tagged_t vr144 = BcP(f_y,0);
+{
+w_op19:
+{
+{
+tagged_t vr144 = BcP(f_y,0);
 P+=Fs(f_y);
 LoadSVA(Yb(vr144));
-}goto w_firstcall_7;
+    }
+goto w_op17;
+    }
+    }
 case 16:
 P+=Fs(f_Q);
-goto w_firstcall_7;
-w_firstcall_7:
+goto w_op17;
 case 17:
-{tagged_t vr145 = BcP(f_y,0);
+{
+w_op17:
+{
+{
+tagged_t vr145 = BcP(f_y,0);
 P+=Fs(f_y);
 LoadSVA(Yb(vr145));
-}goto w_firstcall_6;
+    }
+goto w_op15;
+    }
+    }
 case 14:
 P+=Fs(f_Q);
-goto w_firstcall_6;
-w_firstcall_6:
+goto w_op15;
 case 15:
-{tagged_t vr146 = BcP(f_y,0);
+{
+w_op15:
+{
+{
+tagged_t vr146 = BcP(f_y,0);
 P+=Fs(f_y);
 LoadSVA(Yb(vr146));
-}goto w_firstcall_5;
+    }
+goto w_op13;
+    }
+    }
 case 12:
 P+=Fs(f_Q);
-goto w_firstcall_5;
-w_firstcall_5:
+goto w_op13;
 case 13:
-{tagged_t vr147 = BcP(f_y,0);
+{
+w_op13:
+{
+{
+tagged_t vr147 = BcP(f_y,0);
 P+=Fs(f_y);
 LoadSVA(Yb(vr147));
-}goto w_firstcall_4;
+    }
+goto w_op11;
+    }
+    }
 case 10:
 P+=Fs(f_Q);
-goto w_firstcall_4;
-w_firstcall_4:
+goto w_op11;
 case 11:
-{tagged_t vr148 = BcP(f_y,0);
+{
+w_op11:
+{
+{
+tagged_t vr148 = BcP(f_y,0);
 P+=Fs(f_y);
 LoadSVA(Yb(vr148));
-}goto w_firstcall_3;
+    }
+goto w_op9;
+    }
+    }
 case 8:
 P+=Fs(f_Q);
-goto w_firstcall_3;
-w_firstcall_3:
+goto w_op9;
 case 9:
-{tagged_t vr149 = BcP(f_y,0);
+{
+w_op9:
+{
+{
+tagged_t vr149 = BcP(f_y,0);
 P+=Fs(f_y);
 LoadSVA(Yb(vr149));
-}goto w_firstcall_2;
+    }
+goto w_op7;
+    }
+    }
 case 6:
 P+=Fs(f_Q);
-goto w_firstcall_2;
-w_firstcall_2:
+goto w_op7;
 case 7:
-{tagged_t vr150 = BcP(f_y,0);
+{
+w_op7:
+{
+{
+tagged_t vr150 = BcP(f_y,0);
 P+=Fs(f_y);
 LoadSVA(Yb(vr150));
-}goto w_firstcall_1;
+    }
+goto w_op5;
+    }
+    }
 case 4:
 P+=Fs(f_Q);
-goto w_firstcall_1;
-w_firstcall_1:
+goto w_op5;
 case 5:
-{tagged_t vr151 = BcP(f_y,0);
+{
+w_op5:
+{
+{
+tagged_t vr151 = BcP(f_y,0);
 P+=Fs(f_y);
 LoadSVA(Yb(vr151));
-}goto w_firstcall;
+    }
+goto w_op3;
+    }
+    }
 case 2:
 P+=Fs(f_Q);
-goto w_firstcall;
-w_firstcall:
+goto w_op3;
 case 3:
-(E->next_insn) = (w->next_insn);
-(E->frame) = (w->frame);
-(w->frame) = E;
-(w->next_insn) = BCoff(P,Fs(f_E)+Fs(f_e));
-(w->local_top) = StackCharOffset(E,BcP(f_e,(0+Fs(f_E))));
+w_op3:
+E->next_insn = w->next_insn;
+E->frame = w->frame;
+w->frame = E;
+w->next_insn = BCoff(P,Fs(f_E)+Fs(f_e));
+w->local_top = StackCharOffset(E,BcP(f_e,0+Fs(f_E)));
 P = BcP(f_p,0);
 if (OffStacktop(E,Stack_Warn)) {
 SetEvent();
-  }
+    }
+
 goto enter_predicate;
 case 40:
 P+=Fs(f_Q);
-goto w_call_n;
-w_call_n:
+goto w_op41;
 case 41:
-{intmach_t vr152 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,0)));
+{
+w_op41:
+{
+intmach_t vr152 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 P+=Fs(f_i);
 for (intmach_t vr153 = vr152;
 vr153>8;vr153--) {
-{tagged_t vr154 = BcP(f_z,0);
+tagged_t vr154 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr154&1)) {
-{tagged_t vr155;
+if (vr154&1) {
+tagged_t vr155;
 tagged_t vr156;
-vr155 = Yb((vr154+1));
+vr155 = Yb(vr154+1);
 if (TaggedIsSVA(vr155)) {
 do {
 RefSVA(vr156,vr155);
 if (vr156==vr155) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr155))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr155)) {
 LoadHVA(vr155,H);
 BindSVA(vr156,vr155);
-            }
+              }
+
 break;
-          }
+            }
+
 vr155 = vr156;
-        } while (TaggedIsSVA(vr155));
+          }
+ while (TaggedIsSVA(vr155));
+        }
+
+X(vr153-1) = vr155;
       }
-X((vr153-1)) = vr155;
-}    } else {
-X((vr153-1)) = Yb(vr154);
+ else {
+X(vr153-1) = Yb(vr154);
+      }
+
     }
-}  }
-}goto w_call_8;
+
+goto w_op39;
+    }
+    }
 case 38:
 P+=Fs(f_Q);
-goto w_call_8;
-w_call_8:
+goto w_op39;
 case 39:
-{tagged_t vr157 = BcP(f_z,0);
+{
+w_op39:
+{
+{
+tagged_t vr157 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr157&1)) {
-{tagged_t vr158;
+if (vr157&1) {
+tagged_t vr158;
 tagged_t vr159;
-vr158 = Yb((vr157+1));
+vr158 = Yb(vr157+1);
 if (TaggedIsSVA(vr158)) {
 do {
 RefSVA(vr159,vr158);
 if (vr159==vr158) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr158))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr158)) {
 LoadHVA(vr158,H);
 BindSVA(vr159,vr158);
-          }
+            }
+
 break;
-        }
+          }
+
 vr158 = vr159;
-      } while (TaggedIsSVA(vr158));
-    }
+        }
+ while (TaggedIsSVA(vr158));
+      }
+
 X(7) = vr158;
-}  } else {
+    }
+ else {
 X(7) = Yb(vr157);
-  }
-}goto w_call_7;
+    }
+
+    }
+goto w_op37;
+    }
+    }
 case 36:
 P+=Fs(f_Q);
-goto w_call_7;
-w_call_7:
+goto w_op37;
 case 37:
-{tagged_t vr160 = BcP(f_z,0);
+{
+w_op37:
+{
+{
+tagged_t vr160 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr160&1)) {
-{tagged_t vr161;
+if (vr160&1) {
+tagged_t vr161;
 tagged_t vr162;
-vr161 = Yb((vr160+1));
+vr161 = Yb(vr160+1);
 if (TaggedIsSVA(vr161)) {
 do {
 RefSVA(vr162,vr161);
 if (vr162==vr161) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr161))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr161)) {
 LoadHVA(vr161,H);
 BindSVA(vr162,vr161);
-          }
+            }
+
 break;
-        }
+          }
+
 vr161 = vr162;
-      } while (TaggedIsSVA(vr161));
-    }
+        }
+ while (TaggedIsSVA(vr161));
+      }
+
 X(6) = vr161;
-}  } else {
+    }
+ else {
 X(6) = Yb(vr160);
-  }
-}goto w_call_6;
+    }
+
+    }
+goto w_op35;
+    }
+    }
 case 34:
 P+=Fs(f_Q);
-goto w_call_6;
-w_call_6:
+goto w_op35;
 case 35:
-{tagged_t vr163 = BcP(f_z,0);
+{
+w_op35:
+{
+{
+tagged_t vr163 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr163&1)) {
-{tagged_t vr164;
+if (vr163&1) {
+tagged_t vr164;
 tagged_t vr165;
-vr164 = Yb((vr163+1));
+vr164 = Yb(vr163+1);
 if (TaggedIsSVA(vr164)) {
 do {
 RefSVA(vr165,vr164);
 if (vr165==vr164) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr164))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr164)) {
 LoadHVA(vr164,H);
 BindSVA(vr165,vr164);
-          }
+            }
+
 break;
-        }
+          }
+
 vr164 = vr165;
-      } while (TaggedIsSVA(vr164));
-    }
+        }
+ while (TaggedIsSVA(vr164));
+      }
+
 X(5) = vr164;
-}  } else {
+    }
+ else {
 X(5) = Yb(vr163);
-  }
-}goto w_call_5;
+    }
+
+    }
+goto w_op33;
+    }
+    }
 case 32:
 P+=Fs(f_Q);
-goto w_call_5;
-w_call_5:
+goto w_op33;
 case 33:
-{tagged_t vr166 = BcP(f_z,0);
+{
+w_op33:
+{
+{
+tagged_t vr166 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr166&1)) {
-{tagged_t vr167;
+if (vr166&1) {
+tagged_t vr167;
 tagged_t vr168;
-vr167 = Yb((vr166+1));
+vr167 = Yb(vr166+1);
 if (TaggedIsSVA(vr167)) {
 do {
 RefSVA(vr168,vr167);
 if (vr168==vr167) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr167))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr167)) {
 LoadHVA(vr167,H);
 BindSVA(vr168,vr167);
-          }
+            }
+
 break;
-        }
+          }
+
 vr167 = vr168;
-      } while (TaggedIsSVA(vr167));
-    }
+        }
+ while (TaggedIsSVA(vr167));
+      }
+
 X(4) = vr167;
-}  } else {
+    }
+ else {
 X(4) = Yb(vr166);
-  }
-}goto w_call_4;
+    }
+
+    }
+goto w_op31;
+    }
+    }
 case 30:
 P+=Fs(f_Q);
-goto w_call_4;
-w_call_4:
+goto w_op31;
 case 31:
-{tagged_t vr169 = BcP(f_z,0);
+{
+w_op31:
+{
+{
+tagged_t vr169 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr169&1)) {
-{tagged_t vr170;
+if (vr169&1) {
+tagged_t vr170;
 tagged_t vr171;
-vr170 = Yb((vr169+1));
+vr170 = Yb(vr169+1);
 if (TaggedIsSVA(vr170)) {
 do {
 RefSVA(vr171,vr170);
 if (vr171==vr170) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr170))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr170)) {
 LoadHVA(vr170,H);
 BindSVA(vr171,vr170);
-          }
+            }
+
 break;
-        }
+          }
+
 vr170 = vr171;
-      } while (TaggedIsSVA(vr170));
-    }
+        }
+ while (TaggedIsSVA(vr170));
+      }
+
 X(3) = vr170;
-}  } else {
+    }
+ else {
 X(3) = Yb(vr169);
-  }
-}goto w_call_3;
+    }
+
+    }
+goto w_op29;
+    }
+    }
 case 28:
 P+=Fs(f_Q);
-goto w_call_3;
-w_call_3:
+goto w_op29;
 case 29:
-{tagged_t vr172 = BcP(f_z,0);
+{
+w_op29:
+{
+{
+tagged_t vr172 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr172&1)) {
-{tagged_t vr173;
+if (vr172&1) {
+tagged_t vr173;
 tagged_t vr174;
-vr173 = Yb((vr172+1));
+vr173 = Yb(vr172+1);
 if (TaggedIsSVA(vr173)) {
 do {
 RefSVA(vr174,vr173);
 if (vr174==vr173) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr173))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr173)) {
 LoadHVA(vr173,H);
 BindSVA(vr174,vr173);
-          }
+            }
+
 break;
-        }
+          }
+
 vr173 = vr174;
-      } while (TaggedIsSVA(vr173));
-    }
+        }
+ while (TaggedIsSVA(vr173));
+      }
+
 X(2) = vr173;
-}  } else {
+    }
+ else {
 X(2) = Yb(vr172);
-  }
-}goto w_call_2;
+    }
+
+    }
+goto w_op27;
+    }
+    }
 case 26:
 P+=Fs(f_Q);
-goto w_call_2;
-w_call_2:
+goto w_op27;
 case 27:
-{tagged_t vr175 = BcP(f_z,0);
+{
+w_op27:
+{
+{
+tagged_t vr175 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr175&1)) {
-{tagged_t vr176;
+if (vr175&1) {
+tagged_t vr176;
 tagged_t vr177;
-vr176 = Yb((vr175+1));
+vr176 = Yb(vr175+1);
 if (TaggedIsSVA(vr176)) {
 do {
 RefSVA(vr177,vr176);
 if (vr177==vr176) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr176))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr176)) {
 LoadHVA(vr176,H);
 BindSVA(vr177,vr176);
-          }
+            }
+
 break;
-        }
+          }
+
 vr176 = vr177;
-      } while (TaggedIsSVA(vr176));
-    }
+        }
+ while (TaggedIsSVA(vr176));
+      }
+
 X(1) = vr176;
-}  } else {
+    }
+ else {
 X(1) = Yb(vr175);
-  }
-}goto w_call_1;
+    }
+
+    }
+goto w_op25;
+    }
+    }
 case 24:
 P+=Fs(f_Q);
-goto w_call_1;
-w_call_1:
+goto w_op25;
 case 25:
-{tagged_t vr178 = BcP(f_z,0);
+{
+w_op25:
+{
+{
+tagged_t vr178 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr178&1)) {
-{tagged_t vr179;
+if (vr178&1) {
+tagged_t vr179;
 tagged_t vr180;
-vr179 = Yb((vr178+1));
+vr179 = Yb(vr178+1);
 if (TaggedIsSVA(vr179)) {
 do {
 RefSVA(vr180,vr179);
 if (vr180==vr179) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr179))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr179)) {
 LoadHVA(vr179,H);
 BindSVA(vr180,vr179);
-          }
+            }
+
 break;
-        }
+          }
+
 vr179 = vr180;
-      } while (TaggedIsSVA(vr179));
-    }
+        }
+ while (TaggedIsSVA(vr179));
+      }
+
 X(0) = vr179;
-}  } else {
+    }
+ else {
 X(0) = Yb(vr178);
-  }
-}goto w_call;
+    }
+
+    }
+goto w_op23;
+    }
+    }
 case 22:
 P+=Fs(f_Q);
-goto w_call;
-w_call:
+goto w_op23;
 case 23:
-(w->next_insn) = BCoff(P,Fs(f_E)+Fs(f_e));
+w_op23:
+w->next_insn = BCoff(P,Fs(f_E)+Fs(f_e));
 P = BcP(f_p,0);
 goto enter_predicate;
 case 60:
 P+=Fs(f_Q);
-goto w_lastcall_n;
-w_lastcall_n:
+goto w_op61;
 case 61:
-{intmach_t vr181 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,0)));
+{
+w_op61:
+{
+intmach_t vr181 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 P+=Fs(f_i);
 for (intmach_t vr182 = vr181;
 vr182>8;vr182--) {
-{tagged_t vr183 = BcP(f_z,0);
+tagged_t vr183 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr183&1)) {
-{tagged_t vr184;
+if (vr183&1) {
+tagged_t vr184;
 tagged_t vr185;
-vr184 = Yb((vr183+1));
+vr184 = Yb(vr183+1);
 if (TaggedIsSVA(vr184)) {
 do {
 RefSVA(vr185,vr184);
 if (vr185==vr184) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr184))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr184)) {
 LoadHVA(vr184,H);
 BindSVA(vr185,vr184);
-            }
+              }
+
 break;
-          }
+            }
+
 vr184 = vr185;
-        } while (TaggedIsSVA(vr184));
+          }
+ while (TaggedIsSVA(vr184));
+        }
+
+X(vr182-1) = vr184;
       }
-X((vr182-1)) = vr184;
-}    } else {
-X((vr182-1)) = Yb(vr183);
+ else {
+X(vr182-1) = Yb(vr183);
+      }
+
     }
-}  }
-}goto w_lastcall_8;
+
+goto w_op59;
+    }
+    }
 case 58:
 P+=Fs(f_Q);
-goto w_lastcall_8;
-w_lastcall_8:
+goto w_op59;
 case 59:
-{tagged_t vr186 = BcP(f_z,0);
+{
+w_op59:
+{
+tagged_t vr186 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr186&1)) {
-{tagged_t vr187;
+if (vr186&1) {
+tagged_t vr187;
 tagged_t vr188;
-vr187 = Yb((vr186+1));
+vr187 = Yb(vr186+1);
 if (TaggedIsSVA(vr187)) {
 do {
 RefSVA(vr188,vr187);
 if (vr188==vr187) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr187))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr187)) {
 LoadHVA(vr187,H);
 BindSVA(vr188,vr187);
-          }
+            }
+
 break;
-        }
+          }
+
 vr187 = vr188;
-      } while (TaggedIsSVA(vr187));
-    }
+        }
+ while (TaggedIsSVA(vr187));
+      }
+
 X(7) = vr187;
-}  } else {
+    }
+ else {
 X(7) = Yb(vr186);
-  }
-}goto w_lastcall_7;
+    }
+
+goto w_op57;
+    }
+    }
 case 56:
 P+=Fs(f_Q);
-goto w_lastcall_7;
-w_lastcall_7:
+goto w_op57;
 case 57:
-{tagged_t vr189 = BcP(f_z,0);
+{
+w_op57:
+{
+tagged_t vr189 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr189&1)) {
-{tagged_t vr190;
+if (vr189&1) {
+tagged_t vr190;
 tagged_t vr191;
-vr190 = Yb((vr189+1));
+vr190 = Yb(vr189+1);
 if (TaggedIsSVA(vr190)) {
 do {
 RefSVA(vr191,vr190);
 if (vr191==vr190) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr190))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr190)) {
 LoadHVA(vr190,H);
 BindSVA(vr191,vr190);
-          }
+            }
+
 break;
-        }
+          }
+
 vr190 = vr191;
-      } while (TaggedIsSVA(vr190));
-    }
+        }
+ while (TaggedIsSVA(vr190));
+      }
+
 X(6) = vr190;
-}  } else {
+    }
+ else {
 X(6) = Yb(vr189);
-  }
-}goto w_lastcall_6;
+    }
+
+goto w_op55;
+    }
+    }
 case 54:
 P+=Fs(f_Q);
-goto w_lastcall_6;
-w_lastcall_6:
+goto w_op55;
 case 55:
-{tagged_t vr192 = BcP(f_z,0);
+{
+w_op55:
+{
+tagged_t vr192 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr192&1)) {
-{tagged_t vr193;
+if (vr192&1) {
+tagged_t vr193;
 tagged_t vr194;
-vr193 = Yb((vr192+1));
+vr193 = Yb(vr192+1);
 if (TaggedIsSVA(vr193)) {
 do {
 RefSVA(vr194,vr193);
 if (vr194==vr193) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr193))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr193)) {
 LoadHVA(vr193,H);
 BindSVA(vr194,vr193);
-          }
+            }
+
 break;
-        }
+          }
+
 vr193 = vr194;
-      } while (TaggedIsSVA(vr193));
-    }
+        }
+ while (TaggedIsSVA(vr193));
+      }
+
 X(5) = vr193;
-}  } else {
+    }
+ else {
 X(5) = Yb(vr192);
-  }
-}goto w_lastcall_5;
+    }
+
+goto w_op53;
+    }
+    }
 case 52:
 P+=Fs(f_Q);
-goto w_lastcall_5;
-w_lastcall_5:
+goto w_op53;
 case 53:
-{tagged_t vr195 = BcP(f_z,0);
+{
+w_op53:
+{
+tagged_t vr195 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr195&1)) {
-{tagged_t vr196;
+if (vr195&1) {
+tagged_t vr196;
 tagged_t vr197;
-vr196 = Yb((vr195+1));
+vr196 = Yb(vr195+1);
 if (TaggedIsSVA(vr196)) {
 do {
 RefSVA(vr197,vr196);
 if (vr197==vr196) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr196))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr196)) {
 LoadHVA(vr196,H);
 BindSVA(vr197,vr196);
-          }
+            }
+
 break;
-        }
+          }
+
 vr196 = vr197;
-      } while (TaggedIsSVA(vr196));
-    }
+        }
+ while (TaggedIsSVA(vr196));
+      }
+
 X(4) = vr196;
-}  } else {
+    }
+ else {
 X(4) = Yb(vr195);
-  }
-}goto w_lastcall_4;
+    }
+
+goto w_op51;
+    }
+    }
 case 50:
 P+=Fs(f_Q);
-goto w_lastcall_4;
-w_lastcall_4:
+goto w_op51;
 case 51:
-{tagged_t vr198 = BcP(f_z,0);
+{
+w_op51:
+{
+tagged_t vr198 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr198&1)) {
-{tagged_t vr199;
+if (vr198&1) {
+tagged_t vr199;
 tagged_t vr200;
-vr199 = Yb((vr198+1));
+vr199 = Yb(vr198+1);
 if (TaggedIsSVA(vr199)) {
 do {
 RefSVA(vr200,vr199);
 if (vr200==vr199) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr199))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr199)) {
 LoadHVA(vr199,H);
 BindSVA(vr200,vr199);
-          }
+            }
+
 break;
-        }
+          }
+
 vr199 = vr200;
-      } while (TaggedIsSVA(vr199));
-    }
+        }
+ while (TaggedIsSVA(vr199));
+      }
+
 X(3) = vr199;
-}  } else {
+    }
+ else {
 X(3) = Yb(vr198);
-  }
-}goto w_lastcall_3;
+    }
+
+goto w_op49;
+    }
+    }
 case 48:
 P+=Fs(f_Q);
-goto w_lastcall_3;
-w_lastcall_3:
+goto w_op49;
 case 49:
-{tagged_t vr201 = BcP(f_z,0);
+{
+w_op49:
+{
+tagged_t vr201 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr201&1)) {
-{tagged_t vr202;
+if (vr201&1) {
+tagged_t vr202;
 tagged_t vr203;
-vr202 = Yb((vr201+1));
+vr202 = Yb(vr201+1);
 if (TaggedIsSVA(vr202)) {
 do {
 RefSVA(vr203,vr202);
 if (vr203==vr202) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr202))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr202)) {
 LoadHVA(vr202,H);
 BindSVA(vr203,vr202);
-          }
+            }
+
 break;
-        }
+          }
+
 vr202 = vr203;
-      } while (TaggedIsSVA(vr202));
-    }
+        }
+ while (TaggedIsSVA(vr202));
+      }
+
 X(2) = vr202;
-}  } else {
+    }
+ else {
 X(2) = Yb(vr201);
-  }
-}goto w_lastcall_2;
+    }
+
+goto w_op47;
+    }
+    }
 case 46:
 P+=Fs(f_Q);
-goto w_lastcall_2;
-w_lastcall_2:
+goto w_op47;
 case 47:
-{tagged_t vr204 = BcP(f_z,0);
+{
+w_op47:
+{
+tagged_t vr204 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr204&1)) {
-{tagged_t vr205;
+if (vr204&1) {
+tagged_t vr205;
 tagged_t vr206;
-vr205 = Yb((vr204+1));
+vr205 = Yb(vr204+1);
 if (TaggedIsSVA(vr205)) {
 do {
 RefSVA(vr206,vr205);
 if (vr206==vr205) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr205))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr205)) {
 LoadHVA(vr205,H);
 BindSVA(vr206,vr205);
-          }
+            }
+
 break;
-        }
+          }
+
 vr205 = vr206;
-      } while (TaggedIsSVA(vr205));
-    }
+        }
+ while (TaggedIsSVA(vr205));
+      }
+
 X(1) = vr205;
-}  } else {
+    }
+ else {
 X(1) = Yb(vr204);
-  }
-}goto w_lastcall_1;
+    }
+
+goto w_op45;
+    }
+    }
 case 44:
 P+=Fs(f_Q);
-goto w_lastcall_1;
-w_lastcall_1:
+goto w_op45;
 case 45:
-{tagged_t vr207 = BcP(f_z,0);
+{
+w_op45:
+{
+tagged_t vr207 = BcP(f_z,0);
 P+=Fs(f_z);
-if ((vr207&1)) {
-{tagged_t vr208;
+if (vr207&1) {
+tagged_t vr208;
 tagged_t vr209;
-vr208 = Yb((vr207+1));
+vr208 = Yb(vr207+1);
 if (TaggedIsSVA(vr208)) {
 do {
 RefSVA(vr209,vr208);
 if (vr209==vr208) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr208))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr208)) {
 LoadHVA(vr208,H);
 BindSVA(vr209,vr208);
-          }
+            }
+
 break;
-        }
+          }
+
 vr208 = vr209;
-      } while (TaggedIsSVA(vr208));
-    }
+        }
+ while (TaggedIsSVA(vr208));
+      }
+
 X(0) = vr208;
-}  } else {
+    }
+ else {
 X(0) = Yb(vr207);
-  }
-}goto w_lastcall;
+    }
+
+goto w_op43;
+    }
+    }
 case 42:
 P+=Fs(f_Q);
-goto w_lastcall;
-w_lastcall:
+goto w_op43;
 case 43:
-(w->next_insn) = (E->next_insn);
-(w->frame) = (E->frame);
-goto w_execute;
+w_op43:
+w->next_insn = E->next_insn;
+w->frame = E->frame;
+goto w_op63;
 case 62:
-P = BcP(f_p,(0+Fs(f_Q)));
+P = BcP(f_p,0+Fs(f_Q));
 goto enter_predicate;
-w_execute:
 case 63:
+w_op63:
 P = BcP(f_p,0);
 goto enter_predicate;
-w_put_x_void:
 case 69:
+w_op69:
 LoadHVA(Xb(BcP(f_x,0)),H);
 P+=Fs(f_x);
-goto WriteMode;
-w_put_x_variable:
+goto w_dispatch;
 case 70:
-Load2HVA(Xb(BcP(f_x,0)),Xb(BcP(f_x,(0+Fs(f_x)))),H);
+{
+w_op70:
+{
+{
+tagged_t vr210;
+vr210 = Tagp(HVA,H);
+Xb(BcP(f_x,0+Fs(f_x))) = vr210;
+Xb(BcP(f_x,0)) = vr210;
+HeapPush(H,vr210);
+    }
 P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 85:
-Xb(BcP(f_x,0)) = Xb(BcP(f_x,(0+Fs(f_x))));
-Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_x)))) = Xb(BcP(f_x,(((0+Fs(f_x))+Fs(f_x))+Fs(f_x))));
+Xb(BcP(f_x,0)) = Xb(BcP(f_x,0+Fs(f_x)));
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x))) = Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x)+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
 case 71:
-Xb(BcP(f_x,0)) = Xb(BcP(f_x,(0+Fs(f_x))));
+Xb(BcP(f_x,0)) = Xb(BcP(f_x,0+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
-w_put_x_unsafe_value:
+goto w_dispatch;
 case 72:
-{tagged_t vr210;
-{tagged_t vr211;
+{
+w_op72:
+{
+tagged_t vr211;
 tagged_t vr212;
-vr211 = Xb(BcP(f_x,(0+Fs(f_x))));
-if (TaggedIsSVA(vr211)) {
+tagged_t vr213;
+vr212 = Xb(BcP(f_x,0+Fs(f_x)));
+if (TaggedIsSVA(vr212)) {
 do {
-RefSVA(vr212,vr211);
-if (vr212==vr211) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr211))) {
-LoadHVA(vr211,H);
-BindSVA(vr212,vr211);
-        }
+RefSVA(vr213,vr212);
+if (vr213==vr212) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr212)) {
+LoadHVA(vr212,H);
+BindSVA(vr213,vr212);
+          }
+
 break;
+        }
+
+vr212 = vr213;
       }
+ while (TaggedIsSVA(vr212));
+    }
+
 vr211 = vr212;
-    } while (TaggedIsSVA(vr211));
-  }
-vr210 = vr211;
-}Xb(BcP(f_x,0)) = vr210;
-Xb(BcP(f_x,(0+Fs(f_x)))) = vr210;
-}P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
-w_put_y_first_variable:
+Xb(BcP(f_x,0)) = vr211;
+Xb(BcP(f_x,0+Fs(f_x))) = vr211;
+P+=Fs(f_x)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
 case 73:
+w_op73:
 CODE_ALLOC(E);
-goto w_put_y_variable;
-w_put_y_variable:
+goto w_op74;
 case 74:
-Load2SVA(Xb(BcP(f_x,0)),Yb(BcP(f_y,(0+Fs(f_x)))));
-P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
-w_put_yfvar_yvar:
-case 83:
-CODE_ALLOC(E);
-goto w_put_yvar_yvar;
-w_put_yvar_yvar:
-case 84:
-Load2SVA(Xb(BcP(f_x,0)),Yb(BcP(f_y,(0+Fs(f_x)))));
-Load2SVA(Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_y)))),Yb(BcP(f_y,(((0+Fs(f_x))+Fs(f_y))+Fs(f_x)))));
-P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
-goto WriteMode;
-case 75:
-Xb(BcP(f_x,0)) = Yb(BcP(f_y,(0+Fs(f_x))));
-P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
-w_put_y_unsafe_value:
-case 76:
-{tagged_t vr213;
+{
+w_op74:
+{
+{
 tagged_t vr214;
-vr213 = Yb(BcP(f_y,(0+Fs(f_x))));
-if (TaggedIsSVA(vr213)) {
-do {
-RefSVA(vr214,vr213);
-if (vr214==vr213) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr213))) {
-LoadHVA(vr213,H);
-BindSVA(vr214,vr213);
-        }
-break;
-      }
-vr213 = vr214;
-    } while (TaggedIsSVA(vr213));
-  }
-Xb(BcP(f_x,0)) = vr213;
-}P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
-case 77:
-Xb(BcP(f_x,(0+Fs(f_Q)))) = BcP(f_t,((0+Fs(f_Q))+Fs(f_x)));
-P+=Fs(f_Q)+Fs(f_x)+Fs(f_t);
-goto WriteMode;
-case 78:
-Xb(BcP(f_x,0)) = BcP(f_t,(0+Fs(f_x)));
-P+=Fs(f_x)+Fs(f_t);
-goto WriteMode;
-case 81:
-Xb(BcP(f_x,0)) = atom_nil;
-P+=Fs(f_x);
-goto WriteMode;
-w_put_largeq:
-case 252:
-StoreH;
-Xb(BcP(f_x,(0+Fs(f_Q)))) = BC_MakeBlob(w,(&BcP(f_t,((0+Fs(f_Q))+Fs(f_x)))));
-LoadH;
-P+=Fs(f_Q)+Fs(f_x)+LargeSize(*((&BcP(f_t,((0+Fs(f_Q))+Fs(f_x))))));
-goto WriteMode;
-w_put_large:
-case 253:
-StoreH;
-Xb(BcP(f_x,0)) = BC_MakeBlob(w,(&BcP(f_t,(0+Fs(f_x)))));
-LoadH;
-P+=Fs(f_x)+LargeSize(*((&BcP(f_t,(0+Fs(f_x))))));
-goto WriteMode;
-w_put_structureq:
-case 79:
-Xb(BcP(f_x,(0+Fs(f_Q)))) = Tagp(STR,H);
-HeapPush(H,BcP(f_f,((0+Fs(f_Q))+Fs(f_x))));
-P+=Fs(f_Q)+Fs(f_x)+Fs(f_f);
-goto WriteMode;
-w_put_structure:
-case 80:
-Xb(BcP(f_x,0)) = Tagp(STR,H);
-HeapPush(H,BcP(f_f,(0+Fs(f_x))));
-P+=Fs(f_x)+Fs(f_f);
-goto WriteMode;
-w_put_list:
-case 82:
-Xb(BcP(f_x,0)) = Tagp(LST,H);
-P+=Fs(f_x);
-goto WriteMode;
-case 86:
-Xb(BcP(f_x,0)) = Yb(BcP(f_y,(0+Fs(f_x))));
-Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_y)))) = Yb(BcP(f_y,(((0+Fs(f_x))+Fs(f_y))+Fs(f_x))));
-P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
-goto WriteMode;
-w_put_yval_yuval:
-case 87:
-Xb(BcP(f_x,0)) = Yb(BcP(f_y,(0+Fs(f_x))));
-{tagged_t vr215;
+vr214 = Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x))));
+Yb(BcP(f_y,0+Fs(f_x))) = vr214;
+Xb(BcP(f_x,0)) = vr214;
+    }
+P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 83:
+w_op83:
+CODE_ALLOC(E);
+goto w_op84;
+case 84:
+{
+w_op84:
+{
+{
+tagged_t vr215;
+vr215 = Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x))));
+Yb(BcP(f_y,0+Fs(f_x))) = vr215;
+Xb(BcP(f_x,0)) = vr215;
+    }
+{
 tagged_t vr216;
-vr215 = Yb(BcP(f_y,(((0+Fs(f_x))+Fs(f_y))+Fs(f_x))));
-if (TaggedIsSVA(vr215)) {
-do {
-RefSVA(vr216,vr215);
-if (vr216==vr215) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr215))) {
-LoadHVA(vr215,H);
-BindSVA(vr216,vr215);
-        }
-break;
-      }
-vr215 = vr216;
-    } while (TaggedIsSVA(vr215));
-  }
-Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_y)))) = vr215;
-}P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
-goto WriteMode;
-w_put_yuval_yval:
-case 88:
-{tagged_t vr217;
+vr216 = Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x))));
+Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x))) = vr216;
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = vr216;
+    }
+P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 75:
+Xb(BcP(f_x,0)) = Yb(BcP(f_y,0+Fs(f_x)));
+P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+case 76:
+{
+w_op76:
+{
+tagged_t vr217;
 tagged_t vr218;
-vr217 = Yb(BcP(f_y,(0+Fs(f_x))));
+vr217 = Yb(BcP(f_y,0+Fs(f_x)));
 if (TaggedIsSVA(vr217)) {
 do {
 RefSVA(vr218,vr217);
 if (vr218==vr217) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr217))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr217)) {
 LoadHVA(vr217,H);
 BindSVA(vr218,vr217);
-        }
+          }
+
 break;
-      }
+        }
+
 vr217 = vr218;
-    } while (TaggedIsSVA(vr217));
-  }
+      }
+ while (TaggedIsSVA(vr217));
+    }
+
 Xb(BcP(f_x,0)) = vr217;
-}Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_y)))) = Yb(BcP(f_y,(((0+Fs(f_x))+Fs(f_y))+Fs(f_x))));
+P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 77:
+Xb(BcP(f_x,0+Fs(f_Q))) = BcP(f_t,0+Fs(f_Q)+Fs(f_x));
+P+=Fs(f_Q)+Fs(f_x)+Fs(f_t);
+goto w_dispatch;
+case 78:
+Xb(BcP(f_x,0)) = BcP(f_t,0+Fs(f_x));
+P+=Fs(f_x)+Fs(f_t);
+goto w_dispatch;
+case 81:
+Xb(BcP(f_x,0)) = atom_nil;
+P+=Fs(f_x);
+goto w_dispatch;
+case 252:
+w_op252:
+w->heap_top = H;
+Xb(BcP(f_x,0+Fs(f_Q))) = BC_MakeBlob(w,&BcP(f_t,0+Fs(f_Q)+Fs(f_x)));
+H = w->heap_top;
+P+=Fs(f_Q)+Fs(f_x)+LargeSize(*&BcP(f_t,0+Fs(f_Q)+Fs(f_x)));
+goto w_dispatch;
+case 253:
+w_op253:
+w->heap_top = H;
+Xb(BcP(f_x,0)) = BC_MakeBlob(w,&BcP(f_t,0+Fs(f_x)));
+H = w->heap_top;
+P+=Fs(f_x)+LargeSize(*&BcP(f_t,0+Fs(f_x)));
+goto w_dispatch;
+case 79:
+w_op79:
+Xb(BcP(f_x,0+Fs(f_Q))) = Tagp(STR,H);
+HeapPush(H,BcP(f_f,0+Fs(f_Q)+Fs(f_x)));
+P+=Fs(f_Q)+Fs(f_x)+Fs(f_f);
+goto w_dispatch;
+case 80:
+w_op80:
+Xb(BcP(f_x,0)) = Tagp(STR,H);
+HeapPush(H,BcP(f_f,0+Fs(f_x)));
+P+=Fs(f_x)+Fs(f_f);
+goto w_dispatch;
+case 82:
+w_op82:
+Xb(BcP(f_x,0)) = Tagp(LST,H);
+P+=Fs(f_x);
+goto w_dispatch;
+case 86:
+Xb(BcP(f_x,0)) = Yb(BcP(f_y,0+Fs(f_x)));
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
-goto WriteMode;
-w_put_yuval_yuval:
-case 89:
-{tagged_t vr219;
+goto w_dispatch;
+case 87:
+{
+w_op87:
+{
+Xb(BcP(f_x,0)) = Yb(BcP(f_y,0+Fs(f_x)));
+tagged_t vr219;
 tagged_t vr220;
-vr219 = Yb(BcP(f_y,(0+Fs(f_x))));
+vr219 = Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x)));
 if (TaggedIsSVA(vr219)) {
 do {
 RefSVA(vr220,vr219);
 if (vr220==vr219) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr219))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr219)) {
 LoadHVA(vr219,H);
 BindSVA(vr220,vr219);
-        }
+          }
+
 break;
-      }
+        }
+
 vr219 = vr220;
-    } while (TaggedIsSVA(vr219));
-  }
-Xb(BcP(f_x,0)) = vr219;
-}{tagged_t vr221;
+      }
+ while (TaggedIsSVA(vr219));
+    }
+
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = vr219;
+P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 88:
+{
+w_op88:
+{
+tagged_t vr221;
 tagged_t vr222;
-vr221 = Yb(BcP(f_y,(((0+Fs(f_x))+Fs(f_y))+Fs(f_x))));
+vr221 = Yb(BcP(f_y,0+Fs(f_x)));
 if (TaggedIsSVA(vr221)) {
 do {
 RefSVA(vr222,vr221);
 if (vr222==vr221) {
-if (!(YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr221))) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr221)) {
 LoadHVA(vr221,H);
 BindSVA(vr222,vr221);
-        }
+          }
+
 break;
-      }
+        }
+
 vr221 = vr222;
-    } while (TaggedIsSVA(vr221));
-  }
-Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_y)))) = vr221;
-}P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
-goto WriteMode;
+      }
+ while (TaggedIsSVA(vr221));
+    }
+
+Xb(BcP(f_x,0)) = vr221;
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x)));
+P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 89:
+{
+w_op89:
+{
+tagged_t vr223;
+tagged_t vr224;
+vr223 = Yb(BcP(f_y,0+Fs(f_x)));
+if (TaggedIsSVA(vr223)) {
+do {
+RefSVA(vr224,vr223);
+if (vr224==vr223) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr223)) {
+LoadHVA(vr223,H);
+BindSVA(vr224,vr223);
+          }
+
+break;
+        }
+
+vr223 = vr224;
+      }
+ while (TaggedIsSVA(vr223));
+    }
+
+Xb(BcP(f_x,0)) = vr223;
+tagged_t vr225;
+tagged_t vr226;
+vr225 = Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x)));
+if (TaggedIsSVA(vr225)) {
+do {
+RefSVA(vr226,vr225);
+if (vr226==vr225) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr225)) {
+LoadHVA(vr225,H);
+BindSVA(vr226,vr225);
+          }
+
+break;
+        }
+
+vr225 = vr226;
+      }
+ while (TaggedIsSVA(vr225));
+    }
+
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = vr225;
+P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
 case 91:
-StoreH;
-goto r_get_x_value;
+w->heap_top = H;
+goto r_op91;
 case 94:
-StoreH;
-goto r_get_y_first_value;
+w->heap_top = H;
+goto r_op94;
 case 95:
-StoreH;
-goto r_get_y_value;
+w->heap_top = H;
+goto r_op95;
 case 96:
 P+=Fs(f_Q);
-goto w_get_constant;
-w_get_constant:
+goto w_op97;
 case 97:
-StoreH;
-goto r_get_constant;
+w_op97:
+w->heap_top = H;
+goto r_op97;
 case 254:
 P+=Fs(f_Q);
-goto w_get_large;
-w_get_large:
+goto w_op255;
 case 255:
-StoreH;
-goto r_get_large;
+w_op255:
+w->heap_top = H;
+goto r_op255;
 case 98:
 P+=Fs(f_Q);
-goto w_get_structure;
-w_get_structure:
+goto w_op99;
 case 99:
-StoreH;
-goto r_get_structure;
+w_op99:
+w->heap_top = H;
+goto r_op99;
 case 100:
-StoreH;
-goto r_get_nil;
+w->heap_top = H;
+goto r_op100;
 case 101:
-StoreH;
-goto r_get_list;
+w->heap_top = H;
+goto r_op101;
 case 111:
 P+=Fs(f_Q);
-goto w_get_constant_neck_proceed;
-w_get_constant_neck_proceed:
+goto w_op112;
 case 112:
-StoreH;
-goto r_get_constant_neck_proceed;
+w_op112:
+w->heap_top = H;
+goto r_op112;
 case 113:
-StoreH;
-goto r_get_nil_neck_proceed;
+w->heap_top = H;
+goto r_op113;
 case 208:
-StoreH;
-goto r_cutb_x;
+w->heap_top = H;
+goto r_op208;
 case 210:
-StoreH;
-goto r_cutb_x_neck;
+w->heap_top = H;
+goto r_op210;
 case 211:
-StoreH;
-goto r_cutb_neck;
+w->heap_top = H;
+goto r_op211;
 case 212:
-StoreH;
-goto r_cutb_x_neck_proceed;
+w->heap_top = H;
+goto r_op212;
 case 213:
-StoreH;
-goto r_cutb_neck_proceed;
+w->heap_top = H;
+goto r_op213;
 case 214:
-StoreH;
-goto r_cute_x;
+w->heap_top = H;
+goto r_op214;
 case 216:
-StoreH;
-goto r_cute_x_neck;
+w->heap_top = H;
+goto r_op216;
 case 217:
-StoreH;
-goto r_cute_neck;
+w->heap_top = H;
+goto r_op217;
 case 215:
-StoreH;
-goto r_cutf_x;
+w->heap_top = H;
+goto r_op215;
 case 209:
-StoreH;
-goto r_cutf;
+w->heap_top = H;
+goto r_op209;
 case 218:
-StoreH;
-goto r_cut_y;
+w->heap_top = H;
+goto r_op218;
 case 219:
-Xb(BcP(f_x,0)) = ChoiceToTagged((w->previous_choice));
+Xb(BcP(f_x,0)) = ChoiceToTagged(w->previous_choice);
 P+=Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
 case 220:
 CODE_ALLOC(E);
-goto w_choice_y;
-w_choice_y:
+goto w_op221;
 case 221:
-Yb(BcP(f_y,0)) = ChoiceToTagged((w->previous_choice));
+w_op221:
+Yb(BcP(f_y,0)) = ChoiceToTagged(w->previous_choice);
 P+=Fs(f_y);
-goto WriteMode;
-w_kontinue:
+goto w_dispatch;
 case 233:
+{
+w_op233:
+{
 Setfunc(TaggedToFunctor(Y(0)));
-for (intmach_t vr223 = 0;
-vr223<(Func->arity);vr223++) {
-X(vr223) = Y((vr223+1));
-  }
-(w->next_insn) = (E->next_insn);
-(w->frame) = (E->frame);
+for (intmach_t vr227 = 0;
+vr227<Func->arity;vr227++) {
+X(vr227) = Y(vr227+1);
+    }
+
+w->next_insn = E->next_insn;
+w->frame = E->frame;
 goto enter_predicate;
+    }
+    }
 case 234:
-StoreH;
-goto r_leave;
+w->heap_top = H;
+goto r_op234;
 case 235:
-StoreH;
-goto r_exit_toplevel;
+w->heap_top = H;
+goto r_op235;
 case 237:
-StoreH;
-goto r_retry_cq;
+w->heap_top = H;
+goto r_op237;
 case 238:
-StoreH;
-goto r_retry_c;
+w->heap_top = H;
+goto r_op238;
 case 104:
 P+=Fs(f_Q);
-goto w_get_structure_x0;
-w_get_structure_x0:
+goto w_op105;
 case 105:
-{tagged_t vr224 = Tagp(STR,H);
-tagged_t vr225 = X(0);
-if (TaggedIsHVA(vr225)) {
-BindHVA(vr225,vr224);
-  } else if ((vr225&TagBitSVA)) {
-BindSVA(vr225,vr224);
-  } else {
-BindCVA(vr225,vr224);
-  }
+{
+w_op105:
+{
+tagged_t vr228 = Tagp(STR,H);
+tagged_t vr229 = X(0);
+if (TaggedIsHVA(vr229)) {
+BindHVA(vr229,vr228);
+    }
+ else if (vr229&TagBitSVA) {
+BindSVA(vr229,vr228);
+    }
+ else {
+BindCVA(vr229,vr228);
+    }
+
 HeapPush(H,BcP(f_f,0));
-}P+=Fs(f_f);
-goto WriteMode;
+P+=Fs(f_f);
+goto w_dispatch;
+    }
+    }
 case 256:
 P+=Fs(f_Q);
-goto w_get_large_x0;
-w_get_large_x0:
+goto w_op257;
 case 257:
-{StoreH;
-tagged_t vr226 = BC_MakeBlob(w,(&BcP(f_t,0)));
-LoadH;
-tagged_t vr227 = X(0);
-if (TaggedIsHVA(vr227)) {
-BindHVA(vr227,vr226);
-  } else if ((vr227&TagBitSVA)) {
-BindSVA(vr227,vr226);
-  } else {
-BindCVA(vr227,vr226);
-  }
-}P+=LargeSize(*((&BcP(f_t,0))));
-goto WriteMode;
-case 102:
-P+=Fs(f_Q);
-goto w_get_constant_x0;
-w_get_constant_x0:
-case 103:
-{tagged_t vr228 = X(0);
-if (TaggedIsHVA(vr228)) {
-BindHVA(vr228,BcP(f_t,0));
-  } else if ((vr228&TagBitSVA)) {
-BindSVA(vr228,BcP(f_t,0));
-  } else {
-BindCVA(vr228,BcP(f_t,0));
-  }
-}P+=Fs(f_t);
-goto WriteMode;
-case 106:
-{tagged_t vr229 = X(0);
-if (TaggedIsHVA(vr229)) {
-BindHVA(vr229,atom_nil);
-  } else if ((vr229&TagBitSVA)) {
-BindSVA(vr229,atom_nil);
-  } else {
-BindCVA(vr229,atom_nil);
-  }
-}P+=0;
-goto WriteMode;
-case 107:
-{tagged_t vr230 = Tagp(LST,H);
+{
+w_op257:
+{
+w->heap_top = H;
+tagged_t vr230 = BC_MakeBlob(w,&BcP(f_t,0));
+H = w->heap_top;
 tagged_t vr231 = X(0);
 if (TaggedIsHVA(vr231)) {
 BindHVA(vr231,vr230);
-  } else if ((vr231&TagBitSVA)) {
+    }
+ else if (vr231&TagBitSVA) {
 BindSVA(vr231,vr230);
-  } else {
+    }
+ else {
 BindCVA(vr231,vr230);
-  }
-}P+=0;
-goto WriteMode;
+    }
+
+P+=LargeSize(*&BcP(f_t,0));
+goto w_dispatch;
+    }
+    }
+case 102:
+P+=Fs(f_Q);
+goto w_op103;
+case 103:
+{
+w_op103:
+{
+tagged_t vr232 = X(0);
+if (TaggedIsHVA(vr232)) {
+BindHVA(vr232,BcP(f_t,0));
+    }
+ else if (vr232&TagBitSVA) {
+BindSVA(vr232,BcP(f_t,0));
+    }
+ else {
+BindCVA(vr232,BcP(f_t,0));
+    }
+
+P+=Fs(f_t);
+goto w_dispatch;
+    }
+    }
+case 106:
+{
+{
+tagged_t vr233 = X(0);
+if (TaggedIsHVA(vr233)) {
+BindHVA(vr233,atom_nil);
+    }
+ else if (vr233&TagBitSVA) {
+BindSVA(vr233,atom_nil);
+    }
+ else {
+BindCVA(vr233,atom_nil);
+    }
+
+P+=0;
+goto w_dispatch;
+    }
+    }
+case 107:
+{
+{
+tagged_t vr234 = Tagp(LST,H);
+tagged_t vr235 = X(0);
+if (TaggedIsHVA(vr235)) {
+BindHVA(vr235,vr234);
+    }
+ else if (vr235&TagBitSVA) {
+BindSVA(vr235,vr234);
+    }
+ else {
+BindCVA(vr235,vr234);
+    }
+
+P+=0;
+goto w_dispatch;
+    }
+    }
 case 108:
-Xb(BcP(f_x,(0+Fs(f_x)))) = Xb(BcP(f_x,0));
-Xb(BcP(f_x,(((0+Fs(f_x))+Fs(f_x))+Fs(f_x)))) = Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_x))));
+Xb(BcP(f_x,0+Fs(f_x))) = Xb(BcP(f_x,0));
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x)+Fs(f_x))) = Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
 case 90:
-Xb(BcP(f_x,(0+Fs(f_x)))) = Xb(BcP(f_x,0));
+Xb(BcP(f_x,0+Fs(f_x))) = Xb(BcP(f_x,0));
 P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
 case 92:
 CODE_ALLOC(E);
-goto w_get_y_variable;
-w_get_y_variable:
+goto w_op93;
 case 93:
-Yb(BcP(f_y,(0+Fs(f_x)))) = Xb(BcP(f_x,0));
+w_op93:
+Yb(BcP(f_y,0+Fs(f_x))) = Xb(BcP(f_x,0));
 P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
 case 109:
 CODE_ALLOC(E);
-goto w_get_yvar_yvar;
-w_get_yvar_yvar:
+goto w_op110;
 case 110:
-Yb(BcP(f_y,(0+Fs(f_x)))) = Xb(BcP(f_x,0));
-Yb(BcP(f_y,(((0+Fs(f_x))+Fs(f_y))+Fs(f_x)))) = Xb(BcP(f_x,((0+Fs(f_x))+Fs(f_y))));
+w_op110:
+Yb(BcP(f_y,0+Fs(f_x))) = Xb(BcP(f_x,0));
+Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x))) = Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y)));
 P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
 case 68:
 P = BCoff(P,BcP(f_i,0));
-goto WriteMode;
+goto w_dispatch;
 case 222:
-StoreH;
-goto r_function_1q;
+w->heap_top = H;
+goto r_op222;
 case 223:
-StoreH;
-goto r_function_1;
+w->heap_top = H;
+goto r_op223;
 case 224:
-StoreH;
-goto r_function_2q;
+w->heap_top = H;
+goto r_op224;
 case 225:
-StoreH;
-goto r_function_2;
+w->heap_top = H;
+goto r_op225;
 case 226:
-StoreH;
-goto r_builtin_1q;
+w->heap_top = H;
+goto r_op226;
 case 227:
-StoreH;
-goto r_builtin_1;
+w->heap_top = H;
+goto r_op227;
 case 228:
-StoreH;
-goto r_builtin_2q;
+w->heap_top = H;
+goto r_op228;
 case 229:
-StoreH;
-goto r_builtin_2;
+w->heap_top = H;
+goto r_op229;
 case 230:
-StoreH;
-goto r_builtin_3q;
+w->heap_top = H;
+goto r_op230;
 case 231:
-StoreH;
-goto r_builtin_3;
+w->heap_top = H;
+goto r_op231;
 case 232:
-StoreH;
-goto r_retry_instance;
-w_get_constraint:
+w->heap_top = H;
+goto r_op232;
 case 247:
-{tagged_t vr232 = Xb(BcP(f_x,0));
-tagged_t vr233;
-LoadCVA(vr233,H);
-{tagged_t vr234;
-SwitchOnVar(vr232,vr234,{
-BindHVA(vr232,vr233);
-Xb(BcP(f_x,0)) = vr233;
-  },{
-BindCVA(vr233,vr232);
-  },{
-BindSVA(vr232,vr233);
-Xb(BcP(f_x,0)) = vr233;
-  },{
-BindCVA(vr233,vr232);
-  });
-}}P+=Fs(f_x);
-goto WriteMode;
+{
+w_op247:
+{
+tagged_t vr236 = Xb(BcP(f_x,0));
+tagged_t vr237;
+LoadCVA(vr237,H);
+tagged_t vr238;
+SwitchOnVar(vr236,vr238,{
+BindHVA(vr236,vr237);
+Xb(BcP(f_x,0)) = vr237;
+    }
+,{
+BindCVA(vr237,vr236);
+    }
+,{
+BindSVA(vr236,vr237);
+Xb(BcP(f_x,0)) = vr237;
+    }
+,{
+BindCVA(vr237,vr236);
+    }
+);
+P+=Fs(f_x);
+goto w_dispatch;
+    }
+    }
 case 114:
-{intmach_t vr235 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,0)));
+{
+{
+intmach_t vr239 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 P+=Fs(f_i);
-for (intmach_t vr236 = vr235;
-vr236>4;vr236--) {
+for (intmach_t vr240 = vr239;
+vr240>4;vr240--) {
 ConstrHVA(H);
-  }
-}goto w_unify_void_4;
-w_unify_void_1:
+    }
+
+goto w_op118;
+    }
+    }
 case 115:
+w_op115:
 ConstrHVA(H);
 P+=0;
-goto WriteMode;
-w_unify_void_2:
+goto w_dispatch;
 case 116:
+w_op116:
 ConstrHVA(H);
-goto w_unify_void_1;
-w_unify_void_3:
+goto w_op115;
 case 117:
+w_op117:
 ConstrHVA(H);
-goto w_unify_void_2;
-w_unify_void_4:
+goto w_op116;
 case 118:
+w_op118:
 ConstrHVA(H);
-goto w_unify_void_3;
+goto w_op117;
 case 119:
 LoadHVA(Xb(BcP(f_x,0)),H);
 P+=Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
 case 120:
 HeapPush(H,Xb(BcP(f_x,0)));
 P+=Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
 case 121:
-{tagged_t vr237 = Xb(BcP(f_x,0));
-if (TaggedIsSVA(vr237)) {
-tagged_t vr238;
+{
+{
+{tagged_t vr241 = Xb(BcP(f_x,0));
+if (TaggedIsSVA(vr241)) {
+tagged_t vr242;
 do {
-RefSVA(vr238,vr237);
-if (vr238==vr237) {
-BindSVA(vr237,Tagp(HVA,H));
-PreLoadHVA(vr237,H);
+RefSVA(vr242,vr241);
+if (vr242==vr241) {
+BindSVA(vr241,Tagp(HVA,H));
+PreLoadHVA(vr241,H);
 break;
+        }
+
+vr241 = vr242;
       }
-vr237 = vr238;
-    } while (TaggedIsSVA(vr237));
-  }
-HeapPush(H,vr237);
+ while (TaggedIsSVA(vr241));
+    }
+
+HeapPush(H,vr241);
 }P+=Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 122:
 CODE_ALLOC(E);
-goto w_unify_y_variable;
-w_unify_y_variable:
+goto w_op123;
 case 123:
+w_op123:
 LoadHVA(Yb(BcP(f_y,0)),H);
 P+=Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
 case 124:
-{tagged_t vr239;
-LoadHVA(vr239,H);
+{
+{
+{tagged_t vr243;
+LoadHVA(vr243,H);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
-Yb(BcP(f_y,0)) = vr239;
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
+Yb(BcP(f_y,0)) = vr243;
 }P+=Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 125:
 HeapPush(H,Yb(BcP(f_y,0)));
 P+=Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
 case 126:
-{tagged_t vr240 = Yb(BcP(f_y,0));
-if (TaggedIsSVA(vr240)) {
-tagged_t vr241;
+{
+{
+{tagged_t vr244 = Yb(BcP(f_y,0));
+if (TaggedIsSVA(vr244)) {
+tagged_t vr245;
 do {
-RefSVA(vr241,vr240);
-if (vr241==vr240) {
-BindSVA(vr240,Tagp(HVA,H));
-PreLoadHVA(vr240,H);
+RefSVA(vr245,vr244);
+if (vr245==vr244) {
+BindSVA(vr244,Tagp(HVA,H));
+PreLoadHVA(vr244,H);
 break;
+        }
+
+vr244 = vr245;
       }
-vr240 = vr241;
-    } while (TaggedIsSVA(vr240));
-  }
-HeapPush(H,vr240);
+ while (TaggedIsSVA(vr244));
+    }
+
+HeapPush(H,vr244);
 }P+=Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 127:
-HeapPush(H,BcP(f_t,(0+Fs(f_Q))));
+HeapPush(H,BcP(f_t,0+Fs(f_Q)));
 P+=Fs(f_Q)+Fs(f_t);
-goto WriteMode;
+goto w_dispatch;
 case 128:
 HeapPush(H,BcP(f_t,0));
 P+=Fs(f_t);
-goto WriteMode;
+goto w_dispatch;
 case 258:
 P+=Fs(f_Q);
-goto w_unify_large;
-w_unify_large:
+goto w_op259;
 case 259:
-(w->heap_top) = HeapOffset(H,1);
-*(H) = BC_MakeBlob(w,(&BcP(f_t,0)));
-P+=LargeSize(*((&BcP(f_t,0))));
-goto ReadMode;
+w_op259:
+w->heap_top = HeapOffset(H,1);
+*H = BC_MakeBlob(w,&BcP(f_t,0));
+P+=LargeSize(*&BcP(f_t,0));
+goto r_dispatch;
 case 129:
 HeapPush(H,Tagp(STR,HeapOffset(H,1)));
-HeapPush(H,BcP(f_f,(0+Fs(f_Q))));
+HeapPush(H,BcP(f_f,0+Fs(f_Q)));
 P+=Fs(f_Q)+Fs(f_f);
-goto WriteMode;
+goto w_dispatch;
 case 130:
 HeapPush(H,Tagp(STR,HeapOffset(H,1)));
 HeapPush(H,BcP(f_f,0));
 P+=Fs(f_f);
-goto WriteMode;
+goto w_dispatch;
 case 131:
 HeapPush(H,atom_nil);
 P+=0;
-goto WriteMode;
+goto w_dispatch;
 case 132:
 HeapPush(H,Tagp(LST,HeapOffset(H,1)));
 P+=0;
-goto WriteMode;
+goto w_dispatch;
 case 133:
-HeapPush(H,BcP(f_t,(0+Fs(f_Q))));
-goto w_neck_proceed;
+HeapPush(H,BcP(f_t,0+Fs(f_Q)));
+goto w_op66;
 case 134:
 HeapPush(H,BcP(f_t,0));
-goto w_neck_proceed;
+goto w_op66;
 case 135:
 HeapPush(H,atom_nil);
-goto w_neck_proceed;
+goto w_op66;
 case 136:
-{intmach_t vr242 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,0)));
+{
+{
+intmach_t vr246 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
-ConstrHVA(H)  } while (--vr242);
-}LoadHVA(Xb(BcP(f_x,(0+Fs(f_i)))),H);
+ConstrHVA(H);
+    }
+ while (--vr246);
+LoadHVA(Xb(BcP(f_x,0+Fs(f_i))),H);
 P+=Fs(f_i)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 139:
 CODE_ALLOC(E);
-goto w_u2_void_yvar;
-w_u2_void_yvar:
+goto w_op140;
 case 140:
-{intmach_t vr243 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,0)));
+{
+w_op140:
+{
+intmach_t vr247 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
-ConstrHVA(H)  } while (--vr243);
-}LoadHVA(Yb(BcP(f_y,(0+Fs(f_i)))),H);
+ConstrHVA(H);
+    }
+ while (--vr247);
+LoadHVA(Yb(BcP(f_y,0+Fs(f_i))),H);
 P+=Fs(f_i)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 137:
-{intmach_t vr244 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,0)));
+{
+{
+intmach_t vr248 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
-ConstrHVA(H)  } while (--vr244);
-}HeapPush(H,Xb(BcP(f_x,(0+Fs(f_i)))));
+ConstrHVA(H);
+    }
+ while (--vr248);
+HeapPush(H,Xb(BcP(f_x,0+Fs(f_i))));
 P+=Fs(f_i)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 138:
-{intmach_t vr245 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,0)));
+{
+{
+intmach_t vr249 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
-ConstrHVA(H)  } while (--vr245);
-}{tagged_t vr246 = Xb(BcP(f_x,(0+Fs(f_i))));
-if (TaggedIsSVA(vr246)) {
-tagged_t vr247;
+ConstrHVA(H);
+    }
+ while (--vr249);
+{tagged_t vr250 = Xb(BcP(f_x,0+Fs(f_i)));
+if (TaggedIsSVA(vr250)) {
+tagged_t vr251;
 do {
-RefSVA(vr247,vr246);
-if (vr247==vr246) {
-BindSVA(vr246,Tagp(HVA,H));
-PreLoadHVA(vr246,H);
+RefSVA(vr251,vr250);
+if (vr251==vr250) {
+BindSVA(vr250,Tagp(HVA,H));
+PreLoadHVA(vr250,H);
 break;
+        }
+
+vr250 = vr251;
       }
-vr246 = vr247;
-    } while (TaggedIsSVA(vr246));
-  }
-HeapPush(H,vr246);
+ while (TaggedIsSVA(vr250));
+    }
+
+HeapPush(H,vr250);
 }P+=Fs(f_i)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 141:
-{intmach_t vr248 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,0)));
+{
+{
+intmach_t vr252 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
-ConstrHVA(H)  } while (--vr248);
-}{tagged_t vr249;
-LoadHVA(vr249,H);
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_i)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_i)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_i)))) = vr249;
+ConstrHVA(H);
+    }
+ while (--vr252);
+{tagged_t vr253;
+LoadHVA(vr253,H);
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_i))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_i)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_i))) = vr253;
 }P+=Fs(f_i)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 142:
-{intmach_t vr250 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,0)));
+{
+{
+intmach_t vr254 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
-ConstrHVA(H)  } while (--vr250);
-}HeapPush(H,Yb(BcP(f_y,(0+Fs(f_i)))));
+ConstrHVA(H);
+    }
+ while (--vr254);
+HeapPush(H,Yb(BcP(f_y,0+Fs(f_i))));
 P+=Fs(f_i)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 143:
-{intmach_t vr251 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,0)));
+{
+{
+intmach_t vr255 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
-ConstrHVA(H)  } while (--vr251);
-}{tagged_t vr252 = Yb(BcP(f_y,(0+Fs(f_i))));
-if (TaggedIsSVA(vr252)) {
-tagged_t vr253;
+ConstrHVA(H);
+    }
+ while (--vr255);
+{tagged_t vr256 = Yb(BcP(f_y,0+Fs(f_i)));
+if (TaggedIsSVA(vr256)) {
+tagged_t vr257;
 do {
-RefSVA(vr253,vr252);
-if (vr253==vr252) {
-BindSVA(vr252,Tagp(HVA,H));
-PreLoadHVA(vr252,H);
+RefSVA(vr257,vr256);
+if (vr257==vr256) {
+BindSVA(vr256,Tagp(HVA,H));
+PreLoadHVA(vr256,H);
 break;
+        }
+
+vr256 = vr257;
       }
-vr252 = vr253;
-    } while (TaggedIsSVA(vr252));
-  }
-HeapPush(H,vr252);
+ while (TaggedIsSVA(vr256));
+    }
+
+HeapPush(H,vr256);
 }P+=Fs(f_i)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 144:
+{
+{
 LoadHVA(Xb(BcP(f_x,0)),H);
-{intmach_t vr254 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,(0+Fs(f_x)))));
+intmach_t vr258 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_x));
 do {
-ConstrHVA(H)  } while (--vr254);
-}P+=Fs(f_x)+Fs(f_i);
-goto WriteMode;
+ConstrHVA(H);
+    }
+ while (--vr258);
+P+=Fs(f_x)+Fs(f_i);
+goto w_dispatch;
+    }
+    }
 case 145:
 LoadHVA(Xb(BcP(f_x,0)),H);
-LoadHVA(Xb(BcP(f_x,(0+Fs(f_x)))),H);
+LoadHVA(Xb(BcP(f_x,0+Fs(f_x))),H);
 P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
 case 148:
 CODE_ALLOC(E);
-goto w_u2_xvar_yvar;
-w_u2_xvar_yvar:
+goto w_op149;
 case 149:
+w_op149:
 LoadHVA(Xb(BcP(f_x,0)),H);
-LoadHVA(Yb(BcP(f_y,(0+Fs(f_x)))),H);
+LoadHVA(Yb(BcP(f_y,0+Fs(f_x))),H);
 P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
 case 146:
 LoadHVA(Xb(BcP(f_x,0)),H);
-HeapPush(H,Xb(BcP(f_x,(0+Fs(f_x)))));
+HeapPush(H,Xb(BcP(f_x,0+Fs(f_x))));
 P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
 case 147:
+{
+{
 LoadHVA(Xb(BcP(f_x,0)),H);
-{tagged_t vr255 = Xb(BcP(f_x,(0+Fs(f_x))));
-if (TaggedIsSVA(vr255)) {
-tagged_t vr256;
+{tagged_t vr259 = Xb(BcP(f_x,0+Fs(f_x)));
+if (TaggedIsSVA(vr259)) {
+tagged_t vr260;
 do {
-RefSVA(vr256,vr255);
-if (vr256==vr255) {
-BindSVA(vr255,Tagp(HVA,H));
-PreLoadHVA(vr255,H);
+RefSVA(vr260,vr259);
+if (vr260==vr259) {
+BindSVA(vr259,Tagp(HVA,H));
+PreLoadHVA(vr259,H);
 break;
+        }
+
+vr259 = vr260;
       }
-vr255 = vr256;
-    } while (TaggedIsSVA(vr255));
-  }
-HeapPush(H,vr255);
+ while (TaggedIsSVA(vr259));
+    }
+
+HeapPush(H,vr259);
 }P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 150:
+{
+{
 LoadHVA(Xb(BcP(f_x,0)),H);
-{tagged_t vr257;
-LoadHVA(vr257,H);
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_x)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_x)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_x)))) = vr257;
+{tagged_t vr261;
+LoadHVA(vr261,H);
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_x))) = vr261;
 }P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 151:
 LoadHVA(Xb(BcP(f_x,0)),H);
-HeapPush(H,Yb(BcP(f_y,(0+Fs(f_x)))));
+HeapPush(H,Yb(BcP(f_y,0+Fs(f_x))));
 P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
 case 152:
+{
+{
 LoadHVA(Xb(BcP(f_x,0)),H);
-{tagged_t vr258 = Yb(BcP(f_y,(0+Fs(f_x))));
-if (TaggedIsSVA(vr258)) {
-tagged_t vr259;
+{tagged_t vr262 = Yb(BcP(f_y,0+Fs(f_x)));
+if (TaggedIsSVA(vr262)) {
+tagged_t vr263;
 do {
-RefSVA(vr259,vr258);
-if (vr259==vr258) {
-BindSVA(vr258,Tagp(HVA,H));
-PreLoadHVA(vr258,H);
+RefSVA(vr263,vr262);
+if (vr263==vr262) {
+BindSVA(vr262,Tagp(HVA,H));
+PreLoadHVA(vr262,H);
 break;
+        }
+
+vr262 = vr263;
       }
-vr258 = vr259;
-    } while (TaggedIsSVA(vr258));
-  }
-HeapPush(H,vr258);
+ while (TaggedIsSVA(vr262));
+    }
+
+HeapPush(H,vr262);
 }P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 153:
 CODE_ALLOC(E);
-goto w_u2_yvar_void;
-w_u2_yvar_void:
+goto w_op154;
 case 154:
+{
+w_op154:
+{
 LoadHVA(Yb(BcP(f_y,0)),H);
-{intmach_t vr260 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,(0+Fs(f_y)))));
+intmach_t vr264 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_y));
 do {
-ConstrHVA(H)  } while (--vr260);
-}P+=Fs(f_y)+Fs(f_i);
-goto WriteMode;
+ConstrHVA(H);
+    }
+ while (--vr264);
+P+=Fs(f_y)+Fs(f_i);
+goto w_dispatch;
+    }
+    }
 case 155:
 CODE_ALLOC(E);
-goto w_u2_yvar_xvar;
-w_u2_yvar_xvar:
+goto w_op156;
 case 156:
+w_op156:
 LoadHVA(Yb(BcP(f_y,0)),H);
-LoadHVA(Xb(BcP(f_x,(0+Fs(f_y)))),H);
+LoadHVA(Xb(BcP(f_x,0+Fs(f_y))),H);
 P+=Fs(f_y)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
 case 157:
 CODE_ALLOC(E);
-goto w_u2_yvar_yvar;
-w_u2_yvar_yvar:
+goto w_op158;
 case 158:
+w_op158:
 LoadHVA(Yb(BcP(f_y,0)),H);
-LoadHVA(Yb(BcP(f_y,(0+Fs(f_y)))),H);
+LoadHVA(Yb(BcP(f_y,0+Fs(f_y))),H);
 P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
 case 159:
 CODE_ALLOC(E);
-goto w_u2_yvar_xval;
+goto w_op160;
 case 161:
 CODE_ALLOC(E);
-goto w_u2_yvar_xlval;
-w_u2_yvar_xval:
+goto w_op162;
 case 160:
+w_op160:
 LoadHVA(Yb(BcP(f_y,0)),H);
-HeapPush(H,Xb(BcP(f_x,(0+Fs(f_y)))));
+HeapPush(H,Xb(BcP(f_x,0+Fs(f_y))));
 P+=Fs(f_y)+Fs(f_x);
-goto WriteMode;
-w_u2_yvar_xlval:
+goto w_dispatch;
 case 162:
+{
+w_op162:
+{
 LoadHVA(Yb(BcP(f_y,0)),H);
-{tagged_t vr261 = Xb(BcP(f_x,(0+Fs(f_y))));
-if (TaggedIsSVA(vr261)) {
-tagged_t vr262;
+{tagged_t vr265 = Xb(BcP(f_x,0+Fs(f_y)));
+if (TaggedIsSVA(vr265)) {
+tagged_t vr266;
 do {
-RefSVA(vr262,vr261);
-if (vr262==vr261) {
-BindSVA(vr261,Tagp(HVA,H));
-PreLoadHVA(vr261,H);
+RefSVA(vr266,vr265);
+if (vr266==vr265) {
+BindSVA(vr265,Tagp(HVA,H));
+PreLoadHVA(vr265,H);
 break;
+        }
+
+vr265 = vr266;
       }
-vr261 = vr262;
-    } while (TaggedIsSVA(vr261));
-  }
-HeapPush(H,vr261);
+ while (TaggedIsSVA(vr265));
+    }
+
+HeapPush(H,vr265);
 }P+=Fs(f_y)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 163:
 CODE_ALLOC(E);
-goto w_u2_yvar_yval;
+goto w_op164;
 case 165:
 CODE_ALLOC(E);
-goto w_u2_yvar_ylval;
-w_u2_yvar_yval:
+goto w_op166;
 case 164:
+w_op164:
 LoadHVA(Yb(BcP(f_y,0)),H);
-HeapPush(H,Yb(BcP(f_y,(0+Fs(f_y)))));
+HeapPush(H,Yb(BcP(f_y,0+Fs(f_y))));
 P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
-w_u2_yvar_ylval:
+goto w_dispatch;
 case 166:
+{
+w_op166:
+{
 LoadHVA(Yb(BcP(f_y,0)),H);
-{tagged_t vr263 = Yb(BcP(f_y,(0+Fs(f_y))));
-if (TaggedIsSVA(vr263)) {
-tagged_t vr264;
+{tagged_t vr267 = Yb(BcP(f_y,0+Fs(f_y)));
+if (TaggedIsSVA(vr267)) {
+tagged_t vr268;
 do {
-RefSVA(vr264,vr263);
-if (vr264==vr263) {
-BindSVA(vr263,Tagp(HVA,H));
-PreLoadHVA(vr263,H);
+RefSVA(vr268,vr267);
+if (vr268==vr267) {
+BindSVA(vr267,Tagp(HVA,H));
+PreLoadHVA(vr267,H);
 break;
+        }
+
+vr267 = vr268;
       }
-vr263 = vr264;
-    } while (TaggedIsSVA(vr263));
-  }
-HeapPush(H,vr263);
+ while (TaggedIsSVA(vr267));
+    }
+
+HeapPush(H,vr267);
 }P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 185:
-{tagged_t vr265;
-LoadHVA(vr265,H);
-if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
-Yb(BcP(f_y,0)) = vr265;
-}{intmach_t vr266 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,(0+Fs(f_y)))));
-do {
-ConstrHVA(H)  } while (--vr266);
-}P+=Fs(f_y)+Fs(f_i);
-goto WriteMode;
-case 188:
-{tagged_t vr267;
-LoadHVA(vr267,H);
-if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
-Yb(BcP(f_y,0)) = vr267;
-}LoadHVA(Xb(BcP(f_x,(0+Fs(f_y)))),H);
-P+=Fs(f_y)+Fs(f_x);
-goto WriteMode;
-case 199:
-{tagged_t vr268;
-LoadHVA(vr268,H);
-if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
-Yb(BcP(f_y,0)) = vr268;
-}{tagged_t vr269;
+{
+{
+{tagged_t vr269;
 LoadHVA(vr269,H);
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_y)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_y)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_y)))) = vr269;
-}P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
-case 193:
-{tagged_t vr270;
-LoadHVA(vr270,H);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
-Yb(BcP(f_y,0)) = vr270;
-}HeapPush(H,Xb(BcP(f_x,(0+Fs(f_y)))));
-P+=Fs(f_y)+Fs(f_x);
-goto WriteMode;
-case 196:
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
+Yb(BcP(f_y,0)) = vr269;
+}intmach_t vr270 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_y));
+do {
+ConstrHVA(H);
+    }
+ while (--vr270);
+P+=Fs(f_y)+Fs(f_i);
+goto w_dispatch;
+    }
+    }
+case 188:
+{
+{
 {tagged_t vr271;
 LoadHVA(vr271,H);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
 Yb(BcP(f_y,0)) = vr271;
-}{tagged_t vr272 = Xb(BcP(f_x,(0+Fs(f_y))));
-if (TaggedIsSVA(vr272)) {
-tagged_t vr273;
-do {
-RefSVA(vr273,vr272);
-if (vr273==vr272) {
-BindSVA(vr272,Tagp(HVA,H));
-PreLoadHVA(vr272,H);
-break;
-      }
-vr272 = vr273;
-    } while (TaggedIsSVA(vr272));
-  }
-HeapPush(H,vr272);
-}P+=Fs(f_y)+Fs(f_x);
-goto WriteMode;
-case 202:
+}LoadHVA(Xb(BcP(f_x,0+Fs(f_y))),H);
+P+=Fs(f_y)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 199:
+{
+{
+{tagged_t vr272;
+LoadHVA(vr272,H);
+if (CondStackvar(Yb(BcP(f_y,0)))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
+Yb(BcP(f_y,0)) = vr272;
+}{tagged_t vr273;
+LoadHVA(vr273,H);
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_y))) = vr273;
+}P+=Fs(f_y)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 193:
+{
+{
 {tagged_t vr274;
 LoadHVA(vr274,H);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
 Yb(BcP(f_y,0)) = vr274;
-}HeapPush(H,Yb(BcP(f_y,(0+Fs(f_y)))));
-P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
-case 205:
+}HeapPush(H,Xb(BcP(f_x,0+Fs(f_y))));
+P+=Fs(f_y)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 196:
+{
+{
 {tagged_t vr275;
 LoadHVA(vr275,H);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,0)))));
-  }
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
 Yb(BcP(f_y,0)) = vr275;
-}{tagged_t vr276 = Yb(BcP(f_y,(0+Fs(f_y))));
+}{tagged_t vr276 = Xb(BcP(f_x,0+Fs(f_y)));
 if (TaggedIsSVA(vr276)) {
 tagged_t vr277;
 do {
@@ -3888,102 +4920,115 @@ if (vr277==vr276) {
 BindSVA(vr276,Tagp(HVA,H));
 PreLoadHVA(vr276,H);
 break;
-      }
+        }
+
 vr276 = vr277;
-    } while (TaggedIsSVA(vr276));
-  }
-HeapPush(H,vr276);
-}P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
-case 167:
-HeapPush(H,Xb(BcP(f_x,0)));
-{intmach_t vr278 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,(0+Fs(f_x)))));
-do {
-ConstrHVA(H)  } while (--vr278);
-}P+=Fs(f_x)+Fs(f_i);
-goto WriteMode;
-case 168:
-{tagged_t vr279 = Xb(BcP(f_x,0));
-if (TaggedIsSVA(vr279)) {
-tagged_t vr280;
-do {
-RefSVA(vr280,vr279);
-if (vr280==vr279) {
-BindSVA(vr279,Tagp(HVA,H));
-PreLoadHVA(vr279,H);
-break;
       }
-vr279 = vr280;
-    } while (TaggedIsSVA(vr279));
-  }
-HeapPush(H,vr279);
-}{intmach_t vr281 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,(0+Fs(f_x)))));
+ while (TaggedIsSVA(vr276));
+    }
+
+HeapPush(H,vr276);
+}P+=Fs(f_y)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 202:
+{
+{
+{tagged_t vr278;
+LoadHVA(vr278,H);
+if (CondStackvar(Yb(BcP(f_y,0)))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
+Yb(BcP(f_y,0)) = vr278;
+}HeapPush(H,Yb(BcP(f_y,0+Fs(f_y))));
+P+=Fs(f_y)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 205:
+{
+{
+{tagged_t vr279;
+LoadHVA(vr279,H);
+if (CondStackvar(Yb(BcP(f_y,0)))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
+Yb(BcP(f_y,0)) = vr279;
+}{tagged_t vr280 = Yb(BcP(f_y,0+Fs(f_y)));
+if (TaggedIsSVA(vr280)) {
+tagged_t vr281;
 do {
-ConstrHVA(H)  } while (--vr281);
-}P+=Fs(f_x)+Fs(f_i);
-goto WriteMode;
+RefSVA(vr281,vr280);
+if (vr281==vr280) {
+BindSVA(vr280,Tagp(HVA,H));
+PreLoadHVA(vr280,H);
+break;
+        }
+
+vr280 = vr281;
+      }
+ while (TaggedIsSVA(vr280));
+    }
+
+HeapPush(H,vr280);
+}P+=Fs(f_y)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 167:
+{
+{
+HeapPush(H,Xb(BcP(f_x,0)));
+intmach_t vr282 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_x));
+do {
+ConstrHVA(H);
+    }
+ while (--vr282);
+P+=Fs(f_x)+Fs(f_i);
+goto w_dispatch;
+    }
+    }
+case 168:
+{
+{
+{tagged_t vr283 = Xb(BcP(f_x,0));
+if (TaggedIsSVA(vr283)) {
+tagged_t vr284;
+do {
+RefSVA(vr284,vr283);
+if (vr284==vr283) {
+BindSVA(vr283,Tagp(HVA,H));
+PreLoadHVA(vr283,H);
+break;
+        }
+
+vr283 = vr284;
+      }
+ while (TaggedIsSVA(vr283));
+    }
+
+HeapPush(H,vr283);
+}intmach_t vr285 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_x));
+do {
+ConstrHVA(H);
+    }
+ while (--vr285);
+P+=Fs(f_x)+Fs(f_i);
+goto w_dispatch;
+    }
+    }
 case 169:
 HeapPush(H,Xb(BcP(f_x,0)));
-LoadHVA(Xb(BcP(f_x,(0+Fs(f_x)))),H);
+LoadHVA(Xb(BcP(f_x,0+Fs(f_x))),H);
 P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
 case 170:
-{tagged_t vr282 = Xb(BcP(f_x,0));
-if (TaggedIsSVA(vr282)) {
-tagged_t vr283;
-do {
-RefSVA(vr283,vr282);
-if (vr283==vr282) {
-BindSVA(vr282,Tagp(HVA,H));
-PreLoadHVA(vr282,H);
-break;
-      }
-vr282 = vr283;
-    } while (TaggedIsSVA(vr282));
-  }
-HeapPush(H,vr282);
-}LoadHVA(Xb(BcP(f_x,(0+Fs(f_x)))),H);
-P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
-case 171:
-CODE_ALLOC(E);
-goto w_u2_xval_yvar;
-case 172:
-CODE_ALLOC(E);
-goto w_u2_xlval_yvar;
-w_u2_xval_yvar:
-case 173:
-HeapPush(H,Xb(BcP(f_x,0)));
-LoadHVA(Yb(BcP(f_y,(0+Fs(f_x)))),H);
-P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
-w_u2_xlval_yvar:
-case 174:
-{tagged_t vr284 = Xb(BcP(f_x,0));
-if (TaggedIsSVA(vr284)) {
-tagged_t vr285;
-do {
-RefSVA(vr285,vr284);
-if (vr285==vr284) {
-BindSVA(vr284,Tagp(HVA,H));
-PreLoadHVA(vr284,H);
-break;
-      }
-vr284 = vr285;
-    } while (TaggedIsSVA(vr284));
-  }
-HeapPush(H,vr284);
-}LoadHVA(Yb(BcP(f_y,(0+Fs(f_x)))),H);
-P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
-case 175:
-HeapPush(H,Xb(BcP(f_x,0)));
-HeapPush(H,Xb(BcP(f_x,(0+Fs(f_x)))));
-P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
-case 177:
-HeapPush(H,Xb(BcP(f_x,0)));
-{tagged_t vr286 = Xb(BcP(f_x,(0+Fs(f_x))));
+{
+{
+{tagged_t vr286 = Xb(BcP(f_x,0));
 if (TaggedIsSVA(vr286)) {
 tagged_t vr287;
 do {
@@ -3992,14 +5037,35 @@ if (vr287==vr286) {
 BindSVA(vr286,Tagp(HVA,H));
 PreLoadHVA(vr286,H);
 break;
-      }
+        }
+
 vr286 = vr287;
-    } while (TaggedIsSVA(vr286));
-  }
+      }
+ while (TaggedIsSVA(vr286));
+    }
+
 HeapPush(H,vr286);
-}P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
-case 176:
+}LoadHVA(Xb(BcP(f_x,0+Fs(f_x))),H);
+P+=Fs(f_x)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 171:
+CODE_ALLOC(E);
+goto w_op173;
+case 172:
+CODE_ALLOC(E);
+goto w_op174;
+case 173:
+w_op173:
+HeapPush(H,Xb(BcP(f_x,0)));
+LoadHVA(Yb(BcP(f_y,0+Fs(f_x))),H);
+P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+case 174:
+{
+w_op174:
+{
 {tagged_t vr288 = Xb(BcP(f_x,0));
 if (TaggedIsSVA(vr288)) {
 tagged_t vr289;
@@ -4009,16 +5075,29 @@ if (vr289==vr288) {
 BindSVA(vr288,Tagp(HVA,H));
 PreLoadHVA(vr288,H);
 break;
-      }
+        }
+
 vr288 = vr289;
-    } while (TaggedIsSVA(vr288));
-  }
+      }
+ while (TaggedIsSVA(vr288));
+    }
+
 HeapPush(H,vr288);
-}HeapPush(H,Xb(BcP(f_x,(0+Fs(f_x)))));
+}LoadHVA(Yb(BcP(f_y,0+Fs(f_x))),H);
+P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 175:
+HeapPush(H,Xb(BcP(f_x,0)));
+HeapPush(H,Xb(BcP(f_x,0+Fs(f_x))));
 P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
-case 178:
-{tagged_t vr290 = Xb(BcP(f_x,0));
+goto w_dispatch;
+case 177:
+{
+{
+HeapPush(H,Xb(BcP(f_x,0)));
+{tagged_t vr290 = Xb(BcP(f_x,0+Fs(f_x)));
 if (TaggedIsSVA(vr290)) {
 tagged_t vr291;
 do {
@@ -4027,12 +5106,22 @@ if (vr291==vr290) {
 BindSVA(vr290,Tagp(HVA,H));
 PreLoadHVA(vr290,H);
 break;
-      }
+        }
+
 vr290 = vr291;
-    } while (TaggedIsSVA(vr290));
-  }
+      }
+ while (TaggedIsSVA(vr290));
+    }
+
 HeapPush(H,vr290);
-}{tagged_t vr292 = Xb(BcP(f_x,(0+Fs(f_x))));
+}P+=Fs(f_x)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 176:
+{
+{
+{tagged_t vr292 = Xb(BcP(f_x,0));
 if (TaggedIsSVA(vr292)) {
 tagged_t vr293;
 do {
@@ -4041,89 +5130,116 @@ if (vr293==vr292) {
 BindSVA(vr292,Tagp(HVA,H));
 PreLoadHVA(vr292,H);
 break;
-      }
+        }
+
 vr292 = vr293;
-    } while (TaggedIsSVA(vr292));
-  }
-HeapPush(H,vr292);
-}P+=Fs(f_x)+Fs(f_x);
-goto WriteMode;
-case 179:
-HeapPush(H,Xb(BcP(f_x,0)));
-{tagged_t vr294;
-LoadHVA(vr294,H);
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_x)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_x)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_x)))) = vr294;
-}P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
-case 180:
-{tagged_t vr295 = Xb(BcP(f_x,0));
-if (TaggedIsSVA(vr295)) {
-tagged_t vr296;
-do {
-RefSVA(vr296,vr295);
-if (vr296==vr295) {
-BindSVA(vr295,Tagp(HVA,H));
-PreLoadHVA(vr295,H);
-break;
       }
-vr295 = vr296;
-    } while (TaggedIsSVA(vr295));
-  }
-HeapPush(H,vr295);
-}{tagged_t vr297;
-LoadHVA(vr297,H);
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_x)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_x)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_x)))) = vr297;
+ while (TaggedIsSVA(vr292));
+    }
+
+HeapPush(H,vr292);
+}HeapPush(H,Xb(BcP(f_x,0+Fs(f_x))));
+P+=Fs(f_x)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 178:
+{
+{
+{tagged_t vr294 = Xb(BcP(f_x,0));
+if (TaggedIsSVA(vr294)) {
+tagged_t vr295;
+do {
+RefSVA(vr295,vr294);
+if (vr295==vr294) {
+BindSVA(vr294,Tagp(HVA,H));
+PreLoadHVA(vr294,H);
+break;
+        }
+
+vr294 = vr295;
+      }
+ while (TaggedIsSVA(vr294));
+    }
+
+HeapPush(H,vr294);
+}{tagged_t vr296 = Xb(BcP(f_x,0+Fs(f_x)));
+if (TaggedIsSVA(vr296)) {
+tagged_t vr297;
+do {
+RefSVA(vr297,vr296);
+if (vr297==vr296) {
+BindSVA(vr296,Tagp(HVA,H));
+PreLoadHVA(vr296,H);
+break;
+        }
+
+vr296 = vr297;
+      }
+ while (TaggedIsSVA(vr296));
+    }
+
+HeapPush(H,vr296);
+}P+=Fs(f_x)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 179:
+{
+{
+HeapPush(H,Xb(BcP(f_x,0)));
+{tagged_t vr298;
+LoadHVA(vr298,H);
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_x))) = vr298;
 }P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
+case 180:
+{
+{
+{tagged_t vr299 = Xb(BcP(f_x,0));
+if (TaggedIsSVA(vr299)) {
+tagged_t vr300;
+do {
+RefSVA(vr300,vr299);
+if (vr300==vr299) {
+BindSVA(vr299,Tagp(HVA,H));
+PreLoadHVA(vr299,H);
+break;
+        }
+
+vr299 = vr300;
+      }
+ while (TaggedIsSVA(vr299));
+    }
+
+HeapPush(H,vr299);
+}{tagged_t vr301;
+LoadHVA(vr301,H);
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_x))) = vr301;
+}P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
 case 181:
 HeapPush(H,Xb(BcP(f_x,0)));
-HeapPush(H,Yb(BcP(f_y,(0+Fs(f_x)))));
+HeapPush(H,Yb(BcP(f_y,0+Fs(f_x))));
 P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
 case 183:
+{
+{
 HeapPush(H,Xb(BcP(f_x,0)));
-{tagged_t vr298 = Yb(BcP(f_y,(0+Fs(f_x))));
-if (TaggedIsSVA(vr298)) {
-tagged_t vr299;
-do {
-RefSVA(vr299,vr298);
-if (vr299==vr298) {
-BindSVA(vr298,Tagp(HVA,H));
-PreLoadHVA(vr298,H);
-break;
-      }
-vr298 = vr299;
-    } while (TaggedIsSVA(vr298));
-  }
-HeapPush(H,vr298);
-}P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
-case 182:
-{tagged_t vr300 = Xb(BcP(f_x,0));
-if (TaggedIsSVA(vr300)) {
-tagged_t vr301;
-do {
-RefSVA(vr301,vr300);
-if (vr301==vr300) {
-BindSVA(vr300,Tagp(HVA,H));
-PreLoadHVA(vr300,H);
-break;
-      }
-vr300 = vr301;
-    } while (TaggedIsSVA(vr300));
-  }
-HeapPush(H,vr300);
-}HeapPush(H,Yb(BcP(f_y,(0+Fs(f_x)))));
-P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
-case 184:
-{tagged_t vr302 = Xb(BcP(f_x,0));
+{tagged_t vr302 = Yb(BcP(f_y,0+Fs(f_x)));
 if (TaggedIsSVA(vr302)) {
 tagged_t vr303;
 do {
@@ -4132,12 +5248,22 @@ if (vr303==vr302) {
 BindSVA(vr302,Tagp(HVA,H));
 PreLoadHVA(vr302,H);
 break;
-      }
+        }
+
 vr302 = vr303;
-    } while (TaggedIsSVA(vr302));
-  }
+      }
+ while (TaggedIsSVA(vr302));
+    }
+
 HeapPush(H,vr302);
-}{tagged_t vr304 = Yb(BcP(f_y,(0+Fs(f_x))));
+}P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 182:
+{
+{
+{tagged_t vr304 = Xb(BcP(f_x,0));
 if (TaggedIsSVA(vr304)) {
 tagged_t vr305;
 do {
@@ -4146,162 +5272,218 @@ if (vr305==vr304) {
 BindSVA(vr304,Tagp(HVA,H));
 PreLoadHVA(vr304,H);
 break;
-      }
+        }
+
 vr304 = vr305;
-    } while (TaggedIsSVA(vr304));
-  }
-HeapPush(H,vr304);
-}P+=Fs(f_x)+Fs(f_y);
-goto WriteMode;
-case 186:
-HeapPush(H,Yb(BcP(f_y,0)));
-{intmach_t vr306 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,(0+Fs(f_y)))));
-do {
-ConstrHVA(H)  } while (--vr306);
-}P+=Fs(f_y)+Fs(f_i);
-goto WriteMode;
-case 187:
-{tagged_t vr307 = Yb(BcP(f_y,0));
-if (TaggedIsSVA(vr307)) {
-tagged_t vr308;
-do {
-RefSVA(vr308,vr307);
-if (vr308==vr307) {
-BindSVA(vr307,Tagp(HVA,H));
-PreLoadHVA(vr307,H);
-break;
       }
-vr307 = vr308;
-    } while (TaggedIsSVA(vr307));
-  }
-HeapPush(H,vr307);
-}{intmach_t vr309 = ((FTYPE_ctype(f_i_signed))(BcP(f_i,(0+Fs(f_y)))));
+ while (TaggedIsSVA(vr304));
+    }
+
+HeapPush(H,vr304);
+}HeapPush(H,Yb(BcP(f_y,0+Fs(f_x))));
+P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 184:
+{
+{
+{tagged_t vr306 = Xb(BcP(f_x,0));
+if (TaggedIsSVA(vr306)) {
+tagged_t vr307;
 do {
-ConstrHVA(H)  } while (--vr309);
-}P+=Fs(f_y)+Fs(f_i);
-goto WriteMode;
+RefSVA(vr307,vr306);
+if (vr307==vr306) {
+BindSVA(vr306,Tagp(HVA,H));
+PreLoadHVA(vr306,H);
+break;
+        }
+
+vr306 = vr307;
+      }
+ while (TaggedIsSVA(vr306));
+    }
+
+HeapPush(H,vr306);
+}{tagged_t vr308 = Yb(BcP(f_y,0+Fs(f_x)));
+if (TaggedIsSVA(vr308)) {
+tagged_t vr309;
+do {
+RefSVA(vr309,vr308);
+if (vr309==vr308) {
+BindSVA(vr308,Tagp(HVA,H));
+PreLoadHVA(vr308,H);
+break;
+        }
+
+vr308 = vr309;
+      }
+ while (TaggedIsSVA(vr308));
+    }
+
+HeapPush(H,vr308);
+}P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 186:
+{
+{
+HeapPush(H,Yb(BcP(f_y,0)));
+intmach_t vr310 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_y));
+do {
+ConstrHVA(H);
+    }
+ while (--vr310);
+P+=Fs(f_y)+Fs(f_i);
+goto w_dispatch;
+    }
+    }
+case 187:
+{
+{
+{tagged_t vr311 = Yb(BcP(f_y,0));
+if (TaggedIsSVA(vr311)) {
+tagged_t vr312;
+do {
+RefSVA(vr312,vr311);
+if (vr312==vr311) {
+BindSVA(vr311,Tagp(HVA,H));
+PreLoadHVA(vr311,H);
+break;
+        }
+
+vr311 = vr312;
+      }
+ while (TaggedIsSVA(vr311));
+    }
+
+HeapPush(H,vr311);
+}intmach_t vr313 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_y));
+do {
+ConstrHVA(H);
+    }
+ while (--vr313);
+P+=Fs(f_y)+Fs(f_i);
+goto w_dispatch;
+    }
+    }
 case 189:
 HeapPush(H,Yb(BcP(f_y,0)));
-LoadHVA(Xb(BcP(f_x,(0+Fs(f_y)))),H);
+LoadHVA(Xb(BcP(f_x,0+Fs(f_y))),H);
 P+=Fs(f_y)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
 case 190:
-{tagged_t vr310 = Yb(BcP(f_y,0));
-if (TaggedIsSVA(vr310)) {
-tagged_t vr311;
+{
+{
+{tagged_t vr314 = Yb(BcP(f_y,0));
+if (TaggedIsSVA(vr314)) {
+tagged_t vr315;
 do {
-RefSVA(vr311,vr310);
-if (vr311==vr310) {
-BindSVA(vr310,Tagp(HVA,H));
-PreLoadHVA(vr310,H);
+RefSVA(vr315,vr314);
+if (vr315==vr314) {
+BindSVA(vr314,Tagp(HVA,H));
+PreLoadHVA(vr314,H);
 break;
+        }
+
+vr314 = vr315;
       }
-vr310 = vr311;
-    } while (TaggedIsSVA(vr310));
-  }
-HeapPush(H,vr310);
-}LoadHVA(Xb(BcP(f_x,(0+Fs(f_y)))),H);
+ while (TaggedIsSVA(vr314));
+    }
+
+HeapPush(H,vr314);
+}LoadHVA(Xb(BcP(f_x,0+Fs(f_y))),H);
 P+=Fs(f_y)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 191:
 HeapPush(H,Yb(BcP(f_y,0)));
-LoadHVA(Yb(BcP(f_y,(0+Fs(f_y)))),H);
+LoadHVA(Yb(BcP(f_y,0+Fs(f_y))),H);
 P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
 case 192:
-{tagged_t vr312 = Yb(BcP(f_y,0));
-if (TaggedIsSVA(vr312)) {
-tagged_t vr313;
+{
+{
+{tagged_t vr316 = Yb(BcP(f_y,0));
+if (TaggedIsSVA(vr316)) {
+tagged_t vr317;
 do {
-RefSVA(vr313,vr312);
-if (vr313==vr312) {
-BindSVA(vr312,Tagp(HVA,H));
-PreLoadHVA(vr312,H);
+RefSVA(vr317,vr316);
+if (vr317==vr316) {
+BindSVA(vr316,Tagp(HVA,H));
+PreLoadHVA(vr316,H);
 break;
+        }
+
+vr316 = vr317;
       }
-vr312 = vr313;
-    } while (TaggedIsSVA(vr312));
-  }
-HeapPush(H,vr312);
-}LoadHVA(Yb(BcP(f_y,(0+Fs(f_y)))),H);
+ while (TaggedIsSVA(vr316));
+    }
+
+HeapPush(H,vr316);
+}LoadHVA(Yb(BcP(f_y,0+Fs(f_y))),H);
 P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 200:
+{
+{
 HeapPush(H,Yb(BcP(f_y,0)));
-{tagged_t vr314;
-LoadHVA(vr314,H);
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_y)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_y)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_y)))) = vr314;
+{tagged_t vr318;
+LoadHVA(vr318,H);
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_y))) = vr318;
 }P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 201:
-{tagged_t vr315 = Yb(BcP(f_y,0));
-if (TaggedIsSVA(vr315)) {
-tagged_t vr316;
+{
+{
+{tagged_t vr319 = Yb(BcP(f_y,0));
+if (TaggedIsSVA(vr319)) {
+tagged_t vr320;
 do {
-RefSVA(vr316,vr315);
-if (vr316==vr315) {
-BindSVA(vr315,Tagp(HVA,H));
-PreLoadHVA(vr315,H);
+RefSVA(vr320,vr319);
+if (vr320==vr319) {
+BindSVA(vr319,Tagp(HVA,H));
+PreLoadHVA(vr319,H);
 break;
+        }
+
+vr319 = vr320;
       }
-vr315 = vr316;
-    } while (TaggedIsSVA(vr315));
-  }
-HeapPush(H,vr315);
-}{tagged_t vr317;
-LoadHVA(vr317,H);
-if (CondStackvar(Yb(BcP(f_y,(0+Fs(f_y)))))) {
-TrailPushCheck((w->trail_top),Tagp(SVA,(&Yb(BcP(f_y,(0+Fs(f_y)))))));
-  }
-Yb(BcP(f_y,(0+Fs(f_y)))) = vr317;
+ while (TaggedIsSVA(vr319));
+    }
+
+HeapPush(H,vr319);
+}{tagged_t vr321;
+LoadHVA(vr321,H);
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_y))) = vr321;
 }P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 194:
 HeapPush(H,Yb(BcP(f_y,0)));
-HeapPush(H,Xb(BcP(f_x,(0+Fs(f_y)))));
+HeapPush(H,Xb(BcP(f_x,0+Fs(f_y))));
 P+=Fs(f_y)+Fs(f_x);
-goto WriteMode;
+goto w_dispatch;
 case 197:
+{
+{
 HeapPush(H,Yb(BcP(f_y,0)));
-{tagged_t vr318 = Xb(BcP(f_x,(0+Fs(f_y))));
-if (TaggedIsSVA(vr318)) {
-tagged_t vr319;
-do {
-RefSVA(vr319,vr318);
-if (vr319==vr318) {
-BindSVA(vr318,Tagp(HVA,H));
-PreLoadHVA(vr318,H);
-break;
-      }
-vr318 = vr319;
-    } while (TaggedIsSVA(vr318));
-  }
-HeapPush(H,vr318);
-}P+=Fs(f_y)+Fs(f_x);
-goto WriteMode;
-case 195:
-{tagged_t vr320 = Yb(BcP(f_y,0));
-if (TaggedIsSVA(vr320)) {
-tagged_t vr321;
-do {
-RefSVA(vr321,vr320);
-if (vr321==vr320) {
-BindSVA(vr320,Tagp(HVA,H));
-PreLoadHVA(vr320,H);
-break;
-      }
-vr320 = vr321;
-    } while (TaggedIsSVA(vr320));
-  }
-HeapPush(H,vr320);
-}HeapPush(H,Xb(BcP(f_x,(0+Fs(f_y)))));
-P+=Fs(f_y)+Fs(f_x);
-goto WriteMode;
-case 198:
-{tagged_t vr322 = Yb(BcP(f_y,0));
+{tagged_t vr322 = Xb(BcP(f_x,0+Fs(f_y)));
 if (TaggedIsSVA(vr322)) {
 tagged_t vr323;
 do {
@@ -4310,12 +5492,22 @@ if (vr323==vr322) {
 BindSVA(vr322,Tagp(HVA,H));
 PreLoadHVA(vr322,H);
 break;
-      }
+        }
+
 vr322 = vr323;
-    } while (TaggedIsSVA(vr322));
-  }
+      }
+ while (TaggedIsSVA(vr322));
+    }
+
 HeapPush(H,vr322);
-}{tagged_t vr324 = Xb(BcP(f_x,(0+Fs(f_y))));
+}P+=Fs(f_y)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 195:
+{
+{
+{tagged_t vr324 = Yb(BcP(f_y,0));
 if (TaggedIsSVA(vr324)) {
 tagged_t vr325;
 do {
@@ -4324,21 +5516,23 @@ if (vr325==vr324) {
 BindSVA(vr324,Tagp(HVA,H));
 PreLoadHVA(vr324,H);
 break;
-      }
+        }
+
 vr324 = vr325;
-    } while (TaggedIsSVA(vr324));
-  }
+      }
+ while (TaggedIsSVA(vr324));
+    }
+
 HeapPush(H,vr324);
-}P+=Fs(f_y)+Fs(f_x);
-goto WriteMode;
-case 203:
-HeapPush(H,Yb(BcP(f_y,0)));
-HeapPush(H,Yb(BcP(f_y,(0+Fs(f_y)))));
-P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
-case 206:
-HeapPush(H,Yb(BcP(f_y,0)));
-{tagged_t vr326 = Yb(BcP(f_y,(0+Fs(f_y))));
+}HeapPush(H,Xb(BcP(f_x,0+Fs(f_y))));
+P+=Fs(f_y)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 198:
+{
+{
+{tagged_t vr326 = Yb(BcP(f_y,0));
 if (TaggedIsSVA(vr326)) {
 tagged_t vr327;
 do {
@@ -4347,15 +5541,15 @@ if (vr327==vr326) {
 BindSVA(vr326,Tagp(HVA,H));
 PreLoadHVA(vr326,H);
 break;
-      }
+        }
+
 vr326 = vr327;
-    } while (TaggedIsSVA(vr326));
-  }
+      }
+ while (TaggedIsSVA(vr326));
+    }
+
 HeapPush(H,vr326);
-}P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
-case 204:
-{tagged_t vr328 = Yb(BcP(f_y,0));
+}{tagged_t vr328 = Xb(BcP(f_x,0+Fs(f_y)));
 if (TaggedIsSVA(vr328)) {
 tagged_t vr329;
 do {
@@ -4364,16 +5558,28 @@ if (vr329==vr328) {
 BindSVA(vr328,Tagp(HVA,H));
 PreLoadHVA(vr328,H);
 break;
-      }
+        }
+
 vr328 = vr329;
-    } while (TaggedIsSVA(vr328));
-  }
+      }
+ while (TaggedIsSVA(vr328));
+    }
+
 HeapPush(H,vr328);
-}HeapPush(H,Yb(BcP(f_y,(0+Fs(f_y)))));
+}P+=Fs(f_y)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 203:
+HeapPush(H,Yb(BcP(f_y,0)));
+HeapPush(H,Yb(BcP(f_y,0+Fs(f_y))));
 P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
-case 207:
-{tagged_t vr330 = Yb(BcP(f_y,0));
+goto w_dispatch;
+case 206:
+{
+{
+HeapPush(H,Yb(BcP(f_y,0)));
+{tagged_t vr330 = Yb(BcP(f_y,0+Fs(f_y)));
 if (TaggedIsSVA(vr330)) {
 tagged_t vr331;
 do {
@@ -4382,12 +5588,22 @@ if (vr331==vr330) {
 BindSVA(vr330,Tagp(HVA,H));
 PreLoadHVA(vr330,H);
 break;
-      }
+        }
+
 vr330 = vr331;
-    } while (TaggedIsSVA(vr330));
-  }
+      }
+ while (TaggedIsSVA(vr330));
+    }
+
 HeapPush(H,vr330);
-}{tagged_t vr332 = Yb(BcP(f_y,(0+Fs(f_y))));
+}P+=Fs(f_y)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 204:
+{
+{
+{tagged_t vr332 = Yb(BcP(f_y,0));
 if (TaggedIsSVA(vr332)) {
 tagged_t vr333;
 do {
@@ -4396,161 +5612,245 @@ if (vr333==vr332) {
 BindSVA(vr332,Tagp(HVA,H));
 PreLoadHVA(vr332,H);
 break;
-      }
+        }
+
 vr332 = vr333;
-    } while (TaggedIsSVA(vr332));
-  }
+      }
+ while (TaggedIsSVA(vr332));
+    }
+
 HeapPush(H,vr332);
+}HeapPush(H,Yb(BcP(f_y,0+Fs(f_y))));
+P+=Fs(f_y)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 207:
+{
+{
+{tagged_t vr334 = Yb(BcP(f_y,0));
+if (TaggedIsSVA(vr334)) {
+tagged_t vr335;
+do {
+RefSVA(vr335,vr334);
+if (vr335==vr334) {
+BindSVA(vr334,Tagp(HVA,H));
+PreLoadHVA(vr334,H);
+break;
+        }
+
+vr334 = vr335;
+      }
+ while (TaggedIsSVA(vr334));
+    }
+
+HeapPush(H,vr334);
+}{tagged_t vr336 = Yb(BcP(f_y,0+Fs(f_y)));
+if (TaggedIsSVA(vr336)) {
+tagged_t vr337;
+do {
+RefSVA(vr337,vr336);
+if (vr337==vr336) {
+BindSVA(vr336,Tagp(HVA,H));
+PreLoadHVA(vr336,H);
+break;
+        }
+
+vr336 = vr337;
+      }
+ while (TaggedIsSVA(vr336));
+    }
+
+HeapPush(H,vr336);
 }P+=Fs(f_y)+Fs(f_y);
-goto WriteMode;
+goto w_dispatch;
+    }
+    }
 case 248:
 P+=Fs(f_Q);
-goto w_bump_counter;
-w_bump_counter:
+goto w_op249;
 case 249:
+w_op249:
 #if defined(GAUGE)
 INCR_COUNTER(BcP(f_l,0));
 #endif
 P+=Fs(f_l);
-goto WriteMode;
+goto w_dispatch;
 case 250:
 P+=Fs(f_Q);
-goto w_counted_neck;
-w_counted_neck:
+goto w_op251;
 case 251:
+w_op251:
 #if defined(GAUGE)
-if (!(IsDeep())) {
-B = (w->choice);
-if (!(IsShallowTry())) {
+if (!IsDeep()) {
+B = w->choice;
+if (!IsShallowTry()) {
 #if defined(GAUGE)
 INCR_COUNTER(BcP(f_l,0));
 #endif
-    } else {
+      }
+ else {
 #if defined(GAUGE)
-INCR_COUNTER(BcP(f_l,(0+Fs(f_l))));
+INCR_COUNTER(BcP(f_l,0+Fs(f_l)));
 #endif
+      }
+
     }
-  }
+
 #endif
 P+=Fs(f_l)+Fs(f_l);
-goto w_neck;
+goto w_op65;
 case 67:
 goto fail;
 case 245:
 P+=Fs(f_Q);
-goto w_heapmargin_call;
-w_heapmargin_call:
+goto w_op246;
 case 246:
-if (HeapCharDifference(H,Heap_End)<((intmach_t)(BcP(f_l,0)))) {
-StoreH;
-explicit_heap_overflow(w,(((intmach_t)(BcP(f_l,0)))*2),((FTYPE_ctype(f_i_signed))(BcP(f_i,(0+Fs(f_l))))));
-LoadH;
-  }
+w_op246:
+if (HeapCharDifference(H,Heap_End)<(intmach_t)BcP(f_l,0)) {
+w->heap_top = H;
+explicit_heap_overflow(w,(intmach_t)BcP(f_l,0)*2,(FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_l)));
+H = w->heap_top;
+    }
+
 P+=Fs(f_g);
-goto WriteMode;
-w_neck:
+goto w_dispatch;
 case 65:
-if (!(IsDeep())) {
-B = (w->choice);
-if (!(IsShallowTry())) {
+{
+w_op65:
+{
+if (!IsDeep()) {
+B = w->choice;
+if (!IsShallowTry()) {
 NECK_RETRY_PATCH(B);
-    } else {
-(B->next_alt) = (w->next_alt);
-(B->frame) = (w->frame);
-(B->next_insn) = (w->next_insn);
-(B->local_top) = (w->local_top);
-intmach_t vr334 = ChoiceArity(B);
-for (intmach_t vr335 = 0;
-vr335<vr334;vr335++) {
-(B->x)[vr335] = (w->x)[vr335];
       }
-if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),(w->trail_top))) {
-choice_overflow(w,((2*CHOICEPAD)*sizeof(tagged_t)),TRUE);
+ else {
+B->next_alt = w->next_alt;
+B->frame = w->frame;
+B->next_insn = w->next_insn;
+B->local_top = w->local_top;
+intmach_t vr338 = ChoiceArity(B);
+for (intmach_t vr339 = 0;
+vr339<vr338;vr339++) {
+B->x[vr339] = w->x[vr339];
+        }
+
+if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
+choice_overflow(w,2*CHOICEPAD*sizeof(tagged_t),TRUE);
+        }
+
       }
-    }
+
 SetDeep();
-SetE((w->local_top));
-  }
+SetE(w->local_top);
+    }
+
 P+=0;
-goto WriteMode;
-w_dynamic_neck_proceed:
+goto w_dispatch;
+    }
+    }
 case 236:
-{tagged_t vr336 = X(3);
-if ((vr336&TagBitSVA)) {
-BindSVA(vr336,PointerToTerm(((w->misc)->ins)));
-  } else {
-BindHVA(vr336,PointerToTerm(((w->misc)->ins)));
-  }
-}if (IsDeep()) {
-goto w_proceed;
-  }
-B = (w->choice);
+{
+w_op236:
+{
+tagged_t vr340 = X(3);
+if (vr340&TagBitSVA) {
+BindSVA(vr340,PointerToTerm(w->misc->ins));
+    }
+ else {
+BindHVA(vr340,PointerToTerm(w->misc->ins));
+    }
+
+if (IsDeep()) {
+goto w_op64;
+    }
+
+B = w->choice;
 if (IsShallowTry()) {
-def_clock = (use_clock+1);
+def_clock = use_clock+1;
 if (def_clock==65535) {
-StoreH;
+w->heap_top = H;
 clock_overflow(w);
-LoadH;
+H = w->heap_top;
+      }
+
     }
-  }
-goto w_neck_proceed;
-w_neck_proceed:
+
+goto w_op66;
+    }
+    }
 case 66:
-if (!(IsDeep())) {
-B = (w->choice);
-if (!(IsShallowTry())) {
+{
+w_op66:
+{
+if (!IsDeep()) {
+B = w->choice;
+if (!IsShallowTry()) {
 NECK_RETRY_PATCH(B);
-    } else {
-(B->next_alt) = (w->next_alt);
-(B->frame) = (w->frame);
-(B->next_insn) = (w->next_insn);
-(B->local_top) = (w->local_top);
-intmach_t vr337 = ChoiceArity(B);
-for (intmach_t vr338 = 0;
-vr338<vr337;vr338++) {
-(B->x)[vr338] = (w->x)[vr338];
       }
-if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),(w->trail_top))) {
-choice_overflow(w,((2*CHOICEPAD)*sizeof(tagged_t)),TRUE);
+ else {
+B->next_alt = w->next_alt;
+B->frame = w->frame;
+B->next_insn = w->next_insn;
+B->local_top = w->local_top;
+intmach_t vr341 = ChoiceArity(B);
+for (intmach_t vr342 = 0;
+vr342<vr341;vr342++) {
+B->x[vr342] = w->x[vr342];
+        }
+
+if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
+choice_overflow(w,2*CHOICEPAD*sizeof(tagged_t),TRUE);
+        }
+
       }
-    }
+
 SetDeep();
-  } else {
-(w->local_top) = 0;
-  }
-SetE((w->frame));
-P = (w->next_insn);
+    }
+ else {
+w->local_top = 0;
+    }
+
+SetE(w->frame);
+P = w->next_insn;
 PROFILE__HOOK_NECK_PROCEED;
-goto WriteMode;
-w_proceed:
+goto w_dispatch;
+    }
+    }
 case 64:
-(w->local_top) = 0;
-SetE((w->frame));
-P = (w->next_insn);
+w_op64:
+w->local_top = 0;
+SetE(w->frame);
+P = w->next_insn;
 PROFILE__HOOK_PROCEED;
 P+=0;
-goto WriteMode;
+goto w_dispatch;
 #if defined(PARBACK)
 case 262:
-(w->heap_top) = TaggedToPointer(((w->choice)->x)[0]);
-LoadH;
-P = ((bcp_t)(*(TaggedToPointer(((w->choice)->x)[0]))));
-(w->next_insn) = ((w->choice)->next_insn);
+w->heap_top = TaggedToPointer(w->choice->x[0]);
+H = w->heap_top;
+P = (bcp_t)*TaggedToPointer(w->choice->x[0]);
+w->next_insn = w->choice->next_insn;
 pop_choicept(w);
 goto enter_predicate;
 #endif
 default:
 goto illop;
-}exit_toplevel:
-(w->insn) = P;
-if ((desc!=NULL&&((desc->action)&KEEP_STACKS))) {
+  }
+  }
+exit_toplevel:
+w->insn = P;
+if (desc!=NULL&&desc->action&KEEP_STACKS) {
 SAVE_WAM_STATE;
-}
+  }
+
 if (Stop_This_Goal(w)) {
-((w->misc)->exit_code) = WAM_INTERRUPTED;
-}
+w->misc->exit_code = WAM_INTERRUPTED;
+  }
+
 ON_DEBUG({
-});
+  }
+);
 return;
 illop:
 SERIOUS_FAULT("unimplemented WAM instruction");
