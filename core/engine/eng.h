@@ -1811,11 +1811,9 @@ struct marker_ {
 #define RefSVA(To,From) { To = *TagpPtr(SVA,From); }
 
 #define LoadSVA(Y)              {Y = Tagp(SVA,&Y); }
-#define Load2SVA(X,Y)           {X = Y = Tagp(SVA,&Y); }
 #define PreLoadHVA(X,H)         {X = Tagp(HVA,H); }
 #define ConstrHVA(H)            {HeapPush(H,Tagp(HVA,H)); }
 #define LoadHVA(To,H)           {HeapPush(H,To = Tagp(HVA,H)); }
-#define Load2HVA(To1,To2,H)     {HeapPush(H,To1 = To2 = Tagp(HVA,H)); }
 #define LoadCVA(To,H)           {HeapPush(H,To = Tagp(CVA,H)); }
 
 /* =========================================================================== */

@@ -457,6 +457,15 @@ simp_lit('$foreach_sep'(Sep, Xs, P), M, Store0, Store, R) :- !,
     % Like $foreach but emits Sep 
     foreach_sep(Xs, Sep, P, M, Store0, Store, Code, []),
     R = Code.
+simp_lit('$tr'(G, X), M, Store0, Store, R) :- !,
+    % translate G and get the result in X (see $tr_res)
+    simp(G, M, Store0, Store, Gr),
+    X = '$tr_res'(Gr),
+    R = true.
+simp_lit('$tr_res'(Gr), _M, Store0, Store, R) :- !,
+    % result of '$tr' % TODO: context must be compatible!
+    Store = Store0,
+    R = Gr.
 simp_lit('$fcall'(N,Args), M, Store0, Store, R) :- !,
     R = '$fcall'(N,Args2),
     simpargs(Args, M, Store0, Store, Args2).
