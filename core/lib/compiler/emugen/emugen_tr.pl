@@ -17,6 +17,7 @@
 :- use_module(library(read)).
 :- use_module(library(stream_utils), [string_to_file/2]).
 :- use_module(library(lists)).
+:- use_module(library(llists), [flatten/2]).
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(format_to_string), [format_to_string/3]).
 :- use_module(ciaobld(eng_defs), [emugen_code_dir/3]).
@@ -474,6 +475,9 @@ simp_lit(cond_blk(Cond,X), M, Store0, Store, R) :- !,
     simp(X, M, Store0, Store, X2).
 simp_lit('$unfold'(G), M, Store0, Store, R) :- !, % (explicit for translation of prims)
     unfold_lit(G, M, Store0, Store, R).
+simp_lit('$trace'(Msg), _M, Store0, Store, R) :- !, % (just for debugging)
+    message(note, Msg),
+    Store = Store0, R = true.
 simp_lit(G, _M, Store0, Store, R) :-
     prim_lit(G, G2), % (primitive, no translation)
     !,
@@ -499,20 +503,19 @@ simpargs([X|Xs], M, Store0, Store, [Y|Ys]) :-
 % TODO: add a level to tr_solve
 foreach([], _P, _M, Store, Store) --> [].
 foreach([X|Xs], P, M, Store0, Store) -->
-    foreach_(X, P, M, Store0, Store1),
+    foreach_step(X, P, M, Store0, Store1),
     foreach(Xs, P, M, Store1, Store).
 
 % TODO: add a level to tr_solve
 foreach_sep([], _Sep, _P, _M, Store, Store) --> [].
 foreach_sep([X], _Sep, P, M, Store0, Store) --> !,
-    foreach_(X, P, M, Store0, Store).
+    foreach_step(X, P, M, Store0, Store).
 foreach_sep([X|Xs], Sep, P, M, Store0, Store) -->
-    foreach_(X, P, M, Store0, Store1),
+    foreach_step(X, P, M, Store0, Store1),
     [tk(Sep)],
     foreach_sep(Xs, Sep, P, M, Store1, Store).
 
-% (alternative translations are committed)
-foreach_(X, P, M, Store0, Store) -->
+foreach_step(X, P, M, Store0, Store) -->
     { G =.. [P, X] },
     { tr_solve(G, M, Store0, Body, Store) },
     [Body].
@@ -572,10 +575,17 @@ simp_constr_(A =< B, _M, _) :- !, A =< B.
 simp_constr_(A >= B, _M, _) :- !, A >= B.
 simp_constr_(A = B, _M, _) :- !, A = B.
 simp_constr_(A \= B, _M, _) :- !, A \= B.
-simp_constr_(conj_to_list(A,B), _M, _) :- !,
-    conj_to_list(A,B).
+%simp_constr_(conj_to_list(A,B), _M, _) :- !,
+%    conj_to_list(A,B).
+simp_constr_(flatten(A,B), _M, _) :- !,
+    flatten(A,B).
 simp_constr_(atom_concat(A,B,C), _M, _) :- !,
     atom_concat(A,B,C).
+simp_constr_(replace_args(X, As, Y, Bs), _M, _) :- !,
+    functor(X, F, N),
+    functor(Y, F, N),
+    X =.. [_|As],
+    Y =.. [_|Bs].
 simp_constr_(prefix_num(Prefix,N,Id), _M, _) :- !,
     prefix_num(Prefix,N,Id).
 simp_constr_(uppercase(Ins, InsUp), _M, _) :- !,
@@ -663,14 +673,14 @@ list_to_conj([A], A) :- !.
 list_to_conj([A|As], (A,Bs)) :-
     list_to_conj(As, Bs).
 
-% Conjunction to list
-conj_to_list(A, Xs) :-
-    conj_to_list_(A, Xs, []).
-
-conj_to_list_(A, Xs, Xs0) :- var(A), !, Xs = [A|Xs0].
-conj_to_list_((A,B), Xs, Xs0) :- !,
-    conj_to_list_(A, Xs, Xs1),
-    conj_to_list_(B, Xs1, Xs0).
-conj_to_list_(true, Xs, Xs0) :- !, Xs = Xs0.
-conj_to_list_(A, [A|Xs], Xs).
+% % Conjunction to list
+% conj_to_list(A, Xs) :-
+%     conj_to_list_(A, Xs, []).
+% 
+% conj_to_list_(A, Xs, Xs0) :- var(A), !, Xs = [A|Xs0].
+% conj_to_list_((A,B), Xs, Xs0) :- !,
+%     conj_to_list_(A, Xs, Xs1),
+%     conj_to_list_(B, Xs1, Xs0).
+% conj_to_list_(true, Xs, Xs0) :- !, Xs = Xs0.
+% conj_to_list_(A, [A|Xs], Xs).
 

@@ -559,7 +559,7 @@ unify_heap_atom(U,V) =>
       bind(cva, T1, U),
       if(T1 \== U, jump_fail)).
 
-u_cons0(V,U) =>
+u_cons(V,U) =>
     localv(tagged, T1, V),
     sw_on_var(T1,
       bind(hva, T1, U),
@@ -567,7 +567,7 @@ u_cons0(V,U) =>
       bind(sva, T1, U),
       if(T1 \== U, jump_fail)).
 
-u_cons0_internal(Var,Atom) =>
+u_cons_internal(Var,Atom) =>
     localv(tagged, T1, Var),
     if(T1 /\ tk('TagBitSVA'),
       (bind(sva, T1, Atom)),
@@ -877,6 +877,7 @@ fsize_sum_b([f_b], BSize) => BSize.
 fsize_sum_b([X|Xs], BSize) => fsize(X), tk('+'), fsize_sum_b(Xs, BSize).
 
 % Jump to a given instruction keeping the same operand stream
+goto_ins(X+(Y+Z)) => goto_ins((X+Y)+Z).
 goto_ins(Ins) =>
     [[ get(ins_spec(Ins).op, Op) ]],
     get_op_label(Op, Label),
@@ -906,7 +907,9 @@ heap_push(X) =>
 
 unsafe_var_expr(X) => not(~younger_stack_var(~tagp(sva,~offset(~e,tk('EToY0'))), X)).
 
-ref_stack_unsafe(To,From) =>
+% TODO:[oc-merge] globunsafe in OC; reverse argument order
+% globalize (if needed) a stack var
+revglob(To,From) =>
     localv(tagged, T0),
     localv(tagged, T1),
     T0 <- From,
@@ -922,6 +925,11 @@ ref_stack_unsafe(To,From) =>
           T0 <- T1
       ), ~tagged_is(sva,T0))),
     To <- T0.
+
+revglob2(A,B) =>
+    localv(tagged, T0), revglob(T0,B),
+    A <- T0,
+    B <- T0.
 
 ref_heap_next(A) => ref_heap_next0(A, (~s)).
 
@@ -1017,7 +1025,7 @@ initfr(Count) =>
 putarg(Zn,Xn) =>
     if(Zn/\1, (
         dec(op(f_y,Zn+1),Y1),
-        ref_stack_unsafe(x(Xn), Y1)
+        revglob(x(Xn), Y1)
     ), (
         dec(op(f_y,Zn),Y2),
         x(Xn) <- Y2)
@@ -1029,9 +1037,20 @@ get_low_atom([]), [[f]]=> tk('atom_nil').
 % ---------------------------------------------------------------------------
 %! # Definition of the instruction set
 
-inittrue => decops([N]),
+code_cframe(E, EnvSize, NextInsn) =>
+    E^.next_insn <- (~w)^.next_insn,
+    E^.frame <- (~w)^.frame,
+    (~w)^.frame <- E,
+    (~w)^.next_insn <- NextInsn,
+    (~w)^.local_top <- ~stack_char_offset(E,EnvSize),
+    if(~off_stacktop(E,tk('Stack_Warn')), set_event).
+
+inittrue => decops([EnvSize]),
     alloc,
-    initfr(N),
+    initfr(EnvSize),
+    %
+%    code_cframe(~e, EnvSize, ~bc_off((~p), fsize_sum([f_e]))),
+%    dispatchf(fsize_sum([f_e])). % (was f_i before)
     goto('firsttrue').
 
 firsttrue_n => decopsf([f_i],[N]),
@@ -1044,156 +1063,88 @@ firsttrue_n => decopsf([f_i],[N]),
 
 % (ins without opcode)
 firsttrue_ => decopsf([f_e],[EnvSize]),
-    (~e)^.next_insn <- (~w)^.next_insn,
-    (~e)^.frame <- (~w)^.frame,
-    (~w)^.frame <- (~e),
-    % (~w)^.next_insn <- '$fcall'('PoffR', [2]), % (before)
-    (~w)^.next_insn <- ~bc_off((~p), fsize_sum([f_e])),
-    (~w)^.local_top <- ~stack_char_offset(~e,EnvSize),
-    if(~off_stacktop(~e,tk('Stack_Warn')), set_event),
+    code_cframe(~e, EnvSize, ~bc_off((~p), fsize_sum([f_e]))),
     dispatchf(fsize_sum([f_e])). % (was f_i before)
 
 initcall => decops([_,N]),
     alloc,
     initfr(N),
-    goto_ins(firstcall(s(0),f_E,f_e)).
+    goto_ins(fcall(f_E,f_e)).
 
-firstcall_n => decopsf([f_i],[N]), % N>8
+loop_init_until(M, Cont) => decopsf([f_i],[N]), % N>M
     localv(intmach, I, cast(ftype_ctype(f_i_signed), N)),
     shiftf(f_i),
-    foreach(intmach, revrange(I,8), _I0, put_yvoid),
-    %
-    goto_ins(firstcall(s(8),f_E,f_e)).
-
-firstcall(I), [[ integer(I) ]] => maybe_blk(put_yvoid), [[ I1 is I-1 ]], goto_ins(firstcall(s(I1),f_E,f_e)).
-firstcall_0(PredPtr,EnvSize) =>
-    (~e)^.next_insn <- (~w)^.next_insn,
-    (~e)^.frame <- (~w)^.frame,
-    (~w)^.frame <- (~e),
-    (~w)^.next_insn <- ~bc_off((~p), fsize_sum([f_E,f_e])),
-    (~w)^.local_top <- ~stack_char_offset(~e,EnvSize),
-    (~p) <- PredPtr,
-    if(~off_stacktop(~e,tk('Stack_Warn')), set_event),
-    goto('enter_predicate').
+    foreach(intmach, revrange(I,M), _I0, put_yvoid),
+    goto_ins(init(s(M))+Cont).
+loop_init_step(I, Cont), [[ integer(I) ]] => [[ I1 is I-1 ]], maybe_blk(put_yvoid),
+    ( [[ I1 = 0 ]] -> goto_ins(Cont)
+    ; goto_ins(init(s(I1))+Cont)
+    ).
 
 putarg_z_shift(Xn) =>
     localv(tagged, T1, ~bcp(f_z,0)),
     shiftf(f_z),
     putarg(T1,Xn).
 
-call_n => decopsf([f_i],[N]),
+loop_zputn_until(M, Cont) => decopsf([f_i],[N]), % N>M
     localv(intmach, I, cast(ftype_ctype(f_i_signed), N)),
     shiftf(f_i),
-    foreach(intmach, revrange(I,8), I0, putarg_z_shift(I0-1)),
-    %
-    goto_ins(call_8).
+    foreach(intmach, revrange(I,M), I0, putarg_z_shift(I0-1)),
+    goto_ins(zputn(s(M))+Cont).
+loop_zputn_step(I, Cont), [[ integer(I) ]] => [[ I1 is I-1 ]], maybe_blk(putarg_z_shift(I1)),
+    ( [[ I1 = 0 ]] -> goto_ins(Cont)
+    ; goto_ins(zputn(s(I1))+Cont)
+    ).
 
-call_8 => maybe_blk(putarg_z_shift(7)), goto_ins(call_7).
-call_7 => maybe_blk(putarg_z_shift(6)), goto_ins(call_6).
-call_6 => maybe_blk(putarg_z_shift(5)), goto_ins(call_5).
-call_5 => maybe_blk(putarg_z_shift(4)), goto_ins(call_4).
-call_4 => maybe_blk(putarg_z_shift(3)), goto_ins(call_3).
-call_3 => maybe_blk(putarg_z_shift(2)), goto_ins(call_2).
-call_2 => maybe_blk(putarg_z_shift(1)), goto_ins(call_1).
-call_1 => maybe_blk(putarg_z_shift(0)), goto_ins(call).
-call => decops([Pred,_]),
-    (~w)^.next_insn <- ~bc_off((~p), fsize_sum([f_E,f_e])),
-    (~p) <- Pred,
+fcall(PredPtr,EnvSize) =>
+    code_cframe(~e, EnvSize, ~bc_off((~p), fsize_sum([f_E,f_e]))),
+    (~p) <- PredPtr,
     goto('enter_predicate').
 
-lastcall_n => decopsf([f_i],[N]),
-    localv(intmach, I, cast(ftype_ctype(f_i_signed), N)),
-    shiftf(f_i),
-    foreach(intmach, revrange(I,8), I0, putarg_z_shift(I0-1)),
-    %
-    goto_ins(lastcall_8).
+kall(PredPtr,EnvSize) =>
+    (~w)^.next_insn <- ~bc_off((~p), fsize_sum([f_E,f_e])),
+    (~p) <- PredPtr,
+    goto('enter_predicate').
 
-lastcall_8 => putarg_z_shift(7), goto_ins(lastcall_7).
-lastcall_7 => putarg_z_shift(6), goto_ins(lastcall_6).
-lastcall_6 => putarg_z_shift(5), goto_ins(lastcall_5).
-lastcall_5 => putarg_z_shift(4), goto_ins(lastcall_4).
-lastcall_4 => putarg_z_shift(3), goto_ins(lastcall_3).
-lastcall_3 => putarg_z_shift(2), goto_ins(lastcall_2).
-lastcall_2 => putarg_z_shift(1), goto_ins(lastcall_1).
-lastcall_1 => putarg_z_shift(0), goto_ins(lastcall).
-lastcall => deallocate, goto_ins(execute).
-
-execute => decops([Pred]),
+execute(Pred) =>
     setmode(w),
     (~p) <- Pred,
     goto('enter_predicate').
 
 inith(X) => load(hva,X).
 
-put_x_unsafe_value => decops([A,B]),
-    localv(tagged, T0), ref_stack_unsafe(T0,B),
-    A <- T0,
-    B <- T0,
-    dispatch.
+ld_cons(A, B) => A <- B.
 
-put_y_unsafe_value => decops([A,B]),
-    ref_stack_unsafe(A,B),
-    dispatch.
+% TODO: spec
+ld_cons_nil(A) => ld_cons(A, ~get_low_atom([])).
 
-put_constant => decops([A,B]),
-    A <- B,
-    dispatch.
-
-put_nil => decops([A]),
-    A <- ~get_low_atom([]),
-    dispatch.
-
-put_large => decops([A,B]),
+ld_blob(A,B) =>
     [[ mode(M) ]],
     setmode(r),
     A <- cfun_eval('BC_MakeBlob', [B]),
     setmode(M),
     dispatch_b(~large_size(B^)).
 
-put_structure => decops([A,B]),
+ld_str(A,B) =>
     cachedreg('H', H),
     A <- ~tagp(str, H),
-    heap_push(B),
-    dispatch.
+    heap_push(B).
 
-put_list => decops([A]),
+ld_lst(A) =>
     cachedreg('H', H),
-    A <- ~tagp(lst, H),
-    dispatch.
-
-put_yval_yuval => decops([A,B,C,D]),
-    A <- B,
-    ref_stack_unsafe(C,D),
-    dispatch.
-
-put_yuval_yval => decops([A,B,C,D]),
-    ref_stack_unsafe(A,B),
-    C <- D,
-    dispatch.
-
-put_yuval_yuval => decops([A,B,C,D]),
-    ref_stack_unsafe(A,B),
-    ref_stack_unsafe(C,D),
-    dispatch.
-
-get_y_value => decops([A,B]),
-    u_val(A,B),
-    dispatch.
-
-get_constant => decops([A,B]),
-    u_cons0(A,B),
-    dispatch.
+    A <- ~tagp(lst, H).
 
 % (x0 version: read-mode match has been done during indexing)
-get_constant_x0, [[ mode(r) ]] => dispatch.
-get_constant_x0, [[ mode(w) ]] => decops([A]),
-    localv(tagged, T0, x(0)),
-    if(~tagged_is(hva,T0),
-      bind(hva,T0,A),
-      if(T0 /\ tk('TagBitSVA'),
-        bind(sva,T0,A),
-        bind(cva,T0,A))),
-    dispatch.
+u_cons_x0(A) =>
+    ( [[ mode(w) ]] ->
+        localv(tagged, T0, x(0)),
+        if(~tagged_is(hva,T0),
+          bind(hva,T0,A),
+          if(T0 /\ tk('TagBitSVA'),
+            bind(sva,T0,A),
+            bind(cva,T0,A)))
+    ; true % (nothing left to be done)
+    ).
 
 get_large => decops([A,B]),
     unify_large(B,A),
@@ -1220,72 +1171,58 @@ get_structure => decops([A,B]),
     unify_structure(B,A,dispatch).
 
 % (x0 version: read-mode match has been done during indexing)
-get_structure_x0, [[ mode(r) ]] =>
-    localv(tagged, T0, x(0)),
-    (~s) <- ~tagged_to_arg(T0, 1),
-    dispatch.
-get_structure_x0, [[ mode(w) ]] => decops([A]),
-    cachedreg('H', H),
-    localv(tagged, T1, ~tagp(str, H)),
-    localv(tagged, T0, x(0)),
-    if(~tagged_is(hva,T0),
-      bind(hva,T0,T1),
-      if(T0 /\ tk('TagBitSVA'),
-        bind(sva,T0,T1),
-        bind(cva,T0,T1))),
-    heap_push(A),
-    dispatch.
+u_str_x0(A) =>
+    ( [[ mode(r) ]] ->
+        localv(tagged, T0, x(0)),
+        (~s) <- ~tagged_to_arg(T0, 1)
+    ; cachedreg('H', H),
+      localv(tagged, T1, ~tagp(str, H)),
+      localv(tagged, T0, x(0)),
+      if(~tagged_is(hva,T0),
+        bind(hva,T0,T1),
+        if(T0 /\ tk('TagBitSVA'),
+          bind(sva,T0,T1),
+          bind(cva,T0,T1))),
+      heap_push(A)
+    ).
 
-get_nil => decops([A]),
-    u_cons0(A,~get_low_atom([])),
-    dispatch.
+u_nil(A) => u_cons(A,~get_low_atom([])).
 
 % (x0 version: read-mode match has been done during indexing)
-get_nil_x0, [[ mode(r) ]] =>
-    dispatch.
-get_nil_x0, [[ mode(w) ]] =>
-    localv(tagged, T0, x(0)),
-    if(~tagged_is(hva,T0),
-      bind(hva,T0,~get_low_atom([])),
-      if(T0 /\ tk('TagBitSVA'),
-        bind(sva,T0,~get_low_atom([])),
-        bind(cva,T0,~get_low_atom([])))),
-    dispatch.
+u_nil_x0 => u_cons_x0(~get_low_atom([])).
 
 get_list => decops([A]),
     unify_list(A, dispatch).
 
 % (x0 version: read-mode match has been done during indexing)
-get_list_x0, [[ mode(r) ]] =>
-    localv(tagged, T0, x(0)),
-    (~s) <- ~tagp_ptr(lst, T0),
-    dispatch.
-get_list_x0, [[ mode(w) ]] =>
-    cachedreg('H', H),
-    localv(tagged, T1, ~tagp(lst, H)),
-    localv(tagged, T0, x(0)),
-    if(~tagged_is(hva,T0),
-      bind(hva,T0,T1),
-      if(T0 /\ tk('TagBitSVA'),
-        bind(sva,T0,T1),
-        bind(cva,T0,T1))),
-    dispatch.
+u_list_x0 =>
+    ( [[ mode(r) ]] ->
+        localv(tagged, T0, x(0)),
+        (~s) <- ~tagp_ptr(lst, T0)
+    ; cachedreg('H', H),
+      localv(tagged, T1, ~tagp(lst, H)),
+      localv(tagged, T0, x(0)),
+      if(~tagged_is(hva,T0),
+        bind(hva,T0,T1),
+        if(T0 /\ tk('TagBitSVA'),
+          bind(sva,T0,T1),
+          bind(cva,T0,T1)))
+    ).
 
 get_constant_neck_proceed => decops([A,B]),
-    u_cons0(A,B),
+    u_cons(A,B),
     setmode(w),
     goto_ins(neck_proceed).
 
 get_nil_neck_proceed => decops([A]),
-    u_cons0(A,~get_low_atom([])),
+    u_cons(A,~get_low_atom([])),
     setmode(w),
     goto_ins(neck_proceed).
 
-cutb_x => decops([A]),
+cutb(A) =>
     (~w)^.local_top <- 0, % may get hole at top of local stack
     (~w)^.previous_choice <- ~choice_from_tagged(A),
-    do_cut,
-    dispatch.
+    do_cut.
 
 cutb_x_neck => decops([A]),
     (~w)^.local_top <- 0, % may get hole at top of local stack
@@ -1314,12 +1251,11 @@ do_cutb_neck =>
        % TODO:[merge-oc] if neck is not pending, then choice overflow has already been checked?
        maybe_choice_overflow)).
 
-cute_x => decops([A]),
+cute(A) =>
     (~w)^.previous_choice <- ~choice_from_tagged(A),
     (~w)^.local_top <- (~e), % w->local_top may be 0 here
     do_cut,
-    set_e((~w)^.local_top),
-    dispatch.
+    set_e((~w)^.local_top).
 
 cute_x_neck => decops([A]),
     (~w)^.previous_choice <- ~choice_from_tagged(A),
@@ -1356,18 +1292,6 @@ cut_y => decops([A]),
 getchoice(A) =>
     A <- ~choice_to_tagged((~w)^.previous_choice).
 
-choice_x => decops([X]),
-    X <- ~choice_to_tagged((~w)^.previous_choice),
-    dispatch.
-
-choice_yf =>
-    alloc,
-    goto_ins(choice_y).
-
-choice_y => decops([Y]),
-    Y <- ~choice_to_tagged((~w)^.previous_choice),
-    dispatch.
-
 kontinue =>
     % after wakeup, write mode!
     set_func(~tagged_to_functor(y(0))),
@@ -1377,15 +1301,13 @@ kontinue =>
 
 leave => goto_ins(exit_toplevel).
 
-exit_toplevel =>
-    goto('exit_toplevel').
+exit_toplevel => goto('exit_toplevel').
 
-retry_c => decops([A]),
+retry_c(A) =>
     if(not(~is_deep),
       (neck_retry_patch(~b),
        set_deep)),
-    if(not(call_fC(cbool0,A,[])), jump_fail),
-    goto_ins(proceed).
+    if(not(call_fC(cbool0,A,[])), jump_fail).
 
 move(A, B) => B <- A.
 revmove(A, B) => A <- B. % TODO: swap in pl2wam? no need to have 2 versions
@@ -1402,27 +1324,19 @@ cfun_semidet(Target, Expr) =>
 
 cblt_semidet(Expr) => if(not(Expr), jump_fail).
 
-function_1 => decops([A,B,C,Li]),
+function_1(A,B,C,Li) =>
     (~w)^.liveinfo <- Li,
-    cfun_semidet(A, call_fC(ctagged1, C, [B])),
-    dispatch.
+    cfun_semidet(A, call_fC(ctagged1, C, [B])).
 
-function_2 => decops([A,B,C,D,Li]),
+function_2(A,B,C,D,Li) =>
     (~w)^.liveinfo <- Li,
-    cfun_semidet(A, call_fC(ctagged2, D, [B,C])),
-    dispatch.
+    cfun_semidet(A, call_fC(ctagged2, D, [B,C])).
 
-builtin_1 => decops([A,B]),
-    cblt_semidet(call_fC(cbool1,B,[A])),
-    dispatch.
+builtin_1(A,B) => cblt_semidet(call_fC(cbool1,B,[A])).
 
-builtin_2 => decops([A,B,C]),
-    cblt_semidet(call_fC(cbool2,C,[A,B])),
-    dispatch.
+builtin_2(A,B,C) => cblt_semidet(call_fC(cbool2,C,[A,B])).
 
-builtin_3 => decops([A,B,C,D]),
-    cblt_semidet(call_fC(cbool3,D,[A,B,C])),
-    dispatch.
+builtin_3(A,B,C,D) => cblt_semidet(call_fC(cbool3,D,[A,B,C])).
 
 % backtracking into clause/2
 retry_instance =>
@@ -1448,15 +1362,14 @@ retry_instance =>
     (~p) <- cast(bcp, (~w)^.misc^.ins^.emulcode),
     jump_ins_dispatch.
 
-get_constraint => decops([A]),
+u_constraint(A) =>
     localv(tagged, T1, A),
     localv(tagged, T2), load(cva,T2),
     sw_on_var(T1,
       (bind(hva,T1,T2), A <- T2),
       bind(cva,T2,T1),
       (bind(sva,T1,T2), A <- T2),
-      bind(cva,T2,T1)),
-    dispatch.
+      bind(cva,T2,T1)).
 
 unify_void(I), [[ integer(I), I>0 ]] => % (specialized case)
     ( [[ mode(r) ]] ->
@@ -1481,13 +1394,12 @@ unify_void(N), [[ mode(w) ]] =>
        constr_hva(H))),
     goto_ins(unify_void(4)).
 
-unify_constant, [[ mode(r) ]] => decops([A]),
-    localv(tagged, T1), ref_heap_next(T1),
-    unify_heap_atom(A,T1),
-    dispatch.
-unify_constant, [[ mode(w) ]] => decops([A]),
-    heap_push(A),
-    dispatch.
+un_cons(A) =>
+    ( [[ mode(r) ]] ->
+        localv(tagged, T1), ref_heap_next(T1),
+        unify_heap_atom(A,T1)
+    ; heap_push(A)
+    ).
 
 unify_large, [[ mode(r) ]] => decops([A]),
     localv(tagged, T1), ref_heap_next(T1),
@@ -1511,13 +1423,7 @@ unify_structure, [[ mode(w) ]] => decops([A]),
     heap_push(A),
     dispatch.
 
-unify_nil, [[ mode(r) ]] =>
-    localv(tagged, T1), ref_heap_next(T1),
-    unify_heap_atom(~get_low_atom([]), T1),
-    dispatch.
-unify_nil, [[ mode(w) ]] =>
-    heap_push(~get_low_atom([])),
-    dispatch.
+un_nil => un_cons(~get_low_atom([])).
 
 unify_list, [[ mode(r) ]] =>
     localv(tagged, T1), ref_heap_next(T1),
@@ -1527,22 +1433,14 @@ unify_list, [[ mode(w) ]] =>
     heap_push(~tagp(lst,~heap_offset(H,1))),
     dispatch.
 
-unify_constant_neck_proceed, [[ mode(r) ]] => decops([A]),
-    localv(tagged, T1), ref_heap_next(T1),
-    unify_heap_atom(A,T1),
+unify_constant_neck_proceed => decops([A]),
+    un_cons(A),
     setmode(w),
-    goto_ins(neck_proceed).
-unify_constant_neck_proceed, [[ mode(w) ]] => decops([A]),
-    heap_push(A),
     goto_ins(neck_proceed).
 
-unify_nil_neck_proceed, [[ mode(r) ]] =>
-    localv(tagged, T1), ref_heap_next(T1),
-    unify_heap_atom(~get_low_atom([]), T1),
+unify_nil_neck_proceed =>
+    un_nil,
     setmode(w),
-    goto_ins(neck_proceed).
-unify_nil_neck_proceed, [[ mode(w) ]] =>
-    heap_push(~get_low_atom([])),
     goto_ins(neck_proceed).
 
 bump_counter(A) => gauge_incr_counter(A).
@@ -1581,7 +1479,7 @@ neck =>
     dispatch.
 
 dynamic_neck_proceed => % (needs: w->misc->ins)
-    u_cons0_internal(x(3),~pointer_to_term((~w)^.misc^.ins)),
+    u_cons_internal(x(3),~pointer_to_term((~w)^.misc^.ins)),
     if(~is_deep, goto_ins(proceed)),
     (~b) <- (~w)^.choice,
     % (assume w->next_alt != NULL)
@@ -1593,6 +1491,7 @@ dynamic_neck_proceed => % (needs: w->misc->ins)
             setmode(w)
         ))
     )),
+    setmode(w),
     goto_ins(neck_proceed).
 
 neck_proceed =>
@@ -2684,49 +2583,52 @@ ins_entry(Ins,Opcode,InsSpec) => ins_entry(Ins,Opcode,InsSpec,[]).
 
 % TODO: we need more complex rules (see OC)
 ins_entry(Ins,Opcode,InsSpec,Props) =>
-    ispeccode(Ins,InsSpec,Format,InsCode),
     is_exported(Props,Props2,Export),
-    ins_entry_(Ins,Opcode,Format,InsCode,InsSpec,Export,Props2).
+    ins_entry_(Ins,Opcode,InsSpec,Export,Props2).
 
 % TODO: use := ?
 is_exported(exported(Name)+Props, Props, Export) => [[ Export = yes(Name) ]].
 is_exported(Props, Props, Export) => [[ Export = no ]].
 
 % instruction spec/merge macro
-ispec(X+Y, (Xf,Yf), (Xa,Ya), (Xc,Yc), Cont) =>
+ispec((X+Y)+Z, Fs, As, Code, Cont) => ispec(X+(Y+Z), Fs, As, Code, Cont).
+%
+ispec(init(f_Y)+Cont, [f_Y|ContF], [], loop_init_until(8,Cont), nodecops_dispatch) => ispec(Cont, ContF, _, _, dispatch).
+ispec(init(s(I))+Cont, [Fs,ContF], [], loop_init_step(I,Cont), nodecops_dispatch), [[ integer(I) ]] => repf(I, f_y, Fs), ispec(Cont, ContF, _, _, dispatch).
+%
+ispec(zputn(f_Z)+Cont, [f_Z|ContF], [], loop_zputn_until(8,Cont), nodecops_dispatch) => ispec(Cont, ContF, _, _, dispatch).
+ispec(zputn(s(I))+Cont, [Fs,ContF], [], loop_zputn_step(I,Cont), nodecops_dispatch), [[ integer(I) ]] => repf(I, f_z, Fs), ispec(Cont, ContF, _, _, dispatch).
+%
+ispec(X+Y, [Xf,Yf], [Xa,Ya], (Xc,Yc), Cont) =>
     ispec(X, Xf, Xa, Xc, -), % allow merge only if no explicit dispatch
     ispec(Y, Yf, Ya, Yc, Cont).
-ispec(alloc, true, true, alloc, -) => true. % (no args)
-ispec(un_voidr(a), f_i, N, un_voidr(N), -) => true.
-ispec(un_var(F), F, X, un_var(X), -) => true.
-ispec(un_val(F), F, X, un_val(X), -) => true.
-ispec(un_lval(F), F, X, un_lval(X), -) => true.
-ispec(un_fval(F), F, X, un_fval(X), -) => true.
-ispec(u_val(Xf,Yf), (Xf,Yf), (X,Y), u_val(X,Y), -) => true.
-ispec(u_fval(Xf,Yf), (Xf,Yf), (X,Y), u_fval(X,Y), -) => true.
-ispec(init2h(Xf,Yf), (Xf,Yf), (X,Y), init2h(X,Y), -) => true.
-ispec(init2s(Xf,Yf), (Xf,Yf), (X,Y), init2s(X,Y), -) => true.
-ispec(move(Xf,Yf), (Xf,Yf), (X,Y), move(X,Y), -) => true.
-ispec(revmove(Xf,Yf), (Xf,Yf), (X,Y), revmove(X,Y), -) => true.
-ispec(getchoice(F), F, X, getchoice(X), -) => true.
-ispec(inith(F), F, X, inith(X), -) => true.
-ispec(bump_counter(F), F, X, bump_counter(X), -) => true.
-ispec(unify_void(I), true, true, unify_void(I), dispatch), [[ integer(I) ]] => true.
-ispec(unify_void(f_i), f_i, N, unify_void(N), dispatch) => true.
+ispec(unify_void(I), [], [], unify_void(I), dispatch), [[ integer(I) ]] => true.
+ispec(unify_void(f_i), [f_i], [N], unify_void(N), dispatch) => true.
 %
-ispec(firstcall(f_Y,PredPtrT,EnvSizeT), (f_Y,PredPtrT,EnvSizeT), true, firstcall_n, nodecops_dispatch) => true.
-ispec(firstcall(s(0),Xf,Yf), (Xf,Yf), (X,Y), firstcall_0(X,Y), dispatch) => true.
-ispec(firstcall(s(I),Xf,Yf), (Fs,Xf,Yf), (X,Y), firstcall(I), nodecops_dispatch), [[ integer(I) ]] => repf(I, f_y, Fs).
+ispec(fcall(Xf,Yf), [Xf,Yf], [X,Y], fcall(X,Y), dispatch) => true.
+ispec(kall(Xf,Yf), [Xf,Yf], [X,Y], kall(X,Y), dispatch) => true.
+ispec(execute(Xf), [Xf], [X], execute(X), dispatch) => true.
+%
+ispec(ld_blob(Xf,Yf), [Xf,Yf], [X,Y], ld_blob(X,Y), dispatch) => true.
+%
+ispec(retry_instance, [], [], retry_instance, dispatch) => true.
+ispec(proceed, [], [], proceed, dispatch) => true.
+ispec(kontinue, [], [], kontinue, dispatch) => true.
+ispec(leave, [], [], leave, dispatch) => true.
+ispec(exit_toplevel, [], [], exit_toplevel, dispatch) => true.
+%
+ispec(Ins, Fs, Xs, InsCode, -) => [[ replace_args(Ins, Fs, InsCode, Xs) ]]. % (no args)
 %
 ispec(Ins, _, _, _, _) => error(ispec(Ins)). % TODO: good error lit
 
 % repeat I times F in Fs
-repf(1, F, F) => true.
-repf(I, F, (F,Fs)) => [[ I > 1, I1 is I - 1 ]], repf(I1, F, Fs).
+repf(1, F, [F]) => true.
+repf(I, F, [F|Fs]) => [[ I > 1, I1 is I - 1 ]], repf(I1, F, Fs).
 
 % split first from InsSpec
 % TODO: ugly, translate to lists first
 spec1((A+B)+C, First, Rest+C) => spec1(A+B, First, Rest).
+spec1(retry_c(f_C)+B, (decops([X]),retry_c(X)), B) => true.
 spec1(A+B, A, B) => true.
 
 ispecnorm(Ins,InsSpec,InsSpec2) =>
@@ -2739,15 +2641,18 @@ ispecnormq(Ins,InsSpecQ,InsSpecQ2) =>
     [[ atom_concat(Ins, 'q', InsQ) ]],
     ( [[ InsSpecQ = [] ]] -> [[ InsSpecQ2 = InsQ ]] % TODO: deprecate
     ; [[ InsSpecQ = [_|_] ]] -> [[ InsSpecQ2 = InsQ ]] % TODO: deprecate
-    ; [[ InsSpecQ2 = q+InsSpecQ ]]
+    ; qins(InsSpecQ,InsSpecQ2)
     ).
+
+qins((Y+Z), Y2+Z) => qins(Y,Y2).
+qins(R, q+R) => true.
 
 ispeccode(Ins,InsSpec,Format,InsCode) =>
     ( [[ InsSpec = [_|_] ]] -> [[ Format = InsSpec, InsCode = Ins ]]
     ; [[ InsSpec = [] ]] -> [[ Format = InsSpec, InsCode = Ins ]]
     ; ispec(InsSpec,Format1,InsArgs1,InsCode0,Cont),
-      [[ conj_to_list(Format1,Format) ]],
-      [[ conj_to_list(InsArgs1,InsArgs) ]],
+      [[ flatten(Format1,Format) ]],
+      [[ flatten(InsArgs1,InsArgs) ]],
       ( [[ Cont = dispatch ]] -> % (dispatch is explicit in ins)
           [[ InsCode = (decops(InsArgs),InsCode0) ]]
       ; [[ Cont = nodecops_dispatch ]] -> % (no decops, dispatch is explicit in ins)
@@ -2756,26 +2661,50 @@ ispeccode(Ins,InsSpec,Format,InsCode) =>
       )
     ).
 
-ins_entry_(Ins,Opcode,Format,InsCode,InsSpec,Export,[q0|Props]) => % (see q0)
+ispeccode1(Ins,InsSpec,Format,i_ec(InsCode,InsCont)) =>
+    ispeccode(Ins,InsSpec,Format,_), spec1(InsSpec, InsCode, InsCont).
+
+ins_entry_(Ins,Opcode,InsSpec,Export,[q0,1|Props]) => % (see q0)
     ispecnorm(Ins,InsSpec,InsSpec2),
+    ispeccode1(Ins,InsSpec,Format,InsCode),
     ins_entry_align(Ins,Opcode,Format,Export,InsSpec,q0(InsSpec2),[],InsCode,Props).
-ins_entry_(Ins,Opcode,Format,InsCode,InsSpec,Export,[q0w|Props]) => % (see q0w)
+ins_entry_(Ins,Opcode,InsSpec,Export,[q0|Props]) => % (see q0)
     ispecnorm(Ins,InsSpec,InsSpec2),
-    ins_entry_align(Ins,Opcode,Format,Export,InsSpec,rw(InsCode,q0(InsSpec2)),[],InsCode,Props).
-ins_entry_(Ins,Opcode,Format,InsCode,InsSpec,Export,[q0r|Props]) => % (see q0r)
+    ispeccode(Ins,InsSpec,Format,InsCode),
+    ins_entry_align(Ins,Opcode,Format,Export,InsSpec,q0(InsSpec2),[],InsCode,Props).
+ins_entry_(Ins,Opcode,InsSpec,Export,[q0w|Props]) => % (see q0w)
     ispecnorm(Ins,InsSpec,InsSpec2),
-    ins_entry_align(Ins,Opcode,Format,Export,InsSpec,rw(q0(InsSpec2),InsCode),[],InsCode,Props).
-ins_entry_(Ins,Opcode,Format,InsCode,InsSpec,Export,[qall|Props]) => % (no props in Q version)
-    ins_entry_align(Ins,Opcode,Format,Export,InsSpec,InsCode,[],InsCode,Props).
-ins_entry_(Ins,Opcode,Format,InsCode,InsSpec,Export,[qqall|Props]) => % (props in both)
-    ins_entry_align(Ins,Opcode,Format,Export,InsSpec,InsCode,Props,InsCode,Props).
-ins_entry_(Ins,Opcode,Format,_InsCode,InsSpec,Export,[1|Props]) => 
-    spec1(InsSpec, InsCode, InsCont),
-    ins_entry_(Ins,Opcode,Format,i_ec(InsCode,InsCont),InsSpec,Export,Props). % (call again) % TODO: merge into e(...)
-ins_entry_(Ins,Opcode,Format,InsCode,InsSpec,Export,Props) =>
+    ispeccode(Ins,InsSpec,Format,InsCode),
+    ispeccode(Ins,InsSpec,Format,InsCodeQ), % TODO: use FormatQ
+    ins_entry_align(Ins,Opcode,Format,Export,InsSpec,rw(InsCodeQ,q0(InsSpec2)),[],InsCode,Props).
+ins_entry_(Ins,Opcode,InsSpec,Export,[q0r|Props]) => % (see q0r)
+    ispecnorm(Ins,InsSpec,InsSpec2),
+    ispeccode(Ins,InsSpec,Format,InsCode),
+    ispeccode(Ins,InsSpec,Format,InsCodeQ), % TODO: use FormatQ
+    ins_entry_align(Ins,Opcode,Format,Export,InsSpec,rw(q0(InsSpec2),InsCodeQ),[],InsCode,Props).
+ins_entry_(Ins,Opcode,InsSpec,Export,[qall|Props]) => % (no props in Q version)
+    ispeccode(Ins,InsSpec,Format,InsCode),
+    ispeccode(Ins,InsSpec,Format,InsCodeQ), % TODO: use FormatQ
+    ins_entry_align(Ins,Opcode,Format,Export,InsSpec,InsCodeQ,[],InsCode,Props).
+ins_entry_(Ins,Opcode,InsSpec,Export,[qqall,1|Props]) => % (props in both)
+    ispeccode1(Ins,InsSpec,Format,InsCode),
+    ispeccode1(Ins,InsSpec,Format,InsCodeQ), % TODO: use FormatQ
+    ins_entry_align(Ins,Opcode,Format,Export,InsSpec,InsCodeQ,Props,InsCode,Props).
+ins_entry_(Ins,Opcode,InsSpec,Export,[qqall|Props]) => % (props in both)
+    ispeccode(Ins,InsSpec,Format,InsCode),
+    ispeccode(Ins,InsSpec,Format,InsCodeQ), % TODO: use FormatQ
+    ins_entry_align(Ins,Opcode,Format,Export,InsSpec,InsCodeQ,Props,InsCode,Props).
+ins_entry_(Ins,Opcode,InsSpec,Export,[1|Props]) => 
+    ispeccode1(Ins,InsSpec,Format,InsCode),
+    ins_entry_b(Ins,Opcode,Format,InsCode,InsSpec,Export,Props). % (call again) % TODO: merge into e(...)
+ins_entry_(Ins,Opcode,InsSpec,Export,Props) =>
+    ispeccode(Ins,InsSpec,Format,InsCode),
+    ins_entry_b(Ins,Opcode,Format,InsCode,InsSpec,Export,Props).
+
+ins_entry_b(Ins,Opcode,Format,InsCode,InsSpec,Export,Props) =>
     ispecnorm(Ins,InsSpec,InsSpec2),
     prim('$decl'(ins_spec(InsSpec2,Opcode))),
-    ( [[ Props = [rw(R,W)|Props2] ]] -> [[ InsCode2 = i_rw(InsCode,InsSpec,R,W) ]]
+    ( [[ Props = [rw(R,W)|Props2] ]] -> i_e(InsCode,InsSpec,rw(R,W),InsCode2)
     ; [[ Props = Props2, InsCode2 = InsCode ]]
     ),
     ins_entry__(InsSpec2,Opcode,Format,Export,InsCode2,Props2).
@@ -2806,12 +2735,12 @@ q0(InsSpec) => shiftf, goto_ins(InsSpec).
 rw(_, InsCode), [[ mode(w) ]] => InsCode.
 rw(InsCode, _), [[ mode(r) ]] => InsCode.
 
-% goto in read mode, ins in write mode
-i_rw(_InsCode,_InsSpec,e(InsR,0),_), [[ mode(r) ]] => goto_ins(InsR).
-i_rw(InsCode,_InsSpec,_,all), [[ mode(w) ]] => InsCode.
-i_rw(_InsCode,InsSpec,_,1), [[ mode(w) ]] =>
-    spec1(InsSpec, InsCode, InsCont),
-    i_ec(InsCode, InsCont).
+i_e(InsCode,InsSpec,rw(R,W),rw(R2,W2)) =>
+    i_e(InsCode,InsSpec,R,R2),
+    i_e(InsCode,InsSpec,W,W2).
+i_e(_InsCode,_InsSpec,e(InsR,0),Code) => [[ Code = goto_ins(InsR) ]].
+i_e(InsCode,_InsSpec,all,Code) => [[ Code = InsCode ]].
+i_e(_InsCode,InsSpec,1,Code) => spec1(InsSpec, InsCode, InsCont), [[ Code = i_ec(InsCode, InsCont) ]].
 
 % equiv+cont % TODO: missing args
 i_ec(InsCode,InsCont) => InsCode, goto_ins(InsCont).
@@ -2860,7 +2789,7 @@ instruction_set =>
     iset_get2,
     ins_entry(branch, 68, [f_i], exported(branch)+[]), % (for qread)
     iset_blt,
-    ins_entry(get_constraint, 247, [f_x], exported(get_constraint)+[in_mode(w)]), % (for compile_term_aux)
+    ins_entry(-, 247, u_constraint(f_x), exported(get_constraint)+[in_mode(w)]), % (for compile_term_aux)
     iset_unify,
     iset_u2,
     iset_misc2.
@@ -2871,91 +2800,91 @@ iset_init =>
     ins_entry(initcall, 1, [f_E,f_e], [q0,in_mode(w)]).
 
 iset_call =>
-    ins_entry(-, 21, firstcall(f_Y,f_E,f_e), [q0,in_mode(w)]),
-    ins_entry(-, 19, firstcall(s(8),f_E,f_e), [q0,in_mode(w)]),
-    ins_entry(-, 17, firstcall(s(7),f_E,f_e), [q0,in_mode(w)]),
-    ins_entry(-, 15, firstcall(s(6),f_E,f_e), [q0,in_mode(w)]),
-    ins_entry(-, 13, firstcall(s(5),f_E,f_e), [q0,in_mode(w)]),
-    ins_entry(-, 11, firstcall(s(4),f_E,f_e), [q0,in_mode(w)]),
-    ins_entry(-, 9, firstcall(s(3),f_E,f_e), [q0,in_mode(w)]),
-    ins_entry(-, 7, firstcall(s(2),f_E,f_e), [q0,in_mode(w)]),
-    ins_entry(-, 5, firstcall(s(1),f_E,f_e), [q0,in_mode(w)]),
-    ins_entry(-, 3, firstcall(s(0),f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 21, init(f_Y)+fcall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 19, init(s(8))+fcall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 17, init(s(7))+fcall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 15, init(s(6))+fcall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 13, init(s(5))+fcall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 11, init(s(4))+fcall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 9, init(s(3))+fcall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 7, init(s(2))+fcall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 5, init(s(1))+fcall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 3, fcall(f_E,f_e), [q0,in_mode(w)]),
     %
-    ins_entry(call_n, 41, [f_Z,f_E,f_e], [q0,in_mode(w)]),
-    ins_entry(call_8, 39, [f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e], [q0,in_mode(w)]),
-    ins_entry(call_7, 37, [f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e], [q0,in_mode(w)]),
-    ins_entry(call_6, 35, [f_z,f_z,f_z,f_z,f_z,f_z,f_E,f_e], [q0,in_mode(w)]),
-    ins_entry(call_5, 33, [f_z,f_z,f_z,f_z,f_z,f_E,f_e], [q0,in_mode(w)]),
-    ins_entry(call_4, 31, [f_z,f_z,f_z,f_z,f_E,f_e], [q0,in_mode(w)]),
-    ins_entry(call_3, 29, [f_z,f_z,f_z,f_E,f_e], [q0,in_mode(w)]),
-    ins_entry(call_2, 27, [f_z,f_z,f_E,f_e], [q0,in_mode(w)]),
-    ins_entry(call_1, 25, [f_z,f_E,f_e], [q0,in_mode(w)]),
-    ins_entry(call, 23, [f_E,f_e], exported(call)+[q0,in_mode(w)]), % (for ciao_initcode and init_some_bytecode)
+    ins_entry(-, 41, zputn(f_Z)+kall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 39, zputn(s(8))+kall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 37, zputn(s(7))+kall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 35, zputn(s(6))+kall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 33, zputn(s(5))+kall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 31, zputn(s(4))+kall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 29, zputn(s(3))+kall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 27, zputn(s(2))+kall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 25, zputn(s(1))+kall(f_E,f_e), [q0,in_mode(w)]),
+    ins_entry(-, 23, kall(f_E,f_e), exported(call)+[q0,in_mode(w)]), % (for ciao_initcode and init_some_bytecode)
     %
-    ins_entry(lastcall_n, 61, [f_Z,f_E], [q0,in_mode(w)]),
-    ins_entry(lastcall_8, 59, [f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E], [q0,in_mode(w)]),
-    ins_entry(lastcall_7, 57, [f_z,f_z,f_z,f_z,f_z,f_z,f_z,f_E], [q0,in_mode(w)]),
-    ins_entry(lastcall_6, 55, [f_z,f_z,f_z,f_z,f_z,f_z,f_E], [q0,in_mode(w)]),
-    ins_entry(lastcall_5, 53, [f_z,f_z,f_z,f_z,f_z,f_E], [q0,in_mode(w)]),
-    ins_entry(lastcall_4, 51, [f_z,f_z,f_z,f_z,f_E], [q0,in_mode(w)]),
-    ins_entry(lastcall_3, 49, [f_z,f_z,f_z,f_E], [q0,in_mode(w)]),
-    ins_entry(lastcall_2, 47, [f_z,f_z,f_E], [q0,in_mode(w)]),
-    ins_entry(lastcall_1, 45, [f_z,f_E], [q0,in_mode(w)]),
-    ins_entry(lastcall, 43, [f_E], exported(lastcall)+[q0,in_mode(w)]), % (for chat_tabling.c)
+    ins_entry(-, 61, zputn(f_Z)+deallocate+execute(f_E), [q0,in_mode(w)]),
+    ins_entry(-, 59, zputn(s(8))+deallocate+execute(f_E), [q0,in_mode(w)]),
+    ins_entry(-, 57, zputn(s(7))+deallocate+execute(f_E), [q0,in_mode(w)]),
+    ins_entry(-, 55, zputn(s(6))+deallocate+execute(f_E), [q0,in_mode(w)]),
+    ins_entry(-, 53, zputn(s(5))+deallocate+execute(f_E), [q0,in_mode(w)]),
+    ins_entry(-, 51, zputn(s(4))+deallocate+execute(f_E), [q0,in_mode(w)]),
+    ins_entry(-, 49, zputn(s(3))+deallocate+execute(f_E), [q0,in_mode(w)]),
+    ins_entry(-, 47, zputn(s(2))+deallocate+execute(f_E), [q0,in_mode(w)]),
+    ins_entry(-, 45, zputn(s(1))+deallocate+execute(f_E), [q0,in_mode(w)]),
+    ins_entry(-, 43, deallocate+execute(f_E), exported(lastcall)+[q0,1,in_mode(w)]), % (for chat_tabling.c) % TODO: rename exported to DEALLOCATE_LASTCALL
     %
-    ins_entry(execute, 63, [f_E], exported(execute)+[qall]). % (for ciao_initcode and init_some_bytecode)
+    ins_entry(-, 63, execute(f_E), exported(execute)+[qall]). % (for ciao_initcode and init_some_bytecode) % TODO: rename exported to LASTCALL
 
 iset_put =>
     ins_entry(-, 69, inith(f_x), [in_mode(w)]),
     ins_entry(-, 70, init2h(f_x,f_x), [in_mode(w)]),
     ins_entry(-, 85, revmove(f_x,f_x)+revmove(f_x,f_x)),
     ins_entry(-, 71, revmove(f_x,f_x)),
-    ins_entry(put_x_unsafe_value, 72, [f_x,f_x], [in_mode(w)]),
+    ins_entry(-, 72, revglob2(f_x,f_x), [in_mode(w)]),
     ins_entry(-, 73, alloc+init2s(f_x,f_y), [1,in_mode(w)]),
     ins_entry(-, 74, init2s(f_x,f_y), [in_mode(w)]),
     ins_entry(-, 83, alloc+init2s(f_x,f_y)+init2s(f_x,f_y), [1,in_mode(w)]),
     ins_entry(-, 84, init2s(f_x,f_y)+init2s(f_x,f_y), [in_mode(w)]),
     ins_entry(-, 75, revmove(f_x,f_y)),
-    ins_entry(put_y_unsafe_value, 76, [f_x,f_y], [in_mode(w)]),
-    ins_entry(put_constant, 78, [f_x,f_t], [qqall]),
-    ins_entry(put_nil, 81, [f_x]),
-    ins_entry(put_large, 253, [f_x,f_b], [qqall,in_mode(w)]),
-    ins_entry(put_structure, 80, [f_x,f_f], [qqall,in_mode(w)]),
-    ins_entry(put_list, 82, [f_x], [in_mode(w)]),
+    ins_entry(-, 76, revglob(f_x,f_y), [in_mode(w)]),
+    ins_entry(-, 78, ld_cons(f_x,f_t), [qqall]),
+    ins_entry(-, 81, ld_cons_nil(f_x)),
+    ins_entry(-, 253, ld_blob(f_x,f_b), [qqall,in_mode(w)]),
+    ins_entry(-, 80, ld_str(f_x,f_f), [qqall,in_mode(w)]),
+    ins_entry(-, 82, ld_lst(f_x), [in_mode(w)]),
     ins_entry(-, 86, revmove(f_x,f_y)+revmove(f_x,f_y)),
-    ins_entry(put_yval_yuval, 87, [f_x,f_y,f_x,f_y], [in_mode(w)]),
-    ins_entry(put_yuval_yval, 88, [f_x,f_y,f_x,f_y], [in_mode(w)]),
-    ins_entry(put_yuval_yuval, 89, [f_x,f_y,f_x,f_y], [in_mode(w)]).
+    ins_entry(-, 87, revmove(f_x,f_y)+revglob(f_x,f_y), [in_mode(w)]),
+    ins_entry(-, 88, revglob(f_x,f_y)+revmove(f_x,f_y), [in_mode(w)]),
+    ins_entry(-, 89, revglob(f_x,f_y)+revglob(f_x,f_y), [in_mode(w)]).
 
 iset_blt =>
-    ins_entry(function_1, 223, [f_x,f_x,f_C,f_g], [qqall,in_mode(r)]),
-    ins_entry(function_2, 225, [f_x,f_x,f_x,f_C,f_g], [qqall,in_mode(r)]),
-    ins_entry(builtin_1, 227, [f_x,f_C], [qqall,in_mode(r)]),
-    ins_entry(builtin_2, 229, [f_x,f_x,f_C], [qqall,in_mode(r)]),
-    ins_entry(builtin_3, 231, [f_x,f_x,f_x,f_C], [qqall,in_mode(r)]),
-    ins_entry(retry_instance, 232, [], exported(retry_instance)+[in_mode(r)]).
+    ins_entry(-, 223, function_1(f_x,f_x,f_C,f_g), [qqall,in_mode(r)]),
+    ins_entry(-, 225, function_2(f_x,f_x,f_x,f_C,f_g), [qqall,in_mode(r)]),
+    ins_entry(-, 227, builtin_1(f_x,f_C), [qqall,in_mode(r)]),
+    ins_entry(-, 229, builtin_2(f_x,f_x,f_C), [qqall,in_mode(r)]),
+    ins_entry(-, 231, builtin_3(f_x,f_x,f_x,f_C), [qqall,in_mode(r)]),
+    ins_entry(-, 232, retry_instance, exported(retry_instance)+[in_mode(r)]).
 
 iset_get1 =>
     % TODO:[oc-merge] u_val order in instruction 91 was reversed before oc merge
     ins_entry(-, 91, u_val(f_x,f_x), exported(get_x_value)+[in_mode(r)]), % (for cterm)
     ins_entry(-, 94, u_fval(f_x,f_y), [in_mode(r)]),
     ins_entry(-, 95, u_val(f_x,f_y), [in_mode(r)]),
-    ins_entry(get_constant, 97, [f_x,f_t], exported(get_constant)+[q0,in_mode(r)]), % (for cterm)
+    ins_entry(-, 97, u_cons(f_x,f_t), exported(get_constant)+[q0,in_mode(r)]), % (for cterm)
     ins_entry(get_large, 255, [f_x,f_b], exported(get_large)+[q0,in_mode(r)]), % (for cterm)
     ins_entry(get_structure, 99, [f_x,f_f], exported(get_structure)+[q0,in_mode(r)]), % (for cterm)
-    ins_entry(get_nil, 100, [f_x], exported(get_nil)+[in_mode(r)]), % (for cterm)
+    ins_entry(-, 100, u_nil(f_x), exported(get_nil)+[in_mode(r)]), % (for cterm)
     ins_entry(get_list, 101, [f_x], exported(get_list)+[in_mode(r)]), % (for cterm)
     ins_entry(get_constant_neck_proceed, 112, [f_x,f_t], [q0,in_mode(r)]),
     ins_entry(get_nil_neck_proceed, 113, [f_x], [in_mode(r)]).
 
 iset_cut =>
-    ins_entry(cutb_x, 208, [f_x], [in_mode(r)]),
+    ins_entry(-, 208, cutb(f_x), [in_mode(r)]),
     ins_entry(cutb_x_neck, 210, [f_x], [in_mode(r)]),
     ins_entry(cutb_neck, 211, [], [in_mode(r)]),
     ins_entry(cutb_x_neck_proceed, 212, [f_x], [in_mode(r)]),
     ins_entry(cutb_neck_proceed, 213, [], [in_mode(r)]),
-    ins_entry(cute_x, 214, [f_x], [in_mode(r)]),
+    ins_entry(-, 214, cute(f_x), [in_mode(r)]),
     ins_entry(cute_x_neck, 216, [f_x], [in_mode(r)]),
     ins_entry(cute_neck, 217, [], [in_mode(r)]),
     ins_entry(cutf_x, 215, [f_x], [in_mode(r)]),
@@ -2968,17 +2897,17 @@ iset_choice =>
     ins_entry(-, 221, getchoice(f_y)).
 
 iset_misc1 =>
-    ins_entry(kontinue, 233, [], exported(kontinue)+[in_mode(w)]),
-    ins_entry(leave, 234, [], [in_mode(r)]),
-    ins_entry(exit_toplevel, 235, [], exported(exit_toplevel)+[in_mode(r)]),
-    ins_entry(retry_c, 238, [f_C], exported(retry_c)+[qqall,in_mode(r)]).
+    ins_entry(-, 233, kontinue, exported(kontinue)+[in_mode(w)]),
+    ins_entry(-, 234, leave, [in_mode(r)]),
+    ins_entry(-, 235, exit_toplevel, exported(exit_toplevel)+[in_mode(r)]),
+    ins_entry(-, 238, retry_c(f_C)+proceed, exported(retry_c)+[qqall,1,in_mode(r)]).
 
 iset_get2 =>
-    ins_entry(get_structure_x0, 105, [f_f], exported(get_structure_x0)+[q0w]), % (for cterm)
+    ins_entry(-, 105, u_str_x0(f_f), exported(get_structure_x0)+[q0w]), % (for cterm)
     ins_entry(get_large_x0, 257, [f_b], [q0w]),
-    ins_entry(get_constant_x0, 103, [f_t], exported(get_constant_x0)+[q0w]), % (for cterm)
-    ins_entry(get_nil_x0, 106, [], exported(get_nil_x0)+[]), % (for cterm)
-    ins_entry(get_list_x0, 107, [], exported(get_list_x0)+[]), % (for cterm)
+    ins_entry(-, 103, u_cons_x0(f_t), exported(get_constant_x0)+[q0w]), % (for cterm)
+    ins_entry(-, 106, u_nil_x0, exported(get_nil_x0)+[]), % (for cterm)
+    ins_entry(-, 107, u_list_x0, exported(get_list_x0)+[]), % (for cterm)
     ins_entry(-, 108, move(f_x,f_x)+move(f_x,f_x)),
     ins_entry(-, 90, move(f_x,f_x), exported(get_x_variable)+[]), % (for cterm)
     ins_entry(-, 92, alloc+move(f_x,f_y), [1]),
@@ -3000,24 +2929,24 @@ iset_unify =>
     ins_entry(-, 124, un_fval(f_y)),
     ins_entry(-, 125, un_val(f_y), [rw(e(un_lval(f_y),0),all)]),
     ins_entry(-, 126, un_lval(f_y), []),
-    ins_entry(unify_constant, 128, [f_t], exported(unify_constant)+[q0r]), % (for cterm)
+    ins_entry(-, 128, un_cons(f_t), exported(unify_constant)+[q0r]), % (for cterm)
     ins_entry(unify_large, 259, [f_b], exported(unify_large)+[q0]), % (for cterm)
     ins_entry(unify_structure, 130, [f_f], exported(unify_structure)+[q0r]), % (for cterm)
-    ins_entry(unify_nil, 131, [], exported(unify_nil)+[]), % (for cterm)
+    ins_entry(-, 131, un_nil, exported(unify_nil)+[]), % (for cterm)
     ins_entry(unify_list, 132, [], exported(unify_list)+[]), % (for cterm)
     ins_entry(unify_constant_neck_proceed, 134, [f_t], [q0r]),
     ins_entry(unify_nil_neck_proceed, 135, []).
 
 iset_u2 =>
-    ins_entry(-, 136, un_voidr(a)+un_var(f_x)),
-    ins_entry(-, 139, alloc+un_voidr(a)+un_var(f_y), [1]),
-    ins_entry(-, 140, un_voidr(a)+un_var(f_y), []),
-    ins_entry(-, 137, un_voidr(a)+un_val(f_x), [rw(e(un_voidr(a)+un_lval(f_x),0),all)]),
-    ins_entry(-, 138, un_voidr(a)+un_lval(f_x), []),
-    ins_entry(-, 141, un_voidr(a)+un_fval(f_y)),
-    ins_entry(-, 142, un_voidr(a)+un_val(f_y), [rw(e(un_voidr(a)+un_lval(f_y),0),all)]),
-    ins_entry(-, 143, un_voidr(a)+un_lval(f_y), []),
-    ins_entry(-, 144, un_var(f_x)+un_voidr(a)),
+    ins_entry(-, 136, un_voidr(f_i)+un_var(f_x)),
+    ins_entry(-, 139, alloc+un_voidr(f_i)+un_var(f_y), [1]),
+    ins_entry(-, 140, un_voidr(f_i)+un_var(f_y), []),
+    ins_entry(-, 137, un_voidr(f_i)+un_val(f_x), [rw(e(un_voidr(f_i)+un_lval(f_x),0),all)]),
+    ins_entry(-, 138, un_voidr(f_i)+un_lval(f_x), []),
+    ins_entry(-, 141, un_voidr(f_i)+un_fval(f_y)),
+    ins_entry(-, 142, un_voidr(f_i)+un_val(f_y), [rw(e(un_voidr(f_i)+un_lval(f_y),0),all)]),
+    ins_entry(-, 143, un_voidr(f_i)+un_lval(f_y), []),
+    ins_entry(-, 144, un_var(f_x)+un_voidr(f_i)),
     ins_entry(-, 145, un_var(f_x)+un_var(f_x)),
     ins_entry(-, 148, alloc+un_var(f_x)+un_var(f_y), [1]),
     ins_entry(-, 149, un_var(f_x)+un_var(f_y), []),
@@ -3026,8 +2955,8 @@ iset_u2 =>
     ins_entry(-, 150, un_var(f_x)+un_fval(f_y)),
     ins_entry(-, 151, un_var(f_x)+un_val(f_y), [rw(e(un_var(f_x)+un_lval(f_y),0),all)]),
     ins_entry(-, 152, un_var(f_x)+un_lval(f_y), []),
-    ins_entry(-, 153, alloc+un_var(f_y)+un_voidr(a), [1]),
-    ins_entry(-, 154, un_var(f_y)+un_voidr(a), []),
+    ins_entry(-, 153, alloc+un_var(f_y)+un_voidr(f_i), [1]),
+    ins_entry(-, 154, un_var(f_y)+un_voidr(f_i), []),
     ins_entry(-, 155, alloc+un_var(f_y)+un_var(f_x), [1]),
     ins_entry(-, 156, un_var(f_y)+un_var(f_x), []),
     ins_entry(-, 157, alloc+un_var(f_y)+un_var(f_y), [1]),
@@ -3040,15 +2969,15 @@ iset_u2 =>
     ins_entry(-, 165, alloc+un_var(f_y)+un_lval(f_y), [1]),
     ins_entry(-, 164, un_var(f_y)+un_val(f_y), [rw(e(un_var(f_y)+un_lval(f_y),0),all)]),
     ins_entry(-, 166, un_var(f_y)+un_lval(f_y), []),
-    ins_entry(-, 185, un_fval(f_y)+un_voidr(a)),
+    ins_entry(-, 185, un_fval(f_y)+un_voidr(f_i)),
     ins_entry(-, 188, un_fval(f_y)+un_var(f_x)),
     ins_entry(-, 199, un_fval(f_y)+un_fval(f_y)),
     ins_entry(-, 193, un_fval(f_y)+un_val(f_x), [rw(e(un_fval(f_y)+un_lval(f_x),0),all)]),
     ins_entry(-, 196, un_fval(f_y)+un_lval(f_x), []),
     ins_entry(-, 202, un_fval(f_y)+un_val(f_y), [rw(e(un_fval(f_y)+un_lval(f_y),0),all)]),
     ins_entry(-, 205, un_fval(f_y)+un_lval(f_y), []),
-    ins_entry(-, 167, un_val(f_x)+un_voidr(a), [rw(e(un_lval(f_x)+un_voidr(a),0),all)]),
-    ins_entry(-, 168, un_lval(f_x)+un_voidr(a), []),
+    ins_entry(-, 167, un_val(f_x)+un_voidr(f_i), [rw(e(un_lval(f_x)+un_voidr(f_i),0),all)]),
+    ins_entry(-, 168, un_lval(f_x)+un_voidr(f_i), []),
     ins_entry(-, 169, un_val(f_x)+un_var(f_x), [rw(e(un_lval(f_x)+un_var(f_x),0),all)]),
     ins_entry(-, 170, un_lval(f_x)+un_var(f_x), []),
     ins_entry(-, 171, alloc+un_val(f_x)+un_var(f_y), [rw(e(alloc+un_lval(f_x)+un_var(f_y),0),1)]),
@@ -3065,8 +2994,8 @@ iset_u2 =>
     ins_entry(-, 183, un_val(f_x)+un_lval(f_y), [rw(e(un_lval(f_x)+un_val(f_y),0),all)]),
     ins_entry(-, 182, un_lval(f_x)+un_val(f_y), [rw(e(un_lval(f_x)+un_lval(f_y),0),all)]),
     ins_entry(-, 184, un_lval(f_x)+un_lval(f_y), []),
-    ins_entry(-, 186, un_val(f_y)+un_voidr(a), [rw(e(un_lval(f_y)+un_voidr(a),0),all)]),
-    ins_entry(-, 187, un_lval(f_y)+un_voidr(a), []),
+    ins_entry(-, 186, un_val(f_y)+un_voidr(f_i), [rw(e(un_lval(f_y)+un_voidr(f_i),0),all)]),
+    ins_entry(-, 187, un_lval(f_y)+un_voidr(f_i), []),
     ins_entry(-, 189, un_val(f_y)+un_var(f_x), [rw(e(un_lval(f_y)+un_var(f_x),0),all)]),
     ins_entry(-, 190, un_lval(f_y)+un_var(f_x), []),
     ins_entry(-, 191, un_val(f_y)+un_var(f_y), [rw(e(un_lval(f_y)+un_var(f_y),0),all)]),
@@ -3090,7 +3019,7 @@ iset_misc2 =>
     ins_entry(neck, 65, [], []),
     ins_entry(dynamic_neck_proceed, 236, [], exported(dynamic_neck_proceed)+[in_mode(w)]),
     ins_entry(neck_proceed, 66, [], [in_mode(w)]),
-    ins_entry(proceed, 64, [], []),
+    ins_entry(-, 64, proceed, []),
     ins_entry(restart_point, 262, [], exported(restart_point)+[optional('PARBACK')]). % (for ciao_initcode and init_some_bytecode)
 
 % Set declarations (globally) from the instruction set
