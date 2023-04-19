@@ -877,6 +877,7 @@ fsize_sum_b([f_b], BSize) => BSize.
 fsize_sum_b([X|Xs], BSize) => fsize(X), tk('+'), fsize_sum_b(Xs, BSize).
 
 % Jump to a given instruction keeping the same operand stream
+goto_ins('$label'(Lab)) => goto(Lab). % TODO: hack?
 goto_ins(X+(Y+Z)) => goto_ins((X+Y)+Z).
 goto_ins(Ins) =>
     [[ get(ins_spec(Ins).op, Op) ]],
@@ -978,11 +979,40 @@ u_fval(V, U) =>
     trail_if_conditional_sva(U),
     U <- V.
 
-un_voidr(X), [[ mode(r) ]] =>
-    (~s) <- ~heap_offset((~s), X).
-un_voidr(X), [[ mode(w) ]] =>
-    localv(intmach, I, cast(ftype_ctype(f_i_signed), X)),
-    do_while(constr_hva(tk('H')), (tk('--'),I)).
+un_voidr(X) =>
+    ( [[ mode(r) ]] ->
+        (~s) <- ~heap_offset((~s), X)
+    ; localv(intmach, I, cast(ftype_ctype(f_i_signed), X)),
+      % (assume I>0)
+      do_while((
+          cachedreg('H', H),
+          constr_hva(H)
+      ), (tk('--'),I))
+    ).
+% (for iter spec)
+unify_void(I), [[ integer(I), I>0 ]] => % (specialized case)
+    ( [[ mode(r) ]] ->
+        un_voidr(I),
+        dispatch
+    ; cachedreg('H', H),
+      constr_hva(H),
+      ( [[ I = 1 ]] ->
+          dispatch
+      ; [[ I1 is I-1 ]],
+        goto_ins(unify_void(I1))
+      )
+    ).
+unify_void(N) =>
+    ( [[ mode(r) ]] ->
+        un_voidr(N),
+        dispatch
+    ; localv(intmach, I, cast(ftype_ctype(f_i_signed), N)),
+      shiftf(f_i),
+      foreach(intmach, revrange(I,4), _I0,
+        (cachedreg('H', H),
+         constr_hva(H))),
+      goto_ins(unify_void(4))
+    ).
 
 un_var(X), [[ mode(r) ]] =>
     ref_heap_next(X).
@@ -1045,32 +1075,36 @@ code_cframe(E, EnvSize, NextInsn) =>
     (~w)^.local_top <- ~stack_char_offset(E,EnvSize),
     if(~off_stacktop(E,tk('Stack_Warn')), set_event).
 
-inittrue => decops([EnvSize]),
+% TODO:[oc-merge] was: collapse cannot be used here b/c initall operand is cframe operand
+alloc_init_cframe(EnvSize) =>
     alloc,
     initfr(EnvSize),
-    %
 %    code_cframe(~e, EnvSize, ~bc_off((~p), fsize_sum([f_e]))),
 %    dispatchf(fsize_sum([f_e])). % (was f_i before)
-    goto('firsttrue').
+    goto_ins('$label'('firsttrue')).
 
-firsttrue_n => decopsf([f_i],[N]),
-    localv(intmach, I, cast(ftype_ctype(f_i_signed), N)),
-    shiftf(f_i),
-    foreach(intmach, revrange(I), _I0, put_yvoid),
-    %
-    goto('firsttrue'),
+init_cframe =>
+    loop_init_all('$label'('firsttrue')),
     label_blk('firsttrue', firsttrue_).
 
+% TODO: rename; one arg is relative to P
 % (ins without opcode)
 firsttrue_ => decopsf([f_e],[EnvSize]),
     code_cframe(~e, EnvSize, ~bc_off((~p), fsize_sum([f_e]))),
     dispatchf(fsize_sum([f_e])). % (was f_i before)
 
-initcall => decops([_,N]),
+% TODO:[oc-merge] was: collapse cannot be used here b/c initall operand is cframe operand
+alloc_init_fcall(PredPtr,EnvSize) =>
     alloc,
-    initfr(N),
+    initfr(EnvSize),
+%    fcall(PredPtr,EnvSize).
     goto_ins(fcall(f_E,f_e)).
 
+loop_init_all(Cont) => decopsf([f_i],[N]),
+    localv(intmach, I, cast(ftype_ctype(f_i_signed), N)),
+    shiftf(f_i),
+    foreach(intmach, revrange(I), _I0, put_yvoid),
+    goto_ins(Cont).
 loop_init_until(M, Cont) => decopsf([f_i],[N]), % N>M
     localv(intmach, I, cast(ftype_ctype(f_i_signed), N)),
     shiftf(f_i),
@@ -1122,8 +1156,7 @@ ld_blob(A,B) =>
     [[ mode(M) ]],
     setmode(r),
     A <- cfun_eval('BC_MakeBlob', [B]),
-    setmode(M),
-    dispatch_b(~large_size(B^)).
+    setmode(M).
 
 ld_str(A,B) =>
     cachedreg('H', H),
@@ -1146,26 +1179,23 @@ u_cons_x0(A) =>
     ; true % (nothing left to be done)
     ).
 
-get_large => decops([A,B]),
-    unify_large(B,A),
-    dispatch_b(~large_size(B^)).
+u_blob(A,B) => unify_large(B,A).
 
 % (x0 version: read-mode match has been done during indexing)
-get_large_x0, [[ mode(r) ]] => decops([A]),
-    localv(tagged, T0, x(0)),
-    unify_large(A,T0),
-    dispatch_b(~large_size(A^)).
-get_large_x0, [[ mode(w) ]] => decops([A]),
-    setmode(r),
-    localv(tagged, T1, cfun_eval('BC_MakeBlob', [A])),
-    setmode(w),
-    localv(tagged, T0, x(0)),
-    if(~tagged_is(hva,T0),
-      bind(hva,T0,T1),
-      if(T0 /\ tk('TagBitSVA'),
-        bind(sva,T0,T1),
-        bind(cva,T0,T1))),
-    dispatch_b(~large_size(A^)).
+u_blob_x0(A) =>
+    ( [[ mode(r) ]] ->
+        localv(tagged, T0, x(0)),
+        unify_large(A,T0)
+    ; setmode(r),
+      localv(tagged, T1, cfun_eval('BC_MakeBlob', [A])),
+      setmode(w),
+      localv(tagged, T0, x(0)),
+      if(~tagged_is(hva,T0),
+        bind(hva,T0,T1),
+        if(T0 /\ tk('TagBitSVA'),
+          bind(sva,T0,T1),
+          bind(cva,T0,T1)))
+    ).
 
 get_structure => decops([A,B]),
     unify_structure(B,A,dispatch).
@@ -1269,23 +1299,27 @@ cute_neck =>
     set_deep,
     if(~choice_younger(~choice_offset(~b,tk('CHOICEPAD')), (~w)^.trail_top),
       cvoid_call('choice_overflow', [2*tk('CHOICEPAD')*sizeof(tagged),~true])),
-    set_e((~w)^.local_top),
-    dispatch.
+    set_e((~w)^.local_top).
 
+% TODO: use cutf/1?
 cutf_x => decops([A]),
     (~w)^.previous_choice <- ~choice_from_tagged(A),
     shiftf,
+%    do_cut,
+%    set_e((~w)^.frame),
     goto_ins(cutf). % TODO: check that pending 'format' after shift is the expected one
+%    dispatch.
 
 cutf =>
     do_cut,
-    set_e((~w)^.frame),
-    dispatch.
+    set_e((~w)^.frame).
 
-cut_y => decops([A]),
+% TODO: continue with cutf?
+cutf(A) =>
     localv(tagged, T1), T1 <- A,
     (~w)^.previous_choice <- ~choice_from_tagged(T1),
     do_cut,
+    %
     set_e((~w)^.frame),
     dispatch.
 
@@ -1371,29 +1405,6 @@ u_constraint(A) =>
       (bind(sva,T1,T2), A <- T2),
       bind(cva,T2,T1)).
 
-unify_void(I), [[ integer(I), I>0 ]] => % (specialized case)
-    ( [[ mode(r) ]] ->
-        un_voidr(I),
-        dispatch
-    ; cachedreg('H', H),
-      constr_hva(H),
-      ( [[ I = 1 ]] ->
-          dispatch
-      ; [[ I1 is I-1 ]],
-        goto_ins(unify_void(I1))
-      )
-    ).
-unify_void(N), [[ mode(r) ]] =>
-    un_voidr(N),
-    dispatch.
-unify_void(N), [[ mode(w) ]] =>
-    localv(intmach, I, cast(ftype_ctype(f_i_signed), N)),
-    shiftf(f_i),
-    foreach(intmach, revrange(I,4), _I0,
-      (cachedreg('H', H),
-       constr_hva(H))),
-    goto_ins(unify_void(4)).
-
 un_cons(A) =>
     ( [[ mode(r) ]] ->
         localv(tagged, T1), ref_heap_next(T1),
@@ -1401,18 +1412,17 @@ un_cons(A) =>
     ; heap_push(A)
     ).
 
-unify_large, [[ mode(r) ]] => decops([A]),
-    localv(tagged, T1), ref_heap_next(T1),
-    unify_heap_large(A,T1),
-    dispatch_b(~large_size(A^)).
-unify_large, [[ mode(w) ]] => decops([A]),
-    % TODO: try to switch to r mode properly (this code is tricky)
-    % (this is 'heap_push and switch to read')
-    cachedreg('H', H),
-    (~w)^.heap_top <- ~heap_offset(H,1),
-    H^ <- cfun_eval('BC_MakeBlob', [A]),
-    [[ update(mode(r)) ]],
-    dispatch_b(~large_size(A^)).
+un_blob(A) =>
+    ( [[ mode(r) ]] ->
+        localv(tagged, T1), ref_heap_next(T1),
+        unify_heap_large(A,T1)
+    ; % TODO: try to switch to r mode properly (this code is tricky)
+      % (this is 'heap_push and switch to read')
+      cachedreg('H', H),
+      (~w)^.heap_top <- ~heap_offset(H,1),
+      H^ <- cfun_eval('BC_MakeBlob', [A]),
+      [[ update(mode(r)) ]]
+    ).
 
 unify_structure, [[ mode(r) ]] => decops([A]),
     localv(tagged, T1), ref_heap_next(T1),
@@ -1463,16 +1473,15 @@ fail =>
     jump_fail.
 
 % TODO: PATCH_LIVEINFO requires f_g (we cannot expand to f_l,f_i in instruction format like in OC)
-
-heapmargin_call => decopsf([f_l,f_i],[A,B]), % TODO: abstract code to use f_g
+heapmargin_call(_G) =>
+    [[ update(format([f_l,f_i])) ]], decops([A,B]), % TODO: abstract code to use f_g
     cachedreg('H',H),
     if(~heap_char_difference(H, tk('Heap_End')) < cast(intmach,A),
       ([[ mode(M) ]],
        setmode(r),
        cvoid_call('explicit_heap_overflow', [cast(intmach,A)*2, cast(ftype_ctype(f_i_signed),B)]),
        setmode(M)
-       )),
-    dispatch.
+       )).
 
 neck =>
     code_neck,
@@ -2310,10 +2319,10 @@ pred_call_default =>
     if(I\==0, (
         localv(ptr(tagged), Pt1, (~w)^.x),
         localv(ptr(tagged), Pt2, (~w)^.structure),
-        do_while(
-            push_ref_heap_next(Pt1,Pt2),
-            (tk('--'),I)
-        )
+        % (assume I>0)
+        do_while((
+            push_ref_heap_next(Pt1,Pt2)
+        ), (tk('--'),I))
     )),
     jump_switch_on_pred_sub(tk('ei')).
 
@@ -2414,7 +2423,7 @@ pred_enter_compactcode_indexed =>
         HtabNode <- ~sw_on_key_node_from_offset(Htab, T1),
         if(logical_or(HtabNode^.key==T2, not(HtabNode^.key)), break),
         assign(I + sizeof(sw_on_key_node)),
-        T1 <- (T1+I) /\ Htab^.mask
+        T1 <- paren(T1+I) /\ Htab^.mask % (note: paren is not needed, but C emits readability warning)
     ), ~true),
     jump_tryeach(HtabNode^.value.try_chain). % (this will break the loop)
 
@@ -2593,6 +2602,7 @@ is_exported(Props, Props, Export) => [[ Export = no ]].
 % instruction spec/merge macro
 ispec((X+Y)+Z, Fs, As, Code, Cont) => ispec(X+(Y+Z), Fs, As, Code, Cont).
 %
+ispec(init(f_Y)+cframe(f_e), [f_Y,f_e], [], init_cframe, nodecops_dispatch) => true.
 ispec(init(f_Y)+Cont, [f_Y|ContF], [], loop_init_until(8,Cont), nodecops_dispatch) => ispec(Cont, ContF, _, _, dispatch).
 ispec(init(s(I))+Cont, [Fs,ContF], [], loop_init_step(I,Cont), nodecops_dispatch), [[ integer(I) ]] => repf(I, f_y, Fs), ispec(Cont, ContF, _, _, dispatch).
 %
@@ -2609,7 +2619,8 @@ ispec(fcall(Xf,Yf), [Xf,Yf], [X,Y], fcall(X,Y), dispatch) => true.
 ispec(kall(Xf,Yf), [Xf,Yf], [X,Y], kall(X,Y), dispatch) => true.
 ispec(execute(Xf), [Xf], [X], execute(X), dispatch) => true.
 %
-ispec(ld_blob(Xf,Yf), [Xf,Yf], [X,Y], ld_blob(X,Y), dispatch) => true.
+ispec(alloc_init_cframe(Xf), [Xf], [X], alloc_init_cframe(X), dispatch) => true.
+ispec(alloc_init_fcall(Xf,Yf), [Xf,Yf], [X,Y], alloc_init_fcall(X,Y), dispatch) => true.
 %
 ispec(retry_instance, [], [], retry_instance, dispatch) => true.
 ispec(proceed, [], [], proceed, dispatch) => true.
@@ -2657,13 +2668,26 @@ ispeccode(Ins,InsSpec,Format,InsCode) =>
           [[ InsCode = (decops(InsArgs),InsCode0) ]]
       ; [[ Cont = nodecops_dispatch ]] -> % (no decops, dispatch is explicit in ins)
           [[ InsCode = InsCode0 ]]
-      ; [[ InsCode = (decops(InsArgs),InsCode0,dispatch) ]]
+      ; idispatch(InsArgs, Format, Dispatch),
+        [[ InsCode = (decops(InsArgs),InsCode0,Dispatch) ]]
       )
     ).
+
+% TODO: improve blob arg identification
+idispatch([Blob],[f_b],dispatch_b(~large_size(Blob^))) => true.
+idispatch([_,Blob],[_,f_b],dispatch_b(~large_size(Blob^))) => true.
+idispatch(_,_,dispatch) => true.
 
 ispeccode1(Ins,InsSpec,Format,i_ec(InsCode,InsCont)) =>
     ispeccode(Ins,InsSpec,Format,_), spec1(InsSpec, InsCode, InsCont).
 
+%% (uncomment to disable custom alignment versions)
+%ins_entry_(Ins,Opcode,InsSpec,Export,[q0w|Props]) => ins_entry_(Ins,Opcode,InsSpec,Export,[q0|Props]).
+%ins_entry_(Ins,Opcode,InsSpec,Export,[q0r|Props]) => ins_entry_(Ins,Opcode,InsSpec,Export,[q0|Props]).
+%ins_entry_(Ins,Opcode,InsSpec,Export,[qall|Props]) => ins_entry_(Ins,Opcode,InsSpec,Export,[q0|Props]).
+%ins_entry_(Ins,Opcode,InsSpec,Export,[qqall|Props]) => ins_entry_(Ins,Opcode,InsSpec,Export,[q0|Props]).
+%ins_entry_(Ins,Opcode,InsSpec,Export,[qqall|Props]) => ins_entry_(Ins,Opcode,InsSpec,Export,[q0|Props]).
+%%
 ins_entry_(Ins,Opcode,InsSpec,Export,[q0,1|Props]) => % (see q0)
     ispecnorm(Ins,InsSpec,InsSpec2),
     ispeccode1(Ins,InsSpec,Format,InsCode),
@@ -2795,9 +2819,9 @@ instruction_set =>
     iset_misc2.
 
 iset_init =>
-    ins_entry(inittrue, 260, [f_e], [in_mode(w)]),
-    ins_entry(firsttrue_n, 261, [f_Y,f_e], [in_mode(w)]),
-    ins_entry(initcall, 1, [f_E,f_e], [q0,in_mode(w)]).
+    ins_entry(-, 260, alloc_init_cframe(f_e), [in_mode(w)]),
+    ins_entry(-, 261, init(f_Y)+cframe(f_e), [in_mode(w)]),
+    ins_entry(-, 1, alloc_init_fcall(f_E,f_e), [q0,in_mode(w)]).
 
 iset_call =>
     ins_entry(-, 21, init(f_Y)+fcall(f_E,f_e), [q0,in_mode(w)]),
@@ -2871,7 +2895,7 @@ iset_get1 =>
     ins_entry(-, 94, u_fval(f_x,f_y), [in_mode(r)]),
     ins_entry(-, 95, u_val(f_x,f_y), [in_mode(r)]),
     ins_entry(-, 97, u_cons(f_x,f_t), exported(get_constant)+[q0,in_mode(r)]), % (for cterm)
-    ins_entry(get_large, 255, [f_x,f_b], exported(get_large)+[q0,in_mode(r)]), % (for cterm)
+    ins_entry(-, 255, u_blob(f_x,f_b), exported(get_large)+[q0,in_mode(r)]), % (for cterm)
     ins_entry(get_structure, 99, [f_x,f_f], exported(get_structure)+[q0,in_mode(r)]), % (for cterm)
     ins_entry(-, 100, u_nil(f_x), exported(get_nil)+[in_mode(r)]), % (for cterm)
     ins_entry(get_list, 101, [f_x], exported(get_list)+[in_mode(r)]), % (for cterm)
@@ -2886,10 +2910,10 @@ iset_cut =>
     ins_entry(cutb_neck_proceed, 213, [], [in_mode(r)]),
     ins_entry(-, 214, cute(f_x), [in_mode(r)]),
     ins_entry(cute_x_neck, 216, [f_x], [in_mode(r)]),
-    ins_entry(cute_neck, 217, [], [in_mode(r)]),
+    ins_entry(-, 217, cute_neck, [in_mode(r)]),
     ins_entry(cutf_x, 215, [f_x], [in_mode(r)]),
-    ins_entry(cutf, 209, [], [in_mode(r)]),
-    ins_entry(cut_y, 218, [f_y], [in_mode(r)]).
+    ins_entry(-, 209, cutf, [in_mode(r)]),
+    ins_entry(-, 218, cutf(f_y), [in_mode(r)]).
 
 iset_choice =>
     ins_entry(-, 219, getchoice(f_x)),
@@ -2904,7 +2928,7 @@ iset_misc1 =>
 
 iset_get2 =>
     ins_entry(-, 105, u_str_x0(f_f), exported(get_structure_x0)+[q0w]), % (for cterm)
-    ins_entry(get_large_x0, 257, [f_b], [q0w]),
+    ins_entry(-, 257, u_blob_x0(f_b), [q0w]),
     ins_entry(-, 103, u_cons_x0(f_t), exported(get_constant_x0)+[q0w]), % (for cterm)
     ins_entry(-, 106, u_nil_x0, exported(get_nil_x0)+[]), % (for cterm)
     ins_entry(-, 107, u_list_x0, exported(get_list_x0)+[]), % (for cterm)
@@ -2930,7 +2954,7 @@ iset_unify =>
     ins_entry(-, 125, un_val(f_y), [rw(e(un_lval(f_y),0),all)]),
     ins_entry(-, 126, un_lval(f_y), []),
     ins_entry(-, 128, un_cons(f_t), exported(unify_constant)+[q0r]), % (for cterm)
-    ins_entry(unify_large, 259, [f_b], exported(unify_large)+[q0]), % (for cterm)
+    ins_entry(-, 259, un_blob(f_b), exported(unify_large)+[q0]), % (for cterm)
     ins_entry(unify_structure, 130, [f_f], exported(unify_structure)+[q0r]), % (for cterm)
     ins_entry(-, 131, un_nil, exported(unify_nil)+[]), % (for cterm)
     ins_entry(unify_list, 132, [], exported(unify_list)+[]), % (for cterm)
@@ -3015,7 +3039,7 @@ iset_misc2 =>
     ins_entry(-, 249, bump_counter(f_l), [q0]),
     ins_entry(counted_neck, 251, [f_l,f_l], [q0]),
     ins_entry(fail, 67, [], exported(fail)+[]), % (for ciao_initcode and init_some_bytecode)
-    ins_entry(heapmargin_call, 246, [f_g], exported(heapmargin_call)+[q0]), % (for compile_term_aux)
+    ins_entry(-, 246, heapmargin_call(f_g), exported(heapmargin_call)+[q0]), % (for compile_term_aux)
     ins_entry(neck, 65, [], []),
     ins_entry(dynamic_neck_proceed, 236, [], exported(dynamic_neck_proceed)+[in_mode(w)]),
     ins_entry(neck_proceed, 66, [], [in_mode(w)]),
