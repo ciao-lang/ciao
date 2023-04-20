@@ -1300,7 +1300,12 @@ CBOOL__PROTO(prolog_c_strerror) {
 
 /* --------------------------------------------------------------------------- */
 
-#define BUF_MAX 65536
+#if defined(EMSCRIPTEN)
+/* TODO: emcc 3.1.36 "RuntimeError: memory access out of bounds"; why? */
+#define COPYFILE_BUFSIZE 4096 
+#else
+#define COPYFILE_BUFSIZE 65536
+#endif
 
 CBOOL__PROTO(prolog_c_copy_file) {
   ERR__FUNCTOR("system:c_copy_file", 3);
@@ -1309,7 +1314,7 @@ CBOOL__PROTO(prolog_c_copy_file) {
   int copy_flag;
   ssize_t s;
   struct stat stat_buf;
-  char buffer[BUF_MAX];
+  char buffer[COPYFILE_BUFSIZE];
   errno = 0;
   DEREF(X(0), X(0));
   source = GetString(X(0));
@@ -1365,20 +1370,18 @@ CBOOL__PROTO(prolog_c_copy_file) {
       /* Identifying the error type: */
       CBOOL__LASTCALL(check_errno, 1);
     }
-    while((s=read(fd_source, buffer, BUF_MAX))!=0){
-      if(s==-1){
+    while((s=read(fd_source, buffer, COPYFILE_BUFSIZE))!=0){
+      if (s==-1) {
         close(fd_source);
         close(fd_destination);
         BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
-      }
-      else
-        {
-          if(write(fd_destination, buffer, s)==-1){
-            close(fd_source);
-            close(fd_destination);
-            BUILTIN_ERROR(SYSTEM_ERROR, X(1), 2);
-          }
+      } else {
+        if (write(fd_destination, buffer, s)==-1){
+          close(fd_source);
+          close(fd_destination);
+          BUILTIN_ERROR(SYSTEM_ERROR, X(1), 2);
         }
+      }
     }
     close(fd_source);
     close(fd_destination);
