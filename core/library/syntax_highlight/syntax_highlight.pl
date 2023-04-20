@@ -26,6 +26,7 @@
 :- regtype lang(L) # "`L` is a language for syntax highlight".
 
 lang('ciao').
+lang('ciao-inferior').
 lang('c++').
 lang('c').
 lang('java').
