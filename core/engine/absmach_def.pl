@@ -759,7 +759,7 @@ code_neck_proceed =>
     set_e((~w)^.frame),
     (~p) <- (~w)^.next_insn,
     profile_hook(proceed),
-    jump_ins_dispatch.
+    dispatch.
 
 % TODO:[oc-merge] CODE_MAYBE_NECK_TRY
 do_neck => % (assume !IsDeep())
