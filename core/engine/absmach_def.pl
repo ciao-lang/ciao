@@ -559,6 +559,9 @@ unify_heap_atom(U,V) =>
       bind(cva, T1, U),
       if(T1 \== U, jump_fail)).
 
+% u_* instructions: unify variable
+% un_* instructions: read/write mode arguments unification (push on write, unify on read)
+
 u_cons(V,U) =>
     localv(tagged, T1, V),
     sw_on_var(T1,
@@ -595,8 +598,8 @@ unify_heap_structure(U,V,Cont) =>
        Cont)),
     '$unreachable'.
 
-:- rkind(unify_structure/3, []).
-unify_structure(U,V,Cont) =>
+:- rkind(u_str0/3, []).
+u_str0(U,V,Cont) =>
     localv(tagged, T1, V),
     [[ mode(M) ]],
     sw_on_var(T1,
@@ -1008,9 +1011,10 @@ unify_void(N) =>
         dispatch
     ; localv(intmach, I, cast(ftype_ctype(f_i_signed), N)),
       shiftf(f_i),
-      foreach(intmach, revrange(I,4), _I0,
-        (cachedreg('H', H),
-         constr_hva(H))),
+      foreach(intmach, revrange(I,4), _I0, (
+          cachedreg('H', H),
+          constr_hva(H))
+      ),
       goto_ins(unify_void(4))
     ).
 
@@ -1197,8 +1201,8 @@ u_blob_x0(A) =>
           bind(cva,T0,T1)))
     ).
 
-get_structure => decops([A,B]),
-    unify_structure(B,A,dispatch).
+u_str(A,B,Cont) =>
+    u_str0(B,A,Cont).
 
 % (x0 version: read-mode match has been done during indexing)
 u_str_x0(A) =>
@@ -1221,8 +1225,8 @@ u_nil(A) => u_cons(A,~get_low_atom([])).
 % (x0 version: read-mode match has been done during indexing)
 u_nil_x0 => u_cons_x0(~get_low_atom([])).
 
-get_list => decops([A]),
-    unify_list(A, dispatch).
+u_lst(A, Cont) =>
+    unify_list(A, Cont).
 
 % (x0 version: read-mode match has been done during indexing)
 u_list_x0 =>
@@ -1346,7 +1350,7 @@ retry_c(A) =>
 move(A, B) => B <- A.
 revmove(A, B) => A <- B. % TODO: swap in pl2wam? no need to have 2 versions
 
-branch => decops([Addr]),
+branch(Addr) =>
     (~p) <- ~bc_off((~p), Addr),
     jump_ins_dispatch.
 
@@ -1424,24 +1428,26 @@ un_blob(A) =>
       [[ update(mode(r)) ]]
     ).
 
-unify_structure, [[ mode(r) ]] => decops([A]),
-    localv(tagged, T1), ref_heap_next(T1),
-    unify_heap_structure(A,T1,dispatch).
-unify_structure, [[ mode(w) ]] => decops([A]),
-    cachedreg('H', H),
-    heap_push(~tagp(str,~heap_offset(H,1))),
-    heap_push(A),
-    dispatch.
+un_str(A, Cont) =>
+    ( [[ mode(r) ]] ->
+        localv(tagged, T1), ref_heap_next(T1),
+        unify_heap_structure(A,T1,Cont)
+    ; cachedreg('H', H),
+      heap_push(~tagp(str,~heap_offset(H,1))),
+      heap_push(A),
+      Cont
+    ).
 
 un_nil => un_cons(~get_low_atom([])).
 
-unify_list, [[ mode(r) ]] =>
-    localv(tagged, T1), ref_heap_next(T1),
-    unify_heap_list(T1,dispatch).
-unify_list, [[ mode(w) ]] =>
-    cachedreg('H', H),
-    heap_push(~tagp(lst,~heap_offset(H,1))),
-    dispatch.
+un_lst(Cont) =>
+    ( [[ mode(r) ]] ->
+        localv(tagged, T1), ref_heap_next(T1),
+        unify_heap_list(T1,Cont)
+    ; cachedreg('H', H),
+      heap_push(~tagp(lst,~heap_offset(H,1))),
+      Cont
+    ).
 
 unify_constant_neck_proceed => decops([A]),
     un_cons(A),
@@ -1469,7 +1475,7 @@ counted_neck => decops([A,B]),
     assign((~p) + fsize_sum([f_l,f_l])),
     goto_ins(neck).
 
-fail =>
+failins =>
     jump_fail.
 
 % TODO: PATCH_LIVEINFO requires f_g (we cannot expand to f_l,f_i in instruction format like in OC)
@@ -2609,6 +2615,11 @@ ispec(init(s(I))+Cont, [Fs,ContF], [], loop_init_step(I,Cont), nodecops_dispatch
 ispec(zputn(f_Z)+Cont, [f_Z|ContF], [], loop_zputn_until(8,Cont), nodecops_dispatch) => ispec(Cont, ContF, _, _, dispatch).
 ispec(zputn(s(I))+Cont, [Fs,ContF], [], loop_zputn_step(I,Cont), nodecops_dispatch), [[ integer(I) ]] => repf(I, f_z, Fs), ispec(Cont, ContF, _, _, dispatch).
 %
+ispec(u_str(f_x,f_f), [f_x,f_f], [X,Y], u_str(X,Y,dispatch), dispatch) => true. % (add cont in arg)
+ispec(u_lst(f_x), [f_x], [X], u_lst(X,dispatch), dispatch) => true. % (add cont in arg)
+ispec(un_str(f_f), [f_f], [X], un_str(X,dispatch), dispatch) => true. % (add cont in arg)
+ispec(un_lst, [], [], un_lst(dispatch), dispatch) => true. % (add cont in arg)
+%
 ispec(X+Y, [Xf,Yf], [Xa,Ya], (Xc,Yc), Cont) =>
     ispec(X, Xf, Xa, Xc, -), % allow merge only if no explicit dispatch
     ispec(Y, Yf, Ya, Yc, Cont).
@@ -2622,11 +2633,13 @@ ispec(execute(Xf), [Xf], [X], execute(X), dispatch) => true.
 ispec(alloc_init_cframe(Xf), [Xf], [X], alloc_init_cframe(X), dispatch) => true.
 ispec(alloc_init_fcall(Xf,Yf), [Xf,Yf], [X,Y], alloc_init_fcall(X,Y), dispatch) => true.
 %
+ispec(branch(Xf), [Xf], [X], branch(X), dispatch) => true.
 ispec(retry_instance, [], [], retry_instance, dispatch) => true.
 ispec(proceed, [], [], proceed, dispatch) => true.
 ispec(kontinue, [], [], kontinue, dispatch) => true.
 ispec(leave, [], [], leave, dispatch) => true.
 ispec(exit_toplevel, [], [], exit_toplevel, dispatch) => true.
+ispec(failins, [], [], failins, dispatch) => true.
 %
 ispec(Ins, Fs, Xs, InsCode, -) => [[ replace_args(Ins, Fs, InsCode, Xs) ]]. % (no args)
 %
@@ -2811,7 +2824,7 @@ instruction_set =>
     iset_choice,
     iset_misc1,
     iset_get2,
-    ins_entry(branch, 68, [f_i], exported(branch)+[]), % (for qread)
+    ins_entry(-, 68, branch(f_i), exported(branch)+[]), % (for qread)
     iset_blt,
     ins_entry(-, 247, u_constraint(f_x), exported(get_constraint)+[in_mode(w)]), % (for compile_term_aux)
     iset_unify,
@@ -2896,9 +2909,9 @@ iset_get1 =>
     ins_entry(-, 95, u_val(f_x,f_y), [in_mode(r)]),
     ins_entry(-, 97, u_cons(f_x,f_t), exported(get_constant)+[q0,in_mode(r)]), % (for cterm)
     ins_entry(-, 255, u_blob(f_x,f_b), exported(get_large)+[q0,in_mode(r)]), % (for cterm)
-    ins_entry(get_structure, 99, [f_x,f_f], exported(get_structure)+[q0,in_mode(r)]), % (for cterm)
+    ins_entry(-, 99, u_str(f_x,f_f), exported(get_structure)+[q0,in_mode(r)]), % (for cterm)
     ins_entry(-, 100, u_nil(f_x), exported(get_nil)+[in_mode(r)]), % (for cterm)
-    ins_entry(get_list, 101, [f_x], exported(get_list)+[in_mode(r)]), % (for cterm)
+    ins_entry(-, 101, u_lst(f_x), exported(get_list)+[in_mode(r)]), % (for cterm)
     ins_entry(get_constant_neck_proceed, 112, [f_x,f_t], [q0,in_mode(r)]),
     ins_entry(get_nil_neck_proceed, 113, [f_x], [in_mode(r)]).
 
@@ -2955,9 +2968,9 @@ iset_unify =>
     ins_entry(-, 126, un_lval(f_y), []),
     ins_entry(-, 128, un_cons(f_t), exported(unify_constant)+[q0r]), % (for cterm)
     ins_entry(-, 259, un_blob(f_b), exported(unify_large)+[q0]), % (for cterm)
-    ins_entry(unify_structure, 130, [f_f], exported(unify_structure)+[q0r]), % (for cterm)
+    ins_entry(-, 130, un_str(f_f), exported(unify_structure)+[q0r]), % (for cterm)
     ins_entry(-, 131, un_nil, exported(unify_nil)+[]), % (for cterm)
-    ins_entry(unify_list, 132, [], exported(unify_list)+[]), % (for cterm)
+    ins_entry(-, 132, un_lst, exported(unify_list)+[]), % (for cterm)
     ins_entry(unify_constant_neck_proceed, 134, [f_t], [q0r]),
     ins_entry(unify_nil_neck_proceed, 135, []).
 
@@ -3038,7 +3051,7 @@ iset_u2 =>
 iset_misc2 =>
     ins_entry(-, 249, bump_counter(f_l), [q0]),
     ins_entry(counted_neck, 251, [f_l,f_l], [q0]),
-    ins_entry(fail, 67, [], exported(fail)+[]), % (for ciao_initcode and init_some_bytecode)
+    ins_entry(-, 67, failins, exported(fail)+[]), % (for ciao_initcode and init_some_bytecode)
     ins_entry(-, 246, heapmargin_call(f_g), exported(heapmargin_call)+[q0]), % (for compile_term_aux)
     ins_entry(neck, 65, [], []),
     ins_entry(dynamic_neck_proceed, 236, [], exported(dynamic_neck_proceed)+[in_mode(w)]),
