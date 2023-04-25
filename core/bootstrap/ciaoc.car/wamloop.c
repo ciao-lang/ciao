@@ -617,7 +617,7 @@ break;
       }
 
 vr38+=sizeof(sw_on_key_node_t);
-vr37 = vr37+vr38&Htab->mask;
+vr37 = (vr37+vr38)&Htab->mask;
     }
  while (TRUE);
 alts = HtabNode->value.try_chain;
@@ -1443,6 +1443,8 @@ SetChoice(B);
 TRACE_CHPT_CUT(w->choice);
 ConcChptCleanUp(TopConcChpt,w->choice);
 SetE(w->frame);
+P+=Fs(f_y);
+goto r_dispatch;
 P+=Fs(f_y);
 goto r_dispatch;
     }
@@ -2659,7 +2661,7 @@ if (HeapCharDifference(w->heap_top,Heap_End)<(intmach_t)BcP(f_l,0)) {
 explicit_heap_overflow(w,(intmach_t)BcP(f_l,0)*2,(FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_l)));
     }
 
-P+=Fs(f_g);
+P+=Fs(f_l)+Fs(f_i);
 goto r_dispatch;
 case 65:
 {
@@ -2961,11 +2963,11 @@ E->frame = w->frame;
 w->frame = E;
 w->next_insn = BCoff(P,Fs(f_E)+Fs(f_e));
 w->local_top = StackCharOffset(E,BcP(f_e,0+Fs(f_E)));
-P = BcP(f_p,0);
 if (OffStacktop(E,Stack_Warn)) {
 SetEvent();
     }
 
+P = BcP(f_p,0);
 goto enter_predicate;
 case 40:
 P+=Fs(f_Q);
@@ -3400,6 +3402,7 @@ case 59:
 {
 w_op59:
 {
+{
 tagged_t vr186 = BcP(f_z,0);
 P+=Fs(f_z);
 if (vr186&1) {
@@ -3429,6 +3432,7 @@ X(7) = vr187;
 X(7) = Yb(vr186);
     }
 
+    }
 goto w_op57;
     }
     }
@@ -3438,6 +3442,7 @@ goto w_op57;
 case 57:
 {
 w_op57:
+{
 {
 tagged_t vr189 = BcP(f_z,0);
 P+=Fs(f_z);
@@ -3468,6 +3473,7 @@ X(6) = vr190;
 X(6) = Yb(vr189);
     }
 
+    }
 goto w_op55;
     }
     }
@@ -3477,6 +3483,7 @@ goto w_op55;
 case 55:
 {
 w_op55:
+{
 {
 tagged_t vr192 = BcP(f_z,0);
 P+=Fs(f_z);
@@ -3507,6 +3514,7 @@ X(5) = vr193;
 X(5) = Yb(vr192);
     }
 
+    }
 goto w_op53;
     }
     }
@@ -3516,6 +3524,7 @@ goto w_op53;
 case 53:
 {
 w_op53:
+{
 {
 tagged_t vr195 = BcP(f_z,0);
 P+=Fs(f_z);
@@ -3546,6 +3555,7 @@ X(4) = vr196;
 X(4) = Yb(vr195);
     }
 
+    }
 goto w_op51;
     }
     }
@@ -3555,6 +3565,7 @@ goto w_op51;
 case 51:
 {
 w_op51:
+{
 {
 tagged_t vr198 = BcP(f_z,0);
 P+=Fs(f_z);
@@ -3585,6 +3596,7 @@ X(3) = vr199;
 X(3) = Yb(vr198);
     }
 
+    }
 goto w_op49;
     }
     }
@@ -3594,6 +3606,7 @@ goto w_op49;
 case 49:
 {
 w_op49:
+{
 {
 tagged_t vr201 = BcP(f_z,0);
 P+=Fs(f_z);
@@ -3624,6 +3637,7 @@ X(2) = vr202;
 X(2) = Yb(vr201);
     }
 
+    }
 goto w_op47;
     }
     }
@@ -3633,6 +3647,7 @@ goto w_op47;
 case 47:
 {
 w_op47:
+{
 {
 tagged_t vr204 = BcP(f_z,0);
 P+=Fs(f_z);
@@ -3663,6 +3678,7 @@ X(1) = vr205;
 X(1) = Yb(vr204);
     }
 
+    }
 goto w_op45;
     }
     }
@@ -3672,6 +3688,7 @@ goto w_op45;
 case 45:
 {
 w_op45:
+{
 {
 tagged_t vr207 = BcP(f_z,0);
 P+=Fs(f_z);
@@ -3702,6 +3719,7 @@ X(0) = vr208;
 X(0) = Yb(vr207);
     }
 
+    }
 goto w_op43;
     }
     }
@@ -5713,7 +5731,7 @@ explicit_heap_overflow(w,(intmach_t)BcP(f_l,0)*2,(FTYPE_ctype(f_i_signed))BcP(f_
 H = w->heap_top;
     }
 
-P+=Fs(f_g);
+P+=Fs(f_l)+Fs(f_i);
 goto w_dispatch;
 case 65:
 {
@@ -5813,7 +5831,7 @@ w->local_top = 0;
 
 SetE(w->frame);
 P = w->next_insn;
-PROFILE__HOOK_NECK_PROCEED;
+PROFILE__HOOK_PROCEED;
 goto w_dispatch;
     }
     }
