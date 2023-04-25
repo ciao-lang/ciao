@@ -49,11 +49,9 @@ extern CVOID__PROTO((*profile__hook_neck_proceed));
 #if defined(PROFILE__TRACER)
 #define PROFILE__HOOK_FAIL          CVOID__CALL(profile__hook_fail)
 #define PROFILE__HOOK_PROCEED       CVOID__CALL(profile__hook_proceed)
-#define PROFILE__HOOK_NECK_PROCEED  CVOID__CALL(profile__hook_neck_proceed)
 #else
 #define PROFILE__HOOK_FAIL
 #define PROFILE__HOOK_PROCEED
-#define PROFILE__HOOK_NECK_PROCEED
 #endif
 
 #else
@@ -63,7 +61,6 @@ extern CVOID__PROTO((*profile__hook_neck_proceed));
 #define PROFILE__HOOK_CALL(FUNCTOR)
 #define PROFILE__HOOK_FAIL
 #define PROFILE__HOOK_PROCEED
-#define PROFILE__HOOK_NECK_PROCEED
 
 #endif /* PROFILE */
 

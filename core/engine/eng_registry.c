@@ -118,7 +118,6 @@ CVOID__PROTO((*profile__hook_cut)) = profile__hook_nop;
 CVOID__PROTO((*profile__hook_call), definition_t *f) = profile__hook_call_nop;
 #if defined(PROFILE__TRACER)
 CVOID__PROTO((*profile__hook_proceed)) = profile__hook_nop;
-CVOID__PROTO((*profile__hook_neck_proceed)) = profile__hook_nop;
 #endif
 #endif
 

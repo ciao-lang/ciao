@@ -758,7 +758,7 @@ code_neck_proceed =>
       (~w)^.local_top <- 0),
     set_e((~w)^.frame),
     (~p) <- (~w)^.next_insn,
-    profile_hook(neck_proceed),
+    profile_hook(proceed),
     jump_ins_dispatch.
 
 % TODO:[oc-merge] CODE_MAYBE_NECK_TRY
@@ -1597,7 +1597,6 @@ trace_(retry_instance_debug_3) =>
 :- rkind(profile_hook/1, []).
 profile_hook(cut) => call0('PROFILE__HOOK_CUT').
 profile_hook(proceed) => call0('PROFILE__HOOK_PROCEED').
-profile_hook(neck_proceed) => call0('PROFILE__HOOK_NECK_PROCEED').
 profile_hook(fail) => call0('PROFILE__HOOK_FAIL').
 profile_hook(redo) => call0('PROFILE__HOOK_REDO').
 
