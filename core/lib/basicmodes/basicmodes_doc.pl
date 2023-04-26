@@ -4,16 +4,17 @@
 :- doc(nodoc,metaprops).
 :- doc(hide,callme/2). % TODO: needed since nodoc above does not hide this predicate
 
-:- doc(title,"Classical Prolog modes").
+:- doc(title,"Some basic Prolog modes").
  
 :- doc(author,"Manuel Hermenegildo").
 
 :- doc(module,"This file defines a number of very simple
    ``@concept{modes}'' which are frequently useful in programs. These
-   correspond to the modes used in classical Prolog texts with some
+   correspond to some of the modes used in classical Prolog texts with
    simple addtions. Note that some of these modes use the same symbol
-   as one of the ISO-modes (see @ref{ISO-Prolog modes}) but with subtly
-   different meaning.").
+   as one of the @lib{modes} and @lib{isomodes} packages (see
+   @ref{Classical Prolog modes} and @ref{ISO-Prolog modes}) but have
+   in some cases subtly different meaning.").
 
 :- use_package(library(basicmodes)).
 
