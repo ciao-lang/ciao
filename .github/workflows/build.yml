@@ -82,7 +82,7 @@ jobs:
           # ARCHOPTS="${{ matrix.sys.archopts }} --core:custom_cc=$CC"
           ./ciao-boot.sh boot-build $ARCHOPTS
           if [ $DEVENV == yes ]; then ./ciao-boot.sh fetch devenv; fi
-          if [ $WASM == yes ]; then ./ciao-boot.sh fetch ciaowasm ciao_playground exfilter website; fi
+          if [ $WASM == yes ]; then ./ciao-boot.sh fetch ciaowasm ciao_playground website; fi
           ./ciao-boot.sh configure --instype=local $ARCHOPTS $EXTRAOPTS
           ./ciao-boot.sh build
           ./ciao-boot.sh install
