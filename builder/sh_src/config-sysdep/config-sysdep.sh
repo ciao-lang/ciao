@@ -322,7 +322,7 @@ case "$CIAOOS$CIAOARCH" in
     # LIBS=-ldl
     DARWIN*)      LIBS0= ;;
     Solaris*)     LIBS0="-ldl -lm -lnsl" ;;
-    EMSCRIPTENwasm32)  LIBS0="" ;;
+    EMSCRIPTENwasm32)  LIBS0="-lnodefs.js" ;; # add NODEFS support
     *) LIBS0="-ldl -lm" ;;
 esac
 
