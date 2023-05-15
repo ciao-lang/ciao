@@ -484,10 +484,13 @@ case "$CIAOOS$CIAOARCH" in
 -s FORCE_FILESYSTEM=1 \
 -s TOTAL_MEMORY=20971520 \
 -s ALLOW_MEMORY_GROWTH=1 \
+-s EXPORTED_FUNCTIONS='[\
+  \"_free\"]' \
 -s EXPORTED_RUNTIME_METHODS='[\
   \"FS_createPath\",\
   \"addRunDependency\",\
   \"removeRunDependency\",\
+  \"stringToNewUTF8\",\
   \"ccall\",\
   \"cwrap\"]'"
         ;;
