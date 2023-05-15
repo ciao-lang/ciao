@@ -270,14 +270,25 @@ void add_to_loaded_objects(char *module_name,
 }
 #else 
 CBOOL__PROTO(prolog_dynlink) {
-  StreamPrintf(Error_Stream_Ptr, "{ERROR: dynlink: emulator not created with foreign files interface}\n");
+  DEREF(X(0), X(0));
+  if (!TaggedIsATM(X(0))) {
+    USAGE_FAULT("dynlink/2: first argument must be an atom");
+  }
+#if defined(EMSCRIPTEN) /* TODO: known limitation, do not complain until we fix it */
+#else
+  char *lib_name = (char *)GetString(X(0));
+  StreamPrintf(Error_Stream_Ptr, "{ERROR: dynlink: emulator not created with foreign files interface, cannot load '%s'}\n", lib_name);
   StreamPrintf(Error_Stream_Ptr, "{Please recompile with foreign files option turned on}\n");
+#endif
   return FALSE;
 }
 
 CBOOL__PROTO(prolog_dynunlink) {
+#if defined(EMSCRIPTEN) /* TODO: known limitation, do not complain until we fix it */
+#else
   StreamPrintf(Error_Stream_Ptr, "{ERROR: dynunlink: emulator not created with foreign files interface}\n");
   StreamPrintf(Error_Stream_Ptr, "{Please recompile with foreign files option turned on}\n");
+#endif
   return FALSE;
 }
 #endif
