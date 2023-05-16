@@ -653,7 +653,7 @@ source-level debug mode) using the @pred{call_in_module/2} predicate.
 
 Note that this does not affect analysis or optimization issues, since it
 only works on modules which are loaded in debug mode or source-level debug
-mode, i.e. unoptimized.
+mode, i.e., unoptimized.
 
 @section{Acknowledgements (debugger)}
 
