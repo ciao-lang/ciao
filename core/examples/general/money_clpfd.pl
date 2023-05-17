@@ -1,7 +1,8 @@
 :- module(money_clpfd, [money/1], [clpfd]).
 
 % SEND + MORE = MONEY using CLP(fd)
- 
+% ?- money(Dom).
+
 money(Dom) :-
     Dom = [S,E,N,D,M,O,R,Y],
     domain(Dom, 0, 9),

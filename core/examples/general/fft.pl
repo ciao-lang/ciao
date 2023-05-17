@@ -1,6 +1,8 @@
 :- module(fft, [test_fft/1], []).
 
 % FFT (K=14)
+% ?- test_fft(Result).
+
 test_fft(Result) :-
    K = 14, % K=10 for smaller test
    N is 1<<K,

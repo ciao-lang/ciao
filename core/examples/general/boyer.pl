@@ -4,8 +4,11 @@
 % Author:  E. Tick (after Lisp by R. Boyer)
 % Date:    November 12 1985
 
+% ?- test_boyer(E).
+
 test_boyer(R) :- wff(X), ( tautology(X) -> R = proved(X) ; R = not_proved(X) ).
 
+% Example: 
 wff(implies(and(implies(X,Y),
     and(implies(Y,Z),
         and(implies(Z,U),

@@ -1,7 +1,8 @@
 :- module(bignums, [test_bignums/0], []).
 
-% Computes a 13^16000, which requires bignums, with a naive algorithm
-% and a divide-and-conquer.
+% Computes 13^16000, which requires bignums, with a naive algorithm
+% and a with a divide-and-conquer one.
+% ?- test_bignums.
 
 :- use_module(library(streams)).
 :- use_module(library(write)).
@@ -13,7 +14,7 @@ test_bignums :-
     write('^'), write(Exp), flush_output,
     exponential_naive(N, Exp,R),
     write('  Done'), nl,
-    write('Divide-and-conquer calculating '), write(N),
+    write('Calculating with divide-and-conquer '), write(N),
     write('^'), write(Exp), flush_output,
     exponential_div(N, Exp, Res),
     write('  Done'), nl,

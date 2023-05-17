@@ -3,15 +3,17 @@
 % Cryptomultiplication
 % (based on code originally written by Peter Van Roy)
 % Find the unique answer to:
-% OEE
-% EE
-% ---
-% EOEE
-% EOE
-% ----
-% OOEE
+%   OEE     Sol:    ABC     348
+%  x EE            x DE    x 28
+%  ----            ----    ----
+%  EOEE            FGHI    2784
+%  EOE             JKL     696
+%  ----            ----    ----
+%  OOEE            MNOP    9744
 %
 % where E=even, O=odd.
+
+% ?- crypt([A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P]).
 
 crypt([A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P]) :-
     odd(A), even(B), even(C), even(E),

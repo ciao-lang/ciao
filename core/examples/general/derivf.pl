@@ -1,7 +1,7 @@
 :- module(derivf, [df/3], [fsyntax]).
 
 % Compute derivatives symbolically (using fsyntax)
-% (reduced version, no simplification) 
+% (Reduced version, no simplification) 
 
 % Examples:
 %

@@ -1,6 +1,11 @@
 :- module(nqueens, [queens/2], [fsyntax]).
 
-% N-queens puzzle
+% N-queens puzzle (plai Prolog)
+
+% Examples:
+% ?- queens(10, R).
+% ?- queens(25, R).
+
 queens(N, Qs):-
     Ns = ~queens_list(N),
     queens_2(Ns, [], Qs).

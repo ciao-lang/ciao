@@ -1,5 +1,6 @@
 :- module(knights, [knights/2], []).
 
+% Solving the knights problem. 
 % Example: ?- knights(5, P).
 
 knights(N, P) :-

@@ -1,5 +1,7 @@
 :- module(poly, [], []).
 
+% ?- test_poly_exp(Out).
+
 :- export(test_poly_exp/1).
 test_poly_exp(Out) :-
     test_poly(Data),

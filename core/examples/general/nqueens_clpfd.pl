@@ -1,9 +1,9 @@
 :- module(nqueens_clpfd, [queens_clpfd/2], [clpfd]).
 
-% Example: ?- queens_clpfd(50, R)
-
 % N-queens puzzle using CLP(fd).
 % It solves much larger instances than queens.pl
+
+% Example: ?- queens_clpfd(50, R).
 
 :- use_module(library(lists)).
 

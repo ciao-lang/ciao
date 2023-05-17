@@ -1,6 +1,7 @@
 :- module(primes, [primes/2], []).
 
 % Prime numbers up to Limit
+% Example: ?- primes(100, Ps).
 
 primes(Limit, Ps) :-
     integers(2, Limit, Is),

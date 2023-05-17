@@ -1,6 +1,7 @@
 :- module(population_query, [population_query/1], [fsyntax]).
 
 % Population Query example
+% ?- population_query(quad(C1, D1, C2, D2)).
 
 population_query(quad(C1, D1, C2, D2)) :-
     D1 = ~density(C1),

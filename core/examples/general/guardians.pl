@@ -1,5 +1,8 @@
 :- module(guardians, [test_guardians/1], []).
 
+% Solving the guardians and locks problem.
+% ?- test_guardians(Unlocked).
+
 test_guardians(Unlocked) :-
 %     write('Solving the guardians and locks problem...'), nl,
     guardians(1000,200,Unlocked).

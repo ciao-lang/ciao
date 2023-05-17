@@ -1,5 +1,9 @@
 :- module(jugs, [solve_jugs/1], []).
 
+% Solving the jugs problem.
+% ?- solve_jugs(Solution).
+
+
 %% solve_jugs(?ListOfSteps): ListOfSteps is the solution to the jugs
 %% problem.
 

@@ -2,6 +2,8 @@
 
 % Original author: MCL (mcarro_at_fi_dot_upm_dot_es)
 
+% ?- sudoku(Sol).
+
 :- export(sudoku/1).
 sudoku(Sol) :-
     do([], Sol).

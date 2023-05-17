@@ -1,5 +1,6 @@
 :- module(tak, [tak/4], []).
 
+% Takeuchi function.
 % Example: ?- tak(18, 12, 6, Out).
 
 tak(X,Y,Z,A) :-
