@@ -183,12 +183,12 @@ shell_body :-
     reset_debugger(_), % TODO: needed?
     intercept(error_protect(top_shell_env, fail), % TODO: captures errors in after_query_hook, goal translations, etc. document?
         control_c,
-        do_interrupt_command(0'\n)).
+        do_interrupt_command).
 :- else.
 shell_body :-
     intercept(error_protect(top_shell_env, fail), % TODO: captures errors in after_query_hook, goal translations, etc. document?
         control_c,
-        do_interrupt_command(0'\n)).
+        do_interrupt_command).
 :- endif.
 
 top_shell_env :-
@@ -292,18 +292,21 @@ validate_solution(Dict, Solution) :-
     set_output(CurrOut),
     top_display(' ? '), top_flush,
     %
-    top_get(C), ( C = 0'\n -> true ; top_skip(0'\n) ), % ask the user
-    ( C = 0'y -> true % y(es)
-    ; C = 0'Y -> true % Y(es)
-    ; C = 0'\n -> true % end of line
-    ; C = 0', ->
-        % add another question
-        inc_query_level,
-        shell_env(Dict),
-        dec_query_level,
-        % return from question, ask again
-        validate_solution(Dict, Solution)
-    ; fail % another solution
+    top_get_line(Line), % ask the user
+    ( Line = end_of_file -> true % continue
+    ; Line = [] -> true % continue
+    ; Line = [C|_],
+      ( C = 0'y -> true % y(es)
+      ; C = 0'Y -> true % Y(es)
+      ; C = 0', ->
+          % add another question
+          inc_query_level,
+          shell_env(Dict),
+          dec_query_level,
+          % return from question, ask again
+          validate_solution(Dict, Solution)
+      ; fail % another solution
+      )
     ).
 
 % ---------------------------------------------------------------------------

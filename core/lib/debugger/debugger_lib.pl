@@ -875,38 +875,29 @@ debugging_options :-
 get_command(Command) :-
     top_display(' ? '),
     top_flush,
-    top_get(C1),
-    get_rest_command(C1, Command).
+    top_get_line(Line),
+    parse_cmd(Line, Command).
 
-get_rest_command(0'\n, 0'\n) :- !.
-get_rest_command(C1, Command) :-
-    top_get(C2),
-    get_arg(C2, C1, Command).
+parse_cmd(end_of_file, Command) :- !, Command = 0'\n.
+parse_cmd([], Command) :- !, Command = 0'\n.
+parse_cmd([C|Cs], Command) :-
+    parse_cmd_(Cs, C, Command).
 
-get_arg(0'\n, C, C) :- !.
-get_arg(0' , C1, C) :- !,
-    top_get(C2),
-    get_arg(C2, C1, C).
-get_arg(C2, C1, [C1, Arg]) :-
-    C2 >= 0'0, C2 =< 0'9, !,
-    trd_digits(C2, 0, Arg).
-get_arg(C2, C1, [C1, Arg]) :-
-    trd_string(C2, Arg, "").
+parse_cmd_([], C, C) :- !.
+parse_cmd_([0' |Cs], C1, C) :- !, % skip blank
+    parse_cmd_(Cs, C1, C).
+parse_cmd_(Cs, C1, [C1, Arg]) :-
+    Cs = [C2|_], C2 >= 0'0, C2 =< 0'9, !, % digit
+    parse_digits(Cs, 0, Arg).
+parse_cmd_(Cs, C1, [C1, Cs]).
 
-trd_digits(Ch, SoFar, I) :-
+parse_digits([], I, I) :- !.
+parse_digits([Ch|Cs], SoFar, I) :-
     Ch >= 0'0, Ch =< 0'9, !,
     Next is SoFar*10 + Ch - 0'0,
-    top_get(Ch1),
-    trd_digits(Ch1, Next, I).
-trd_digits(0'\n, I, I) :- !.
-trd_digits(_, I, J) :-
-    top_get(Ch),
-    trd_digits(Ch, I, J).
-
-trd_string(0'\n, I,       I) :- !.
-trd_string(Ch,   [Ch|I0], I) :-
-    top_get(Ch1),
-    trd_string(Ch1, I0, I).
+    parse_digits(Cs, Next, I).
+parse_digits([_|Cs], I, J) :- % ignore nondigit
+    parse_digits(Cs, I, J).
 
 % ---------------------------------------------------------------------------
 %! ## Show ancestors command (g)

@@ -151,32 +151,36 @@ extract_info(Goal, Goal, nil, nil, nil, nil, d([], []), nil).
 :- use_module(library(format)).
 :- use_module(library(toplevel/toplevel_io)).
 
-:- doc(hide, do_interrupt_command/1).
-:- export(do_interrupt_command/1).
-do_interrupt_command(0'@) :- !, % @(command)
-    top_skipeol, do_once_command('| ?- ', d([], [], [])),
-    do_interrupt_command(0'\n).
-do_interrupt_command(0'a) :- !, % a(bort)
-    top_skipeol, abort.
-% do_interrupt_command(0'b) :- !, % b(reak)
-%       top_skipeol, break.
-do_interrupt_command(0'c) :- !, % c(ontinue)
-    top_skipeol.
-do_interrupt_command(0'd) :- !, % d(ebug)
-    top_skipeol, debug.
-do_interrupt_command(0'e) :- !, % e(xit)
-    top_skipeol, halt.
-do_interrupt_command(0't) :- !, % t(race)
-    top_skipeol, trace.
-do_interrupt_command(0'\n) :- !, % cr
+:- doc(hide, do_interrupt_command/0).
+:- export(do_interrupt_command/0).
+do_interrupt_command :-
     format(user, '~nCiao interruption (h for help)? ', []),
     top_flush,
-    top_get(C),
-    do_interrupt_command(C).
-do_interrupt_command(_) :- % h(elp) or other
-    top_skipeol,
+    top_get_line(Line),
+    ( Line = end_of_file -> true % continue
+    ; Line = [] -> do_interrupt_command
+    ; Line = [C|_],
+      do_interrupt_command_(C)
+    ).
+
+do_interrupt_command_(0'@) :- !, % @(command)
+    do_once_command('| ?- ', d([], [], [])),
+    do_interrupt_command.
+do_interrupt_command_(0'a) :- !, % a(bort)
+    abort.
+% do_interrupt_command_(0'b) :- !, % b(reak)
+%       break.
+do_interrupt_command_(0'c) :- !, % c(ontinue)
+    true.
+do_interrupt_command_(0'd) :- !, % d(ebug)
+    debug.
+do_interrupt_command_(0'e) :- !, % e(xit)
+    halt.
+do_interrupt_command_(0't) :- !, % t(race)
+    trace.
+do_interrupt_command_(_) :- % h(elp) or other
     interrupt_options,
-    do_interrupt_command(0'\n).
+    do_interrupt_command.
 
 interrupt_options :-
     top_nl,
