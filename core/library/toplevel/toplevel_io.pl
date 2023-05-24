@@ -16,8 +16,11 @@ top_display(X) :- display(user, X).
 :- export(top_flush/0).
 top_flush :- flush_output(user).
 
+:- multifile top_get_line_hook/1.
+
 :- export(top_get_line/1).
 % (see get_line/2 documentation)
+top_get_line(Line) :- top_get_line_hook(Line0), !, Line = Line0. % (use hook)
 top_get_line(Line) :- get_line(user, Line).
 
 :- export(top_nl/0).
