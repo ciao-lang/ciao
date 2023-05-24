@@ -541,6 +541,7 @@ no_debug_mc('hiord_rt:').
 no_debug_mc('debugger_support:'). % TODO: for $stop_trace
 no_debug_mc('debugger:').
 :- endif.
+no_debug_mc('foreign_js_rt:'). % (ciaowasm)
 no_debug_mc('rtchecks_rt:').
 no_debug_mc('native_props_rtc:').
 
