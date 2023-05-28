@@ -87,6 +87,12 @@ list_to_str_([X|Xs]) --> val_to_str(X), ",", list_to_str_(Xs).
 
 stringq([]) --> [].
 stringq([C|Cs]) --> { needs_quote(C, C2) }, !, "\\", [C2], stringq(Cs).
+% (quote other C<32)
+stringq([C|Cs]) --> { C < 32 }, !,
+    { H is (C >> 4) + 0'0 },
+    { L is (C /\ 15) + 0'0 },
+    "\\u00", [H, L],
+    stringq(Cs).
 stringq([C|Cs]) --> [C], stringq(Cs).
 
 :- export(string_to_json/2).
