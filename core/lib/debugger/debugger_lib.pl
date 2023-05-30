@@ -1017,7 +1017,7 @@ do_write_goal(0'v, X, _, _, _, _, _, _, _, _, Dict, _) :- !,
 do_write_goal([0'v, SName], _, _, _, _, _, _, _, _, _, Dict, _) :- !,
     write_goal_v_name(SName, Dict).
 do_write_goal(T, X, Xs, B, D, Pport, Pred, Src, Ln0, Ln1, Dict, Number) :-
-    print_srcdbg_info(Pred, Src, Ln0, Ln1, Number),
+    print_srcdbg_info(Pport, Pred, Src, Ln0, Ln1, Number),
     spy_info(Xs, X, Mark0, S, []),
     ( Mark0 == '   ' -> break_info(Pred, Src, Ln0, Ln1, Number, Mark)
     ; Mark=Mark0
@@ -1139,8 +1139,10 @@ print_attribute(Op, WriteOpts, A) :-
     write_op(Op, A, WriteOpts),
     display(']').
 
-print_srcdbg_info(_, _, nil, nil, nil) :- !.
-print_srcdbg_info(Pred, Src, Ln0, Ln1, Number) :-
+:- multifile print_srcdbg_info_hook/6.
+
+print_srcdbg_info(_, _, _, nil, nil, nil) :- !.
+print_srcdbg_info(Pport, Pred, Src, Ln0, Ln1, Number) :-
     ( using_windows -> % running in a Windows non-cygwin shell
         % Emacs understand slashes instead of backslashes, even on
         % Windows, and this saves problems with escaping
@@ -1148,9 +1150,12 @@ print_srcdbg_info(Pred, Src, Ln0, Ln1, Number) :-
         cyg2win_a(Src, ActualSrc, noswap)
     ; Src = ActualSrc
     ),
-    display_list([
+    ( print_srcdbg_info_hook(Pport, Pred, Src, Ln0, Ln1, Number) ->
+        true
+    ; display_list([
         '         In ', ActualSrc, ' (', Ln0, -, Ln1, ') ',
-        Pred, -, Number, '\n']).
+        Pred, -, Number, '\n'])
+    ).
 
 % ---------------------------------------------------------------------------
 %! ## Auxiliary for printing bindings (dicts, cycles, and attributed variables)
