@@ -3,10 +3,12 @@
       native_prop_map/3, native_prop_term/1,
       native_builtin/2, native_property/2,
       wam_builtin/2],
-    [assertions, regtypes, hiord, nortchecks, nativeprops, ciaopp(ciaopp_options)]).
+    [assertions, regtypes, hiord, nortchecks, nativeprops]).
 
 :- use_module(library(lists), [member/2, append/3]).
 :- use_module(engine(runtime_control), [module_split/3]).
+
+:- include(library(compiler/p_unit/p_unit_hooks)).
 
 %:- use_module(engine(internals),[term_to_meta/2]).
 term_to_meta(Term,Term).
@@ -128,10 +130,9 @@ native_prop_map(not_ground(Vars),not_ground,Vars):-
 % Should correspond with native/1 above:
 :- doc(hide,native_property/2).
 
-:- if(defined(has_ciaopp_cost)).
-:- use_module(library(resdefs/rescostfunc), [compact_cf/3]).
-:- endif.
-
+% TODO: bad indexing (-,+)
+native_property(NProp, Prop) :-
+    hook_native_prop(NProp, Prop), !.
 native_property('native_props:covered'(V,L),covered(V,L)).
 native_property('term_typing:var'(L),free(L)).
 native_property('term_typing:ground'(L),ground(L)).
@@ -167,10 +168,6 @@ native_property('native_props:steps'(G,C),steps(G,C)).
 native_property('native_props:steps_lb'(G,C),steps_lb(G,C)).
 native_property('native_props:steps_ub'(G,C),steps_ub(G,C)).
 native_property('native_props:steps_o'(G,C),steps_o(G,C)).
-:- if(defined(has_ciaopp_cost)).
-native_property('resources_props:cost'(G,Rel,Ap,Type,R,_,IF,CFN),
-    cost(G,Rel,Ap,Type,R,CF)) :- compact_cf(CFN,IF,CF).
-:- endif.
 native_property('native_props:terminates'(G),terminates(G)).
 native_property('native_props:size'(G,C),size(G,C)).
 native_property('native_props:size_lb'(G,C),size_lb(G,C)).
@@ -185,30 +182,26 @@ native_property('native_props:costb'(G,R,L,U),costb(G,R,L,U)).
 
 :- doc(hide,native_builtin/2).
 
+% native_builtin(+,-)
+native_builtin(X,Y) :- wam_builtin(X,Y0), !, Y=Y0.
+%
 native_builtin('basiccontrol:fail',fail). % used in spec.pl
 native_builtin('basiccontrol:$metachoice'(V),metachoice(V)). % in remotecut.pl
 native_builtin('basiccontrol:$metacut'(V),metacut(V)). % in remotecut.pl
 
-% ACC
-native_builtin('andprolog_rt:&'(A,B),
-           ampersand(A,B)).              % in tr_parallel.pl
-native_builtin('andprolog_rt:&!'(A,B),
-           ampersand_det(A,B)).          % in tr_parallel.pl
-native_builtin('andprolog_rt:&>'(A,B),
-           amp_publish_goal(A,B)).       % in tr_parallel.pl
-native_builtin('andprolog_rt:&!>'(A,B),
-           amp_publish_goal_det(A,B)).   % in tr_parallel.pl
-native_builtin('andprolog_rt:<&'(A),
-           amp_get_result(A)).           % in tr_parallel.pl
-native_builtin('andprolog_rt:<&!'(A),
-           amp_get_result_det(A)).       % in tr_parallel.pl
-
+% ACC % in tr_parallel.pl
+native_builtin('andprolog_rt:&'(A,B), ampersand(A,B)).
+native_builtin('andprolog_rt:&!'(A,B), ampersand_det(A,B)).
+native_builtin('andprolog_rt:&>'(A,B), amp_publish_goal(A,B)).
+native_builtin('andprolog_rt:&!>'(A,B), amp_publish_goal_det(A,B)).
+native_builtin('andprolog_rt:<&'(A), amp_get_result(A)).
+native_builtin('andprolog_rt:<&!'(A), amp_get_result_det(A)).
+%
 native_builtin('term_basic:\\='(X,Y),\=(X,Y)).
 native_builtin('io_basic:display'(X),display(X)).
 native_builtin('write:write'(X),write(X)).
 native_builtin('io_basic:nl',nl).
-native_builtin(X,Y) :- wam_builtin(X,Y).
-native_builtin(_,_):- fail.
+%native_builtin(_,_):- fail.
 % % have to add module qualifications:
 % native_builtin(<(X,Y),<(X,Y)).
 % native_builtin(=(X,Y),=(X,Y)).
@@ -252,6 +245,7 @@ native_builtin(_,_):- fail.
 % as impl_defined. They are treated specially in the compiler
 % and they cannot be marked as impl_defined at this point.
 
+% wam_builtin(+,-)
 wam_builtin('arithmetic:is'(X,Y),is(X,Y)).
 wam_builtin('term_basic:='(X,Y),=(X,Y)).
 wam_builtin('arithmetic:<'(X,Y),<(X,Y)).

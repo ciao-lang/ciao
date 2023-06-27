@@ -3,8 +3,7 @@
     basicmodes,
     regtypes,
     datafacts,
-    hiord,
-    ciaopp(ciaopp_options)
+    hiord
 ]).
 
 %% :- doc(doinclude,assertion_read/9).

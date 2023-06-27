@@ -6,6 +6,9 @@
 :- multifile hook_compact_global_prop/2.
 :- multifile hook_compact_calls_prop/2.
 
+% Hooks for native_prop
+:- multifile hook_native_prop/2.
+
 % Hooks for p_printer
 :- multifile hook_pp_info_clause/3.
 :- multifile hook_pp_info_lit/4.
