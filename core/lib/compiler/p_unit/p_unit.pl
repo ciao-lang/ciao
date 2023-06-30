@@ -147,7 +147,7 @@ preprocessing_unit_list(Fs,Ms,E):-
     % TODO: fixme (see comment below)
     % init related files db for the closure
     %jcf%-Following comment is temporary (it is called from module/1 already)
-    %jcf%       cleanup_code_and_related_assertions,
+    %jcf%       cleanup_code_and_related_assertions_pasr,
 %       cleanup_punit,
     set_ciaopp_expansion(true),
     % note: this includes splitting pred assertions into calls and success

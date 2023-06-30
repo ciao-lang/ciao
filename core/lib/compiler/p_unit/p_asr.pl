@@ -185,11 +185,12 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/itf_db},
 asr_version('5.0').
 
 %% ---------------------------------------------------------------------------
-:- export(cleanup_code_and_related_assertions/0).
-:- pred cleanup_code_and_related_assertions/0
+% TODO: renamed to avoid conflict with assrt_lib:cleanup_code_and_related_assertions/0
+:- export(cleanup_code_and_related_assertions_pasr/0).
+:- pred cleanup_code_and_related_assertions_pasr/0
 # "Cleans up data asserted by assertion/code reader/normalizer.".
 
-cleanup_code_and_related_assertions :-
+cleanup_code_and_related_assertions_pasr :-
     cleanup_c_itf_data,
     cleanup_clause_db,
     cleanup_assrt_db.
