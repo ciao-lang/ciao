@@ -79,7 +79,7 @@
 
 :- reexport(library(compiler/p_unit/p_unit_basic), [type_of_goal/2]).
 
-:- use_module(library(compiler/p_unit/p_asr), [cleanup_pasr/0, preprocessing_unit_opts/4]).
+:- use_module(library(compiler/p_unit/p_asr), [cleanup_pasr/0, cleanup_code_and_related_assertions_pasr/0, preprocessing_unit_opts/4]).
 :- use_module(library(compiler/p_unit/tr_syntax), [cleanup_tr_syntax/0, traverse_clauses/5]).
 
 :- include(library(compiler/p_unit/p_unit_hooks)).
@@ -174,6 +174,16 @@ preprocessing_unit_list(_Fs,_Ms,_E):-
 
 :- pred cleanup_punit # "Clean up all facts that p_unit asserts.".
 cleanup_punit :-
+    cleanup_punit_local, %local
+    cleanup_itf_db, %local
+    cleanup_pasr, %local
+    cleanup_code_and_related_assertions_pasr, %local
+    %
+    cleanup_commented_assrt, %local
+    cleanup_comment_db, %local (+codegen_pcpe)
+    pr_key_clean. %local (+pr_order_set)
+
+cleanup_punit_local :-
     cleanup_program_keys,
     cleanup_tr_syntax,
     %
