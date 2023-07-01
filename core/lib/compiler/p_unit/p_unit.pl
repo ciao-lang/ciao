@@ -205,7 +205,7 @@ cleanup_punit_local :-
 init_types :-
     enum_regtype(Head,Prop),
     get_module_from_sg(Head,Module),%% JCF
-    \+ preloaded_module(Module,_),  %% JCF: preloaded modules are processed already.
+    \+ mod_in_libcache(Module,_),  %% JCF: preloaded modules are processed already.
     % definable (i.e., not basic --top, num, etc.-- not [] nor [_|_])
     hook_legal_regtype(Head),
     ( Head==Prop ->

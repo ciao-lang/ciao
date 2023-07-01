@@ -159,7 +159,7 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/itf_db},
 :- use_module(library(compiler/p_unit/itf_db), [
     current_itf/3,
     assert_itf/5,
-    preloaded_module/2,
+    mod_in_libcache/2,
     dump_lib_itf/1,
     load_lib_itf/1]).
 :- use_module(library(compiler/p_unit/p_canonical)).
@@ -516,7 +516,7 @@ asr_readable(Base) :-
 add_related_file(IMAbs) :-
     \+ current_fact(processed_file(IMAbs)),
     \+ current_fact(related_file(IMAbs)),
-    \+ preloaded_module(_, IMAbs),
+    \+ mod_in_libcache(_, IMAbs),
     assertz_fact(related_file(IMAbs)),
 %       display( added_related_file( IMAbs ) ),nl,
     !.

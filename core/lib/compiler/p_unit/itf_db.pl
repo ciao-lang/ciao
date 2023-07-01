@@ -7,7 +7,7 @@
       dump_lib_itf/1,
       load_lib_itf/1,
       cleanup_lib_itf/0,
-      preloaded_module/2
+      mod_in_libcache/2
     ],
     [assertions, isomodes, datafacts, nativeprops]).
 
@@ -368,8 +368,8 @@ add_fact(Fact) :-
     assertz_fact(Fact). % TODO: meta!
 
 %--------------------------------------------------------------------------
-:- pred preloaded_module(M,Base) # "Module @var{M} with basename
-   @var{Base} is a module already preloaded into CiaoPP.".
+:- pred mod_in_libcache(M,Base) # "Module @var{M} with basename
+   @var{Base} is a module already preloaded into libcache.".
 
-preloaded_module(M,Base):-
+mod_in_libcache(M,Base):-
     lib_defines_module(Base,M).
