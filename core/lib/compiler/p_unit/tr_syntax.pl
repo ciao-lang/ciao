@@ -5,8 +5,6 @@
 :- use_module(library(compiler/p_unit), [new_predicate/3]).
 :- use_module(library(compiler/p_unit/clause_db), [clause_locator/2, add_clause_locator/2]).
 %
-:- use_module(library(compiler/p_unit/meta_call), [meta_call/1, process_meta_call/5]).
-%
 :- use_module(library(lists), [member/2, length/2, append/3]).
 :- use_module(library(sets), [merge/3, ord_intersection/3, ord_subtract/3]).
 :- use_module(library(terms_vars), [varset/2]).
@@ -24,6 +22,54 @@
 
 :- data meta/1.
 :- data cut/2.
+
+inc_meta(N1) :-
+    ( retract_fact(meta(N)) ->
+      N1 is N+1
+    ; N1 = 1
+    ),
+    asserta_fact(meta(N1)).
+
+choice_point_as_arg(Goal,Var,NGoal):-
+    current_fact(cut(N0,List),Ref), !,
+    functor(Goal,F,A),
+    Cut=key(F/A,Term),
+    ( member(Cut,List) ->
+      copy_term(Term,cut(Goal,Var,NGoal))
+    ; N is N0+1,
+      functor(GGoal,F,A),
+      cut_predicate_name(GGoal,N,GVar,NGGoal),
+      Term=cut(GGoal,GVar,NGGoal),
+      copy_term(Term,cut(Goal,Var,NGoal)),
+      erase(Ref),
+      asserta_fact(cut(N,[Cut|List]))
+    ).
+choice_point_as_arg(Goal,Var,NGoal):-
+    functor(Goal,F,A),
+    functor(GeneralGoal,F,A),
+    Cut=cut(GeneralGoal,GVar,NGGoal),
+    N=1,
+    cut_predicate_name(GeneralGoal,N,GVar,NGGoal),
+    copy_term(Cut,cut(Goal,Var,NGoal)),
+    asserta_fact(cut(N,[key(F/A,Cut)])).
+
+cut_predicate_name(Goal,N,Var,NGoal):-
+    functor(Goal,F,A),
+    make_atom([F,A,'$remote',N],Name0),
+    A1 is A+1,
+    new_predicate(Name0,A1,Name),
+    Goal=..[F|Args],
+    append(Args,[Var],NArgs),
+    NGoal=..[Name|NArgs].
+
+newsubg(Sg,Rest,NSg,Vars,Id,Num,Atom):-
+    varset(Sg,Sv),
+    varset(Rest,Rv),
+    ord_intersection(Sv,Rv,Vars),
+    make_atom([Id,Atom,Num],Fooname),
+    length(Vars,A),
+    new_predicate(Fooname,A,Newname),
+    NSg=..[Newname|Vars].
 
 :- doc(cleanup_tr_syntax,"Cleanups internal database.").
 cleanup_tr_syntax:-
@@ -126,38 +172,6 @@ cut_idiom_clause(Sw,Var,H,D,NH,ND):-
     complete_dict_(D,Var,ND),
     choice_point_as_arg(H,Var,NH).
 %% cut_idiom_clause(_Name,_Var,H,D,H,D).
-
-choice_point_as_arg(Goal,Var,NGoal):-
-    current_fact(cut(N0,List),Ref), !,
-    functor(Goal,F,A),
-    Cut=key(F/A,Term),
-    ( member(Cut,List) ->
-      copy_term(Term,cut(Goal,Var,NGoal))
-    ; N is N0+1,
-      functor(GGoal,F,A),
-      cut_predicate_name(GGoal,N,GVar,NGGoal),
-      Term=cut(GGoal,GVar,NGGoal),
-      copy_term(Term,cut(Goal,Var,NGoal)),
-      erase(Ref),
-      asserta_fact(cut(N,[Cut|List]))
-    ).
-choice_point_as_arg(Goal,Var,NGoal):-
-    functor(Goal,F,A),
-    functor(GeneralGoal,F,A),
-    Cut=cut(GeneralGoal,GVar,NGGoal),
-    N=1,
-    cut_predicate_name(GeneralGoal,N,GVar,NGGoal),
-    copy_term(Cut,cut(Goal,Var,NGoal)),
-    asserta_fact(cut(N,[key(F/A,Cut)])).
-
-cut_predicate_name(Goal,N,Var,NGoal):-
-    functor(Goal,F,A),
-    make_atom([F,A,'$remote',N],Name0),
-    A1 is A+1,
-    new_predicate(Name0,A1,Name),
-    Goal=..[F|Args],
-    append(Args,[Var],NArgs),
-    NGoal=..[Name|NArgs].
 
 choice_idiom_clause(Var,H,BCut,D,NH,(Choice,NH),ND,(clause(NH,BCut),NId),Loc):-
     choice_idiom(Var,Choice),
@@ -354,6 +368,7 @@ remove_disjunctions_loc(Cl,D,NCls,NDs,TNCls,TNDs,Cls,TCls,Ds,TDs,Loc):-
     NCl1 = (clause(H,(B1,!,B2)),Clid),
     prune_dict_(NCl1,D,D1),
     remove_disjunctions_loc(NCl1,D1,NCls,NDs,TNCls1,TNDs1,Cls,TCls0,Ds,TDs0,Loc),
+    %
     clause_key(H,NClid),
     Cl2 = (clause(H,B3),NClid),
     add_clause_locator(NClid,Loc),
@@ -366,6 +381,7 @@ remove_disjunctions_loc(Cl,D,NCls,NDs,TNCls,TNDs,Cls,TCls,Ds,TDs,Loc):-
     NCl1 = (clause(H,B1),Clid),
     prune_dict_(NCl1,D,D1),
     remove_disjunctions_loc(NCl1,D1,NCls,NDs,TNCls1,TNDs1,Cls,TCls0,Ds,TDs0,Loc),
+    %
     clause_key(H,NClid),
     Cl2 = (clause(H,B2),NClid),
     add_clause_locator(NClid,Loc),
@@ -398,11 +414,13 @@ remove_disj_from_body(\+(P),Rest,D,NSg,Id,In,Out,Cls,TCls,Ds,TDs,Loc):- !,
 remove_disj_from_body(((P -> Q);R),Rest,D,NSg,Id,In,Out,Cls,TCls,Ds,TDs,Loc):- !,
     Out is In+1,
     newsubg(((P -> Q);R),Rest,NSg,_,Id,Out,'$disj'),
+    %
     clause_key(NSg,Clid1),
     Cl1 = (clause(NSg,(P,!,Q)),Clid1),
     add_clause_locator(Clid1,Loc),
     copy_term(t(Cl1,D),t(NCl1,D1)),
     remove_disjunctions_loc(NCl1,D1,Cls,Ds,TCls1,TDs1,NCls,TNCls,NDs,TNDs,Loc),
+    %
     clause_key(NSg,Clid2),
     Cl2 = (clause(NSg,R),Clid2),
     add_clause_locator(Clid2,Loc),
@@ -411,11 +429,13 @@ remove_disj_from_body(((P -> Q);R),Rest,D,NSg,Id,In,Out,Cls,TCls,Ds,TDs,Loc):- !
 remove_disj_from_body((P;Q),Rest,D,NSg,Id,In,Out,Cls,TCls,Ds,TDs,Loc):- !,
     Out is In+1,
     newsubg((P;Q),Rest,NSg,_,Id,Out,'$disj'),
+    %
     clause_key(NSg,Clid1),
     Cl1 = (clause(NSg,P),Clid1),
     add_clause_locator(Clid1,Loc),
     copy_term(t(Cl1,D),t(NCl1,D1)),
     remove_disjunctions_loc(NCl1,D1,Cls,Ds,TCls1,TDs1,NCls,TNCls,NDs,TNDs,Loc),
+    %
     clause_key(NSg,Clid2),
     Cl2 = (clause(NSg,Q),Clid2),
     add_clause_locator(Clid2,Loc),
@@ -438,6 +458,7 @@ remove_disj_from_body((P -> Q),Rest,D,NSg,Id,In,Out,Cls,TCls,Ds,TDs,Loc):- !,
 %       remove_disj_from_body((P,!,Q),Rest,NSg,Id,In,Out).
     Out is In+1,
     newsubg((P -> Q),Rest,NSg,_,Id,Out,'$disj'),
+    %
     clause_key(NSg,Clid),
     Cl = (clause(NSg,(P,!,Q)),Clid),
     add_clause_locator(Clid,Loc),
@@ -476,11 +497,7 @@ remove_disj_from_meta(X,Rest,D,NX,Id,In,Out,Cls,TCls,Ds,TDs,Loc):-
     functor(X,F,2),
     ( F=',' ; F='=>' ; F='&' ; F=(\&) ), !,
     %
-    ( retract_fact(meta(N)) ->
-      N1 is N+1
-    ; N1 = 1
-    ),
-    asserta_fact(meta(N1)),
+    inc_meta(N1),
     newsubg(X,Rest,NX,_,Id,N1,'$meta'),
     %
     remove_disj_from_body(X,Rest,D,NB,Id,In,Out,TCls0,TCls,TDs0,TDs,Loc),
@@ -526,17 +543,6 @@ existentiate_vars([V|Vs],C,V^NewC):-
     existentiate_vars(Vs,C,NewC).
 existentiate_vars([],C,C).
 
-%-------------------------------------------------------------------------
-
-newsubg(Sg,Rest,NSg,Vars,Id,Num,Atom):-
-    varset(Sg,Sv),
-    varset(Rest,Rv),
-    ord_intersection(Sv,Rv,Vars),
-    make_atom([Id,Atom,Num],Fooname),
-    length(Vars,A),
-    new_predicate(Fooname,A,Newname),
-    NSg=..[Newname|Vars].
-
 % ---------------------------------------------------------------------------
 
 :- use_module(library(vndict), [complete_dict/3, prune_dict/3, sort_dict/2]).
@@ -548,3 +554,56 @@ complete_dict_(D0,Cl,ND):-
 prune_dict_(Cl,D,ND):-
     prune_dict(Cl,D,ND0),
     sort_dict(ND0,ND).
+
+% ---------------------------------------------------------------------------
+% Handling metacalls.
+
+:- use_module(library(compiler/p_unit/itf_db)).
+
+:- pred process_meta_call(Goal,GList,NoGList,NGList,NGoal) : cgoal(Goal)
+   => cgoal * list * list * list * cgoal
+   # "Given a meta-predicate call @var{Goal}, returns in @var{GList} the list of
+   arguments which are goals, in @var{NoGList} the arguments which are not
+   goals, in @var{NGoal} a goal to a meta-predicate named @var{Goal} with but
+   replacing the arguments which are goals by the elements of @var{GList}.".
+process_meta_call(Goal,GList,NoGList,NGList,NGoal) :-
+    meta_call_(Goal,Meta),
+    Goal =.. [F|Args],
+    Meta =.. [_|MetaArgs],
+    peel_meta_call_args(Args,MetaArgs,GList,NoGList),
+    build_meta_call_args(Args,MetaArgs,NGList,NArgs),
+    NGoal =..[F|NArgs].
+
+:- pred meta_call(Goal) : cgoal(Goal) 
+   # "Succeeds if @var{Goal} is a meta-predicate call.".
+meta_call(Goal):-
+    meta_call_(Goal, _).
+
+meta_call_(Goal, Meta) :-
+    current_itf(meta,Goal,Meta), !.
+meta_call_('hiord_rt:call'(_G,Args), Meta) :-
+    % since call/N is harwired, we generate the meta information on the fly,
+    % based on the number of arguments provided
+    functor(Args,_,N),
+    Meta = 'hiord_rt:call'(pred(N), ?). % TODO: keep SYNC with p_unit_basic.pl
+
+meta_arg(goal).
+meta_arg(pred(_N)).
+
+:- pred peel_meta_call_args(Args,MetaArgs,GList,NoGList)
+   : (list(Args), list(MetaArgs)) => (list(GList), list(NoGList)).
+peel_meta_call_args([],[],[],[]).
+peel_meta_call_args([A|Args],[MetaArg|Metaargs],[A|GList],NoGList):-
+    meta_arg(MetaArg), !, 
+    peel_meta_call_args(Args,Metaargs,GList,NoGList).
+peel_meta_call_args([A|Args],[_|Metaargs],GList,[A|NoGList]):-
+    peel_meta_call_args(Args,Metaargs,GList,NoGList).
+
+:- pred build_meta_call_args(Args,MetaArgs,NGList,NArgs)
+   : (list(Args), list(MetaArgs)) => (list(NGList), list(NArgs)).
+build_meta_call_args([],[],[],[]).
+build_meta_call_args([_|Args],[MetaArg|Metaargs],[G|NGList],[G|NArgs]):-
+    meta_arg(MetaArg), !,
+    build_meta_call_args(Args,Metaargs,NGList,NArgs).
+build_meta_call_args([A|Args],[_|Metaargs],NGList,[A|NArgs]):-
+    build_meta_call_args(Args,Metaargs,NGList,NArgs).
