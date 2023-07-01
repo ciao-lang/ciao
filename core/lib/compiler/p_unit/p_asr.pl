@@ -114,14 +114,11 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/itf_db},
 
 :- use_package(library(compiler/p_unit/p_unit_argnames)).
 
-% Documentation
-:- use_module(library(assertions/c_itf_props)).
+:- use_module(library(assertions/c_itf_props)). % (documentation)
+
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 
-:- use_module(library(aggregates), [findall/3]).
 :- use_module(library(pathnames), [path_concat/3, path_basename/2, path_split/3, path_splitext/3]).
-:- use_module(library(formulae), [asbody_to_conj/2]).
-:- use_module(engine(runtime_control), [module_split/3]).
 
 % TODO: merge c_itf here, merge second pass with compiler
 :- use_module(library(compiler/c_itf), [defines/3]).
@@ -136,7 +133,7 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/itf_db},
     process_file/7,
     restore_defines/5,
     restore_imports/5,
-    restore_multifile/4,
+    % restore_multifile/4,
     imports/5,
     meta_args/2,
     dyn_decl/4
@@ -145,9 +142,6 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/itf_db},
                                      % internally as module_error, at c_itf
 :- use_module(library(compiler/translation),
         [expand_clause/6, del_goal_trans/1, del_clause_trans/1]).
-:- use_module(library(ctrlcclean), [ctrlc_clean/1]).
-:- use_module(library(errhandle),  [error_protect/2]).
-:- use_module(library(fastrw),     [fast_read/2, fast_write/2]).
 :- use_module(library(messages)).
 :- use_module(library(read), [read/2]).
 %% :- use_module(library(system),
@@ -157,7 +151,6 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/itf_db},
 :- use_module(engine(stream_basic)).
 :- use_module(engine(stream_basic), [absolute_file_name/7]).
 :- use_module(engine(io_basic)).
-:- use_module(library(stream_utils), [write_string/1]).
 :- use_module(engine(messages_basic), [message/2]).
 
 :- use_module(library(compiler/p_unit/assrt_db)).
@@ -174,6 +167,20 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/itf_db},
 :- use_module(library(compiler/p_unit), [add_assertions/1, add_commented_assertion/1, get_assertion/2]).
 :- use_module(library(compiler/p_unit/aux_filenames), [get_module_filename/3]).
 
+% ---------------------------------------------------------------------------
+:- doc(section, "Verbosity").
+
+:- use_module(engine(messages_basic), [message/2]).
+:- use_module(engine(runtime_control), [current_prolog_flag/2]).
+
+define_flag(verbose_p_unit, [on,  off], off).
+
+:- export(p_unit_log/1).
+p_unit_log(Message) :-
+    current_prolog_flag(verbose_p_unit,on), !,
+    message(inform, Message).
+p_unit_log(_Message).
+
 %% ---------------------------------------------------------------------------
 :- pred asr_version/1 :: atm
 # "Contains a version number which identifies
@@ -184,18 +191,31 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/itf_db},
 
 asr_version('5.0').
 
-%% ---------------------------------------------------------------------------
+% ---------------------------------------------------------------------------
+:- doc(section, "Cleanup").
+
 % TODO: renamed to avoid conflict with assrt_lib:cleanup_code_and_related_assertions/0
 :- export(cleanup_code_and_related_assertions_pasr/0).
 :- pred cleanup_code_and_related_assertions_pasr/0
-# "Cleans up data asserted by assertion/code reader/normalizer.".
+   # "Cleans up data asserted by assertion/code reader/normalizer.".
 
 cleanup_code_and_related_assertions_pasr :-
     cleanup_c_itf_data,
     cleanup_clause_db,
     cleanup_assrt_db.
 
-%% ---------------------------------------------------------------------------
+:- export(cleanup_pasr/0).
+:- pred cleanup_pasr # "Clean up all facts that p_asr asserts.".
+
+cleanup_pasr :-
+    retractall_fact(warned(_, _, _)),
+    retractall_fact(processed_file(_)),
+    retractall_fact(related_file(_)),
+    retractall_fact(irrelevant_file(_)),
+    retractall_fact(file_included_by_package(_)).
+
+% ---------------------------------------------------------------------------
+:- doc(section, "Preprocessing unit").
 
 :- regtype filenames/1.
 filenames(X) :- filename(X).
@@ -267,7 +287,7 @@ preprocessing_unit_opts(Fs, Opts, Ms, E) :-
     related_files_closure(direct, Opts),
     retractall_fact(adding_to_module(_)),
     %% check for props in the related files
-    delayed_checks,
+    delayed_prop_checks,
     %
     %statistics(walltime, [L2|_]),
     %Ld is L2-L1,
@@ -277,18 +297,8 @@ preprocessing_unit_opts(Fs, Opts, Ms, E) :-
 
 % ---------------------------------------------------------------------------
 
-:- use_module(engine(messages_basic), [message/2]).
-:- use_module(engine(runtime_control), [current_prolog_flag/2]).
-
-define_flag(verbose_p_unit, [on,  off], off).
-
-:- export(p_unit_log/1).
-p_unit_log(Message) :-
-    current_prolog_flag(verbose_p_unit,on), !,
-    message(inform, Message).
-p_unit_log(_Message).
-
-% ---------------------------------------------------------------------------
+:- use_module(library(ctrlcclean), [ctrlc_clean/1]).
+:- use_module(library(errhandle),  [error_protect/2]).
 
 % TODO: (review)
 % DTM: When loading ast file, if we are adding the module to the
@@ -308,17 +318,6 @@ process_main_file(NF, Opts, M) :-
                 process_main_info_file(M, Opts),
                 c_itf:false, c_itf:false, do_nothing)
         ),fail). % TODO: fail or abort?
-
-:- export(cleanup_pasr/0).
-:- pred cleanup_pasr
-# "Clean up all facts that p_asr asserts.".
-
-cleanup_pasr :-
-    retractall_fact(warned(_, _, _)),
-    retractall_fact(processed_file(_)),
-    retractall_fact(related_file(_)),
-    retractall_fact(irrelevant_file(_)),
-    retractall_fact(file_included_by_package(_)).
 
 :- export(there_was_error/1). % for intermod
 there_was_error(yes) :- module_error, !.
@@ -538,6 +537,8 @@ file_up_to_date(AuxName,PlName):-
 %% ---------------------------------------------------------------------------
 %% Preprocessing Unit closure
 
+:- use_module(library(aggregates), [findall/3]).
+
 % TODO: 'trans' is not used, check if it works
 
 assert_related_files(direct, Base, _M) :- !,
@@ -727,6 +728,8 @@ get_module_from_path(Path, Module) :-
 
 %% ---------------------------------------------------------------------------
 %% Module Name Expansion in the DB
+
+:- use_module(library(formulae), [asbody_to_conj/2]).
 
 %% --- DTM: The Dict should be vnDict (to complete variables and unify with 
 %%          clauses one)
@@ -1025,13 +1028,12 @@ write_to_file(Path, Name, Pred) :-
     Pred(OutS),
     close(OutS).
 
-%% ---------------------------------------------------------------------------
-%% Checking for properties in assertions
-%% ---------------------------------------------------------------------------
+% ---------------------------------------------------------------------------
+% Checking that assertion properties are really properties
 
 :- data warned/3.
 
-delayed_checks :- % TODO: checking every assertion in the program!!!!!, this can be done better
+delayed_prop_checks :- % TODO:[SLOW] do not repeat checking of all modules everytime
     assertion_read(PD, M, _Status, Type, Body, _Dict, S, LB, LE),
     \+ current_fact(irrelevant_file(M)),
     \+ Type = modedef,
@@ -1044,7 +1046,7 @@ delayed_checks :- % TODO: checking every assertion in the program!!!!!, this can
     check_properties(CNAP, F, A, M, Where),
     check_properties(CNGP, F, A, M, Where),
     fail.
-delayed_checks.
+delayed_prop_checks.
 
 check_properties([], _F, _A, _M, _Where) :- !.
 check_properties([(P1;P2)], F, A, M, Where) :- !,
@@ -1055,11 +1057,7 @@ check_properties([Prop|Props], F, A, M, Where) :- !,
     check_property(PF, PA, Prop, F, A, M, Where),
     check_properties(Props, F, A, M, Where).
 check_properties(PROP, F, A, M, Where) :-
-    error_message(Where,
-        "INTERNAL ERROR: check_properties: list of properties " ||
-        "expected as argument. "||
-        "Found: ~q. It was used in an assertion ~w in module ~w",
-        [PROP, F/A, M]).
+    throw(error(expecting_list_of_props(PROP,F/A,M,Where), check_properties/5)).
 
 % Here is the case:
 %
@@ -1101,30 +1099,13 @@ check_property(PF, PA, _Prop, F, A, M, Where) :-
         [PF/PA, F/A, M]),
     asserta_fact(warned(PF, PA, M)).
 
-%% ---------------------------------------------------------------------------
-%% SHOW ASR FILE
-%% ---------------------------------------------------------------------------
+% ---------------------------------------------------------------------------
+:- doc(section, "Read/write asr files").
 
-:- export(show_asr/1).
-:- pred show_asr(+File) #"Read and shows the asr @var{File} file.".
-show_asr(File) :-
-    open(File, read, Stream),
-    read(Stream, X),
-    display('ASR VERSION: '),
-    display(X),
-    nl,
-    read_and_show(Stream),
-    close(Stream).
+% Note: use `ciaodump` to show .asr files (fastrw format)
 
-read_and_show(S) :-
-    fast_read(S, T),
-    display(T), nl, nl,
-    read_and_show(S).
-read_and_show(_).
-
-%% ---------------------------------------------------------------------------
-%% READ ASR FILE
-%% ---------------------------------------------------------------------------
+:- use_module(engine(runtime_control), [module_split/3]).
+:- use_module(library(fastrw), [fast_read/2, fast_write/2]).
 
 read_asr_file(AsrName) :-
     catch(open(AsrName, read, Stream), error(_,_), fail),
@@ -1156,20 +1137,8 @@ read_asr_data_loop__action(defines(M, Base)) :- !,
     assert_itf(defines_module, M, _, _, Base).
 read_asr_data_loop__action(related_file(M)) :- !,
     add_related_file(M).
-%(ITF)% read_asr_data_loop__action(defines(M, F, A, DefType, Meta)) :- !,
-%(ITF)%     restore_defines(M, F, A, DefType, Meta),
-%(ITF)%     assert_itf(defines, M, F, A, M),
-%(ITF)%     save_meta_dynamic(Meta, DefType, M, F, A).
-%(ITF)% read_asr_data_loop__action(imports(M, IM, F, A, EndMod)) :- !,
-%(ITF)%     c_itf:restore_imports(M, IM, F, A, EndMod),
-%(ITF)%     assert_itf(imports, M, F, A, IM).
 read_asr_data_loop__action(exports(M, F, A, DefType, Meta)) :- !,
     add_exports(M, F, A, DefType, Meta).
-%(ITF)% read_asr_data_loop__action(multifile(M, F, A, DefType)) :- !,
-%(ITF)%     c_itf:restore_multifile(M, F, A, DefType),
-%(ITF)%     assert_itf(multifile, M, F, A, DefType).
-%(ITF)% read_asr_data_loop__action(impl_defines(M, F, A, _Meta)) :- !,
-%(ITF)%     assert_itf(impl_defines, M, F, A, M).
 read_asr_data_loop__action(irrelevant_file(F)) :- !,
     assertz_fact(irrelevant_file(F)).
 read_asr_data_loop__action(X) :- X = assertion_read(_, M, _, _, Body, _, _, _, _), !,
@@ -1190,10 +1159,7 @@ read_asr_data_loop__action(X) :- X = assertion_read(_, M, _, _, Body, _, _, _, _
 read_asr_data_loop__action(X) :- X = prop_clause_read(A1, A2, A3, A4, A5, A6, A7), !,
     add_prop_clause_read(A1, A2, A3, A4, A5, A6, A7).
 
-% ---------------------------------------------------------------------------
-% asr file storage
-
-:- data asr_stream/1.
+:- data asr_stream/1. % (enable asr write)
 
 write_asr_header(S) :-
     asr_version(V),
