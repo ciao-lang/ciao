@@ -16,7 +16,33 @@
 :- use_module(library(compiler/p_unit/unexpand), [unexpand_meta_calls/2]).
 :- use_module(library(compiler/p_unit/aux_filenames), [just_module_name/2]).
 
-:- reexport(library(compiler/p_unit/itf_base_db)).
+% ---------------------------------------------------------------------------
+
+:- export(curr_module/1).
+:- data curr_module/1.
+:- export(curr_file/2).
+:- data curr_file/2.
+
+:- export(defines/3).
+:- data defines/3.
+:- export(imports/4).
+:- data imports/4.
+:- export(exports/2).
+:- data exports/2.
+:- export(multifile/2).
+:- data multifile/2.
+:- export(meta/2).
+:- data meta/2.
+:- export(dynamic/1).
+:- data dynamic/1.
+:- export(impl_defines/2).
+:- data impl_defines/2.
+:- export(defines_module/2).
+:- data defines_module/2.
+:- export(defines_module_rev_idx/2).
+:- data defines_module_rev_idx/2. % reverse index (IG)
+
+% ---------------------------------------------------------------------------
 
 :- doc(bug, "Missing doc").
 
