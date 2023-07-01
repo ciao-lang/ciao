@@ -2,6 +2,11 @@
 
 % TODO: no doc
 
+:- export(curr_module/1).
+:- data curr_module/1.
+:- export(curr_file/2).
+:- data curr_file/2.
+
 :- export(defines/3).
 :- data defines/3.
 :- export(imports/4).
@@ -14,11 +19,6 @@
 :- data meta/2.
 :- export(dynamic/1).
 :- data dynamic/1.
-%
-:- export(curr_module/1).
-:- data curr_module/1.
-:- export(curr_file/2).
-:- data curr_file/2.
 :- export(impl_defines/2).
 :- data impl_defines/2.
 :- export(defines_module/2).

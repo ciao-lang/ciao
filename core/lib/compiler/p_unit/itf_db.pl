@@ -242,10 +242,15 @@ get_module_from_sg(_,''). %% '\+/1' has no module in Sg. % TODO: ??
 
 :- use_module(engine(io_basic)).
 :- use_module(library(write), [writeq/2]).
-:- data lib_defines/3, lib_imports/4, lib_exports/2, lib_multifile/2, lib_meta/2.
-:- data lib_dynamic/1, lib_impl_defines/2, lib_defines_module/2.
-% reverse indexes
-:- data lib_defines_module_rev_idx/2.
+:- data lib_defines/3.
+:- data lib_imports/4.
+:- data lib_exports/2.
+:- data lib_multifile/2.
+:- data lib_meta/2.
+:- data lib_dynamic/1.
+:- data lib_impl_defines/2.
+:- data lib_defines_module/2.
+:- data lib_defines_module_rev_idx/2. % (reverse index)
 
 :- export(fake_module_name/1).
 :- data fake_module_name/1.

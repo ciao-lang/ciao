@@ -79,7 +79,7 @@
 :- reexport(library(compiler/p_unit/p_unit_basic), [type_of_goal/2]).
 
 :- use_module(library(compiler/p_unit/p_asr), [cleanup_pasr/0, cleanup_code_and_related_assertions_pasr/0, preprocessing_unit_opts/4]).
-:- use_module(library(compiler/p_unit/tr_syntax), [cleanup_tr_syntax/0, traverse_clauses/5]).
+:- use_module(library(compiler/p_unit/tr_syntax), [cleanup_tr_syntax/0, traverse_clauses/4]).
 
 :- include(library(compiler/p_unit/p_unit_hooks)).
 
@@ -280,8 +280,8 @@ normalize_clauses(M):-
     % --- DTM: This should be separated into 2 tranforms: one to
     %          remove cuts and another to remove disjuntions.
     % TODO: why twice? reuse compiler code instead?
-    traverse_clauses(Cls0,Ds0,all,Cls1,Ds1), % TODO: delay clause_key/2 if traverse_clauses/4 do not need them
-    traverse_clauses(Cls1,Ds1,all,Cls,Ds),
+    traverse_clauses(Cls0,Ds0,Cls1,Ds1), % TODO: delay clause_key/2 if traverse_clauses/4 do not need them
+    traverse_clauses(Cls1,Ds1,Cls,Ds),
     assert_program(Cls,Ds).
 
 program_clause(M,Cl,Key,Dict):-
