@@ -11,10 +11,7 @@
     ],
     [assertions, isomodes, datafacts, nativeprops]).
 
-:- use_module(engine(io_basic)).
-:- use_module(engine(stream_basic), [absolute_file_name/7]).
 :- use_module(engine(runtime_control), [module_split/3]).
-:- use_module(library(pathnames), [path_split/3, path_splitext/3]).
 :- use_module(library(compiler/c_itf), [module_expansion/9]).
 :- use_module(library(compiler/p_unit/unexpand), [unexpand_meta_calls/2]).
 :- use_module(library(compiler/p_unit/aux_filenames), [just_module_name/2]).
@@ -243,7 +240,7 @@ get_module_from_sg(_,''). %% '\+/1' has no module in Sg. % TODO: ??
 %%%% IG: \+ is removed with a syntactic transformation, this clause can be
 %%%% removed
 
-
+:- use_module(engine(io_basic)).
 :- use_module(library(write), [writeq/2]).
 :- data lib_defines/3, lib_imports/4, lib_exports/2, lib_multifile/2, lib_meta/2.
 :- data lib_dynamic/1, lib_impl_defines/2, lib_defines_module/2.

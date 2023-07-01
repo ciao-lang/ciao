@@ -53,8 +53,6 @@ clause_key(H,ClId), rewrite_source_clause(clause(H,Body),ClId,Clause),
    @end{verbatim}
 ").
 
-:- use_module(engine(io_basic)).
-:- use_module(library(format), [sformat/3]).
 :- use_module(library(lists), [append/3, length/2]).
 :- use_module(engine(messages_basic), [message/2]).
 
@@ -438,8 +436,7 @@ inverse_rewrite_source_body('aggregates:findall'(Var,$(A,_,_),List):_Id,NBody):-
     NBody = 'aggregates:findall'(Var,A,List).
 inverse_rewrite_source_body(A:_,A):- !.
 inverse_rewrite_source_body(A,A):- !,
-    display( 'Sorry cannot process: ' ),
-    display( A ),nl.
+    throw(error(cannot_process(A), inverse_rewrite_source_body/2)).
 
 %% inverse_rewrite_source_body(ground(L),ground(L)):- !.
 %% inverse_rewrite_source_body(indep(L),indep(L)):- !.

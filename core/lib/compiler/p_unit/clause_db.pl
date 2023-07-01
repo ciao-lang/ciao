@@ -15,7 +15,6 @@
     ], [assertions, basicmodes, regtypes, datafacts]).
 
 :- use_module(library(compiler/p_unit/program_keys), [clkey/1, clid_of_atomid/2]).
-:- use_module(engine(io_basic)).
 :- use_module(library(messages)).
 
 %% ---------------------------------------------------------------------------
@@ -118,6 +117,7 @@ literal_locator(LitKey,L):-
 
 %--------------------------------------------------------------------------
 
+:- use_module(engine(io_basic)).
 :- use_module(library(write), [writeq/2]).
 :- use_module(library(read), [read/2]).
 

@@ -67,7 +67,6 @@
 :- use_module(engine(internals), [module_concat/3]).
 
 % CiaoPP library
-:- reexport(library(compiler/p_unit/p_canonical)).
 :- use_module(library(compiler/p_unit/itf_db)).
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 :- use_module(library(compiler/p_unit/assrt_db), [add_assertion_read/9, assertion_read/9]).
