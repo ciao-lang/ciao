@@ -25,7 +25,7 @@
     predicate_names/1,
     multifile_predicate_names/1,
     %
-    language/1,
+    curr_language/1,
     %
     inject_output_package/1,
     %
@@ -117,7 +117,7 @@
 :- doc(bug,"10. Meta terms should not be here.").
 %:- doc(bug,"11. visible is not working").
 :- doc(bug,"12. Type symbols is not what we want in native_prop").
-:- doc(bug,"13. language/1 is a bit naive.").
+:- doc(bug,"13. curr_language/1 is a bit naive.").
 :- doc(bug,"14. Put make_prop_visible/1 to work.").
 :- doc(bug,"15. At least \+ (maybe others?) is not expanded properly.
     See the current kludge in type_of_goal(imported,_) and
@@ -337,12 +337,12 @@ add_clause(Key,Cl,D) :-
 
 %% ---------------------------------------------------------------------------
 
-% TODO: (JF) review this code
-:- doc(hide,language/1).
-language(clp):- 
+% TODO: (JF) this requires caching and it must be depend on the module
+:- doc(hide,curr_language/1).
+curr_language(clp):- % TODO: not steadfast!
     current_fact(source_clause(_Key,directive(impl_defined('.=.'/2)),_D)),
     !.
-language(lp).
+curr_language(lp).
 
 %% ---------------------------------------------------------------------------
 
