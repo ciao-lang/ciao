@@ -69,7 +69,7 @@
 % CiaoPP library
 :- use_module(library(compiler/p_unit/itf_db)).
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
-:- use_module(library(compiler/p_unit/assrt_db), [add_assertion_read/9, assertion_read/9]).
+:- use_module(library(compiler/p_unit/assrt_db)).
 :- use_module(library(compiler/p_unit/clause_db)).
 :- use_module(library(compiler/p_unit/program_keys),
     [clause_key/2,cleanup_program_keys/0,rewrite_source_clause/3, clause/1]).
@@ -866,12 +866,26 @@ get_commented_assertion(ClKey, As) :-
     current_fact(commented_assrt(As)).
 
 % ---------------------------------------------------------------------------
-
 :- doc(section, "Cached libraries").
+
+:- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(persdb/datadir), [ensure_datadir/2]).
-:- use_module(library(compiler/p_unit/p_asr), [load_libcache_internal/1, loaded_libcache/0, gen_libcache_internal/1]).
-:- use_module(library(compiler/p_unit/itf_db), [fake_module_name/1]).
+:- use_module(library(compiler/p_unit/itf_db), [fake_module_name/1, cleanup_lib_itf/0]).
+
+% TODO: Currently not used, but necessary if we want to rebuild/reload libcache
+:- export(cleanup_libcache/0).
+:- pred cleanup_libcache # "Cleans up libcache.".
+cleanup_libcache :-
+    assrt_db:cleanup_lib_assrt,
+    ( hook_cleanup_lib_regtypes -> true ; true ),
+    clause_db:cleanup_lib_props,
+    itf_db:cleanup_lib_itf.
+
+:- export(loaded_libcache/0).
+:- pred loaded_libcache/0 # "Checks if the libcache is loaded".
+loaded_libcache :-
+    loaded_lib_assrt.
 
 :- export(load_libcache/1).
 :- pred load_libcache(DataDir) # "Load the preprocessed
@@ -881,6 +895,15 @@ get_commented_assertion(ClKey, As) :-
 load_libcache(DataDir) :-
     ensure_datadir(DataDir, Dir),
     catch(load_libcache_internal(Dir), error(_,_), throw(error(unable_to_load, load_libcache/1))).
+
+load_libcache_internal(Path) :-
+    load_from_file(Path, 'lib_assertion_read.pl', assrt_db:load_lib_assrt),
+    load_from_file(Path, 'lib_prop_clause_read.pl', clause_db:load_lib_props),
+    load_from_file(Path, 'lib_itf_db.pl', itf_db:load_lib_itf),
+    load_from_file(Path, 'lib_typedb.pl', restore_lib_regtypes).
+
+restore_lib_regtypes(Stream) :- hook_restore_lib_regtypes(Stream), !.
+restore_lib_regtypes(_).
 
 % TODO: extend to arbitrary bundles (not only core)
 :- export(gen_libcache/1).
@@ -899,3 +922,33 @@ gen_libcache(DataDir) :-
     set_fact(fake_module_name('core.libcache')), % do not cache info of that module
     ensure_datadir(DataDir, Dir),
     gen_libcache_internal(Dir).
+
+:- use_module(engine(runtime_control), [push_prolog_flag/2, pop_prolog_flag/1]). % TODO: do in a better way
+
+gen_libcache_internal(Path) :-
+    push_prolog_flag(write_strings, on),
+    write_to_file(Path, 'lib_assertion_read.pl', assrt_db:gen_lib_assrt),
+    write_to_file(Path, 'lib_prop_clause_read.pl', gen_lib_props),
+    write_to_file(Path, 'lib_itf_db.pl', dump_lib_itf),
+    write_to_file(Path, 'lib_typedb.pl', save_lib_regtypes),
+    pop_prolog_flag(write_strings).
+
+save_lib_regtypes(Stream) :- hook_save_lib_regtypes(Stream), !.
+save_lib_regtypes(_).
+
+:- meta_predicate load_from_file(?, ?, pred(1)).
+load_from_file(Path, Name, Pred) :-
+    path_concat(Path, Name, F),
+    open(F, read, InS),
+    Pred(InS),
+    close(InS).
+
+:- meta_predicate write_to_file(?, ?, pred(1)).
+write_to_file(Path, Name, Pred) :-
+    path_concat(Path, Name, F),
+    open(F, write, OutS),
+    display(OutS, '%% Do not modify this file: it is generated automatically.'),
+    nl(OutS),
+    Pred(OutS),
+    close(OutS).
+

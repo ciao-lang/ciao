@@ -118,7 +118,7 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/itf_db},
 
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 
-:- use_module(library(pathnames), [path_concat/3, path_basename/2, path_split/3, path_splitext/3]).
+:- use_module(library(pathnames), [path_basename/2, path_split/3, path_splitext/3]).
 
 % TODO: merge c_itf here, merge second pass with compiler
 :- use_module(library(compiler/c_itf), [defines/3]).
@@ -958,72 +958,6 @@ add_exports(M, F, A, DefType, Meta) :-
 add_indirect_imports(CM, M, F, A) :-
     c_itf:restore_imports(CM, M, F, A, M), % TODO: wrong, this should be an indirect import!
     assert_itf(indirect_imports, CM, F, A, M).
-
-%% ---------------------------------------------------------------------------
-%% Library preloading info generation.
-%% ---------------------------------------------------------------------------
-
-:- include(library(compiler/p_unit/p_unit_hooks)).
-
-:- use_module(library(compiler/p_unit/itf_db), [cleanup_lib_itf/0]).
-
-% TODO: Currently not used, but necessary if we want to rebuild/reload libcache
-:- export(cleanup_libcache/0).
-:- pred cleanup_libcache # "Cleans up libcache.".
-cleanup_libcache :-
-    assrt_db:cleanup_lib_assrt,
-    ( hook_cleanup_lib_regtypes -> true ; true ),
-    clause_db:cleanup_lib_props,
-    itf_db:cleanup_lib_itf.
-
-:- export(load_libcache_internal/1).
-:- pred load_libcache_internal(Path) # "Loads source files for preloading
-    assertion info.  Files are loaded from directory @var{Path}.".
-load_libcache_internal(Path) :-
-    load_from_file(Path, 'lib_assertion_read.pl', assrt_db:load_lib_assrt),
-    load_from_file(Path, 'lib_prop_clause_read.pl', clause_db:load_lib_props),
-    load_from_file(Path, 'lib_itf_db.pl', itf_db:load_lib_itf),
-    load_from_file(Path, 'lib_typedb.pl', restore_lib_regtypes).
-
-restore_lib_regtypes(Stream) :- hook_restore_lib_regtypes(Stream), !.
-restore_lib_regtypes(_).
-
-:- meta_predicate load_from_file(?, ?, pred(1)).
-load_from_file(Path, Name, Pred) :-
-    path_concat(Path, Name, F),
-    open(F, read, InS),
-    Pred(InS),
-    close(InS).
-
-:- export(loaded_libcache/0).
-:- pred loaded_libcache/0 # "Checks if the libcache is loaded".
-loaded_libcache :-
-    loaded_lib_assrt.
-
-:- use_module(engine(runtime_control), [push_prolog_flag/2, pop_prolog_flag/1]). % TODO: do in a better way
-
-:- export(gen_libcache_internal/1).
-:- pred gen_libcache_internal(Path) # "Generates source files for preloading
-    info from assertions.  Files are generated in directory @var{Path}.".
-gen_libcache_internal(Path) :-
-    push_prolog_flag(write_strings, on),
-    write_to_file(Path, 'lib_assertion_read.pl', assrt_db:gen_lib_assrt),
-    write_to_file(Path, 'lib_prop_clause_read.pl', gen_lib_props),
-    write_to_file(Path, 'lib_itf_db.pl', dump_lib_itf),
-    write_to_file(Path, 'lib_typedb.pl', save_lib_regtypes),
-    pop_prolog_flag(write_strings).
-
-save_lib_regtypes(Stream) :- hook_save_lib_regtypes(Stream), !.
-save_lib_regtypes(_).
-
-:- meta_predicate write_to_file(?, ?, pred(1)).
-write_to_file(Path, Name, Pred) :-
-    path_concat(Path, Name, F),
-    open(F, write, OutS),
-    display(OutS, '%% Do not modify this file: it is generated automatically.'),
-    nl(OutS),
-    Pred(OutS),
-    close(OutS).
 
 % ---------------------------------------------------------------------------
 % Checking that assertion properties are really properties
