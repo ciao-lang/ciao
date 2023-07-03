@@ -331,7 +331,6 @@ there_was_error(no).
 
 %% this file have to assert related_file fact to be processed later.
 
-:- export(load_related_files/2).
 :- pred load_related_files(Files, M) : (list(Files), var(M))
 # "Add some related files to the current module(s) loaded. The
   assertions and properties are loaded. Also the necessary information
@@ -968,19 +967,19 @@ add_indirect_imports(CM, M, F, A) :-
 
 :- use_module(library(compiler/p_unit/itf_db), [cleanup_lib_itf/0]).
 
-:- export(cleanup_lib_sources/0).
-:- pred cleanup_lib_sources
-    # "Cleans up all preloaded assertion information.".
-cleanup_lib_sources :-
+% TODO: Currently not used, but necessary if we want to rebuild/reload libcache
+:- export(cleanup_libcache/0).
+:- pred cleanup_libcache # "Cleans up libcache.".
+cleanup_libcache :-
     assrt_db:cleanup_lib_assrt,
     ( hook_cleanup_lib_regtypes -> true ; true ),
     clause_db:cleanup_lib_props,
     itf_db:cleanup_lib_itf.
 
-:- export(load_lib_sources/1).
-:- pred load_lib_sources(Path) # "Loads source files for preloading
+:- export(load_libcache_internal/1).
+:- pred load_libcache_internal(Path) # "Loads source files for preloading
     assertion info.  Files are loaded from directory @var{Path}.".
-load_lib_sources(Path) :-
+load_libcache_internal(Path) :-
     load_from_file(Path, 'lib_assertion_read.pl', assrt_db:load_lib_assrt),
     load_from_file(Path, 'lib_prop_clause_read.pl', clause_db:load_lib_props),
     load_from_file(Path, 'lib_itf_db.pl', itf_db:load_lib_itf),
@@ -996,19 +995,17 @@ load_from_file(Path, Name, Pred) :-
     Pred(InS),
     close(InS).
 
-:- export(loaded_lib_sources/0).
-:- pred loaded_lib_sources/0 #"Checks if the library sources are already
-    preloaded. This predicate assumes that the lib cache contains at least
-    one assertion. This is enough in practice".
-loaded_lib_sources :-
+:- export(loaded_libcache/0).
+:- pred loaded_libcache/0 # "Checks if the libcache is loaded".
+loaded_libcache :-
     loaded_lib_assrt.
 
 :- use_module(engine(runtime_control), [push_prolog_flag/2, pop_prolog_flag/1]). % TODO: do in a better way
 
-:- export(gen_lib_sources/1).
-:- pred gen_lib_sources(Path) # "Generates source files for preloading
+:- export(gen_libcache_internal/1).
+:- pred gen_libcache_internal(Path) # "Generates source files for preloading
     info from assertions.  Files are generated in directory @var{Path}.".
-gen_lib_sources(Path) :-
+gen_libcache_internal(Path) :-
     push_prolog_flag(write_strings, on),
     write_to_file(Path, 'lib_assertion_read.pl', assrt_db:gen_lib_assrt),
     write_to_file(Path, 'lib_prop_clause_read.pl', gen_lib_props),

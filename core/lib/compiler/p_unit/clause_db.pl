@@ -139,12 +139,15 @@ load_lib_props(Stream):-
         fail
     ).
 
+dump_lib_props_data(Data) :-
+    prop_clause_read(M, Head, Body, VarNames, Source, LB, LE),
+    Data = lib_prop_clause_read(M, Head, Body, VarNames, Source, LB, LE).
+
 :- pred gen_lib_props(Stream)
     # "Saves the facts for lib_prop_clause_read/7 to stream @var{Stream}
     from pgm_prop_clause_read/7.".
 gen_lib_props(Stream):-
-    prop_clause_read(M, Head, Body, VarNames, Source, LB, LE),
-    writeq(Stream,lib_prop_clause_read(M, Head, Body, VarNames, Source, LB, LE)),
-    display(Stream,'.'),nl(Stream),
+    dump_lib_props_data(Data),
+    writeq(Stream,Data),display(Stream,'.'),nl(Stream),
     fail.
 gen_lib_props(_).

@@ -870,7 +870,7 @@ get_commented_assertion(ClKey, As) :-
 :- doc(section, "Cached libraries").
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(persdb/datadir), [ensure_datadir/2]).
-:- use_module(library(compiler/p_unit/p_asr), [load_lib_sources/1, loaded_lib_sources/0, gen_lib_sources/1]).
+:- use_module(library(compiler/p_unit/p_asr), [load_libcache_internal/1, loaded_libcache/0, gen_libcache_internal/1]).
 :- use_module(library(compiler/p_unit/itf_db), [fake_module_name/1]).
 
 :- export(load_libcache/1).
@@ -880,7 +880,7 @@ get_commented_assertion(ClKey, As) :-
 
 load_libcache(DataDir) :-
     ensure_datadir(DataDir, Dir),
-    catch(load_lib_sources(Dir), error(_,_), throw(error(unable_to_load, load_libcache/1))).
+    catch(load_libcache_internal(Dir), error(_,_), throw(error(unable_to_load, load_libcache/1))).
 
 % TODO: extend to arbitrary bundles (not only core)
 :- export(gen_libcache/1).
@@ -893,9 +893,9 @@ gen_libcache(DataDir) :-
     bundle_path(core, 'Manifest/core.libcache.pl', P),
     %
     preprocessing_unit([P],_Ms,E),
-    ( E == yes -> throw(error(cache_and_preload_lib_sources/0)) ; true ),
+    ( E == yes -> throw(error(failed_preprocesssing, gen_libcache/0)) ; true ),
     %assertz_fact(curr_module('core.libcache')),
     %assertz_fact(curr_file(P, 'core.libcache')),
     set_fact(fake_module_name('core.libcache')), % do not cache info of that module
     ensure_datadir(DataDir, Dir),
-    p_asr:gen_lib_sources(Dir).
+    gen_libcache_internal(Dir).

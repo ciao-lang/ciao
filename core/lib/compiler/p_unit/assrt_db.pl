@@ -4,7 +4,6 @@
       remove_assertion_read/9,
       removeall_assertion_read/9,
       ref_assertion_read/10,
-      reload_assertion_read/0,
       assertion_of/9,
       cleanup_assrt_db/0,
       load_lib_assrt/1,
@@ -112,14 +111,6 @@ ref_assertion_read(Goal,M,Status,Type,Body,Dict,Source,LB,LE,Ref):-
 ref_assertion_read(Goal,M,Status,Type,Body,Dict,Source,LB,LE,Ref):-
     current_fact(lib_assertion_read(Goal,M,Status,Type,Body,Dict,Source,LB,LE),Ref).
 
-:- pred reload_assertion_read
-# "Reloads the library assertions from the library assertions file. This should be
-   called only after changes in the assertions or properties from libraries (for
-   example, after running compile-time checks.)".
-reload_assertion_read:-
-    display(user_error,'Not implemented yet.'),
-    nl(user_error).
-
 %% ---------------------------------------------------------------------------
 
 :- use_module(engine(io_basic)).
@@ -149,14 +140,17 @@ loaded_lib_assrt :-
 cleanup_lib_assrt:-
     retractall_fact(lib_assertion_read(_,_,_,_,_,_,_,_,_)).
 
+dump_lib_assrt_data(Data) :-
+    assertion_read(PD,M,Status,Type,Body,Dict,S,LB,LE),
+    assertion_body(Pred,Compat,Call,Succ,Comp,_Comm,Body),
+    assertion_body(Pred,Compat,Call,Succ,Comp,"",Body1), %no comment is stored.
+    Data = lib_assertion_read(PD,M,Status,Type,Body1,Dict,S,LB,LE).
+
 :- pred gen_lib_assrt(Stream)
 # "Saves the facts for lib_assertion_read/9 to the stream @var{Stream}
   from pgm_assertion_read/9.".
 gen_lib_assrt(Stream):-
-    assertion_read(PD,M,Status,Type,Body,Dict,S,LB,LE),
-    assertion_body(Pred,Compat,Call,Succ,Comp,_Comm,Body),
-    assertion_body(Pred,Compat,Call,Succ,Comp,"",Body1), %no comment is stored.
-    writeq(Stream,lib_assertion_read(PD,M,Status,Type,Body1,Dict,S,LB,LE)),
-    display(Stream,'.'),nl(Stream),
+    dump_lib_assrt_data(Data),
+    writeq(Stream,Data),display(Stream,'.'),nl(Stream),
     fail.
 gen_lib_assrt(_).

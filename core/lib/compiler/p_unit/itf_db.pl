@@ -282,52 +282,18 @@ get_module_from_sg(_,''). %% '\+/1' has no module in Sg. % TODO: ??
 :- data fake_module_name/1.
 %fake_module_name(lib_fake).
 
+dump_lib_itf_data(lib_defines(A,B,C)) :- defines(A,B,C), \+ fake_module_name(C).
+dump_lib_itf_data(lib_imports(A,B,C,D)) :- imports(A,B,C,D).
+dump_lib_itf_data(lib_exports(A,B)) :- exports(A,B), \+ fake_module_name(B).
+dump_lib_itf_data(lib_multifile(A,B)) :- multifile(A,B).
+dump_lib_itf_data(lib_meta(A,B)) :- meta(A,B), get_module_from_sg(A,M), \+ fake_module_name(M).
+dump_lib_itf_data(lib_dynamic(A)) :- dynamic(A), get_module_from_sg(A,M), \+ fake_module_name(M).
+dump_lib_itf_data(lib_defines_module(A,B)) :- defines_module(A,B), \+ fake_module_name(B).
+dump_lib_itf_data(lib_impl_defines(A,B)) :- impl_defines(A,B).
+
 dump_lib_itf(Stream):-
-    defines(A,B,C),
-    \+ fake_module_name(C),
-    writeq(Stream,lib_defines(A,B,C)),
-    display(Stream,'.'),nl(Stream),
-    fail.
-dump_lib_itf(Stream):-
-    imports(A,B,C,D),
-    writeq(Stream,lib_imports(A,B,C,D)),
-    display(Stream,'.'),nl(Stream),
-    fail.
-dump_lib_itf(Stream):-
-    exports(A,B),
-    \+ fake_module_name(B),
-    writeq(Stream,lib_exports(A,B)),
-    display(Stream,'.'),nl(Stream),
-    fail.
-dump_lib_itf(Stream):-
-    multifile(A,B),
-    writeq(Stream,lib_multifile(A,B)),
-    display(Stream,'.'),nl(Stream),
-    fail.
-dump_lib_itf(Stream):-
-    meta(A,B),
-    get_module_from_sg(A,M),
-    \+ fake_module_name(M),
-    writeq(Stream,lib_meta(A,B)),
-    display(Stream,'.'),nl(Stream),
-    fail.
-dump_lib_itf(Stream):-
-    dynamic(A),
-    get_module_from_sg(A,M),
-    \+ fake_module_name(M),
-    writeq(Stream,lib_dynamic(A)),
-    display(Stream,'.'),nl(Stream),
-    fail.
-dump_lib_itf(Stream):-
-    defines_module(A,B),
-    \+ fake_module_name(B),
-    writeq(Stream,lib_defines_module(A,B)),
-    display(Stream,'.'),nl(Stream),
-    fail.
-dump_lib_itf(Stream):-
-    impl_defines(A,B),
-    writeq(Stream,lib_impl_defines(A,B)),
-    display(Stream,'.'),nl(Stream),
+    dump_lib_itf_data(Data),
+    writeq(Stream,Data),display(Stream,'.'),nl(Stream),
     fail.
 dump_lib_itf(_).
 
