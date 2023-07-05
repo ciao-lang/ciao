@@ -27,7 +27,7 @@
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 
 :- use_module(library(compiler/c_itf), [clause_of/7]).
-:- use_module(library(compiler/p_unit/assrt_db), [assertion_of/9]).
+:- use_module(library(compiler/p_unit/p_unit_db), [assertion_of/9]).
 
 :- export(normalize_assertions/3).
 :- export(normalize_assertion/9).

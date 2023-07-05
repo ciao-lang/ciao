@@ -43,9 +43,7 @@ for predicates exported by non-related files are useless).
 
 The data collected by the predicates exported by this library is asserted in
 different modules. If you want to have access to it, you may want to consider
-importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/itf_db}, 
-@lib{ciaopp/p_unit/assrt_db}, or @lib{ciaopp/p_unit/clause_db}.
-
+importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/p_unit_db}.
 ").
 
 %% The preprocessing unit is made up of the file code, the assertion
@@ -123,7 +121,7 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/itf_db},
 % TODO: merge c_itf here, merge second pass with compiler
 :- use_module(library(compiler/c_itf), [defines/3]).
 :- use_module(library(compiler/c_itf), [
-    activate_translation/3, cleanup_c_itf_data/0,
+    activate_translation/3,
     module_expansion/9, location/3,
     clause_of/7,
     comp_defines/1, defines/5, defines_module/2, def_multifile/4,
@@ -153,15 +151,8 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/itf_db},
 :- use_module(engine(io_basic)).
 :- use_module(engine(messages_basic), [message/2]).
 
-:- use_module(library(compiler/p_unit/assrt_db)).
+:- use_module(library(compiler/p_unit/p_unit_db)).
 :- use_module(library(compiler/p_unit/assrt_norm)).
-:- use_module(library(compiler/p_unit/clause_db)).
-:- use_module(library(compiler/p_unit/itf_db), [
-    current_itf/3,
-    assert_itf/5,
-    mod_in_libcache/2,
-    dump_lib_itf/1,
-    load_lib_itf/1]).
 :- use_module(library(compiler/p_unit/p_canonical)).
 :- use_module(library(compiler/p_unit), [add_output_operator/3, add_output_package/1]).
 :- use_module(library(compiler/p_unit), [add_assertions/1, add_commented_assertion/1, get_assertion/2]).
@@ -193,16 +184,6 @@ asr_version('5.0').
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Cleanup").
-
-% TODO: renamed to avoid conflict with assrt_lib:cleanup_code_and_related_assertions/0
-:- export(cleanup_code_and_related_assertions_pasr/0).
-:- pred cleanup_code_and_related_assertions_pasr/0
-   # "Cleans up data asserted by assertion/code reader/normalizer.".
-
-cleanup_code_and_related_assertions_pasr :-
-    cleanup_c_itf_data,
-    cleanup_clause_db,
-    cleanup_assrt_db.
 
 :- export(cleanup_pasr/0).
 :- pred cleanup_pasr # "Clean up all facts that p_asr asserts.".

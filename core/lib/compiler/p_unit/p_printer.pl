@@ -22,14 +22,13 @@
 :- use_module(library(compiler/p_unit/program_keys), [predkey_from_sg/2]).
 
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
-:- use_module(library(compiler/p_unit/clause_db), [source_clause/3, clause_locator/2]).
+:- use_module(library(compiler/p_unit/p_unit_db)).
 :- use_module(library(compiler/p_unit/unexpand), [
     transform_clause_list/3,
     transform_assrt_body/3,
     transform_head/3,
     transform_body/3,
     transform_assrt_body/3]).
-:- use_module(library(compiler/p_unit/itf_db), [curr_file/2, current_itf/3]).
 
 :- use_module(engine(runtime_control), [push_prolog_flag/2, pop_prolog_flag/1]). % TODO: find a better solution
 
@@ -403,7 +402,6 @@ compact_calls_prop(A, A).
 % ---------------------------------------------------------------------------
 
 :- use_module(library(vndict)).
-:- use_module(library(compiler/p_unit/assrt_db)).
 
 % TODO: we still see a lot of _NNN vars; is this not working properly?
 % TODO: slow? simpler alternatives? (like get the Dic of the first assertion)

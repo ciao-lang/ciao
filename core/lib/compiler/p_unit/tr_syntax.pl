@@ -3,7 +3,7 @@
 :- use_module(library(compiler/p_unit/program_keys), [clause_key/2, last_clause/1, make_atom/2]).
 :- use_module(library(compiler/p_unit/native), [native_builtin/2]).
 :- use_module(library(compiler/p_unit), [new_predicate/3]).
-:- use_module(library(compiler/p_unit/clause_db), [clause_locator/2, add_clause_locator/2]).
+:- use_module(library(compiler/p_unit/p_unit_db), [clause_locator/2, add_clause_locator/2]).
 %
 :- use_module(library(lists), [member/2, length/2, append/3]).
 :- use_module(library(sets), [merge/3, ord_intersection/3, ord_subtract/3]).
@@ -180,7 +180,7 @@ choice_idiom_clause(Var,H,BCut,D,NH,(Choice,NH),ND,(clause(NH,BCut),NId),Loc):-
     prune_dict((H,NH,Var),NewD,ND),
     add_clause_locator(NId, Loc).
 
-% :- use_module(library(compiler/p_unit/itf_db), [assert_itf_kludge/2]).
+% :- use_module(library(compiler/p_unit/p_unit_db), [assert_itf_kludge/2]).
 % make_state_consistent:-
 %       IM = engine(internals),
 %       choice_idiom(Var,Choice),
@@ -558,7 +558,7 @@ prune_dict_(Cl,D,ND):-
 % ---------------------------------------------------------------------------
 % Handling metacalls.
 
-:- use_module(library(compiler/p_unit/itf_db)).
+:- use_module(library(compiler/p_unit/p_unit_db)).
 
 :- pred process_meta_call(Goal,GList,NoGList,NGList,NGoal) : cgoal(Goal)
    => cgoal * list * list * list * cgoal

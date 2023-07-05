@@ -13,7 +13,7 @@
    during the execution of ciaopp.").
 
 :- use_module(library(pathnames), [path_basename/2, path_splitext/3]).
-:- use_module(library(compiler/p_unit/itf_db), [current_itf/3]).
+:- use_module(library(compiler/p_unit/p_unit_db), [current_itf/3]).
 :- use_module(engine(internals), [ast_filename/2]).
 :- use_module(engine(stream_basic), [absolute_file_name/7]).
 

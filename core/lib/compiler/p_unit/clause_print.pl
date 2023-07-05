@@ -6,7 +6,7 @@
     ],[ assertions ]).
 
 :- use_module(engine(messages_basic), [message/2]).
-:- use_module(library(compiler/p_unit/clause_db)).
+:- use_module(library(compiler/p_unit/p_unit_db)).
 :- use_module(library(vndict), [rename/2, varnamesl2dict/2]).
 :- use_module(engine(io_basic)).
 :- use_module(library(write)).

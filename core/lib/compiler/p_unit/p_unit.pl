@@ -62,23 +62,21 @@
 :- use_module(library(hiordlib), [maplist/2]).
 :- use_module(library(lists), [member/2]).
 :- use_module(library(vndict),
-    [ create_dict/2, complete_dict/3, varnamedict/1, varnamesl2dict/2]).
+    [create_dict/2, complete_dict/3, varnamedict/1, varnamesl2dict/2]).
 :- use_module(library(terms_check), [variant/2]).
 :- use_module(engine(internals), [module_concat/3]).
 
-% CiaoPP library
-:- use_module(library(compiler/p_unit/itf_db)).
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
-:- use_module(library(compiler/p_unit/assrt_db)).
-:- use_module(library(compiler/p_unit/clause_db)).
+:- use_module(library(compiler/p_unit/p_unit_db)).
 :- use_module(library(compiler/p_unit/program_keys),
     [clause_key/2,cleanup_program_keys/0,rewrite_source_clause/3, clause/1]).
 :- use_module(library(compiler/p_unit/native),
-    [ builtin/2, native_prop_map/3, native_prop_term/1, native_property/2]).
+    [builtin/2, native_prop_map/3, native_prop_term/1, native_property/2]).
 
 :- reexport(library(compiler/p_unit/p_unit_basic), [type_of_goal/2]).
 
-:- use_module(library(compiler/p_unit/p_asr), [cleanup_pasr/0, cleanup_code_and_related_assertions_pasr/0, preprocessing_unit_opts/4]).
+:- use_module(library(compiler/c_itf), [cleanup_c_itf_data/0]).
+:- use_module(library(compiler/p_unit/p_asr), [cleanup_pasr/0, preprocessing_unit_opts/4]).
 :- use_module(library(compiler/p_unit/tr_syntax), [cleanup_tr_syntax/0, traverse_clauses/4]).
 
 :- include(library(compiler/p_unit/p_unit_hooks)).
@@ -146,12 +144,14 @@ preprocessing_unit_list(Fs,Ms,E):-
     % TODO: fixme (see comment below)
     % init related files db for the closure
     %jcf%-Following comment is temporary (it is called from module/1 already)
-    %jcf%       cleanup_code_and_related_assertions_pasr,
+    %jcf%       cleanup_c_itf_data, % cleanup data from c_itf:process_file/7
+    %jcf%       cleanup_clause_db,
+    %jcf%       cleanup_assrt_db,
 %       cleanup_punit,
     set_ciaopp_expansion(true),
     % note: this includes splitting pred assertions into calls and success
     preprocessing_unit_opts(Fs, [load_mod], Ms, E),
-%       assert_curr_modules(Ms),
+%       assert_curr_modules(Ms), % TODO: expected in ctchecks_plot?
 %       assert_curr_files(Fs,Ms),
     % identify and assert native props
     init_native_props,
@@ -174,9 +174,9 @@ preprocessing_unit_list(_Fs,_Ms,_E):-
 :- pred cleanup_punit # "Clean up all facts that p_unit asserts.".
 cleanup_punit :-
     cleanup_punit_local, %local
-    cleanup_itf_db, %local
     cleanup_pasr, %local
-    cleanup_code_and_related_assertions_pasr, %local
+    cleanup_c_itf_data, % cleanup data from c_itf:process_file/7
+    cleanup_p_unit_db, %local
     %
     cleanup_commented_assrt, %local
     cleanup_comment_db, %local (+codegen_pcpe)
@@ -258,8 +258,6 @@ filtered_source_clause(Mods,Key,clause(H,B),Dict) :-
     functor(Sg,F,A),
     get_pred_mod_defined(Sg,Mod),
     ( member(Mod,Mods) -> true ; fail ).
-
-:- use_module(library(compiler/p_unit/itf_db), [current_itf/3]).
 
 :- export(get_pred_mod_defined/2).
 :- pred get_pred_mod_defined(+Sg,-Mod) + nondet
@@ -485,7 +483,6 @@ type_of_directive(Type,Body):-
 % TODO: merge with itf_db?
 
 :- use_module(library(compiler/p_unit/unexpand), [add_head_unexpanded_data/1]).
-:- use_module(library(compiler/p_unit/itf_db), [assert_itf/5]).
 
 :- data pr_key/1.
 
@@ -871,21 +868,19 @@ get_commented_assertion(ClKey, As) :-
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(persdb/datadir), [ensure_datadir/2]).
-:- use_module(library(compiler/p_unit/itf_db), [fake_module_name/1, cleanup_lib_itf/0]).
+:- use_module(library(compiler/p_unit/p_unit_db), [fake_module_name/1, cleanup_lib_p_unit_db/0]).
 
 % TODO: Currently not used, but necessary if we want to rebuild/reload libcache
 :- export(cleanup_libcache/0).
 :- pred cleanup_libcache # "Cleans up libcache.".
 cleanup_libcache :-
-    assrt_db:cleanup_lib_assrt,
-    ( hook_cleanup_lib_regtypes -> true ; true ),
-    clause_db:cleanup_lib_props,
-    itf_db:cleanup_lib_itf.
+    cleanup_lib_p_unit_db,
+    ( hook_cleanup_lib_regtypes -> true ; true ).
 
 :- export(loaded_libcache/0).
 :- pred loaded_libcache/0 # "Checks if the libcache is loaded".
 loaded_libcache :-
-    loaded_lib_assrt.
+    loaded_lib_p_unit_db.
 
 :- export(load_libcache/1).
 :- pred load_libcache(DataDir) # "Load the preprocessed
@@ -897,9 +892,7 @@ load_libcache(DataDir) :-
     catch(load_libcache_internal(Dir), error(_,_), throw(error(unable_to_load, load_libcache/1))).
 
 load_libcache_internal(Path) :-
-    load_from_file(Path, 'lib_assertion_read.pl', assrt_db:load_lib_assrt),
-    load_from_file(Path, 'lib_prop_clause_read.pl', clause_db:load_lib_props),
-    load_from_file(Path, 'lib_itf_db.pl', itf_db:load_lib_itf),
+    load_from_file(Path, 'lib_p_unit_db.pl', restore_lib_p_unit_db),
     load_from_file(Path, 'lib_typedb.pl', restore_lib_regtypes).
 
 restore_lib_regtypes(Stream) :- hook_restore_lib_regtypes(Stream), !.
@@ -927,9 +920,7 @@ gen_libcache(DataDir) :-
 
 gen_libcache_internal(Path) :-
     push_prolog_flag(write_strings, on),
-    write_to_file(Path, 'lib_assertion_read.pl', assrt_db:gen_lib_assrt),
-    write_to_file(Path, 'lib_prop_clause_read.pl', gen_lib_props),
-    write_to_file(Path, 'lib_itf_db.pl', dump_lib_itf),
+    write_to_file(Path, 'lib_p_unit_db.pl', save_lib_p_unit_db),
     write_to_file(Path, 'lib_typedb.pl', save_lib_regtypes),
     pop_prolog_flag(write_strings).
 

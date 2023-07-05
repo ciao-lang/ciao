@@ -26,7 +26,7 @@
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 :- use_module(library(compiler/p_unit/p_unit_basic), [type_of_goal/2, meta_to_list/2]).
 
-:- use_module(library(compiler/p_unit/itf_db), [curr_file/2]).
+:- use_module(library(compiler/p_unit/p_unit_db), [curr_file/2]).
 :- use_module(library(compiler/p_unit), [add_directive/1]).
 
 % -------------------------------------------------------------------------
@@ -254,7 +254,7 @@ transform_reexported_atom(_F, _A, M, M).
 :- pred unexpanded_defines(Name, Arity).
 :- data unexpanded_defines/2.
 
-:- use_module(library(compiler/p_unit/itf_db), [current_itf/3]).
+:- use_module(library(compiler/p_unit/p_unit_db), [current_itf/3]).
 :- use_module(library(pathnames), [path_basename/2]).
 
 generate_unexpanded_data(user(File)) :-

@@ -6,8 +6,7 @@
     native_property/2,
     wam_builtin/2]).
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
-:- use_module(library(compiler/p_unit/assrt_db), [assertion_read/9]).
-:- use_module(library(compiler/p_unit/itf_db), [current_itf/3]).
+:- use_module(library(compiler/p_unit/p_unit_db), [assertion_read/9, current_itf/3]).
 :- use_module(library(lists), [member/2, length/2]).
 :- use_module(library(hiordlib), [maplist/2]).
 
