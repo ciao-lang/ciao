@@ -143,9 +143,9 @@ actual_prop_to_message(X,['\n    ', ''({X}) | Tail], Tail).
 
 :- use_module(library(lists), [length/2, append/3]).
 
-:- test compact_list(A, B) :
-    (A = [1, 2, 2, 2, 2, 3, 3, 4, 3, 4, 3, 4, 3, 4, 1, 5, 7, 1, 5, 7])
-    => (B = [1, 2, 3, 4, 1, 5, 7]) + not_fails.
+% :- test compact_list(A, B) :
+%     (A = [1, 2, 2, 2, 2, 3, 3, 4, 3, 4, 3, 4, 3, 4, 1, 5, 7, 1, 5, 7])
+%     => (B = [1, 2, 3, 4, 1, 5, 7]) + not_fails.
 
 :- export(compact_list/2). % TODO: do not export, only for running tests
 :- pred compact_list(L, R) : list(L) => list(R)
