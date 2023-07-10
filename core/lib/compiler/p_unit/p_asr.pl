@@ -330,7 +330,7 @@ load_related_files([F|Fs], M) :-
 
 process_main_info_file(M, Opts, Base) :-
     p_unit_log(['{Processing main module ']),
-    defines_module(Base, M),
+    c_itf:defines_module(Base, M),
     assertz_fact(processed_file(Base)),
     assert_itf(defines_module, M, _, _, Base),
     %% forces generation of defines/5 data (used below)
@@ -489,7 +489,7 @@ asr_readable(Base) :-
         file_up_to_date(AsrName, PlName),
         % display('Reading asr file '), display(AsrName), nl,
         read_asr_file(AsrName),
-        defines_module(Base, M),
+        c_itf:defines_module(Base, M),
         assert_itf(defines_module, M, _, _, Base)
     ).
 
@@ -750,12 +750,13 @@ not_allow_external(_,       true). % True is not expanded
 head_expand(Type, PD, M, Dict, ExpPD, loc(Source, LB, LE)) :-
     not_allow_external(Type, PD),
     !,
-  functor(PD, F, A),
-  ( functor(Meta, F, A), meta_args(M, Meta) -> true ; Meta = 0 ),
-    module_expand(PD, true, M, Dict, ExpPD0, _, Source, LB, LE),
-  fix_assrt_head(ExpPD0, Meta, M, ExpPD),
     functor(PD, F, A),
-    (defines(M, F, A) -> true ; assertz_fact(defines(M, F, A))).
+    ( functor(Meta, F, A), meta_args(M, Meta) -> true ; Meta = 0 ),
+    module_expand(PD, true, M, Dict, ExpPD0, _, Source, LB, LE),
+    fix_assrt_head(ExpPD0, Meta, M, ExpPD),
+    functor(PD, F, A),
+    % TODO: doing this is dangerous (JF)
+    ( c_itf:defines(M, F, A) -> true ; assertz_fact(c_itf:defines(M, F, A)) ).
 % Using module_expand in this way allows us to write assertions of
 % predicates that are in other modules: --EMM
 head_expand(_, PD, M, Dict, ExpPD, loc(Source, LB, LE)) :-
@@ -856,7 +857,7 @@ module_expansion(H, B, Module, Dict, Mode, Src, Ln0, Ln1, H1, B1, H2, B2):-
 %% Related file processing
 
 process_related_file(Rel, Opts, Base) :-
-    defines_module(Base, M),
+    c_itf:defines_module(Base, M),
     assertz_fact(processed_file(Base)),
 %       display( processed_file( Base ) ), nl,
 
