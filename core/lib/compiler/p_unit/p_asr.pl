@@ -136,7 +136,7 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/p_unit_db}.
     meta_args/2,
     dyn_decl/4
 ]).
-:- import(c_itf, [mexpand_error/0]). % TODO: export this predicate or promote it
+:- import(c_itf, [mexpand_error/0, del_compiler_pass_data/0, end_brace_if_needed/0]). % TODO: export this predicate or promote it
                                      % internally as module_error, at c_itf
 :- use_module(library(compiler/translation),
         [expand_clause/6, del_goal_trans/1, del_clause_trans/1]).
@@ -330,6 +330,7 @@ load_related_files([F|Fs], M) :-
 
 process_main_info_file(M, Opts, Base) :-
     p_unit_log(['{Processing main module ']),
+    del_compiler_pass_data, % (mexpand_error/0, location/3, ...)
     c_itf:defines_module(Base, M),
     assertz_fact(processed_file(Base)),
     assert_itf(defines_module, M, _, _, Base),
@@ -362,6 +363,7 @@ process_main_info_file(M, Opts, Base) :-
     ),
     save_itf_info_of(Base, M, IsMain),
     deactivate_second_translation(Base, M),
+    end_brace_if_needed,
 %% initialize the (directly) related files of Base
     assert_related_files_direct(Base),
     p_unit_log(['}']).
@@ -857,6 +859,7 @@ module_expansion(H, B, Module, Dict, Mode, Src, Ln0, Ln1, H1, B1, H2, B2):-
 %% Related file processing
 
 process_related_file(Rel, Opts, Base) :-
+    del_compiler_pass_data, % (mexpand_error/0, location/3, ...)
     c_itf:defines_module(Base, M),
     assertz_fact(processed_file(Base)),
 %       display( processed_file( Base ) ), nl,
@@ -878,6 +881,7 @@ process_related_file(Rel, Opts, Base) :-
     save_exported_assertions_of(Base, M),
     save_relevant_properties_of(Base, M),
     deactivate_second_translation(Base, M),
+    end_brace_if_needed,
 %% store (more) files related to Base
     assert_related_files(Rel, Base, M),
 %% .asr file
