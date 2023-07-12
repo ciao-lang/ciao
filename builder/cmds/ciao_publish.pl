@@ -606,25 +606,7 @@ after_push_help :- ~srcbundle = ciao, !,
     lformat([
         % ___________________________________________________________________________
         '\n',
-        'REMINDERS:\n',
-        '\n',
-        '  - SSH to run.ciao-lang.org and update ciao_test_base for GitLab CI (if needed)\n',
-        '  - Update website catalog (gen_catalog/0) (if needed)\n',
-        '  - Check the status of github actions\n',
-        '  - Trigger build at https://github.com/ciao-lang/docker-ciao\n',
-        '    (Output: https://hub.docker.com/r/ciaolang/ciao/)\n',
-        '  - For new releases, remember to create and push tags:\n',
-        '    E.g.,\n',
-        '      cd ', ~path_dirname(~dstgit), '\n',
-        % TODO: instructions to delete local and remote tag
-        %   git tag -d vMAJOR.MINOR.PATCH
-        %   git push --delete origin vMAJOR.MINOR.PATCH
-        '      git tag vMAJOR.MINOR.PATCH\n',
-        '      git push origin vMAJOR.MINOR.PATCH\n',
-        '\n',
-        '  - Remember to change default_vers_bin=MAJOR.MINOR.PATCH in ciao-boot.sh\n',
-        '  - Update core/doc/CHANGELOG.pl\n',
-        '  - SSH to ciao-lang.org and update website (see etc/update-site.sh and update versions)\n',
+        'REMINDERS: Please check (ciao-org) HowToReleaseCiao.md to release a new Ciao version\n',
         '\n']).
 after_push_help.
 
