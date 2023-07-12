@@ -144,6 +144,7 @@ Options:
 Help:
 
   help             Show this message
+  guide            Show release guide information
 
 Commands for querying information:
 
@@ -165,6 +166,8 @@ Commands on the publishing repo:
   pull             Pull
   push             Push
   rebase -- [args] Rebase (with of rest args)
+  tag -- TAG       Set tag (also remotely)
+  deltag -- TAG    Delete tag (also remotely)
 
 If no Bundle is specified, it is automatically detected from the
 working directory (this assumes that we have an updated checkout).
@@ -207,7 +210,7 @@ main(Args) :-
     run_cmd(Cmd, Opts, Args2).
 main(_) :-
     message(error, [
-        'Invalid usage. See \'ciao publish help\'.']),
+        'Invalid usage. See \'ciao publish help\' or \'ciao publish guide\'.']),
     halt(1).
 
 parse_opts(['--id', Id|Args], Args2, [srcid(Id)|Opts]) :- !,
@@ -561,8 +564,7 @@ run_push_dstgit :-
     git_cmd_atwd(~dstgit, ['log', 'origin/master..master'], [stdout(string(Out))]),
     ( Out = "" -> % No pending commits
         lformat(['No remaining commits to push\n'])
-    ; git_cmd_atwd_q(~dstgit, ['push']),
-      after_push_help 
+    ; git_cmd_atwd_q(~dstgit, ['push'])
     ).
 
 %! ## Rebase
@@ -576,6 +578,33 @@ run_rebase_dstgit(Opts) :-
     ; Args = []
     ),
     git_cmd_atwd(~dstgit, ['rebase'|Args], []).
+
+%! ## Tag
+cmd_decl(tag).
+cmd_needs_check_repos(tag).
+cmd_run(tag, Opts) :- !, run_tag_dstgit(Opts).
+
+run_tag_dstgit(Opts) :-
+    ( member(restargs([Tag]), Opts) ->
+        lformat(['=> ', ~srcbundle, ': setting tag\n']),
+        git_cmd_atwd(~dstgit, ['tag', Tag], []),
+        git_cmd_atwd(~dstgit, ['push', 'origin', Tag], [])
+    ; lformat(['=> ', ~srcbundle, ': showing tag\n']),
+      git_cmd_atwd(~dstgit, ['describe', '--abbrev=0', '--tags'], [])
+    ).
+
+%! ## Del Tag
+cmd_decl(deltag).
+cmd_needs_check_repos(deltag).
+cmd_run(deltag, Opts) :- !, run_deltag_dstgit(Opts).
+
+run_deltag_dstgit(Opts) :-
+    lformat(['=> ', ~srcbundle, ': setting tag\n']),
+    ( member(restargs([Tag]), Opts) -> true
+    ; fail
+    ),
+    git_cmd_atwd(~dstgit, ['tag', '-d', Tag], []),
+    git_cmd_atwd(~dstgit, ['push', '--delete', 'origin', Tag], []).
 
 % ---------------------------------------------------------------------------
 %! # Help on next steps
@@ -600,15 +629,18 @@ after_commit_help :-
         'Use \'ciao publish rebase -- -i\' to rebase commits if needed.\n',
         'Use \'ciao publish push\' to send commits to remote.\n']).
 
-% Help after push
-% TODO: configure per bundle
-after_push_help :- ~srcbundle = ciao, !,
+cmd_decl(guide).
+cmd_needs_check_repos(guide).
+cmd_run(guide, _Opts) :- !, show_guide.
+
+show_guide :-
+     ~srcbundle = ciao, !,
     lformat([
         % ___________________________________________________________________________
         '\n',
-        'REMINDERS: Please check (ciao-org) HowToReleaseCiao.md to release a new Ciao version\n',
+        'Read \'HowToReleaseCiao.md\' for Ciao release instructions\n',
         '\n']).
-after_push_help.
+show_guide.
 
 % ---------------------------------------------------------------------------
 %! # Patch a tree before publishing
