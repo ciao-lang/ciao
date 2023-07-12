@@ -40,8 +40,8 @@ fi
 
 release_query_info() {
     case "$v__release" in
-        stable) tag=v1.22.0-m5 ;;
-        beta)   tag=v1.22.0-m5 ;;
+        stable) tag=v1.22.0-m6 ;;
+        beta)   tag=v1.22.0-m6 ;;
         latest) tag=master ;;
     esac
     # Set other defaults based on release
