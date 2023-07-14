@@ -7,7 +7,6 @@
  %% Update Count    : 296
  %% Status          : Unknown, Use with caution!
 
-%:- module(knights, [main/1], [profiler]).
 :- module(knights, [main/1], []).
 
 :- use_module(library(lists), [member/2]).
