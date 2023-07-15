@@ -1,4 +1,4 @@
-:- module(_, [detect_c_headers/1], [assertions, dcg]).
+:- module(_, [detect_c_headers/1], [assertions, modes, dcg]).
 
 :- doc(title, "C header detection").
 
@@ -12,6 +12,7 @@
 :- use_module(library(system_extra), [del_file_nofail/1]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(port_reify), [once_port_reify/2]).
+:- use_module(library(assertions/c_itf_props), [filename/1]).
 
 :- pred detect_c_headers(+list(filename)) # "Succeeds if all the
     c header files in the argument are valid.".
