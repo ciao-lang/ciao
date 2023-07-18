@@ -428,8 +428,8 @@ assertion_read(Goal,M,Status,Type,Body,Dict,Source,LB,LE):-
 add_assertion_read(Goal,M,Status,Type,Body,Dict,Source,LB,LE):-
     ( allowed_head(Type,Goal) ->
         assertz_fact(pgm_assertion_read(Goal,M,Status,Type,Body,Dict,Source,LB,LE))
-    ;
-        warning_message(loc(Source, LB, LE), "Assertion head syntax ~q, assertion ignored.", [Goal])
+    ; warning_message(loc(Source, LB, LE),
+                      "Assertion head syntax ~q, assertion ignored (try loading the 'modes' package)", [Goal])
     ).
 
 allowed_head(Type,Goal) :-
