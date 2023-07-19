@@ -29,6 +29,7 @@
     [
         fd_pchains_t/1,
         fd_pchain_type_t/1,
+        fd_propags_t/1,
 
         empty/1,
         add/3,
@@ -49,8 +50,9 @@
 fd_pchains_t(_).
 
 % A goal is a cgoal
-% fd_propags_t(Chain) :-
-%       list(Chain).
+:- regtype fd_propags_t/1. % TODO: this was commented out, why? (JF)
+fd_propags_t(Chain) :-
+      list(Chain).
 
 :- regtype fd_pchain_t/1.
 fd_pchain_t(_).

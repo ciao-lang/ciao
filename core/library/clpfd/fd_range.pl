@@ -22,7 +22,7 @@
 %% along with this program; if not, write to the Free Software
 %% Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 %% ---------------------------------------------------------------------------
-:- module(fd_range, [], [assertions, regtypes]).
+:- module(fd_range, [], [assertions, regtypes, modes]).
 
 %% Ciao's CLPFD library supports several ranges using this range
 %% selection module.
@@ -33,7 +33,9 @@
 %% Here we document the interface that a range implementation must
 %% support.
 
-:- pred fd_range_type(string) # "Name of the range module (for debug purposes)".
+:- pred fd_range_type(?atm) # "Name of the range module (for debug purposes)".
+
+:- regtype fd_const_spec/1. % TODO: document (JFMC)
 
 :- regtype fd_range_bound_t/1 # "Type of a range bound. Used in min and max and operations".
 

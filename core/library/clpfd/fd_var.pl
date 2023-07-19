@@ -34,14 +34,14 @@
         set_propags/2,
         get_id/2
     ],
-    [assertions, regtypes, fsyntax]).
+    [assertions, regtypes, modes, fsyntax]).
 
 :- doc(title, "Finite domain variables").
 
 :- use_package(library(clpfd/clpfd_options)).
 
 :- use_module(library(clpfd/fd_range),   [fd_range_t/1, default/1]).
-:- use_module(library(clpfd/fd_pchains), [fd_pchains_t/1, empty/1]).
+:- use_module(library(clpfd/fd_pchains), [fd_pchains_t/1, empty/1, fd_propags_t/1]).
 
 :- regtype fd_var_t/1 #
     "Internal representation of an indexical variable".

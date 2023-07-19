@@ -53,7 +53,7 @@
         next_in_dom/3,
         enum/2
     ],
-    [assertions, regtypes, fsyntax, dcg]).
+    [assertions, regtypes, modes, fsyntax, dcg]).
 
 :- include(library(clpfd/fd_ops)).
 
@@ -63,6 +63,8 @@
 :- use_module(library(clpfd/fd_range)).
 :- use_module(library(clpfd/fd_pchains)).
 :- use_module(library(clpfd/clpfd_stats)).
+
+:- use_module(library(clpfd/clpfd_rt), [fd_range_expr/1]). % TODO: move type here? cyclic dep
 
 %% FD solver Core.
 
@@ -75,7 +77,7 @@
 fd_term_t := ~fd_var_t  % # "A FD variable"
       |  ~int. % # "A FD integer"
 
-:- pred min(+fd_term_t, -fd_int_t) #
+:- pred min(+fd_term_t, -fd_range_bound_t/*-fd_int_t*/) #
     "Returns the minimum value a FD term may take. Not complete.".
 min(X, Min):-
     fd_var:get_range(X, Range), !,
@@ -84,7 +86,7 @@ min(X, Min) :-
     % trust(fd_int_t(X)), !,
     Min = X.
 
-:- pred max(+fd_term_t, -fd_int_t) #
+:- pred max(+fd_term_t, -fd_range_bound_t/*-fd_int_t*/) #
     "Returns the maxium value a FD term may take. Not complete.".
 max(X, Max) :-
     fd_var:get_range(X, Range), !,
@@ -93,7 +95,7 @@ max(X, Max) :-
     % trust(fd_int_t(X)), !,
     Max = X.
 
-:- pred bounds(+fd_term_t, -fd_int_t, -fd_int_t) #
+:- pred bounds(+fd_term_t, -fd_range_bound_t/*-fd_int_t*/, -fd_range_bound_t/*-fd_int_t*/) #
     "Returns current bounds for a FD term. Not complete.".
 bounds(X, Min, Max) :-
     fd_var:get_range(X, Range), !,
@@ -103,7 +105,7 @@ bounds(X, Min, Max) :-
     % trust(fd_int_t(X)), !,
     Min = X, Max = X.
 
-:- pred size(+fd_term_t, -fd_int_t) #
+:- pred size(+fd_term_t, -fd_range_bound_t/*-fd_int_t*/) #
     "Returns the size of the range of a FD term".
 size(X, Size):-
     fd_var:get_range(X, Range), !,
@@ -112,7 +114,7 @@ size(_X, Size):-
     % trust(fd_int_t(_X)), !,
     Size = 1.
 
-:- pred dom(+fd_term_t, -idx_dom_t) #
+:- pred dom(+fd_term_t, -list(int)/*-idx_dom_t*/) #
     "".
 dom(X, Dom):-
     fd_var:get_range(X, Range), !,
@@ -129,7 +131,7 @@ dom_term(X, Dom):-
     % trust(fd_int_t(X)), !,
     Dom = X.
 
-:- pred range(+fd_term_t, -fd_range).
+:- pred range(+fd_term_t, -fd_range_t).
 range(X, Range) :- 
     fd_var:get_range(X, Range), !.
 range(X, Range) :-
@@ -171,7 +173,7 @@ integerize(X, Y) :- !,
 %       % trust(integer(X)), !,
 %       X = V.
 
-:- pred in(+fd_term_t, +idx_dom_t).
+:- pred in(+fd_term_t, +fd_range_expr/*+idx_dom_t*/).
 in(X, Dom):-
     ( 
         make_range(Dom, Range) ->
@@ -188,7 +190,7 @@ make_range(I) := ~(fd_range:new(I, I)) :- !, integer(I).
 new := ~(fd_var:default).
 
 
-:- pred var_id(+fd_var, -int).
+:- pred var_id(+fd_var_t, -int).
 var_id(Var) :=  ~(fd_var:get_id(Var)).
 
 
@@ -214,7 +216,7 @@ prune(X, I):-
     ).
 
 
-:- pred tell_range(+fd_term_t, +fd_range).
+:- pred tell_range(+fd_term_t, +fd_range_t).
 tell_range(X, TellRange):-
 %DEBUG  clpfd_debug("Telling ~p in ~p~n", [~fd_var:get_id(X), Range]),
     fd_var:get_range(X, VarRange), !,
@@ -242,7 +244,7 @@ tell_range(X, Range):-
 %% Note that we only support linear wakeup, this is what execute
 %% does. Lots os possibilities to improve that.
 
-:- pred tell_range_and_wakeups(+fd_var, +fd_range, +fd_range).
+:- pred tell_range_and_wakeups(+fd_var_t, +fd_range_t, +fd_range_t).
 tell_range_and_wakeups(_X, VarRange, NewRange) :-
     VarRange == NewRange, !.
 tell_range_and_wakeups(X, VarRange, NewRange) :-

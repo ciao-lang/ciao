@@ -26,6 +26,7 @@
 :- module(fd_range_intervals,
     [
         fd_range_type/1,
+        fd_const_spec/1,
         fd_range_bound_t/1,
         fd_range_t/1,
 
@@ -63,7 +64,7 @@
 
         in_range/2
     ],
-    [assertions, regtypes,  fsyntax, dcg]).
+    [assertions, regtypes, modes, fsyntax, dcg]).
 
 :- doc(title, "Sparse integer ranges implemented as list of intervals").
 
@@ -88,6 +89,8 @@ fd_range_type(prolog_interval_list).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Types, Creators and Accessors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fd_const_spec := ~int | inf | sup.
 
 % Our range bounds are closed integers
 

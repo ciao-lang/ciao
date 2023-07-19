@@ -29,6 +29,7 @@
 :- module(fd_range_bits_unsafe,
     [
         fd_range_type/1,
+        fd_const_spec/1,
         fd_range_bound_t/1,
         fd_range_t/1,
 
@@ -77,9 +78,9 @@
 :- use_module(library(lists), [last/2, append/3]).
 :- use_module(library(between), [between/3]).
 
-
 fd_range_type(prolog_bits_unsafe).
 fd_range_t(_).
+fd_const_spec := ~int | inf | sup.
 fd_range_bound_t(_).
 
 mymax(inf, X) := X :-!.
