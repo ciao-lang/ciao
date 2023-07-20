@@ -136,8 +136,15 @@ importing libraries @lib{ciaopp/p_unit}, @lib{ciaopp/p_unit/p_unit_db}.
     meta_args/2,
     dyn_decl/4
 ]).
-:- import(c_itf, [mexpand_error/0, del_compiler_pass_data/0, end_brace_if_needed/0]). % TODO: export this predicate or promote it
-                                     % internally as module_error, at c_itf
+% TODO: export these predicates or promote it internally as
+%       module_error, at c_itf
+:- import(c_itf, [
+    mexpand_error/0,
+    del_compiler_pass_data/0,
+    end_brace_if_needed/0,
+    assr_head_expansion/7
+]).
+
 :- use_module(library(compiler/translation),
         [expand_clause/6, del_goal_trans/1, del_clause_trans/1]).
 :- use_module(library(messages)).
@@ -749,6 +756,7 @@ get_one_assertion_of(PD, M, As2) :-
 not_allow_external(modedef, _).
 not_allow_external(_,       true). % True is not expanded
 
+% TODO: see c_itf:assr_head_expansion/7, we should not do goal expansions of assertion heads
 head_expand(Type, PD, M, Dict, ExpPD, loc(Source, LB, LE)) :-
     not_allow_external(Type, PD),
     !,
@@ -761,13 +769,16 @@ head_expand(Type, PD, M, Dict, ExpPD, loc(Source, LB, LE)) :-
     ( c_itf:defines(M, F, A) -> true ; assertz_fact(c_itf:defines(M, F, A)) ).
 % Using module_expand in this way allows us to write assertions of
 % predicates that are in other modules: --EMM
-head_expand(_, PD, M, Dict, ExpPD, loc(Source, LB, LE)) :-
+head_expand(_, PD, M, _Dict, ExpPD, _Loc) :- % _Loc=loc(Source, LB, LE)
     functor(PD, F, A),
-    ( functor(Meta, F, A), meta_args(M, Meta) -> true ; Meta = 0 ),
-    module_expand(true, PD, M, Dict, _, ExpPD0, Source, LB, LE),
-    % TODO: expanded as goal, not as head
-    fix_assrt_head(ExpPD0, Meta, M, ExpPD).
+    % TODO: Treat addmodule(_) or addterm(_) meta? it is not done in c_itf but it was done in the fix_assrt_head version below
+    assr_head_expansion(PD, M, F, A, _, ExpPD, _).
+    % % TODO: expanded as goal, not as head! this is incorrect (JF)
+    % ( functor(Meta, F, A), meta_args(M, Meta) -> true ; Meta = 0 ),
+    % module_expand(true, PD, M, Dict, _, ExpPD0, Source, LB, LE),
+    % fix_assrt_head(ExpPD0, Meta, M, ExpPD).
 
+% TODO: do not remove this code yet! used in 'modedef'
 fix_assrt_head(ExpPD0, 0, _M, ExpPD) :- !,
     ExpPD = ExpPD0. % no meta, no fix
 fix_assrt_head(ExpPD0, Meta, M, ExpPD) :-
