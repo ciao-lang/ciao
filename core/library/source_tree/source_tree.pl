@@ -539,12 +539,19 @@ copy_mkpath(TargetDir, Perms, Owner) :-
 
 % copy_file with given file (optional) attributes
 copy_file_perms(FileName, TargetFile, CopyOptions, Perms, Owner) :-
-    copy_file(FileName, TargetFile, CopyOptions),
+    copy_file_or_symlink(FileName, TargetFile, CopyOptions),
     ( var(Perms) -> true
     ; set_file_perms(FileName, Perms)
     ),
     ( var(Owner) -> true
     ; set_file_owner(TargetFile, Owner)
+    ).
+
+% Like copy_file but allows copying symlinks
+copy_file_or_symlink(FileName, TargetFile, CopyOptions) :-
+    ( file_property(FileName, linkto(To)) ->
+        copy_file(To, TargetFile, [symlink|CopyOptions])
+    ; copy_file(FileName, TargetFile, CopyOptions)
     ).
 
 % ---------------------------------------------------------------------------
@@ -589,7 +596,7 @@ copy_file_or_dir(FileName, DestDir) :-
         mkpath(T1),
         %
         foreach_file_find(true, FileName, copy(T1, _Perms, _Owner))
-    ; copy_file(FileName, DestDir, [overwrite, timestamp])
+    ; copy_file_or_symlink(FileName, DestDir, [overwrite, timestamp])
     ).
 
 :- export(remove_dir/1).
