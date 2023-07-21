@@ -68,7 +68,7 @@
         in_range/2
     %        portray/3
     ],
-    [assertions, regtypes,  fsyntax, dcg]).
+    [assertions, modes, regtypes,  fsyntax, dcg]).
 
 :- doc(title, "Range handling").
 
@@ -77,6 +77,8 @@
 
 :- use_module(library(lists), [last/2, append/3]).
 :- use_module(library(between), [between/3]).
+
+:- regtype fd_range_t/1.
 
 fd_range_type(prolog_bits_unsafe).
 fd_range_t(_).
@@ -89,7 +91,7 @@ mymax(sup, _) := sup:-!.
 mymax(_, sup) := sup:-!.
 mymax(X, Y) := ~(fd_utils:max(X,Y)).
 
-:- pred default(fd_range_t).
+:- pred default(?fd_range_t).
 default := -1.
 
 :- pred new(+int, +int, -fd_range_t). 

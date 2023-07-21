@@ -56,6 +56,8 @@
       @pred{op/3} does.  Its scope is local to the current text.
       Usually included in @concept{package file}s.".
 
+:- impl_defined([op/3]). % TODO: comp above (iso/1) requires a pred, fixme
+
 % ---------------------------------------------------------------------------
 
 :- doc(doinclude,new_declaration/1).

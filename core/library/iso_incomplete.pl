@@ -189,6 +189,7 @@ close_options([O|Os]):-
 close_option(force(true)).
 close_option(force(false)).
 
+% TODO: warnings due to missing qualification in comp expansion!
 :- pred close(@stream). 
 close(S) :- close(S, []).
 

@@ -1,4 +1,4 @@
-:- module(argnames_test,[],[assertions,regtypes,argnames]).
+:- module(argnames_test,[],[assertions,nativeprops,regtypes,argnames]).
 
 :- doc(title, "Tests for dynamic argnames").
 :- doc(author, "Jose F. Morales").

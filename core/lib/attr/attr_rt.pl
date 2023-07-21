@@ -1,4 +1,4 @@
-:- module(attr_rt, [], [assertions, fsyntax, dcg, datafacts]).
+:- module(attr_rt, [], [assertions, modes, fsyntax, dcg, datafacts]).
 
 :- doc(title, "Attributed variables runtime").
 %:- doc(copyright,"@include{FreeDocLicense.lpdoc}").

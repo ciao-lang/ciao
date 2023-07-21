@@ -1,4 +1,4 @@
-:- module(modblobs, [], [assertions, regtypes, nativeprops, datafacts]).
+:- module(modblobs, [], [assertions, modes, regtypes, nativeprops, datafacts]).
 
 :- doc(title, "Modules as blobs").
 :- doc(author, "Isabel Garcia-Contreras").

@@ -1,9 +1,11 @@
-:- module('lists.test', _, [assertions, regtypes]).
+:- module('lists.test', _, [assertions, nativeprops, regtypes]).
 
 % NOTE: non exhaustive tests and experimental (may change in the future)
 %  - use member/2 and backtracking (similar to test case generation)
 %  - shared variables between calls/success
 %  - compat fields
+
+% TODO: warnings due to missing qualification in comp expansion!
 
 :- use_module(library(lists), [nonsingle/1]).
 nonsingle(A) :- lists:nonsingle(A).

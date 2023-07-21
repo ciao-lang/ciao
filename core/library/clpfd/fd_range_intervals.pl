@@ -94,6 +94,8 @@ fd_const_spec := ~int | inf | sup.
 
 % Our range bounds are closed integers
 
+:- regtype fd_range_bound_t/1.
+
 fd_range_bound_t := ~int | inf | sup.
 
 :- regtype fd_interval_t/1 # "Integer Interval List".
@@ -104,8 +106,8 @@ fd_interval_t([(X,Y)|L]) :-
     fd_range_bound_t(Y),
     fd_interval_t(L).
 
-% :- regtype fd_range_t/1 #
-%       "Data Structure for Sparse Ranges with Singleton".
+:- regtype fd_range_t/1 #
+      "Data Structure for Sparse Ranges with Singleton".
 
 % TODO: Specify well the type.
 fd_range_t(X) :-

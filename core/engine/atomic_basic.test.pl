@@ -1,4 +1,4 @@
-:- module(_, [], [assertions]).
+:- module(_, [], [assertions, nativeprops]).
 
 :- doc(title, "Tests for atomic_basic.pl").
 
