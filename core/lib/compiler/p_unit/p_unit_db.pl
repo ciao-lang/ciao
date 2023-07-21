@@ -432,6 +432,7 @@ add_assertion_read(Goal,M,Status,Type,Body,Dict,Source,LB,LE):-
                       "Assertion head syntax ~q, assertion ignored (try loading the 'modes' package)", [Goal])
     ).
 
+allowed_head(Type,_) :- Type = test, !. % TODO: allow arbitrary args in test assertions (normalize instead?)
 allowed_head(Type,Goal) :-
     Type \= entry, !,
     functor(Goal,F,A),
