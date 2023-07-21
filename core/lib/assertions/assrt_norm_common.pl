@@ -431,6 +431,10 @@ transform_head_arg_props(
 get_arg_props(PDA,PDA,D-D,C-C,A-A,G-G,_NPD,_F,_A,_M,_Opts,_AType,_S,_LB,_LE) :-
     var(PDA),
     !.
+% TODO: ignore modes in test assertions (this is needed for p_unit handling of assertions; but the unittest lib does in a different way; merge!)
+get_arg_props(PDA,PDA,D-D,C-C,A-A,G-G,_NPD,_F,_A,_M,_Opts,AType,_S,_LB,_LE) :-
+    AType = test,
+    !.
 %% Argument is a defined (possibly parametric) mode, 
 get_arg_props(PDA,NPDA,NDP,NCP,NAP,NGP,NPD,_F,_A,M,Opts,AType,S,LB,LE) :-
     with_or_without_arg(PDA,NNPDA,Prop),
