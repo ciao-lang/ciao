@@ -1070,27 +1070,27 @@ read_asr_data_loop__action(exports(M, F, A, DefType, Meta)) :- !,
     add_exports(M, F, A, DefType, Meta).
 read_asr_data_loop__action(irrelevant_file(F)) :- !,
     assertz_fact(irrelevant_file(F)).
-read_asr_data_loop__action(X) :- X = assertion_read(_, M, _, _, Body, _, _, _, _), !,
-    add_assrt_indirect_imports(M, Body), % TODO:[see issue #576] originally enabled; both should be disabled or enabled to ensure a consistent behavior
-    X = assertion_read(A1, A2, A3, A4, A5, A6, A7, A8, A9),
+read_asr_data_loop__action(X) :- X = assertion_read(A1, A2, A3, A4, A5, A6, A7, A8, A9), !,
+    % X = assertion_read(_, M, _, _, Body, _, _, _, _),
+    % add_assrt_indirect_imports(M, Body), % TODO:[see issue #576] originally enabled; both should be disabled or enabled to ensure a consistent behavior
     add_assertion_read(A1, A2, A3, A4, A5, A6, A7, A8, A9).
 read_asr_data_loop__action(X) :- X = prop_clause_read(A1, A2, A3, A4, A5, A6, A7), !,
     add_prop_clause_read(A1, A2, A3, A4, A5, A6, A7).
 
-% TODO:[see issue #576]
-add_assrt_indirect_imports(M, AssrtBody) :-
-    ( adding_to_module(CM) ->
-        assertion_body(Head, _, _, _, _, _, AssrtBody),
-        functor(Head,   MF, A),
-        functor(Head__, MF, A),
-        ( current_itf(imports(CM,_), Head__, M) ->
-            true
-        ; module_split(MF, _, F),
-          add_indirect_imports(CM, M, F, A)
-        )
-    ;
-        true
-    ).
+% % TODO:[see issue #576]
+% add_assrt_indirect_imports(M, AssrtBody) :-
+%     ( adding_to_module(CM) ->
+%         assertion_body(Head, _, _, _, _, _, AssrtBody),
+%         functor(Head,   MF, A),
+%         functor(Head__, MF, A),
+%         ( current_itf(imports(CM,_), Head__, M) ->
+%             true
+%         ; module_split(MF, _, F),
+%           add_indirect_imports(CM, M, F, A)
+%         )
+%     ;
+%         true
+%     ).
 
 :- data asr_stream/1. % (enable asr write)
 
