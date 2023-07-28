@@ -362,22 +362,20 @@ process_main_info_file(M, Opts, Base) :-
     % Add operators to output operator DB
     assert_operators_of(Base),
     % add itf facts to DB
-    ( member(load_pkg_from(_), Opts) ->
-        % TODO: (JF) I changed it injection of packages behave like 
-        %   'related files' (it fills impl_defines now)
-        IsMain = no
-    ; IsMain = yes
+    ( member(load_pkg_from(TargetM), Opts) ->
+        % For injected packages, save imports into TargetM and nothing else (JFMC)
+        save_itf_injected_imports(M, TargetM)
+    ; save_itf_info_of(Base, M, yes)
     ),
-    save_itf_info_of(Base, M, IsMain),
     deactivate_second_translation(Base, M),
     end_brace_if_needed,
-%% initialize the (directly) related files of Base
+    %% initialize the (directly) related files of Base
     assert_related_files_direct(Base),
     p_unit_log(['}']).
 
 save_itf_info_of(Base, M, _IsMain) :-
     defines(Base, F, A, DefType, Meta),
-    assert_itf(defines, M, F, A, M),
+    assert_itf(defines, M, F, A, M), % TODO: also for DefType=implicit? (see next clause)
     save_meta_dynamic(Meta, DefType, M, F, A),
     fail.
 save_itf_info_of(Base, M, _IsMain) :-
@@ -393,11 +391,13 @@ save_itf_info_of(_Base, M, yes) :- % saving imported preds
     ),
     %       save_meta_dynamic(Meta, DefType, M, F, A), %%% IG: here use meta_args
     fail.
+% TODO: only for IsMain=yes?
 save_itf_info_of(_Base, M, yes) :- % saving meta preds
     meta_args(M, Pred),
     functor(Pred, F, A),
     assert_itf(meta, M, F, A, Pred),
     fail.
+% TODO: only for IsMain=yes?
 save_itf_info_of(Base, M, yes) :- % saving dynamic/data/concurrent preds
     dyn_decl(Base, F, A, Decl),
     assert_itf(dynamic, M, F, A, Decl),
@@ -408,12 +408,25 @@ save_itf_info_of(Base, M, yes) :-
     exports(Base, F, A, _DefType, _Meta),
     assert_itf(exports, M, F, A, M),
     fail.
+% TODO: only for IsMain=yes?
 save_itf_info_of(Base, M, yes) :-
     def_multifile(Base,F,A,DefType),
     \+ c_itf_internal_pred(F,A),
     assert_itf(multifile, M, F, A, DefType),
     fail.
 save_itf_info_of(_Base, _M, _IsMain).
+
+% (M is the package wrapper module, FromM is the target module for injection)
+save_itf_injected_imports(M, TargetM) :- % saving injected imports
+    imports(M, IM, F, A, EM),
+    ( (EM = '.' ; IM = EM) ->
+        assert_itf(injected_imports, TargetM, F, A, IM) % IG define end module and reexported
+    ; assert_itf(injected_imports, TargetM, F, A, r(IM,EM)), % TODO: needed for output
+      assert_itf(injected_imports, TargetM, F, A, EM)
+    ),
+    %       save_meta_dynamic(Meta, DefType, M, F, A), %%% IG: here use meta_args
+    fail.
+save_itf_injected_imports(_M, _TargetM).
 
 save_meta_dynamic(Meta, DefType, M, F, A) :-
     ( Meta\==0 -> assert_itf(meta, M, F, A, Meta)

@@ -760,7 +760,8 @@ load_package_info(M, File) :-
     set_ciaopp_expansion(true), % TODO: try to avoid this
     ( preprocessing_unit_opts([File], [load_pkg_from(M)], _, _) -> true ; true ), % TODO: can it fail?
     set_ciaopp_expansion(false),
-    % TODO: update unexpanded data?
+    % TODO: update unexpanded data or wait until we've loaded everything?
+    %   cleaning and recomputing all unexpanded data all the time makes sense (JF)
     clean_unexpanded_data,
     generate_unexpanded_data(M).
 

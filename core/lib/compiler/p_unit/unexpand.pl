@@ -14,6 +14,7 @@
 ], [assertions, datafacts]).
 
 % TODO: this is the inverse of mexpand.pl; synchronize! --JF
+% TODO: this should be relative to the current module --JF
 
 :- use_module(library(formulae)).
 
@@ -267,14 +268,17 @@ generate_unexpanded_data(Module) :-
     module_split(MF, Module, F),
     assertz_fact(unexpanded_defines(F, A)), % TODO: missing Module? (for multimod)
     fail.
-generate_unexpanded_data(_) :-
+generate_unexpanded_data(Module) :-
     % Generate inverse table for imports
-    type_of_goal(imported(_ISpec), Goal),
+%%    type_of_goal(imported(_ISpec), Goal), % TODO: include all imports, even indirect
+    ( current_itf(imports(Module,direct),Goal,_) % unexpand from direct imports
+    ; current_itf(imports(Module,injected),Goal,_) % TODO: unexpand also from injected imports
+    ),
     %         module_spec(ISpec, IM),
     functor(Goal, MF, A),
     module_split(MF, IM, F),
     functor(GoalReexp, F, A),
-    (current_itf(imports, GoalReexp, r(IM2,IM))-> true ; IM2=IM),
+    ( current_itf(imports, GoalReexp, r(IM2,IM)) -> true ; IM2=IM ),
     \+ unexpanded_import(F, A, IM2),
     assertz_fact(unexpanded_import(F, A, IM2)),
     fail.
@@ -287,12 +291,12 @@ clean_unexpanded_data :-
 simplify_qualify('multifile':F, _A, F):-  !.
 simplify_qualify(M:F, A, F) :-
     functor(Goal, F, A),
-    (current_itf(imports, Goal, r(M2,M));M2=M),
+    ( current_itf(imports, Goal, r(M2,M)) ; M2=M ),
     superfluous_qualify(M2, F, A), 
     !.
 simplify_qualify(M:F, A, M2:F) :-
     functor(Goal, F, A),
-    (current_itf(imports, Goal, r(M2,M));M2=M),
+    ( current_itf(imports, Goal, r(M2,M)) ; M2=M ),
     !.
 simplify_qualify(MF, _, MF).
 
@@ -324,24 +328,23 @@ superfluous_qualify(M, F, A) :-
 
 % { DTM
 
-:- pred add_unexpanded_data(Module, Functor, Arity, CurrModule) ::
-    (atm(Module), atm(Fuctor), num(Arity))
+:- pred add_unexpanded_data(Module, F, A, CurrModule) :: (atm(Module), atm(F), num(A), atm(CurrModule))
    # "Add necessary internal data to do a correct unexpansion. User _do
    not have_ to use this predicate.".
 % The same predicated as one imported
-add_unexpanded_data(Module, Functor, Arity, _CurrModule) :-
-    unexpanded_import(Functor, Arity, Module),
+add_unexpanded_data(Module, F, A, _CurrModule) :-
+    unexpanded_import(F, A, Module),
     !.
 % The predicate is already defined in this module
-add_unexpanded_data(Module, Functor, Arity, Module) :-
-    unexpanded_defines(Functor, Arity),
+add_unexpanded_data(Module, F, A, Module) :-
+    unexpanded_defines(F, A),
     !.
 % New Predicate defines in _this_ module
-add_unexpanded_data(M, Functor, Arity, M) :- !,
-    assertz_fact(unexpanded_defines(Functor, Arity)).
+add_unexpanded_data(M, F, A, M) :- !,
+    assertz_fact(unexpanded_defines(F, A)).
 % New Predicate imported from other module
-add_unexpanded_data(Module, Functor, Arity, _CurrModule) :-  !,
-    assertz_fact(unexpanded_import(Functor, Arity, Module)).
+add_unexpanded_data(Module, F, A, _CurrModule) :-  !,
+    assertz_fact(unexpanded_import(F, A, Module)).
 
 % DTM }
 
@@ -353,7 +356,7 @@ add_unexpanded_data(Module, Functor, Arity, _CurrModule) :-  !,
    internal use. It adds all the necessary information to make
    @pred{type_of_goal/2} and unexpansion process coherent.".
 
-add_head_unexpanded_data(M:Head) :- !,
+add_head_unexpanded_data(M:Head) :- !, % TODO: only on recursive calls from this pred?
     functor(Head, F, A),
     % assert current_itf(defines, MF, A) ??
     curr_file(_, CM),
@@ -364,7 +367,7 @@ add_head_unexpanded_data(MHead) :-
     !,
     Head =.. [F|As],
     add_head_unexpanded_data(M:Head).
-add_head_unexpanded_data(Head) :-
+add_head_unexpanded_data(Head) :- % TODO: show warning?
     curr_file(_, M),
     add_head_unexpanded_data(M:Head).
 

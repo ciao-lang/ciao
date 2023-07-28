@@ -173,18 +173,23 @@ assert_itf(imports,M,F,A,r(IM,EM)) :- !, % reexported predicates reexported
     goal_module_expansion(Goal0, EM, Goal),
     % unexpand_meta_calls(Goal1,Goal), % TODO: remove? related with addmodule?
     % TODO: this depends on type_of_goal which, at some point calls current_itf(meta, Goal, Meta)
-    assertz_if_needed(imports(Goal,M,EM)),
-    assertz_if_needed(imports(Goal0,M,r(IM,EM))). % (unexpanded goal for unexpand.pl)
+    assertz_if_needed(imports(Goal,M,EM,direct)),
+    assertz_if_needed(imports(Goal0,M,r(IM,EM),direct)). % (unexpanded goal for unexpand.pl)
 assert_itf(imports,M,F,A,EM):-
     functor(Goal0,F,A),
     goal_module_expansion(Goal0, EM, Goal),
     % unexpand_meta_calls(Goal1,Goal), % TODO: remove? related with addmodule?
-    assertz_if_needed(imports(Goal,M,EM)).
+    assertz_if_needed(imports(Goal,M,EM,direct)).
 assert_itf(indirect_imports,M,F,A,EM):-
     functor(Goal0,F,A),
     goal_module_expansion(Goal0, EM, Goal),
     % unexpand_meta_calls(Goal1,Goal), % TODO: remove? related with addmodule?
-    assertz_if_needed(indirect_imports(Goal,M,EM)).
+    assertz_if_needed(imports(Goal,M,EM,indirect)).
+assert_itf(injected_imports,M,F,A,EM):-
+    functor(Goal0,F,A),
+    goal_module_expansion(Goal0, EM, Goal),
+    % unexpand_meta_calls(Goal1,Goal), % TODO: remove? related with addmodule?
+    assertz_if_needed(imports(Goal,M,EM,injected)).
 assert_itf(exports,M,F,A,_M):-
     functor(Goal0,F,A),
     goal_module_expansion(Goal0, M, Goal),
@@ -219,17 +224,14 @@ assert_itf(impl_defines,M,F,A,_DynType):-
     goal_module_expansion( Goal0 , M , Goal ),
     assertz_fact(impl_defines(Goal,M)).
 
-assertz_if_needed(indirect_imports(Goal,M,EM)) :-
-    ( current_fact(imports(Goal,M,EM,_)) -> true
-    ; assertz_fact(imports(Goal,M,EM,indirect))
-    ).
-assertz_if_needed(imports(Goal,M,EM)) :-
-    ( current_fact(imports(Goal,M,EM,Mode)) ->
-        ( Mode = direct -> true
+assertz_if_needed(imports(Goal,M,EM,Mode)) :- !,
+    ( current_fact(imports(Goal,M,EM,OldMode)) ->
+        upd_import_mode(OldMode,Mode,NewMode),
+        ( NewMode = OldMode -> true
         ; retractall_fact(imports(Goal,M,EM,_)),
-          assertz_fact(imports(Goal,M,EM,direct))
+          assertz_fact(imports(Goal,M,EM,NewMode))
         )
-    ; assertz_fact(imports(Goal,M,EM,direct))
+    ; assertz_fact(imports(Goal,M,EM,Mode))
     ).
 assertz_if_needed(exports(Goal,M)) :-
     ( current_fact(exports(Goal,M)) -> true
@@ -239,6 +241,17 @@ assertz_if_needed(dynamic(Goal)) :-
     ( current_fact(dynamic(Goal)) -> true
     ; assertz_fact(dynamic(Goal))
     ).
+
+% TODO: use bit masks?
+% import modes (direct > inject > indirect):
+%  - direct: direct import from the module
+%  - inject: output injected import (not in the original source)
+%  - indirect: imported from a related module
+upd_import_mode(direct,_,Mode) :- !, Mode = direct.
+upd_import_mode(_,direct,Mode) :- !, Mode = direct.
+upd_import_mode(inject,_,Mode) :- !, Mode = inject.
+upd_import_mode(_,inject,Mode) :- !, Mode = inject.
+upd_import_mode(_,Mode,Mode).
 
 % TODO: why? remove?
 % assert_itf_kludge(remote,imports(Goal,IM)):-
