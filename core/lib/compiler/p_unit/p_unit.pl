@@ -10,9 +10,10 @@
     dynamic_or_unknown_predicate/1,
     % Assertions
     get_assertion/2,
-    add_assertions/1, add_assertion/1,
+    add_assertion/1,
     % Directives
-    add_directive/1, erase_directive/1,
+    add_directive/1,
+    erase_directive/1,
     type_of_directive/2, % TODO: check (see code)
     % Predicate index
     pr_key_clean/0,
@@ -41,61 +42,76 @@
     % Commented (%) assertions
     cleanup_commented_assrt/0,
     get_commented_assertion/2,
-    add_commented_assertions/1,
-    add_commented_assertion/1,
     %
     cleanup_punit/0, % TODO: update with other cleanup_* preds here
     %
     get_call_from_call_assrt/7
 ], [assertions, basicmodes, regtypes, datafacts, hiord, nativeprops, define_flag]).
 
-:- use_package(library(compiler/p_unit/p_unit_argnames)).
-
-% Documentation
-:- use_module(library(assertions/c_itf_props)).
-
-:- use_module(library(messages)).
-
-:- use_module(library(aggregates), [findall/3, setof/3]).
-:- use_module(library(compiler/c_itf), [opt_suffix/2, set_ciaopp_expansion/1]).
-
-:- use_module(library(hiordlib), [maplist/2]).
-:- use_module(library(lists), [member/2]).
-:- use_module(library(vndict),
-    [create_dict/2, complete_dict/3, varnamedict/1, varnamesl2dict/2]).
-:- use_module(library(terms_check), [variant/2]).
-:- use_module(engine(internals), [module_concat/3]).
-
-:- use_module(library(assertions/assrt_lib), [assertion_body/7]).
-:- use_module(library(compiler/p_unit/p_unit_db)).
-:- use_module(library(compiler/p_unit/program_keys),
-    [clause_key/2,cleanup_program_keys/0,rewrite_source_clause/3, clause/1]).
-:- use_module(library(compiler/p_unit/native),
-    [builtin/2, native_prop_map/3, native_prop_term/1, native_property/2]).
-
-:- reexport(library(compiler/p_unit/p_unit_basic), [type_of_goal/2]).
-
-:- use_module(library(compiler/c_itf), [cleanup_c_itf_data/0]).
-:- use_module(library(compiler/p_unit/p_asr), [cleanup_pasr/0, preprocessing_unit_opts/4]).
-:- use_module(library(compiler/p_unit/tr_syntax), [cleanup_tr_syntax/0, traverse_clauses/4]).
-
-:- include(library(compiler/p_unit/p_unit_hooks)).
-
 % ---------------------------------------------------------------------------
-
-:- on_abort(set_ciaopp_expansion(false)). % TODO: (JF) be careful!
-
-:- initialization(opt_suffix(_,'')). % TODO: (JF) be careful!
-
-%% ---------------------------------------------------------------------------
-:- doc(title,"Preprocessing Unit Information Server").
+:- doc(title, "Preprocessing Unit Handling Library").
 
 :- doc(author, "The Ciao Development Team").
+:- doc(author, "Manuel Hermenegildo").
+:- doc(author, "Francisco Bueno").
+:- doc(author, "Jose F. Morales"). % (moved and integrated into core)
 
-:- doc(module,"This module loads the preprocessing unit of a file
-    to be preprocessed and serves all the information related to it
-    to the rest of CiaoPP, including (but not limited to) the source 
-    code.").
+:- doc(module, "This library provides predicates to load, access,
+   modify, and pretty print module preprocessing units
+   @cindex{preprocessing unit}. A preprocessing unit of a module is
+   made up of the following elements:
+
+   @begin{itemize}
+   @item the module source (including dependencies, predicates,
+     assertions, declarations, etc.),
+
+   @item the assertions for the predicates directly imported by the module,
+
+   @item the properties (and their assertions) defined in the modules
+     @bf{transitively} imported by the module (up to a file that does not
+     export any property).
+   @end{itemize}
+
+   This is similar to the information stored in @lib{compiler/c_itf}
+   but extended to include the definitions of the exported and local
+   properties transitively used by assertions of the exported
+   predicates (and properties). This is necessary to be able to
+   correctly interpret such assertions. When loading a preprocessing
+   unit, this library generates @tt{.ast} files @cindex{.ast files},
+   to cache this information.
+
+   @begin{alert}
+   Note that this is a @bf{superset} of the preprocessing unit, since:
+   a) @tt{.ast} files may contain property definitions (including their
+   assertions) not used in any assertion for an exported predicate
+   b) not all predicates may be imported from a module (and then not all
+   such properties may be actually needed)
+   @end{alert}
+
+   Other modules and files in this library:
+   @begin{itemize}
+   @item @lib{compiler/p_unit/p_unit_db}: database of the data
+     collected by the predicates exported by this library (use with
+     care).
+   @item @lib{compiler/p_unit/p_printer}: pretty print the current
+     module (source) stored in the program unit database.
+   @item @lib{compiler/p_unit/p_unit_hooks}: (included file) 
+     hook definitions to customize the behavior for treating native
+     properties, regular types, printing program point information,
+     etc.
+   @end{itemize}
+   ").
+
+%% The preprocessing unit is made up of the file code, the assertion
+%% interfaces of modules imported (which are called the @em{related
+%% files}), and the definitions of the exported properties and of all
+%% local properties transitively used by the exported properties for
+%% files which export a property transitively used by one of the exported
+%% properties of the related files.
+
+% ---------------------------------------------------------------------------
+% TODO: review old list of bugs
+% (p_unit bugs)
 
 :- doc(bug,"2. May clauses not of the current module be erased?.").
 :- doc(bug,"3. Allow for native(regtype).").
@@ -125,7 +141,115 @@
                  typedef('arit:arithexpression',[num,['basic_props:num']]).
            ").
 
+% (p_asr bugs)
+:- doc(bug, "1. Should expand module qualifications in the
+   relevant directives: initialization, on_abort, ... (multifile, dynamic,
+    data, and meta_predicate are handled via itf_db.").
+
+:- doc(bug, "2. Should go into higher order properties and check the
+   arguments for import/export also (and should probably look at the
+   meta-predicate declarations for these)?").
+
+:- doc(bug, "3. Opaque properties are not handled yet.").
+
+:- doc(bug, "4. Save assertion heads WITH modes (non-normalized) and 
+   normalize them only when asserting in the database.").
+
+:- doc(bug, "5. No way of expanding when reading the .asr. Currently
+   not reading them!").
+
+:- doc(bug, "6. Add support for something like the ciaoc -u option.").
+
+%% :- doc(bug,"7. Several copies of the same assertions remain in DB.").
+
+:- doc(bug, "8. Have to cleanup code: reduce asserts.").
+
+%% Solved:
+%% :- doc(bug,"9. Currently, if a related file does not export a property
+%%    the transitive closure from this file does NOT occur: this is not
+%%    correct. Now solved.").
+%% :- doc(bug,"10. Implicit importation of builtin modules from another 
+%%      builtin module does not work: properties are not read in. This is 
+%%      relevant when using package pure for properties cgoal/1 and iso/1 in
+%%      basiccontrol. This was part of the previous bug: now solved.").
+
+%% Solved with set_ciaopp_expansion(true)
+%% :- doc(bug,"11. Things like this won't work:
+%%    current_itf(imports,,(rt_module_exp(_483,fact,mmatrixpaco,-,fail,_488),
+%%                          set_fact(_488)),_197)
+%%    .").
+
+:- doc(bug, "12. Should properties be defined only in terms of other
+    properties? Currently, if this is not the case, predicates used
+    in the definition of properties are not cached.").
+
+:- doc(bug, "13. The modedef of parametric modules that may appear in the
+    output will be wrong since call/2 is module expanded for the current
+    module instead of for the proper hiord_rt:call/2.").
+
+:- doc(bug, "14. When saving the assertions of dynamic.pl:
+    WARNING: (lns 343-345) Predicate current_predicate/1 undefined 
+    in source").
+
+% :- doc( bug, "15. When loading an user file (no module
+%    declaration), the error:
+%    call basename(prelude.pl,user(/usr/cvs/Benchmarks/ciaopp/types/headunify))
+%    ?  {ERROR: atomic_basic:atom_codes/2, arg 1 - expected atom, found
+%    user(...)} appears" ).
+
+% ---------------------------------------------------------------------------
+
+:- use_package(library(compiler/p_unit/p_unit_argnames)).
+
+:- use_module(library(assertions/c_itf_props)). % (documentation)
+
+:- use_module(library(messages)).
+
+:- use_module(library(aggregates), [findall/3, setof/3]).
+:- use_module(library(compiler/c_itf), [opt_suffix/2, set_ciaopp_expansion/1]).
+
+:- use_module(library(lists), [member/2]).
+:- use_module(library(vndict),
+    [create_dict/2, complete_dict/3, varnamedict/1, varnamesl2dict/2]).
+:- use_module(engine(internals), [module_concat/3]).
+
+:- use_module(library(assertions/assrt_lib), [assertion_body/7]).
+:- use_module(library(compiler/p_unit/p_unit_db)).
+:- use_module(library(compiler/p_unit/program_keys),
+    [clause_key/2,cleanup_program_keys/0,rewrite_source_clause/3, clause/1]).
+:- use_module(library(compiler/p_unit/native),
+    [builtin/2, native_prop_map/3, native_prop_term/1, native_property/2]).
+
+:- reexport(library(compiler/p_unit/p_unit_basic), [type_of_goal/2]).
+
+:- use_module(library(compiler/c_itf), [cleanup_c_itf_data/0]).
+:- use_module(library(compiler/p_unit/tr_syntax), [cleanup_tr_syntax/0, traverse_clauses/4]).
+
+:- include(library(compiler/p_unit/p_unit_hooks)).
+
+% ---------------------------------------------------------------------------
+
+:- on_abort(set_ciaopp_expansion(false)). % TODO: (JF) be careful!
+
+:- initialization(opt_suffix(_,'')). % TODO: (JF) be careful!
+
+% ---------------------------------------------------------------------------
+%! # Verbosity
+
+:- use_module(engine(messages_basic), [message/2]).
+:- use_module(engine(runtime_control), [current_prolog_flag/2]).
+
+define_flag(verbose_p_unit, [on,  off], off).
+
+:- export(p_unit_log/1).
+p_unit_log(Message) :-
+    current_prolog_flag(verbose_p_unit,on), !,
+    message(inform, Message).
+p_unit_log(_Message).
+
 %% ---------------------------------------------------------------------------
+
+:- use_module(library(hiordlib), [maplist/2]).
 
 :- pred preprocessing_unit(Fs,Ms,E)
    :  list(filename,Fs) => (list(moddesc,Ms), switch(E))
@@ -170,6 +294,899 @@ preprocessing_unit_list(_Fs,_Ms,_E):-
     fail.
 
 % ---------------------------------------------------------------------------
+%! # Preprocessing unit loading
+
+:- use_module(library(lists), [member/2]).
+:- use_module(library(ctrlcclean), [ctrlc_clean/1]).
+:- use_module(library(errhandle),  [error_protect/2]).
+:- use_module(library(compiler/c_itf), [
+    process_file/7,
+    comp_defines/1,
+    defines_module/2, 
+    false/1,
+    module_error/0, module_error/1
+]).
+:- use_module(library(compiler/p_unit/assrt_norm)).
+:- use_module(library(compiler/p_unit/p_canonical)).
+:- use_module(library(compiler/p_unit/aux_filenames), [get_module_filename/3]).
+
+:- data processed_file/1.
+:- data related_file/1.
+:- data irrelevant_file/1. % TODO: used by 'trans', not enabled, check
+:- data file_included_by_package/1.
+:- data warned_prop/3.
+
+:- pred cleanup_pasr # "Clean up all facts that preprocessing_unit_opts/4 asserts.".
+cleanup_pasr :-
+    retractall_fact(processed_file(_)),
+    retractall_fact(related_file(_)),
+    retractall_fact(irrelevant_file(_)),
+    retractall_fact(file_included_by_package(_)),
+    retractall_fact(warned_prop(_, _, _)).
+
+:- export(there_was_error/1). % for intermod
+% (error in c_itf:process_file/7)
+there_was_error(yes) :- module_error, !.
+there_was_error(yes) :- module_error(_), !.
+there_was_error(yes) :- mexpand_error, !.
+there_was_error(no).
+
+% TODO: (review)
+% DTM: When loading ast file, if we are adding the module to the
+% output, i.e., we add one module information to the current one (see
+% load_package_info/1), we have to add import fact in
+% itf_db. adding_to_module specifies the original (first) loaded module 
+:- data adding_to_module/1.
+
+:- pred preprocessing_unit_opts(in(Fs), in(Opts), out(Ms), out(E))
+    :: list(filename) * list * moddesc * switch
+# "This is the core of the @concept{assertion reader/normalizer}. 
+   It accepts some options in @var{Opts}. Also passes on the options
+   in @var{Opts} to pass two of the assertion normalizer.
+
+   With the default options it does the following:
+   @begin{itemize}
+   @item Reads all declarations and code in @var{Fs} and leaves everything asserted 
+     in the database. Clauses are stored in @pred{clause_read/7}.
+     Assertions are normalized and stored in @pred{assertion_read/9}.
+     @var{Ms} are the modules names defined by @var{Fs}.
+
+   @item Also, it reads and normalizes assertions @em{of the exported
+     predicates} in all files related to each file in @var{Fs} (i.e.,
+     imported by it, directly or by reexportation), leaving them also
+     asserted by means of @pred{add_assertion_read/9}. All
+     local property definitions which are transitively used by the
+     exported properties of the related files are also stored in
+     @pred{prop_clause_read/7}. If up to date @tt{.ast}
+     files exist for any of the related files, the information is read
+     directly from such @tt{.ast} files. @cindex{.ast files}
+     Otherwise, the @tt{.pl} file is read and an up to date @tt{.ast}
+     file is generated.
+
+   @item The same processing of the previous paragraph is done also
+     for files which export a property transitively used by one of the
+     exported properties of the related files.
+   @end{itemize}
+
+   Since this predicate is intended for gathering file information for
+   purposes which can be other than compilation to executable code
+   (e.g., generating documentation or in the preprocessor) this
+   predicate catches errors and proceeds in cases where file
+   processing (e.g., during actual compilation) might normally abort.
+   ".
+
+%:- use_module(engine(runtime_control), [statistics/2]).
+
+preprocessing_unit_opts(Fs, Opts, Ms, E) :-
+    %statistics(walltime, [L1|_]),
+    % process main file
+    process_main_files(Fs, Opts, Ms),
+    ( ( member(inject_pkg_into(Mod), Opts)
+      ; member(Mod, Ms) % TODO: wrong! only first one?! (see related_files_closure/2 comment)
+      ; Ms = [user(_)], Mod = [user] % TODO: why not a list?
+      ) ->
+        asserta_fact(adding_to_module(Mod)) % TODO: wrong! we may add to several modules! it should be in related_file/1
+    ; retractall_fact(adding_to_module(_)) % TODO: review this
+    ),
+    % traverse the related files closure
+    related_files_closure(direct, Opts), % TODO: Should we do it per M in Ms instead?
+    retractall_fact(adding_to_module(_)),
+    %% check for props in the related files
+    delayed_prop_checks,
+    %
+    %statistics(walltime, [L2|_]),
+    %Ld is L2-L1,
+    %display(user_error, time_preprocessing_unit_opts(Fs,Opts,Ms,Ld)), nl(user_error),
+    % any error upon loading?
+    there_was_error(E).
+
+process_main_files([], _Opts, []) :- !.
+process_main_files([F|Fs], Opts, [M|Ms]) :- !,
+    process_one_file(yes, F, direct, Opts, M),
+    process_main_files(Fs, Opts, Ms).
+
+% module M is (resp.) 
+% processed/related/processed but irrelevant (a leave in the closure)
+
+related_files_closure(Rel, Opts) :-
+    current_fact(related_file(_)), !,
+    related_files_closure_(Rel, Opts).
+related_files_closure(_Rel, _Opts).
+
+related_files_closure_(Rel, Opts) :-
+    retract_fact(related_file(I)),
+    \+ current_fact(processed_file(I)),
+    \+ user_module(I),
+    process_one_file(no, I, Rel, Opts, _M),
+    fail.
+related_files_closure_(_Rel, Opts) :-
+    % TODO: %jcf%- To load only the directly related modules (for testing), just 
+    %       %jcf%- comment out this line.
+    %       related_files_closure(trans,Opts).
+    related_files_closure(direct, Opts).
+
+user_module(user). %% 'user' module cannot be treated as a normal module.
+
+do_nothing(_).
+
+%% this file have to assert related_file fact to be processed later.
+
+% Process NF (IsMain=yes if it is the main file)
+process_one_file(IsMain, NF, Rel, Opts, M) :-
+    error_protect(ctrlc_clean(
+            process_file(NF, asr, any,
+                treat_one_file(IsMain, M, Rel, Opts),
+                c_itf:false, asr_readable(IsMain), do_nothing)
+        ),fail). % TODO: fail or abort?
+
+treat_one_file(IsMain, M, Rel, Opts, Base) :-
+%    message(inform, ['KKlog ', Base]),
+    p_unit_log(['{Processing module ', Base, ' (main=', IsMain, ')']),
+    del_compiler_pass_data, % (mexpand_error/0, location/3, ...)
+    c_itf:defines_module(Base, M),
+    assertz_fact(processed_file(Base)),
+    assert_itf(defines_module, M, _, _, Base),
+    % forces generation of defines/5 data (used below)
+    ( IsMain = yes -> c_itf:comp_defines(Base) ; true ),
+    % .ast file
+    ( IsMain = no ->
+        get_module_filename(asr, Base, AsrName),
+        open_asr_to_write(AsrName),
+        write_asr_fact(defines(M, Base)),
+        save_itf_of_to_asr(Base, M)
+    ; true
+    ),
+    % inhibits the expansion of meta-predicates % TODO: comment on IsMain=no, why?
+    % (can not!) checks that properties are identifiable
+    normalize_assertions(M, Base, Opts), % TODO: Opts was [] if IsMain=yes; why?
+    % save clauses, assertions, and itf (everything expanded)
+    activate_second_translation(Base, M),
+    treat_one_file_exp(IsMain, M, Opts, Base),
+    deactivate_second_translation(Base, M),
+    end_brace_if_needed,
+    % compute next related_file/1 layer
+    assert_related_files(Rel, Base, M),
+    % .ast file
+    ( IsMain = no -> close_asr_to_write ; true ),
+    % add itf facts to DB
+    ( IsMain=yes, member(inject_pkg_into(TargetM), Opts) ->
+        % For injected packages, save imports into TargetM and nothing else (JFMC)
+        save_itf_injected_imports(M, TargetM)
+    ; % TODO: should multifile be saved if IsMain=no?
+      save_itf_info_of(Base, M, IsMain)
+    ),
+    p_unit_log(['}']).
+
+% .asr file exists, 
+% TODO: transitively checked?
+% (only failure, .ast file is regenerated)
+asr_readable(yes, _Base) :- !, % (main)
+    fail. % Always reload for main file % TODO: save .exp files a-la optim-comp would speedup some use cases?
+asr_readable(no, Base) :- % (related)
+%    message(inform, ['KKlog-asr ', Base]),
+    ( current_fact(processed_file(Base)) -> throw(bug(file_processed_twice(Base)))
+    ; true
+    ),
+    assertz_fact(processed_file(Base)),
+    get_module_filename(pl,  Base, PlName),
+    get_module_filename(asr, Base, AsrName),
+    file_up_to_date(AsrName, PlName),
+    % display('Reading asr file '), display(AsrName), nl,
+    read_asr_file(AsrName),
+    c_itf:defines_module(Base, M),
+    assert_itf(defines_module, M, _, _, Base).
+
+:- use_module(library(system), [modif_time/2]).
+
+:- pred file_up_to_date(+AuxName,+PlName) : ( atm(AuxName), atm(PlName) )
+# "Checks that the file named @var{AuxName} is up to date with respect
+  to the file named @var{PlName} (@var{AuxName} modification time is
+  later than @var{PlName}). It fails if any of the files does not
+  exist.".
+file_up_to_date(AuxName,PlName):-
+    modif_time(AuxName, AuxTime),
+    modif_time(PlName, PlTime),
+    PlTime < AuxTime.
+
+% ---------------------------------------------------------------------------
+
+save_itf_info_of(Base, M, _IsMain) :-
+    defines(Base, F, A, DefType, Meta),
+    assert_itf(defines, M, F, A, M), % TODO: also for DefType=implicit? (see next clause)
+    save_meta_dynamic(Meta, DefType, M, F, A),
+    fail.
+save_itf_info_of(Base, M, _IsMain) :-
+    defines(Base, F, A, implicit, _Meta),
+    assert_itf(impl_defines, M, F, A, M),
+    fail.
+save_itf_info_of(_Base, M, yes) :- % saving imported preds
+    imports(M, IM, F, A, EM),
+    ( (EM = '.' ; IM = EM) ->
+        assert_itf(imports, M, F, A, IM) % IG define end module and reexported
+    ; assert_itf(imports, M, F, A, r(IM,EM)), % TODO: needed for output
+      assert_itf(imports, M, F, A, EM)
+    ),
+    %       save_meta_dynamic(Meta, DefType, M, F, A), %%% IG: here use meta_args
+    fail.
+% TODO: only for IsMain=yes?
+save_itf_info_of(_Base, M, yes) :- % saving meta preds
+    meta_args(M, Pred),
+    functor(Pred, F, A),
+    assert_itf(meta, M, F, A, Pred),
+    fail.
+% TODO: only for IsMain=yes?
+save_itf_info_of(Base, M, yes) :- % saving dynamic/data/concurrent preds
+    dyn_decl(Base, F, A, Decl),
+    assert_itf(dynamic, M, F, A, Decl),
+    fail.
+% TODO: dyn_decl/4 is there as long as clause_of/7 is there. The same info is in
+% defines/5... I am not sure which predicate is really alive at this phase.
+save_itf_info_of(Base, M, yes) :-
+    c_itf:exports(Base, F, A, _DefType, _Meta),
+    assert_itf(exports, M, F, A, M),
+    fail.
+% TODO: only for IsMain=yes?
+save_itf_info_of(Base, M, yes) :-
+    def_multifile(Base,F,A,DefType),
+    \+ c_itf_internal_pred(F,A),
+    assert_itf(multifile, M, F, A, DefType),
+    fail.
+save_itf_info_of(_Base, _M, _IsMain).
+
+% (M is the package wrapper module, FromM is the target module for injection)
+save_itf_injected_imports(M, TargetM) :- % saving injected imports
+    imports(M, IM, F, A, EM),
+    ( (EM = '.' ; IM = EM) ->
+        assert_itf(injected_imports, TargetM, F, A, IM) % IG define end module and reexported
+    ; assert_itf(injected_imports, TargetM, F, A, r(IM,EM)), % TODO: needed for output
+      assert_itf(injected_imports, TargetM, F, A, EM)
+    ),
+    %       save_meta_dynamic(Meta, DefType, M, F, A), %%% IG: here use meta_args
+    fail.
+save_itf_injected_imports(_M, _TargetM).
+
+save_meta_dynamic(Meta, DefType, M, F, A) :-
+    ( Meta\==0 -> assert_itf(meta, M, F, A, Meta)
+    ; true
+    ),
+    ( ( DefType=dynamic ; DefType=data ; DefType=concurrent) ->
+       assert_itf(dynamic, M, F, A, DefType)
+    ; true
+    ).
+
+save_itf_of_to_asr(Base, M) :-
+    c_itf:exports(Base, F, A, DefType, Meta),
+    Meta \== 0,
+%       c_itf:imports(M,_IM,F,A,EndMod),
+    write_asr_fact(exports(M, F, A, DefType, Meta)),
+    add_exports(M, F, A, DefType, Meta),
+    fail.
+save_itf_of_to_asr(_Base, _M).
+
+add_exports(M, F, A, DefType, Meta) :-
+    ( adding_to_module(CM) ->
+        add_indirect_imports(CM, M, F, A) % TODO: needed?
+    ; assert_itf(exports, M, F, A, M)
+    ),
+    restore_defines(M, F, A, DefType, Meta),
+    save_meta_dynamic(Meta, DefType, M, F, A).
+
+add_indirect_imports(CM, M, F, A) :-
+    c_itf:restore_imports(CM, M, F, A, M), % TODO: wrong, this should be an indirect import!
+    assert_itf(indirect_imports, CM, F, A, M).
+
+%% ---------------------------------------------------------------------------
+%! ## Compute one layer of related files for preprocessing unit closure
+
+:- use_module(engine(stream_basic), [absolute_file_name/7]).
+:- use_module(library(aggregates), [findall/3]).
+:- use_module(library(system), [working_directory/2]).
+:- use_module(library(pathnames), [path_split/3]).
+
+:- data seen_related_file/1. % (avoid writing related_file more than once)
+
+% TODO: 'trans' is not used, check if it works
+
+assert_related_files(trans, Base, M) :-
+    check_irrelevant_mod(Base, M),
+    !,
+    % the closure finalizes when there is no property exported
+    assertz_fact(irrelevant_file(M)),
+    write_asr_fact(irrelevant_file(M)).
+assert_related_files(_, Base, _M) :-
+    retractall_fact(seen_related_file(_)),
+    ( % (failure driven loop)
+      imports_pred(Base, IM, _F, _A, _DefType, _Meta, _EndFile), % TODO: use IsMain; consider only props used in assertions and prop bodies if IsMain=no
+      \+ user_module(IM),
+        resolve_imported_path(Base, IM, IMAbs),
+        ( current_fact(seen_related_file(IMAbs)) ->
+            true
+        ; asserta_fact(seen_related_file(IMAbs)),
+          write_asr_fact(related_file(IMAbs)),
+          add_related_file(IMAbs)
+        ),
+        fail % (loop)
+    ; true
+    ).
+
+add_related_file(IMAbs) :-
+    \+ current_fact(processed_file(IMAbs)),
+    \+ current_fact(related_file(IMAbs)),
+    \+ mod_in_libcache(_, IMAbs),
+    assertz_fact(related_file(IMAbs)),
+    !.
+add_related_file(_IMAbs).
+
+% TODO: needed? always?
+resolve_imported_path(Base, IM, IMAbs) :-
+    file_path(Base, CWD),
+    %%jcf% working_directory/2 is needed to evaluate .() notation.
+    working_directory(OldCWD, CWD),
+    absolute_file_name(IM, '_opt', '.pl', CWD, _, IMAbs, _),
+    working_directory(_, OldCWD).
+% OLD:
+%       file_path(Base,Path),
+%       working_directory(Old,Path),
+%       absolute_file_name(IM,'','.pl','.',_,IMAbs,_),
+%       working_directory(_Path,Old),
+
+% TODO: check predicate (is '.' needed?)
+file_path(Base,Path):-
+    path_split(Base,Path0,_),
+    ( Path0 = '' -> Path = '.' ; Path = Path0 ).
+
+% Base,M is irrelevant if it do not have any exported prop
+check_irrelevant_mod(Base, M) :-
+    relevant_prop(M, Prop),
+    functor(Prop, F, A),
+    c_itf:exports(Base, F, A, _DefType, _Meta),
+    !,
+    fail.
+check_irrelevant_mod(_Base, _M).
+
+relevant_prop(M, Prop) :-
+    current_fact(assertion_of(PD, M, _, prop, _, _, _, _LB, _LE)),
+    functor(PD,   F, A),
+    functor(Prop, F, A).
+
+% ---------------------------------------------------------------------------
+%! ## Save clauses, assertions, operators, etc.
+
+% Packages info:
+%   is_syntax_package/1, is_included_by_default/1
+:- include(.(p_asr_package_info)).
+
+treat_one_file_exp(yes, M, Opts, Base) :- % (main)
+    % treat assertions
+    get_assertions_of(_, M, Assrt),
+    compound_to_simple_assrt(Assrt, NAssrt),
+    % Add assertions to DB
+    add_assertions(NAssrt),
+    % Save original pred assertions
+    comment_original_pred_assertions(Assrt),
+    % Save clauses
+    ( member(inject_pkg_into(_), Opts) -> true % Do not add clauses
+    ; assert_clauses_of(Base, M)
+    ),
+    % Save operators
+    assert_operators_of(Base).
+treat_one_file_exp(no, M, _Outs, Base) :- % (related)
+    save_exported_assertions_of(Base, M),
+    save_relevant_properties_of(Base, M).
+
+add_assertions([]).
+add_assertions([A|As]) :-
+    add_assertion(A),
+    add_assertions(As).
+
+% we do have to process include directives. If one include directive
+% belongs to a syntax pakage, then all things included from that
+% directive will not be added to CiaoPP
+
+assert_clauses_of(Base, _M) :-
+    Body = include(File),
+    db_directive_of(Base, Body, _, Source, _, _),
+    % include directives that belong to a syntax package
+    ( get_module_from_path(Source, Module),
+        is_syntax_package(Module)
+    ; % include directives included by include directives that
+      % belongs to a syntax package
+      file_included_by_package(Source)
+    ),
+    absolute_file_name(File,'_opt','.pl','.',_,AbsFile,_),
+    atom_concat(AbsFile, '.pl', AbsSourceFile),
+    asserta_fact(file_included_by_package(AbsSourceFile)),
+    fail.
+% --- DTM: make translations tables from source to module...
+assert_clauses_of(Base, M) :-
+    db_clause_of(_H, Base, M, Head, Body, VarNames, Source, Line0, Line1),
+    has_to_be_asserted(M, Head, Body, Source),
+    assertz_fact(clause_read(M,Head,Body,VarNames,Source,Line0,Line1)),
+    fail.
+assert_clauses_of(_Base, _M).
+
+assert_operators_of(Base) :-
+    Body = op(OP1, OP2, OP3),
+    db_directive_of(Base, Body, _VarNames, _Source, _Line0, _Line1),
+    add_output_operator(OP1, OP2, OP3),
+    fail.
+assert_operators_of(_Base).
+
+get_assertions_of(Pred, M, As) :-
+    findall(A, get_one_assertion_of(Pred, M, A), As), % TODO: this never fails!
+    !.
+get_assertions_of(_Pred, _M, []).
+
+% Add pred assertions to the commented assertions DB. This is
+% necessary only for the output.
+comment_original_pred_assertions([]).
+comment_original_pred_assertions([A|As]) :-
+    A = as${type => pred},
+    !,
+    add_commented_assertion(A),
+    comment_original_pred_assertions(As).
+comment_original_pred_assertions([_|As]) :-
+    comment_original_pred_assertions(As).
+
+% include all from user
+has_to_be_asserted(user(_), _Head, _Body, _Source) :- !.
+% by default we include everything from our own module
+has_to_be_asserted(Module, Head, Body, Source) :-
+    get_module_from_path(Source, Module),
+    !,
+    \+
+    ( number(Head),
+        ( % include declarations are "included"/read by Ciao
+            functor(Body, include, 1) -> true
+        ; % use_package directives are not saved in CiaoPP either
+            Body = use_package(Package), atom(Package) ->
+              % TODO: atom/1 check added to preserve previous behaviour; review it!
+              add_use_package(Package)
+        ; fail
+        )
+    ).
+%% a directive has to be keep iff it belongs to a package which
+%% is not syntax one
+has_to_be_asserted(_, Head, Body, Source) :- !,
+    get_module_from_path(Source, Module),
+    ( is_syntax_package(Module) ->
+        % if it is a directive
+        ( number(Head) ->
+            % it is no necesary to add directives from syntax packages
+            add_output_package(Module),
+            fail
+        ; error_message("Package ~w is said to be syntax " ||
+                "package but has the clause: ~w :- ~w. " ||
+                "The output will be incorrect.",
+                [Module, Head, Body])
+        )
+    ; \+ is_included_by_default(Module), % not included by default
+      \+ file_included_by_package(Source) % not included from a syntax package
+    ).
+
+% (for directive, which accepts lists)
+add_use_package([]).
+add_use_package([P|Ps]) :- !, add_output_package(P), add_use_package(Ps).
+add_use_package(P) :- add_output_package(P).
+
+:- use_module(library(pathnames), [path_basename/2, path_splitext/3]).
+
+get_module_from_path(Path, Module) :-
+    path_basename(Path, File),
+    path_splitext(File, Module, _).
+
+save_exported_assertions_of(Base, M) :-
+    ( % (failure-driven loop)
+      c_itf:exports(Base, F, A, _DefType, _Meta),
+        functor(PD, F, A),
+        write_and_save_assertions_of(PD, M),
+        fail % (loop)
+    ; true
+    ).
+
+save_relevant_properties_of(Base, M) :-
+    ( % (failure-driven loop)
+      relevant_prop(M, Prop),
+        save_predicate_clauses_of(Base, M, Prop),
+        functor(Prop, F, A),
+        ( c_itf:exports(Base, F, A, _DefType, _Meta) -> true
+        ; write_and_save_assertions_of(Prop, M)
+        ),
+        fail % (loop)
+    ; true
+    ).
+
+write_and_save_assertions_of(P, M) :-
+    get_assertions_of(P, M, Assrt),
+    compound_to_simple_assrt_same_pred(Assrt, NAssrt),
+    add_assertions(NAssrt),
+    write_asr_assrts(NAssrt).
+
+save_predicate_clauses_of(Base, M, Prop) :-
+    db_clause_of(Prop, Base, M, Head, Body, VarNames, Source, Line0, Line1),
+    write_asr_fact(prop_clause_read(M, Head, Body, VarNames, Source, Line0, Line1)),
+    add_prop_clause_read(M, Head, Body, VarNames, Source, Line0, Line1),
+    fail.
+save_predicate_clauses_of(_Base, _M, _Prop).
+
+write_asr_assrts([]).
+write_asr_assrts([A|As]) :-
+    A = as${
+        module => M,
+        head => ExpPD,
+        compat => Co,
+        call => Ca,
+        succ => Su,
+        comp => Cp,
+        status => Status,
+        type => Type,
+        dic => Dict,
+        comment => Cm,
+        locator => Loc
+    },
+    Loc = loc(Source, LB, LE),
+    assertion_body(ExpPD, Co, Ca, Su, Cp, Cm, Body1),
+    % add_assrt_indirect_imports(M, Body1), % TODO:[see issue #576] originally disabled; both should be disabled or enabled to ensure a consistent behavior
+    write_asr_fact(assertion_read(ExpPD, M, Status, Type, Body1, Dict, Source, LB, LE)),
+    write_asr_assrts(As).
+
+% ---------------------------------------------------------------------------
+%! ## Module expansion of clauses and assertions
+
+% TODO: merge c_itf here, merge second pass with compiler
+
+:- use_module(library(compiler/c_itf), [
+    activate_translation/3,
+    module_expansion/9, location/3,
+    clause_of/7,
+    defines/3, defines/5, def_multifile/4,
+    c_itf_internal_pred/2, c_itf_internal_pred_decl/1,
+    exports/5, imports_pred/7,
+    end_goal_trans/1,
+    restore_defines/5,
+    restore_imports/5,
+    % restore_multifile/4,
+    imports/5,
+    meta_args/2,
+    dyn_decl/4
+]).
+% TODO: export these predicates or promote it internally as
+%       module_error, at c_itf
+:- import(c_itf, [
+    mexpand_error/0,
+    del_compiler_pass_data/0,
+    end_brace_if_needed/0,
+    assr_head_expansion/7
+]).
+:- use_module(library(compiler/translation), [
+    expand_clause/6, del_goal_trans/1, del_clause_trans/1
+]).
+:- use_module(library(formulae), [asbody_to_conj/2]).
+
+%% --- DTM: The Dict should be vnDict (to complete variables and unify with 
+%%          clauses one)
+
+get_one_assertion_of(PD, M, As2) :-
+    current_fact(assertion_of(PD,M,Status,Type,Body0,Dict,Source,LB,LE)),
+    %Type \== test, % Skip tests assertions, not processed here
+    assertion_body(PD, Co, Ca, Su, Cp, Cm, Body0),
+    LOC = loc(Source, LB, LE),
+    head_expand(Type, PD, M, Dict, ExpPD, LOC), % TODO: rename these predicates
+    expand_subbody(Co, M, Dict, ECo, LOC),
+    expand_subbody(Ca, M, Dict, ECa, LOC),
+    expand_subbody(Su, M, Dict, ESu, LOC),
+    expand_subbody(Cp, M, Dict, ECp, LOC),
+    As2 = as${
+        module => M,
+        head => ExpPD,
+        compat => ECo,
+        call => ECa,
+        succ => ESu,
+        comp => ECp,
+        status => Status,
+        type => Type,
+        dic => Dict,
+        comment => Cm,
+        locator => Loc
+    },
+    Loc = loc(Source, LB, LE).
+
+% We process modedef and true here to avoid warnings about undefined
+% predicates. --EMM
+not_allow_external(modedef, _).
+not_allow_external(_,       true). % True is not expanded
+
+% TODO: see c_itf:assr_head_expansion/7, we should not do goal expansions of assertion heads
+head_expand(Type, PD, M, Dict, ExpPD, loc(Source, LB, LE)) :-
+    not_allow_external(Type, PD),
+    !,
+    functor(PD, F, A),
+    ( functor(Meta, F, A), meta_args(M, Meta) -> true ; Meta = 0 ),
+    module_expand(PD, true, M, Dict, ExpPD0, _, Source, LB, LE),
+    fix_assrt_head(ExpPD0, Meta, M, ExpPD),
+    functor(PD, F, A),
+    % TODO: doing this is dangerous (JF)
+    ( c_itf:defines(M, F, A) -> true ; assertz_fact(c_itf:defines(M, F, A)) ).
+% Using module_expand in this way allows us to write assertions of
+% predicates that are in other modules: --EMM
+head_expand(_, PD, M, _Dict, ExpPD, _Loc) :- % _Loc=loc(Source, LB, LE)
+    functor(PD, F, A),
+    % TODO: Treat addmodule(_) or addterm(_) meta? it is not done in c_itf but it was done in the fix_assrt_head version below
+    assr_head_expansion(PD, M, F, A, _, ExpPD, _).
+    % % TODO: expanded as goal, not as head! this is incorrect (JF)
+    % ( functor(Meta, F, A), meta_args(M, Meta) -> true ; Meta = 0 ),
+    % module_expand(true, PD, M, Dict, _, ExpPD0, Source, LB, LE),
+    % fix_assrt_head(ExpPD0, Meta, M, ExpPD).
+
+% TODO: do not remove this code yet! used in 'modedef'
+fix_assrt_head(ExpPD0, 0, _M, ExpPD) :- !,
+    ExpPD = ExpPD0. % no meta, no fix
+fix_assrt_head(ExpPD0, Meta, M, ExpPD) :-
+    ExpPD0 =.. [F|Args],
+    Meta =.. [_|MetaArgs],
+    fix_assrt_args(Args,MetaArgs,M,NArgs),
+    ExpPD =.. [F|NArgs].
+
+fix_assrt_args([],[],_M,[]).
+fix_assrt_args([A,_|Args],[MetaArg|MetaArgs],M,[A,_|NArgs]) :-
+    ( MetaArg = addmodule(_) ; MetaArg = addterm(_) ),
+    !,
+    % replace next arg with a fresh var so that the head is normalized
+    fix_assrt_args(Args,MetaArgs,M,NArgs).
+fix_assrt_args([A|Args],[_MetaArg|MetaArgs],M,[NA|NArgs]) :-
+    ( var(A) -> NA = A
+    ; A = 'hiord_rt:call'(X) -> NA = X
+    ; NA = A % should not happen
+    ),
+    fix_assrt_args(Args,MetaArgs,M,NArgs).
+
+expand_subbody(C, M, Dict, CO, loc(Source, L0, L1)) :-
+    asbody_to_conj(C, CC),
+    module_expand(in_assertion_body, CC, M, Dict, _, EC, Source, L0, L1),
+    asbody_to_conj(CO, EC).
+
+db_directive_of(Base, Body, VarNames, Source, Line0, Line1) :-
+    clause_of(Base, Head, Body, VarNames, Source, Line0, Line1),
+    number(Head),
+    \+ c_itf_internal_pred_decl(Body).
+
+db_clause_of(Head, Base, M, H, B, VarNames, Source, Line0, Line1) :-
+    clause_of(Base, Head, Body, VarNames, Source, Line0, Line1),
+    ( number(Head) ->
+        \+ c_itf_internal_pred_decl(Body),
+        H = Head,
+        B = Body
+    ; module_expand(Head,Body,M,VarNames,H,B,Source,Line0,Line1)
+    ).
+
+activate_second_translation(Base, M) :-
+    activate_translation(Base, M, add_clause_trans),
+    activate_translation(Base, M, add_goal_trans),
+    expand_clause(0, 0, M, _, _, _). % Translator initialization
+
+deactivate_second_translation(_Base, M) :-
+    end_goal_trans(M),
+    del_goal_trans(M),
+    del_clause_trans(M).
+
+module_expand(Head, Body, M, VarNames, H, B, Source, Line0, Line1) :-
+    ( module_expansion(Head,Body,M,VarNames,asr,Source,Line0,Line1,_,_,H,B) ->
+        (VarNames = [], ! ; true)
+    ;
+%%          error_message( loc(Source,Line0,Line1),
+%%                         "Unable to expand~n  ~q :- ~q",[Head,Body]),
+%% DTM: just trying the pretty printer!
+%% --- DTM: this is an assertion, not a clause
+        error_message(loc(Source, Line0, Line1),
+            "INTERNAL ERROR: Unable to expand~n  ~p",
+            ['$clause'(Head, Body, VarNames)]),
+% Error recovery
+        Body=B,
+        Head=H
+    ).
+
+module_expansion(H, B, Module, Dict, Mode, Src, Ln0, Ln1, H1, B1, H2, B2):-
+    asserta_fact(location(Src,Ln0,Ln1), Ref),
+    ( c_itf:module_expansion(H, B, Module, Dict, Mode, H1, B1, H2, B2) ->
+        true
+    ; display(user_error,internal_error(H,B)), nl(user_error) % TODO: wrong
+    ),
+    erase(Ref).
+
+% ---------------------------------------------------------------------------
+%! ## Read/write asr files
+
+:- pred ast_version/1 :: atm
+# "Contains a version number which identifies
+   the @tt{.ast} files associated with this version of the assertion
+   library. Should be changed every time changes are made which render
+   the @tt{.ast} files incompatible, since this forces recomputation
+   of all such files.".
+
+ast_version('5.0').
+
+% Note: use `ciaodump` to show .ast files (fastrw format)
+
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
+:- use_module(library(read), [read/2]).
+:- use_module(engine(runtime_control), [module_split/3]).
+:- use_module(library(fastrw), [fast_read/2, fast_write/2]).
+
+read_asr_file(AsrName) :-
+    catch(open(AsrName, read, Stream), error(_,_), fail),
+    (
+        ast_version(V),
+        read(Stream, v(V)),
+        !,
+        p_unit_log(['{Reading ', AsrName]),
+        read_asr_data_loop(AsrName, Stream),
+        close(Stream),
+        p_unit_log(['}'])
+    ;
+        p_unit_log(['{Old version in ', AsrName, '}']),
+        close(Stream),
+        fail
+    ).
+
+%% fast_read/1 version (just fails at end of file)
+read_asr_data_loop(F, Stream) :-
+    ( fast_read(Stream, X) ->
+        ( read_asr_data_loop__action(X) -> true
+        ; error_message("ERROR PROCESSING FACT ~w from ast file ~w", [X, F])
+        ),
+        read_asr_data_loop(F, Stream)
+    ; true
+    ).
+
+read_asr_data_loop__action(defines(M, Base)) :- !,
+    assert_itf(defines_module, M, _, _, Base).
+read_asr_data_loop__action(related_file(M)) :- !,
+    add_related_file(M).
+read_asr_data_loop__action(exports(M, F, A, DefType, Meta)) :- !,
+    add_exports(M, F, A, DefType, Meta).
+read_asr_data_loop__action(irrelevant_file(F)) :- !,
+    assertz_fact(irrelevant_file(F)).
+read_asr_data_loop__action(X) :- X = assertion_read(A1, A2, A3, A4, A5, A6, A7, A8, A9), !,
+    % X = assertion_read(_, M, _, _, Body, _, _, _, _),
+    % add_assrt_indirect_imports(M, Body), % TODO:[see issue #576] originally enabled; both should be disabled or enabled to ensure a consistent behavior
+    add_assertion_read(A1, A2, A3, A4, A5, A6, A7, A8, A9).
+read_asr_data_loop__action(X) :- X = prop_clause_read(A1, A2, A3, A4, A5, A6, A7), !,
+    add_prop_clause_read(A1, A2, A3, A4, A5, A6, A7).
+
+% % TODO:[see issue #576]
+% add_assrt_indirect_imports(M, AssrtBody) :-
+%     ( adding_to_module(CM) ->
+%         assertion_body(Head, _, _, _, _, _, AssrtBody),
+%         functor(Head,   MF, A),
+%         functor(Head__, MF, A),
+%         ( current_itf(imports(CM,_), Head__, M) ->
+%             true
+%         ; module_split(MF, _, F),
+%           add_indirect_imports(CM, M, F, A)
+%         )
+%     ;
+%         true
+%     ).
+
+:- data asr_stream/1. % (enable asr write)
+
+write_asr_header(S) :-
+    ast_version(V),
+    displayq(S, v(V)),
+    display(S, ' .\n').
+
+% (Note: not saved for main file)
+write_asr_fact(X) :- current_fact(asr_stream(S)), !,
+    fast_write(S, X).
+write_asr_fact(_).
+
+open_asr_to_write(AsrName) :-
+    retractall_fact(asr_stream(_)),
+    ( catch(open(AsrName, write, Stream), error(_,_), fail) ->
+        set_fact(asr_stream(Stream)),
+        write_asr_header(Stream)
+    ; true % (asr storate silently disabled if file cannot be opened)
+    ).
+
+close_asr_to_write :-
+    ( current_fact(asr_stream(Stream)) ->
+        close(Stream),
+        retractall_fact(asr_stream(_))
+    ; true
+    ).
+
+% ---------------------------------------------------------------------------
+%! ## Checking that assertion properties are really properties
+
+delayed_prop_checks :- % TODO:[SLOW] do not repeat checking of all modules everytime
+    assertion_read(PD, M, _Status, Type, Body, _Dict, S, LB, LE),
+    \+ current_fact(irrelevant_file(M)),
+    \+ Type = modedef,
+    \+ Type = test,
+    functor(PD, F, A),
+    assertion_body(_NPD, CNDP, CNCP, CNAP, CNGP, _CO, Body),
+    Where = loc(S, LB, LE),
+    check_properties(CNDP, F, A, M, Where),
+    check_properties(CNCP, F, A, M, Where),
+    check_properties(CNAP, F, A, M, Where),
+    check_properties(CNGP, F, A, M, Where),
+    fail.
+delayed_prop_checks.
+
+check_properties([], _F, _A, _M, _Where) :- !.
+check_properties([(P1;P2)], F, A, M, Where) :- !,
+    check_properties(P1, F, A, M, Where),
+    check_properties_special_case(P2, F, A, M, Where).
+check_properties([Prop|Props], F, A, M, Where) :- !,
+    functor(Prop, PF, PA),
+    check_property(PF, PA, Prop, F, A, M, Where),
+    check_properties(Props, F, A, M, Where).
+check_properties(PROP, F, A, M, Where) :-
+    throw(error(expecting_list_of_props(PROP,F/A,M,Where), check_properties/5)).
+
+% Here is the case:
+%
+%  The body assertion _type_ is a list. Then ';' were introduced and
+% things like [A;B], with A, B lists, are now accepted.  A problem
+% araise when we have something like [A;B;C].  As ';' works like a
+% functor, we got ';'(A,(B;C)), with A,B and C list, _BUT_ in:
+%
+% check_properties( [(P1;P2)],F,A,M,Where):-
+%       !,
+%       check_properties(P1,F,A,M,Where),
+%       check_properties(P2,F,A,M,Where).
+%
+% P2 is (B;C) so it is not a list!.
+%
+% Then, here we have the special case:
+check_properties_special_case((P1;P2), F, A, M, Where) :- !,
+    check_properties(P1, F, A, M, Where),
+    check_properties_special_case(P2, F, A, M, Where).
+check_properties_special_case(P1, F, A, M, Where) :-
+    check_properties(P1, F, A, M, Where).
+
+check_property(call, _PA, _Prop, _F, _A, _M, _Where) :- !.
+check_property(';', 2, ';'(A, B), _F, _A, _M, _Where) :-
+    check_properties(A, _F, _A, _M, _Where),
+    check_properties(B, _F, _A, _M, _Where),
+    !.
+check_property(PF, PA, _Prop, _F, _A, _M, _Where) :-
+%       relevant_prop(_AM,Prop), !.
+    functor(PD, PF, PA),
+    assertion_read(PD, _AM, _Status, prop, _Body, _Dict, _S, _LB, _LE),
+    !.
+check_property(PF, PA, _Prop, _F, _A, M, _Where) :-
+    warned_prop(PF, PA, M),
+    !.
+check_property(PF, PA, _Prop, F, A, M, Where) :-
+    warning_message(Where,
+        "~w used in an assertion for ~w in ~w is not a property",
+        [PF/PA, F/A, M]),
+    asserta_fact(warned_prop(PF, PA, M)).
+
+% ---------------------------------------------------------------------------
+%! # Cleanup
 
 :- pred cleanup_punit # "Clean up all facts that p_unit asserts.".
 cleanup_punit :-
@@ -343,6 +1360,8 @@ curr_language(lp).
 
 %% ---------------------------------------------------------------------------
 
+:- use_module(library(terms_check), [variant/2]).
+
 :- pred get_call_from_call_assrt(Sg,M,Status,Call,Source,LB,LE)
    # "Returns in @var{Call}, upon backtracking call patterns from calls
    assertions related to @var{Sg}, in module @var{M}. Also takes care of 
@@ -394,7 +1413,7 @@ dynamic_or_unknown_predicate(Goal):- type_of_goal(multifile,Goal), !.
 dynamic_or_unknown_predicate(Goal):- type_of_goal(impl_defined,Goal), !.
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Assertions").
+%! # Assertions
 
 get_assertion(Goal, As) :-
     As = as(M,Status,Type,Head,Compat,Call,Succ,Comp,Dic,Loc,Comment,_),
@@ -427,13 +1446,6 @@ assertion_set_comp(X0, Comp, X) :-
     X0 = as(M,Status,Type,Head,Co,Calls,Success,_,Dic,Loc,Comm,Fromwhere),
     X = as(M,Status,Type,Head,Co,Calls,Success,Comp,Dic,Loc,Comm,Fromwhere).
 
-:- pred add_assertions(AssrtList) : list(AssrtList)
-   # "Add assertions list @var{AssrtList} to internal DB.".
-add_assertions([]).
-add_assertions([A|As]) :-
-    add_assertion(A),
-    add_assertions(As).
-
 :- pred add_assertion(Assrt) # "Add assertion @var{Assrt} to internal DB.".
 add_assertion(As) :-
     As = as(M,Status,Type,Head,Compat,Calls,Succ,Comp,Dic,AsLoc,Com,_),
@@ -445,7 +1457,7 @@ add_assertion(As) :-
     error_message("Internal Error: add_assertion: Could not add ~p", [As]).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Directives").
+%! # Directives
 
 :- use_module(library(vndict), [null_dict/1]).
 
@@ -478,7 +1490,7 @@ type_of_directive(Type,Body):-
     clause_read(_M,0,D,_VarNames,_Source,_LB,_LE).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Predicate index").
+%! # Predicate index
 
 % TODO: merge with itf_db?
 
@@ -582,7 +1594,7 @@ new_internal_predicate(F,A,NewF):-
     ).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Native props").
+%! # Native props
 
 :- use_module(library(compiler/p_unit/unexpand), [unexpand_meta_calls/2]).
 :- use_module(library(streams)).
@@ -725,11 +1737,11 @@ native_to_prop_visible(NProp,NProp).
 %       assert_itf_kludge(p_unit,imports(F,Spec)).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Inject packages for output (post-preprocessing unit)"). % TODO: per module?
+%! # Inject packages for output (post-preprocessing unit)
+% TODO: per module?
 
 :- use_module(engine(runtime_control), [statistics/2]).
 :- use_module(engine(stream_basic), [absolute_file_name/7]).
-:- use_module(library(compiler/p_unit/p_asr), [p_unit_log/1]).
 
 :- pred inject_output_package(A) : atm(A)
    # "Inject the package @var{A} in the current program database (including the
@@ -758,7 +1770,7 @@ inject_output_package(A) :-
 
 load_package_info(M, File) :-
     set_ciaopp_expansion(true), % TODO: try to avoid this
-    ( preprocessing_unit_opts([File], [load_pkg_from(M)], _, _) -> true ; true ), % TODO: can it fail?
+    ( preprocessing_unit_opts([File], [inject_pkg_into(M)], _, _) -> true ; true ), % TODO: can it fail?
     set_ciaopp_expansion(false),
     % TODO: update unexpanded data or wait until we've loaded everything?
     %   cleaning and recomputing all unexpanded data all the time makes sense (JF)
@@ -766,7 +1778,9 @@ load_package_info(M, File) :-
     generate_unexpanded_data(M).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Packages that must be included in the output"). % TODO: per module?
+%! # Packages that must be included in the output
+
+% TODO: per module?
 % TODO: be careful! this cannot work for all packages (JF)
 
 % TODO: delay "load_package_info/1"?
@@ -788,7 +1802,9 @@ add_output_package(A) :-
     ).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Operators that must be included in the output"). % TODO: per module?
+%! # Operators that must be included in the output
+
+% TODO: per module?
 
 :- data pl_output_op/3.
 
@@ -809,7 +1825,9 @@ get_output_operator(A,B,C) :-
     current_fact(pl_output_op(A,B,C)).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Comment DB"). % TODO: per module?
+%! # Comment DB
+
+% TODO: per module?
 % Note: this is a simplified version for the current uses (see older
 %   version in Attic/ for more potential features)
 
@@ -834,19 +1852,12 @@ get_comment(Comment) :-
     current_fact(comment_db(Comment)).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Commented (%) assertions").
+%! # Commented (%) assertions
 
 :- data commented_assrt/1.
 
 cleanup_commented_assrt :-
     retractall_fact(commented_assrt(_)).
-
-:- pred add_commented_assertions(A) : list(A)
-   # "Add the assertions list @var{A} to the commented assertions DB.".
-add_commented_assertions([]).
-add_commented_assertions([A|As]) :-
-    add_commented_assertion(A),
-    add_commented_assertions(As).
 
 % TODO: changing 'fromwhere' may be avoided
 :- pred add_commented_assertion(A) : term(A)
@@ -864,7 +1875,7 @@ get_commented_assertion(ClKey, As) :-
     current_fact(commented_assrt(As)).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Cached libraries").
+%! # Cached libraries
 
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
