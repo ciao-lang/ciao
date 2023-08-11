@@ -84,15 +84,21 @@ emacs_batch_call(Args, Opts) :-
 
 :- export(emacs_update_autoloads/2).
 :- pred emacs_update_autoloads(Dir, AutoloadEL)
-   # "Invoke the Emacs @tt{'batch-update-autoloads'} function to generate
+   # "Invoke the Emacs @tt{'loaddefs-generate-batch'} function to generate
       the autoload file @var{AutoloadEL}.".
  
 emacs_update_autoloads(Dir, AutoloadEL) :-
     AutoloadEL2 = ~emacs_style_path(AutoloadEL),
     % TODO: espape AutoloadEL2
     emacs_batch_call(
-        ['--eval', ~atom_concat(['(setq generated-autoload-file "', AutoloadEL2, '")']),
-         '-f', 'batch-update-autoloads', '.'],
+        % simulate loaddefs-generate-batch if emacs version <29
+        ['--eval', ~atom_concat(['(if (version< emacs-version "29.0")',
+         ' (defun loaddefs-generate-batch ()',
+         '   (let ((args command-line-args-left))',
+         '     (setq command-line-args-left nil)',
+         '     (setq generated-autoload-file (car args))',
+         '     (update-directory-autoloads (car (cdr args))))))']),
+         '-f', 'loaddefs-generate-batch', AutoloadEL2, '.'],
         [cwd(Dir), status(_)]).
 
 :- export(emacs_batch_byte_compile/2).
