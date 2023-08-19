@@ -54,7 +54,8 @@
 :- doc(author, "The Ciao Development Team").
 :- doc(author, "Manuel Hermenegildo").
 :- doc(author, "Francisco Bueno").
-:- doc(author, "Jose F. Morales"). % (moved and integrated into core)
+:- doc(author, "Jose F. Morales"). % (moved and integrated into core,
+                                   % fixes, optimizations, etc.)
 
 :- doc(module, "This library provides predicates to load, access,
    modify, and pretty print module preprocessing units
@@ -162,12 +163,7 @@
 
 %% :- doc(bug,"7. Several copies of the same assertions remain in DB.").
 
-:- doc(bug, "8. Have to cleanup code: reduce asserts.").
-
 %% Solved:
-%% :- doc(bug,"9. Currently, if a related file does not export a property
-%%    the transitive closure from this file does NOT occur: this is not
-%%    correct. Now solved.").
 %% :- doc(bug,"10. Implicit importation of builtin modules from another 
 %%      builtin module does not work: properties are not read in. This is 
 %%      relevant when using package pure for properties cgoal/1 and iso/1 in
@@ -259,11 +255,11 @@ p_unit_log(_Message).
     # "Loads the preprocessing unit of @var{F} defining @var{M}.".
 
 preprocessing_unit(Fs,Ms,E):- Fs=[_|_], !,
-    preprocessing_unit_list(Fs,Ms,E).
+    preprocessing_unit_list(Fs,Ms,E,[]).
 preprocessing_unit(F,M,E):-
-    preprocessing_unit_list([F],[M],E).
+    preprocessing_unit_list([F],[M],E,[]).
 
-preprocessing_unit_list(Fs,Ms,E):-
+preprocessing_unit_list(Fs,Ms,E,Opts):-
     cleanup_pasr,
     % TODO: fixme (see comment below)
     % init related files db for the closure
@@ -274,7 +270,7 @@ preprocessing_unit_list(Fs,Ms,E):-
 %       cleanup_punit,
     set_ciaopp_expansion(true),
     % note: this includes splitting pred assertions into calls and success
-    preprocessing_unit_opts(Fs, [load_mod], Ms, E),
+    preprocessing_unit_internal(Fs, Ms, E, Opts),
 %       assert_curr_modules(Ms), % TODO: expected in ctchecks_plot?
 %       assert_curr_files(Fs,Ms),
     % identify and assert native props
@@ -289,12 +285,15 @@ preprocessing_unit_list(Fs,Ms,E):-
     maplist(normalize_clauses, Ms),
     !,
     set_ciaopp_expansion(false). % TODO: move earlier?
-preprocessing_unit_list(_Fs,_Ms,_E):-
+preprocessing_unit_list(_Fs,_Ms,_E,_Opts):-
     set_ciaopp_expansion(false),
     fail.
 
 % ---------------------------------------------------------------------------
 %! # Preprocessing unit loading
+
+%:- compilation_fact(use_trans_opt).
+%:- compilation_fact(fast_c_itf).
 
 :- use_module(library(lists), [member/2]).
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
@@ -312,17 +311,23 @@ preprocessing_unit_list(_Fs,_Ms,_E):-
 
 :- data processed_file/1.
 :- data related_file/1.
-:- data irrelevant_file/1. % TODO: used by 'trans', not enabled, check
+:- data irrelevant_file/1.
 :- data file_included_by_package/1.
 :- data warned_prop/3.
+% (into ast files)
+:- data mod_exports_no_props/1.
+:- data mod_related_file/2.
 
-:- pred cleanup_pasr # "Clean up all facts that preprocessing_unit_opts/4 asserts.".
+:- pred cleanup_pasr # "Clean up all facts that preprocessing_unit_internal/4 asserts.".
 cleanup_pasr :-
     retractall_fact(processed_file(_)),
     retractall_fact(related_file(_)),
     retractall_fact(irrelevant_file(_)),
     retractall_fact(file_included_by_package(_)),
-    retractall_fact(warned_prop(_, _, _)).
+    retractall_fact(warned_prop(_, _, _)),
+    %
+    retractall_fact(mod_exports_no_props(_)),
+    retractall_fact(mod_related_file(_,_)).
 
 :- export(there_was_error/1). % for intermod
 % (error in c_itf:process_file/7)
@@ -338,8 +343,8 @@ there_was_error(no).
 % itf_db. adding_to_module specifies the original (first) loaded module 
 :- data adding_to_module/1.
 
-:- pred preprocessing_unit_opts(in(Fs), in(Opts), out(Ms), out(E))
-    :: list(filename) * list * moddesc * switch
+:- pred preprocessing_unit_internal(in(Fs), out(Ms), out(E), in(Opts))
+    :: list(filename) * moddesc * switch * list
 # "This is the core of the @concept{assertion reader/normalizer}. 
    It accepts some options in @var{Opts}. Also passes on the options
    in @var{Opts} to pass two of the assertion normalizer.
@@ -377,7 +382,7 @@ there_was_error(no).
 
 %:- use_module(engine(runtime_control), [statistics/2]).
 
-preprocessing_unit_opts(Fs, Opts, Ms, E) :-
+preprocessing_unit_internal(Fs, Ms, E, Opts) :-
     %statistics(walltime, [L1|_]),
     % process main file
     process_main_files(Fs, Opts, Ms),
@@ -396,7 +401,7 @@ preprocessing_unit_opts(Fs, Opts, Ms, E) :-
     %
     %statistics(walltime, [L2|_]),
     %Ld is L2-L1,
-    %display(user_error, time_preprocessing_unit_opts(Fs,Opts,Ms,Ld)), nl(user_error),
+    %display(user_error, time_preprocessing_unit_internal(Fs,Ms,Ld,Opts)), nl(user_error),
     % any error upon loading?
     there_was_error(E).
 
@@ -419,11 +424,19 @@ related_files_closure_(Rel, Opts) :-
     \+ user_module(I),
     process_one_file(no, I, Rel, Opts, _M),
     fail.
+:- if(defined(use_trans_opt)).
+related_files_closure_(_Rel, Opts) :-
+    ( member(load_irrelevant, Opts) -> Rel2 = direct
+    ; Rel2 = trans
+    ),
+    related_files_closure(Rel2,Opts).
+:- else.
 related_files_closure_(_Rel, Opts) :-
     % TODO: %jcf%- To load only the directly related modules (for testing), just 
     %       %jcf%- comment out this line.
     %       related_files_closure(trans,Opts).
     related_files_closure(direct, Opts).
+:- endif.
 
 user_module(user). %% 'user' module cannot be treated as a normal module.
 
@@ -435,11 +448,23 @@ do_nothing(_).
 process_one_file(IsMain, NF, Rel, Opts, M) :-
     error_protect(ctrlc_clean(
             process_file(NF, asr, any,
-                treat_one_file(IsMain, M, Rel, Opts),
-                c_itf:false, asr_readable(IsMain), do_nothing)
-        ),fail). % TODO: fail or abort?
+                treat_one_file(IsMain, M, Opts),
+                c_itf:false, asr_readable(IsMain, M), do_nothing)
+        ),fail), % TODO: fail or abort?
+    %
+    ( Rel = trans, mod_exports_no_props(M) ->
+        % Mark as irrelevant, do not add related files
+        assertz_fact(irrelevant_file(M)) % TODO: make sure that this is removed if the file is processed later as 'direct'
+    ; % Add related files
+      ( % (failure-driven loop)
+        current_fact(mod_related_file(M, IMAbs)),
+          add_related_file(IMAbs),
+          fail
+      ; true
+      )
+    ).
 
-treat_one_file(IsMain, M, Rel, Opts, Base) :-
+treat_one_file(IsMain, M, Opts, Base) :-
 %    message(inform, ['KKlog ', Base]),
     p_unit_log(['{Processing module ', Base, ' (main=', IsMain, ')']),
     del_compiler_pass_data, % (mexpand_error/0, location/3, ...)
@@ -465,7 +490,7 @@ treat_one_file(IsMain, M, Rel, Opts, Base) :-
     deactivate_second_translation(Base, M),
     end_brace_if_needed,
     % compute next related_file/1 layer
-    assert_related_files(Rel, Base, M),
+    assert_related_files(Base, M),
     % .ast file
     ( IsMain = no -> close_asr_to_write ; true ),
     % add itf facts to DB
@@ -480,9 +505,9 @@ treat_one_file(IsMain, M, Rel, Opts, Base) :-
 % .asr file exists, 
 % TODO: transitively checked?
 % (only failure, .ast file is regenerated)
-asr_readable(yes, _Base) :- !, % (main)
+asr_readable(yes, _M, _Base) :- !, % (main)
     fail. % Always reload for main file % TODO: save .exp files a-la optim-comp would speedup some use cases?
-asr_readable(no, Base) :- % (related)
+asr_readable(no, M, Base) :- % (related)
 %    message(inform, ['KKlog-asr ', Base]),
     ( current_fact(processed_file(Base)) -> throw(bug(file_processed_twice(Base)))
     ; true
@@ -605,15 +630,15 @@ add_indirect_imports(CM, M, F, A) :-
 
 :- data seen_related_file/1. % (avoid writing related_file more than once)
 
-% TODO: 'trans' is not used, check if it works
-
-assert_related_files(trans, Base, M) :-
-    check_irrelevant_mod(Base, M),
-    !,
-    % the closure finalizes when there is no property exported
-    assertz_fact(irrelevant_file(M)),
-    write_asr_fact(irrelevant_file(M)).
-assert_related_files(_, Base, _M) :-
+assert_related_files(Base, M) :-
+    ( check_mod_exports_no_props(Base, M) ->
+       % Mark that the module exports no props (useful for Rel=trans)
+       % the closure finalizes when there is no property exported
+       assertz_fact(mod_exports_no_props(M)),
+       write_asr_fact(mod_exports_no_props(M))
+    ; true
+    ),
+    %
     retractall_fact(seen_related_file(_)),
     ( % (failure driven loop)
       imports_pred(Base, IM, _F, _A, _DefType, _Meta, _EndFile), % TODO: use IsMain; consider only props used in assertions and prop bodies if IsMain=no
@@ -622,8 +647,8 @@ assert_related_files(_, Base, _M) :-
         ( current_fact(seen_related_file(IMAbs)) ->
             true
         ; asserta_fact(seen_related_file(IMAbs)),
-          write_asr_fact(related_file(IMAbs)),
-          add_related_file(IMAbs)
+          assertz_fact(mod_related_file(M, IMAbs)),
+          write_asr_fact(mod_related_file(M, IMAbs))
         ),
         fail % (loop)
     ; true
@@ -655,15 +680,16 @@ file_path(Base,Path):-
     path_split(Base,Path0,_),
     ( Path0 = '' -> Path = '.' ; Path = Path0 ).
 
-% Base,M is irrelevant if it do not have any exported prop
-check_irrelevant_mod(Base, M) :-
+% Base,M is irrelevant if it does not have any exported prop
+check_mod_exports_no_props(Base, M) :-
     relevant_prop(M, Prop),
     functor(Prop, F, A),
     c_itf:exports(Base, F, A, _DefType, _Meta),
     !,
     fail.
-check_irrelevant_mod(_Base, _M).
+check_mod_exports_no_props(_Base, _M).
 
+% TODO: all props in M are relevant according to this definition
 relevant_prop(M, Prop) :-
     current_fact(assertion_of(PD, M, _, prop, _, _, _, _LB, _LE)),
     functor(PD,   F, A),
@@ -809,7 +835,7 @@ save_relevant_properties_of(Base, M) :-
       relevant_prop(M, Prop),
         save_predicate_clauses_of(Base, M, Prop),
         functor(Prop, F, A),
-        ( c_itf:exports(Base, F, A, _DefType, _Meta) -> true
+        ( c_itf:exports(Base, F, A, _DefType, _Meta) -> true % (already saved)
         ; write_and_save_assertions_of(Prop, M)
         ),
         fail % (loop)
@@ -1061,12 +1087,12 @@ read_asr_data_loop(F, Stream) :-
 
 read_asr_data_loop__action(defines(M, Base)) :- !,
     assert_itf(defines_module, M, _, _, Base).
-read_asr_data_loop__action(related_file(M)) :- !,
-    add_related_file(M).
+read_asr_data_loop__action(mod_related_file(M, IMAbs)) :- !,
+    assertz_fact(mod_related_file(M, IMAbs)).
 read_asr_data_loop__action(exports(M, F, A, DefType, Meta)) :- !,
     add_exports(M, F, A, DefType, Meta).
-read_asr_data_loop__action(irrelevant_file(F)) :- !,
-    assertz_fact(irrelevant_file(F)).
+read_asr_data_loop__action(mod_exports_no_props(M)) :- !,
+    assertz_fact(mod_exports_no_props(M)).
 read_asr_data_loop__action(X) :- X = assertion_read(A1, A2, A3, A4, A5, A6, A7, A8, A9), !,
     % X = assertion_read(_, M, _, _, Body, _, _, _, _),
     % add_assrt_indirect_imports(M, Body), % TODO:[see issue #576] originally enabled; both should be disabled or enabled to ensure a consistent behavior
@@ -1172,7 +1198,6 @@ check_property(';', 2, ';'(A, B), _F, _A, _M, _Where) :-
     check_properties(B, _F, _A, _M, _Where),
     !.
 check_property(PF, PA, _Prop, _F, _A, _M, _Where) :-
-%       relevant_prop(_AM,Prop), !.
     functor(PD, PF, PA),
     assertion_read(PD, _AM, _Status, prop, _Body, _Dict, _S, _LB, _LE),
     !.
@@ -1180,9 +1205,15 @@ check_property(PF, PA, _Prop, _F, _A, M, _Where) :-
     warned_prop(PF, PA, M),
     !.
 check_property(PF, PA, _Prop, F, A, M, Where) :-
-    warning_message(Where,
-        "~w used in an assertion for ~w in ~w is not a property",
-        [PF/PA, F/A, M]),
+    ( module_split(PF, M, _),
+      current_itf(defines_module, M, _) ->
+        warning_message(Where,
+            "~w used in an assertion for ~w in ~w is not a property",
+            [PF/PA, F/A, M])
+    ; note_message(Where,
+          "~w used in an assertion for ~w in ~w has not been loaded (this is a bug)",
+          [PF/PA, F/A, M])
+    ),
     asserta_fact(warned_prop(PF, PA, M)).
 
 % ---------------------------------------------------------------------------
@@ -1770,7 +1801,7 @@ inject_output_package(A) :-
 
 load_package_info(M, File) :-
     set_ciaopp_expansion(true), % TODO: try to avoid this
-    ( preprocessing_unit_opts([File], [inject_pkg_into(M)], _, _) -> true ; true ), % TODO: can it fail?
+    ( preprocessing_unit_internal([File], _, _, [inject_pkg_into(M)]) -> true ; true ), % TODO: can it fail?
     set_ciaopp_expansion(false),
     % TODO: update unexpanded data or wait until we've loaded everything?
     %   cleaning and recomputing all unexpanded data all the time makes sense (JF)
@@ -1920,7 +1951,7 @@ gen_libcache(DataDir) :-
     cleanup_punit,
     bundle_path(core, 'Manifest/core.libcache.pl', P),
     %
-    preprocessing_unit([P],_Ms,E),
+    preprocessing_unit_list([P],_Ms,E,[load_irrelevant]),
     ( E == yes -> throw(error(failed_preprocesssing, gen_libcache/0)) ; true ),
     %assertz_fact(curr_module('core.libcache')),
     %assertz_fact(curr_file(P, 'core.libcache')),
