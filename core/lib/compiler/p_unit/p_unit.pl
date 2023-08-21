@@ -1088,7 +1088,7 @@ module_expansion(H, B, Module, Dict, Mode, Src, Ln0, Ln1, H1, B1, H2, B2):-
    the @tt{.ast} files incompatible, since this forces recomputation
    of all such files.".
 
-ast_version('5.0').
+ast_version('6.0').
 
 % Note: use `ciaodump` to show .ast files (fastrw format)
 
