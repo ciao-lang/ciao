@@ -111,8 +111,13 @@
 %% properties of the related files.
 
 % ---------------------------------------------------------------------------
-% TODO: review old list of bugs
-% (p_unit bugs)
+% Wishlist and known bugs
+
+:- doc(bug,"Further integration with c_itf, more control over
+   process_files_from/7 so that internal calls are not needed, avoid
+   restoring itf info (JF)").
+
+% TODO: older list of bugs, review
 
 :- doc(bug,"2. May clauses not of the current module be erased?.").
 :- doc(bug,"3. Allow for native(regtype).").
@@ -383,6 +388,7 @@ there_was_error(no).
 %:- use_module(engine(runtime_control), [statistics/2]).
 
 preprocessing_unit_internal(Fs, Ms, E, Opts) :-
+    my_cleanup_c_itf_data,
     %statistics(walltime, [L1|_]),
     % process main file
     process_main_files(Fs, Opts, Ms),
@@ -447,24 +453,34 @@ do_nothing(_).
 % Process NF (IsMain=yes if it is the main file)
 process_one_file(IsMain, NF, Rel, Opts, M) :-
     error_protect(ctrlc_clean(
-            process_file(NF, asr, any,
-                treat_one_file(IsMain, M, Opts),
-                c_itf:false, asr_readable(IsMain, M), do_nothing)
-        ),fail), % TODO: fail or abort?
-    %
-    ( Rel = trans, mod_exports_no_props(M) ->
-        % Mark as irrelevant, do not add related files
-        assertz_fact(irrelevant_file(M)) % TODO: make sure that this is removed if the file is processed later as 'direct'
-    ; % Add related files
-      ( % (failure-driven loop)
-        current_fact(mod_related_file(M, IMAbs)),
-          add_related_file(IMAbs),
-          fail
-      ; true
-      )
-    ).
+            my_process_file(NF, asr, any,
+                treat_one_file(IsMain, Rel, M, Opts),
+                c_itf:false, asr_readable(IsMain, Rel, M), do_nothing)
+        ),fail). % TODO: fail or abort?
 
-treat_one_file(IsMain, M, Opts, Base) :-
+:- meta_predicate my_process_file(+, +, +, pred(1), pred(1), pred(1), pred(1)).
+:- if(defined(fast_c_itf)).
+% TODO: process_file/7 cleans the cache, which is very inefficient for
+%   treating recursive imports. process_file_from/7 is not flexible
+%   enough to skip some imports and reconsider them later (which may
+%   be needed for some import relations where a module is both direct
+%   and indirect (due to another import) w.r.t. main). Extend c_itf to
+%   allow these use cases, or export the internals.
+:- import(c_itf, [cleanup_c_itf_data/0, get_base_name/4, process_file_/9, process_too/2]).
+my_process_file(File, Mode, Type, TreatP, StopP, SkipP, RedoP) :-
+    c_itf:get_base_name(File, Base, Pl, Dir),
+    c_itf:process_file_(Base, Pl, Dir, Mode, Type, TreatP, StopP, SkipP, RedoP),
+    retractall_fact(c_itf:process_too(_,_)). % (not needed)
+my_cleanup_c_itf_data :-
+    c_itf:cleanup_c_itf_data.
+:- else.
+my_process_file(File, Mode, Type, TreatP, StopP, SkipP, RedoP) :-
+    c_itf:process_file(File, Mode, Type, TreatP, StopP, SkipP, RedoP).
+my_cleanup_c_itf_data.
+:- endif.
+
+treat_one_file(IsMain, Rel, M, Opts, Base) :-
+%    ttt(treat_one_file(IsMain,Rel,M)),
 %    message(inform, ['KKlog ', Base]),
     p_unit_log(['{Processing module ', Base, ' (main=', IsMain, ')']),
     del_compiler_pass_data, % (mexpand_error/0, location/3, ...)
@@ -500,14 +516,22 @@ treat_one_file(IsMain, M, Opts, Base) :-
     ; % TODO: should multifile be saved if IsMain=no?
       save_itf_info_of(Base, M, IsMain)
     ),
-    p_unit_log(['}']).
+    p_unit_log(['}']),
+    %
+    fill_related(Rel, M).
 
-% .asr file exists, 
-% TODO: transitively checked?
+% Check whether skip treatment for this module. As a side-effect, it
+% loads the .ast file, which contains enough information for
+% p_unit. Since the .itf info is not loaded, .ast loading feed back
+% this information using c_itf:restore_defines/5 and
+% c_itf:restore_imports/5.
+
+% TODO: a bit hacky, better way?
+
 % (only failure, .ast file is regenerated)
-asr_readable(yes, _M, _Base) :- !, % (main)
+asr_readable(yes, _Rel, _M, _Base) :- !, % (main)
     fail. % Always reload for main file % TODO: save .exp files a-la optim-comp would speedup some use cases?
-asr_readable(no, M, Base) :- % (related)
+asr_readable(no, Rel, M, Base) :- % (related)
 %    message(inform, ['KKlog-asr ', Base]),
     ( current_fact(processed_file(Base)) -> throw(bug(file_processed_twice(Base)))
     ; true
@@ -519,7 +543,22 @@ asr_readable(no, M, Base) :- % (related)
     % display('Reading asr file '), display(AsrName), nl,
     read_asr_file(AsrName),
     c_itf:defines_module(Base, M),
-    assert_itf(defines_module, M, _, _, Base).
+    assert_itf(defines_module, M, _, _, Base),
+    %
+    fill_related(Rel, M).
+
+fill_related(Rel, M) :-
+    ( Rel = trans, mod_exports_no_props(M) ->
+        % Mark as irrelevant, do not add related files
+        assertz_fact(irrelevant_file(M)) % TODO: make sure that this is removed if the file is processed later as 'direct'
+    ; % Add related files
+      ( % (failure-driven loop)
+        current_fact(mod_related_file(M, IMAbs)),
+          add_related_file(IMAbs),
+          fail
+      ; true
+      )
+    ).
 
 :- use_module(library(system), [modif_time/2]).
 
@@ -891,7 +930,7 @@ write_asr_assrts([A|As]) :-
     end_goal_trans/1,
     restore_defines/5,
     restore_imports/5,
-    % restore_multifile/4,
+    % restore_multifile/4, % TODO: not used!
     imports/5,
     meta_args/2,
     dyn_decl/4
