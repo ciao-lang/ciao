@@ -297,8 +297,8 @@ preprocessing_unit_list(_Fs,_Ms,_E,_Opts):-
 % ---------------------------------------------------------------------------
 %! # Preprocessing unit loading
 
-%:- compilation_fact(use_trans_opt).
-%:- compilation_fact(fast_c_itf).
+:- compilation_fact(use_trans_opt).
+:- compilation_fact(fast_c_itf).
 
 :- use_module(library(lists), [member/2]).
 :- use_module(library(ctrlcclean), [ctrlc_clean/1]).
