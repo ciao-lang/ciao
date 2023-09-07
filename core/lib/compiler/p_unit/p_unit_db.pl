@@ -14,7 +14,7 @@
     remove_assertion_read/9,
     removeall_assertion_read/9,
     ref_assertion_read/10,
-    assertion_of/9,
+    assertion_of/9, % TODO: DO NOT EXPORT! erase after normalization
     % ------
     % (clause_db)
     clause_read/7, 
@@ -65,6 +65,7 @@
 :- export(defines_module/2).
 :- export(defines_module_rev_idx/2).
 :- export(pgm_assertion_read/9).
+:- export(pgm_prop_clause_read/7). % (for abolish_related_info/1)
 
 :- data curr_module/1.
 :- data curr_file/2.
@@ -200,14 +201,14 @@ assert_itf(new_exports,M,F,A,_M):-
 assert_itf(multifile,M,F,A,_DynType):-
     functor(Goal0,F,A),
     goal_module_expansion(Goal0, M, Goal),
-    assertz_fact(multifile(Goal,M)).
+    assertz_if_needed(multifile(Goal,M)).
 assert_itf(meta,M,F,A,Meta0):-
     functor(Goal0,F,A),
     goal_module_expansion(Goal0, M, Goal),
     functor(Goal,MF,_),
     Meta0 =.. [_|As],
     Meta =.. [MF|As],
-    assertz_fact(meta(Goal,Meta)).
+    assertz_if_needed(meta(Goal,Meta)).
 assert_itf(dynamic,M,F,A,_Deftype):-
     functor(Goal0,F,A),
     goal_module_expansion( Goal0 , M , Goal ),
@@ -215,14 +216,13 @@ assert_itf(dynamic,M,F,A,_Deftype):-
 assert_itf(defines_module,M,_,_,Base):-
     ( current_fact(defines_module(Base,M)) ->
         true
-    ;
-        assertz_fact(defines_module(Base,M)),
-        assertz_fact(defines_module_rev_idx(M, Base))
+    ; assertz_fact(defines_module(Base,M)),
+      assertz_fact(defines_module_rev_idx(M, Base))
     ).
 assert_itf(impl_defines,M,F,A,_DynType):-
     functor(Goal0,F,A),
-    goal_module_expansion( Goal0 , M , Goal ),
-    assertz_fact(impl_defines(Goal,M)).
+    goal_module_expansion(Goal0, M, Goal),
+    assertz_if_needed(impl_defines(Goal,M)).
 
 assertz_if_needed(imports(Goal,M,EM,Mode)) :- !,
     ( current_fact(imports(Goal,M,EM,OldMode)) ->
@@ -237,9 +237,21 @@ assertz_if_needed(exports(Goal,M)) :-
     ( current_fact(exports(Goal,M)) -> true
     ; assertz_fact(exports(Goal,M))
     ).
+assertz_if_needed(meta(Goal,M)) :-
+    ( current_fact(meta(Goal,M)) -> true
+    ; assertz_fact(meta(Goal,M))
+    ).
 assertz_if_needed(dynamic(Goal)) :-
     ( current_fact(dynamic(Goal)) -> true
     ; assertz_fact(dynamic(Goal))
+    ).
+assertz_if_needed(impl_defines(Goal,M)) :-
+    ( current_fact(impl_defines(Goal,M)) -> true
+    ; assertz_fact(impl_defines(Goal,M))
+    ).
+assertz_if_needed(multifile(Goal,M)) :-
+    ( current_fact(multifile(Goal,M)) -> true
+    ; assertz_fact(multifile(Goal,M))
     ).
 
 % TODO: use bit masks?
@@ -620,3 +632,4 @@ restore_lib_p_unit_db(Stream):-
 %        fail
 %    ; !
 %    ).
+

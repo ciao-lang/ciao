@@ -1,5 +1,5 @@
 :- module(p_unit, [
-    preprocessing_unit/3,
+    preprocessing_unit/4,
     program/2,
     filtered_program_clauses/3,
     replace_program/2,
@@ -16,9 +16,9 @@
     erase_directive/1,
     type_of_directive/2, % TODO: check (see code)
     % Predicate index
-    pr_key_clean/0,
-    pr_key_add/1, % TODO: only from p_unit (and tgd)
-    pr_key_get/1, % TODO: only from p_printer (and tgd)
+    pr_key_clean/1,
+    pr_key_add/2, % TODO: only from p_unit (and tgd)
+    pr_key_get/2, % TODO: only from p_printer (and tgd)
     add_defined_pred/2,
     new_internal_predicate/3,
     new_predicate/3,
@@ -252,45 +252,20 @@ p_unit_log(_Message).
 
 :- use_module(library(hiordlib), [maplist/2]).
 
-:- pred preprocessing_unit(Fs,Ms,E)
-   :  list(filename,Fs) => (list(moddesc,Ms), switch(E))
-    # "Loads the preprocessing unit of @var{Fs} defining @var{Ms}.".
-:- pred preprocessing_unit(F,M,E)
-   : filename(F) => ( moddesc(M), switch(E) )
-    # "Loads the preprocessing unit of @var{F} defining @var{M}.".
+:- pred preprocessing_unit(Fs,Ms,E,Opts)
+   : (list(filename,Fs), list(Opts)) => (list(moddesc,Ms), switch(E))
+   # "Loads the preprocessing unit of @var{Fs} defining @var{Ms}.".
 
-preprocessing_unit(Fs,Ms,E):- Fs=[_|_], !,
-    preprocessing_unit_list(Fs,Ms,E,[]).
-preprocessing_unit(F,M,E):-
-    preprocessing_unit_list([F],[M],E,[]).
-
-preprocessing_unit_list(Fs,Ms,E,Opts):-
-    cleanup_pasr,
-    % TODO: fixme (see comment below)
-    % init related files db for the closure
-    %jcf%-Following comment is temporary (it is called from module/1 already)
-    %jcf%       cleanup_c_itf_data, % cleanup data from c_itf:process_file/7
-    %jcf%       cleanup_clause_db,
-    %jcf%       cleanup_assrt_db,
-%       cleanup_punit,
+preprocessing_unit(Fs,Ms,E,Opts):-
+    % cleanup_pasr, % TODO: already cleaned in cleanup_punit; keep this data to allow incremental loading
     set_ciaopp_expansion(true),
-    % note: this includes splitting pred assertions into calls and success
+    % NOTE: this includes splitting pred assertions into calls and success
     preprocessing_unit_internal(Fs, Ms, E, Opts),
 %       assert_curr_modules(Ms), % TODO: expected in ctchecks_plot?
 %       assert_curr_files(Fs,Ms),
-    % identify and assert native props
-    init_native_props,
-    % setup type definitions
-    init_types,
-    % TODO: code seems to work without this; perhaps because some other ensure_registry_file; however it seems necessary at least to upload types from the registry (see patch_registry_file_/3)
-    % TODO: this was done just before build_defined_types_lattice/0 (when current_pp_flag(types,deftypes)), is it fine here?
-    % remove disjunctions and all that stuff
-    % TODO: clean pr_key here! otherwise we remove a lot of stuff
-    pr_key_clean,
-    maplist(normalize_clauses, Ms),
     !,
     set_ciaopp_expansion(false). % TODO: move earlier?
-preprocessing_unit_list(_Fs,_Ms,_E,_Opts):-
+preprocessing_unit(_Fs,_Ms,_E,_Opts):-
     set_ciaopp_expansion(false),
     fail.
 
@@ -314,10 +289,12 @@ preprocessing_unit_list(_Fs,_Ms,_E,_Opts):-
 :- use_module(library(compiler/p_unit/p_canonical)).
 :- use_module(library(compiler/p_unit/aux_filenames), [get_module_filename/3]).
 
-:- data processed_file/1.
-:- data related_file/1.
+:- data processed_file/2.
+:- data related_file/2.
 :- data irrelevant_file/1.
 :- data file_included_by_package/1.
+:- data pending_init_prop/1.
+:- data pending_init_regtype/2.
 :- data warned_prop/3.
 % (into ast files)
 :- data mod_exports_no_props/1.
@@ -325,10 +302,12 @@ preprocessing_unit_list(_Fs,_Ms,_E,_Opts):-
 
 :- pred cleanup_pasr # "Clean up all facts that preprocessing_unit_internal/4 asserts.".
 cleanup_pasr :-
-    retractall_fact(processed_file(_)),
-    retractall_fact(related_file(_)),
+    retractall_fact(processed_file(_,_)),
+    retractall_fact(related_file(_,_)),
     retractall_fact(irrelevant_file(_)),
     retractall_fact(file_included_by_package(_)),
+    retractall_fact(pending_init_prop(_)),
+    retractall_fact(pending_init_regtype(_,_)),
     retractall_fact(warned_prop(_, _, _)),
     %
     retractall_fact(mod_exports_no_props(_)),
@@ -340,13 +319,6 @@ there_was_error(yes) :- module_error, !.
 there_was_error(yes) :- module_error(_), !.
 there_was_error(yes) :- mexpand_error, !.
 there_was_error(no).
-
-% TODO: (review)
-% DTM: When loading ast file, if we are adding the module to the
-% output, i.e., we add one module information to the current one (see
-% load_package_info/1), we have to add import fact in
-% itf_db. adding_to_module specifies the original (first) loaded module 
-:- data adding_to_module/1.
 
 :- pred preprocessing_unit_internal(in(Fs), out(Ms), out(E), in(Opts))
     :: list(filename) * moddesc * switch * list
@@ -392,24 +364,32 @@ preprocessing_unit_internal(Fs, Ms, E, Opts) :-
     %statistics(walltime, [L1|_]),
     % process main file
     process_main_files(Fs, Opts, Ms),
-    ( ( member(inject_pkg_into(Mod), Opts)
-      ; member(Mod, Ms) % TODO: wrong! only first one?! (see related_files_closure/2 comment)
-      ; Ms = [user(_)], Mod = [user] % TODO: why not a list?
-      ) ->
-        asserta_fact(adding_to_module(Mod)) % TODO: wrong! we may add to several modules! it should be in related_file/1
-    ; retractall_fact(adding_to_module(_)) % TODO: review this
-    ),
+%    ( ( member(inject_pkg_into(Mod), Opts)
+%      ; member(Mod, Ms) % TODO: wrong! only first one?! (see related_files_closure/2 comment)
+%      % ; Ms = [user(_)], Mod = [user] % TODO: not reachable (see case above)
+%      ) ->
+%        asserta_fact(adding_to_module(Mod)) % TODO: wrong! we may add to several modules! it should be in related_file/1
+%    ; retractall_fact(adding_to_module(_)) % TODO: review this
+%    ),
     % traverse the related files closure
-    related_files_closure(direct, Opts), % TODO: Should we do it per M in Ms instead?
-    retractall_fact(adding_to_module(_)),
+    related_files_closure(Opts), % TODO: Should we do it per M in Ms instead?
+%    retractall_fact(adding_to_module(_)),
     %% check for props in the related files
-    delayed_prop_checks,
+    delayed_prop_checks, % TODO: make it incremental
     %
     %statistics(walltime, [L2|_]),
     %Ld is L2-L1,
     %display(user_error, time_preprocessing_unit_internal(Fs,Ms,Ld,Opts)), nl(user_error),
     % any error upon loading?
-    there_was_error(E).
+    there_was_error(E),
+    ( member(inject_pkg_into(_), Opts) -> true
+    ; % init props (native and regtypes)
+      % TODO: code seems to work without this; perhaps because some other ensure_registry_file; however it seems necessary at least to upload types from the registry (see patch_registry_file_/3)
+      % TODO: this was done just before build_defined_types_lattice/0 (when current_pp_flag(types,deftypes)), is it fine here?
+      init_props,
+      % Normalize clauses (remove disjunctions and all that stuff)
+      maplist(normalize_clauses, Ms)
+    ).
 
 process_main_files([], _Opts, []) :- !.
 process_main_files([F|Fs], Opts, [M|Ms]) :- !,
@@ -419,30 +399,19 @@ process_main_files([F|Fs], Opts, [M|Ms]) :- !,
 % module M is (resp.) 
 % processed/related/processed but irrelevant (a leave in the closure)
 
-related_files_closure(Rel, Opts) :-
-    current_fact(related_file(_)), !,
-    related_files_closure_(Rel, Opts).
-related_files_closure(_Rel, _Opts).
+related_files_closure(Opts) :-
+    current_fact(related_file(_,_)), !,
+    related_files_closure_(Opts).
+related_files_closure(_Opts).
 
-related_files_closure_(Rel, Opts) :-
-    retract_fact(related_file(I)),
-    \+ current_fact(processed_file(I)),
+related_files_closure_(Opts) :-
+    retract_fact(related_file(I,RelI)),
+    \+ current_fact(processed_file(I,_)),
     \+ user_module(I),
-    process_one_file(no, I, Rel, Opts, _M),
+    process_one_file(no, I, RelI, Opts, _M),
     fail.
-:- if(defined(use_trans_opt)).
-related_files_closure_(_Rel, Opts) :-
-    ( member(load_irrelevant, Opts) -> Rel2 = direct
-    ; Rel2 = trans
-    ),
-    related_files_closure(Rel2,Opts).
-:- else.
-related_files_closure_(_Rel, Opts) :-
-    % TODO: %jcf%- To load only the directly related modules (for testing), just 
-    %       %jcf%- comment out this line.
-    %       related_files_closure(trans,Opts).
-    related_files_closure(direct, Opts).
-:- endif.
+related_files_closure_(Opts) :-
+    related_files_closure(Opts).
 
 user_module(user). %% 'user' module cannot be treated as a normal module.
 
@@ -455,7 +424,7 @@ process_one_file(IsMain, NF, Rel, Opts, M) :-
     error_protect(ctrlc_clean(
             my_process_file(NF, asr, any,
                 treat_one_file(IsMain, Rel, M, Opts),
-                c_itf:false, asr_readable(IsMain, Rel, M), do_nothing)
+                c_itf:false, asr_readable(IsMain, Rel, M, Opts), do_nothing)
         ),fail). % TODO: fail or abort?
 
 :- meta_predicate my_process_file(+, +, +, pred(1), pred(1), pred(1), pred(1)).
@@ -466,7 +435,7 @@ process_one_file(IsMain, NF, Rel, Opts, M) :-
 %   be needed for some import relations where a module is both direct
 %   and indirect (due to another import) w.r.t. main). Extend c_itf to
 %   allow these use cases, or export the internals.
-:- import(c_itf, [cleanup_c_itf_data/0, get_base_name/4, process_file_/9, process_too/2]).
+:- import(c_itf, [get_base_name/4, process_file_/9, process_too/2]).
 my_process_file(File, Mode, Type, TreatP, StopP, SkipP, RedoP) :-
     c_itf:get_base_name(File, Base, Pl, Dir),
     c_itf:process_file_(Base, Pl, Dir, Mode, Type, TreatP, StopP, SkipP, RedoP),
@@ -476,25 +445,30 @@ my_cleanup_c_itf_data :-
 :- else.
 my_process_file(File, Mode, Type, TreatP, StopP, SkipP, RedoP) :-
     c_itf:process_file(File, Mode, Type, TreatP, StopP, SkipP, RedoP).
-my_cleanup_c_itf_data.
+my_cleanup_c_itf_data. % (cleaned up by process_file/7)
 :- endif.
 
 treat_one_file(IsMain, Rel, M, Opts, Base) :-
-%    ttt(treat_one_file(IsMain,Rel,M)),
 %    message(inform, ['KKlog ', Base]),
     p_unit_log(['{Processing module ', Base, ' (main=', IsMain, ')']),
     del_compiler_pass_data, % (mexpand_error/0, location/3, ...)
     c_itf:defines_module(Base, M),
-    assertz_fact(processed_file(Base)),
+    ( processed_file(Base,_PrevRel) ->
+        % (this happens when the module was processed as non main before)
+        abolish_related_info(M)
+    ; true
+    ),
+    assertz_fact(processed_file(Base,Rel)),
     assert_itf(defines_module, M, _, _, Base),
     % forces generation of defines/5 data (used below)
     ( IsMain = yes -> c_itf:comp_defines(Base) ; true ),
+    %c_itf:comp_defines(Base), % Generate c_itf:defines/5 data % TODO: why not using simpler facts instead?
     % .ast file
     ( IsMain = no ->
         get_module_filename(asr, Base, AsrName),
         open_asr_to_write(AsrName),
-        write_asr_fact(defines(M, Base)),
-        save_itf_of_to_asr(Base, M)
+        write_asr_fact(defines(M, Base))
+        % save_itf_of_to_asr(Base, M) % TODO: moved (JF)
     ; true
     ),
     % inhibits the expansion of meta-predicates % TODO: comment on IsMain=no, why?
@@ -518,47 +492,101 @@ treat_one_file(IsMain, Rel, M, Opts, Base) :-
     ),
     p_unit_log(['}']),
     %
-    fill_related(Rel, M).
+    fill_related(IsMain, Rel, M, Opts).
+
+% Abolish information kept from a previous treatment of the module as related file
+% (needed when the module is required later as a main module)
+% TODO: abolish complete information is more complicated (pr_key/2, locator/2, etc.)
+abolish_related_info(M) :-
+    % TODO: abolish all info saved in save_itf_info_of/3 (it works because assert_itf avoids asserting twice but this should be improved)
+    retractall_fact(assertion_of(_PD,M,_Status,_Type,_Body0,_Dict,_Source,_LB,_LE)),
+    retractall_fact(pgm_assertion_read(_Goal,M,_Status,_Type,_Body,_Dict,_Source,_LB,_LE)),
+    retractall_fact(pgm_prop_clause_read(M, _Head, _Body, _VarNames, _Source, _LB, _LE)).
 
 % Check whether skip treatment for this module. As a side-effect, it
 % loads the .ast file, which contains enough information for
-% p_unit. Since the .itf info is not loaded, .ast loading feed back
-% this information using c_itf:restore_defines/5 and
-% c_itf:restore_imports/5.
+% p_unit.
+% TODO: check if .itf info is loaded here (it may not, but it may not
+%   be needed anyway) (see old version of add_exports/5 predicate using c_itf:restore_imports/5) .
 
 % TODO: a bit hacky, better way?
 
 % (only failure, .ast file is regenerated)
-asr_readable(yes, _Rel, _M, _Base) :- !, % (main)
+asr_readable(yes, _Rel, _M, _Opts, _Base) :- !, % (main)
     fail. % Always reload for main file % TODO: save .exp files a-la optim-comp would speedup some use cases?
-asr_readable(no, Rel, M, Base) :- % (related)
+asr_readable(no, Rel, M, Opts, Base) :- % (related)
 %    message(inform, ['KKlog-asr ', Base]),
-    ( current_fact(processed_file(Base)) -> throw(bug(file_processed_twice(Base)))
+    ( current_fact(processed_file(Base,PrevRel)) -> throw(bug(file_processed_twice(Base,PrevRel))) % TODO: it should never happen (JF)
     ; true
     ),
-    assertz_fact(processed_file(Base)),
     get_module_filename(pl,  Base, PlName),
     get_module_filename(asr, Base, AsrName),
     file_up_to_date(AsrName, PlName),
     % display('Reading asr file '), display(AsrName), nl,
+    assertz_fact(processed_file(Base,Rel)),
     read_asr_file(AsrName),
     c_itf:defines_module(Base, M),
     assert_itf(defines_module, M, _, _, Base),
     %
-    fill_related(Rel, M).
+    fill_related(no, Rel, M, Opts).
 
-fill_related(Rel, M) :-
+fill_related(IsMain, Rel, M, Opts) :-
     ( Rel = trans, mod_exports_no_props(M) ->
         % Mark as irrelevant, do not add related files
         assertz_fact(irrelevant_file(M)) % TODO: make sure that this is removed if the file is processed later as 'direct'
     ; % Add related files
+      next_rel(IsMain, Rel, Opts, Rel2),
       ( % (failure-driven loop)
         current_fact(mod_related_file(M, IMAbs)),
-          add_related_file(IMAbs),
+          add_related_file(IMAbs, Rel2),
           fail
       ; true
       )
     ).
+
+:- if(defined(use_trans_opt)).
+next_rel(IsMain, _Rel, Opts, Rel2) :- % TODO: merge IsMain and Rel
+    ( IsMain = yes -> Rel2 = direct
+    ; member(load_irrelevant, Opts) -> Rel2 = direct
+    ; Rel2 = trans
+    ).
+:- else.
+next_rel(_IsMain, _Rel, _Opts, direct).
+:- endif.
+
+% Turn trans into direct. We only need to change status and fill
+% related_file/2.
+trans_to_direct(Base) :-
+    retractall_fact(processed_file(Base, _)),
+    assertz_fact(processed_file(Base, direct)),
+    c_itf:defines_module(Base, M),
+    retractall_fact(irrelevant_file(M)), % no longer irrelevant
+    fill_related(no, direct, M, []). % TODO: Opts=[] here (JF)
+
+add_related_file(IMAbs, Rel) :-
+    ( current_fact(processed_file(IMAbs, ProcRel)) ->
+        % Already processed, make sure it is loaded in the right mode
+        ( Rel = direct, ProcRel = trans ->
+            trans_to_direct(IMAbs) % loaded as 'trans', turn into 'direct'
+        ; true % OK in the other cases
+        ),
+        fail % (do not add to related_file/2)
+    ; true
+    ),
+    ( current_fact(related_file(IMAbs, PrevRel)) ->
+        % Already added as pending related file
+        ( Rel = direct, PrevRel = trans ->
+            retractall_fact(related_file(IMAbs, _)),
+            assertz_fact(related_file(IMAbs, Rel)) % keep as direct instead
+        ; true % OK in the other cases
+        ),
+        fail % (already in related_file/2)
+    ; true
+    ),
+    \+ mod_in_libcache(_, IMAbs),
+    assertz_fact(related_file(IMAbs, Rel)),
+    !.
+add_related_file(_IMAbs, _Rel).
 
 :- use_module(library(system), [modif_time/2]).
 
@@ -573,54 +601,55 @@ file_up_to_date(AuxName,PlName):-
     PlTime < AuxTime.
 
 % ---------------------------------------------------------------------------
+% NOTE: see c_itf:generate_module_data/2, which generates the input for this pred
 
-save_itf_info_of(Base, M, _IsMain) :-
-    defines(Base, F, A, DefType, Meta),
-    assert_itf(defines, M, F, A, M), % TODO: also for DefType=implicit? (see next clause)
-    save_meta_dynamic(Meta, DefType, M, F, A),
-    fail.
-save_itf_info_of(Base, M, _IsMain) :-
-    defines(Base, F, A, implicit, _Meta),
-    assert_itf(impl_defines, M, F, A, M),
+save_itf_info_of(Base, M, yes) :-
+    c_itf:defines(Base, F, A, DefType, Meta),
+    assert_itf(defines, M, F, A, M),
+    save_meta(Meta, M, F, A),
+    ( DefType = implicit -> % TODO: weird case, do not use defines/5?
+        assert_itf(impl_defines, M, F, A, M)
+    ; save_dynamic(DefType, M, F, A)
+    ),
     fail.
 save_itf_info_of(_Base, M, yes) :- % saving imported preds
-    imports(M, IM, F, A, EM),
-    ( (EM = '.' ; IM = EM) ->
+    c_itf:imports(M, IM, F, A, EM),
+    ( IM = EM ->
         assert_itf(imports, M, F, A, IM) % IG define end module and reexported
     ; assert_itf(imports, M, F, A, r(IM,EM)), % TODO: needed for output
       assert_itf(imports, M, F, A, EM)
     ),
-    %       save_meta_dynamic(Meta, DefType, M, F, A), %%% IG: here use meta_args
+    % Needed due to the reexports
+    ( functor(Pred, F, A), c_itf:meta_args(EM, Pred) -> assert_itf(meta, EM, F, A, Pred) ; true ),
     fail.
-% TODO: only for IsMain=yes?
-save_itf_info_of(_Base, M, yes) :- % saving meta preds
-    meta_args(M, Pred),
-    functor(Pred, F, A),
-    assert_itf(meta, M, F, A, Pred),
-    fail.
-% TODO: only for IsMain=yes?
-save_itf_info_of(Base, M, yes) :- % saving dynamic/data/concurrent preds
-    dyn_decl(Base, F, A, Decl),
-    assert_itf(dynamic, M, F, A, Decl),
-    fail.
-% TODO: dyn_decl/4 is there as long as clause_of/7 is there. The same info is in
-% defines/5... I am not sure which predicate is really alive at this phase.
 save_itf_info_of(Base, M, yes) :-
-    c_itf:exports(Base, F, A, _DefType, _Meta),
-    assert_itf(exports, M, F, A, M),
-    fail.
-% TODO: only for IsMain=yes?
-save_itf_info_of(Base, M, yes) :-
-    def_multifile(Base,F,A,DefType),
+    c_itf:def_multifile(Base,F,A,DefType),
     \+ c_itf_internal_pred(F,A),
     assert_itf(multifile, M, F, A, DefType),
+    ( functor(Pred, F, A), c_itf:meta_args(M, Pred) -> assert_itf(meta, M, F, A, Pred) ; true ),
+    save_dynamic(DefType, M, F, A),
+    fail.
+save_itf_info_of(Base, M, _IsMain) :-
+    c_itf:exports(Base, F, A, DefType, Meta),
+    assert_itf(exports, M, F, A, M),
+    ( true /*IsMain = no*/ ->
+        % TODO: This should be needed only for non-main modules, but
+        % c_itf:exports/5 also includes reexported predicates and the
+        % current version of p_unit treats reexported preds as locally
+        % defined preds too (JF)
+        %
+        % (was) For non-main modules, save meta and dynamic (already saved for main mods)
+        save_meta(Meta, M, F, A),
+        save_dynamic(DefType, M, F, A)
+    ; true
+    ),
     fail.
 save_itf_info_of(_Base, _M, _IsMain).
 
 % (M is the package wrapper module, FromM is the target module for injection)
 save_itf_injected_imports(M, TargetM) :- % saving injected imports
-    imports(M, IM, F, A, EM),
-    ( (EM = '.' ; IM = EM) ->
+    c_itf:imports(M, IM, F, A, EM),
+    ( IM = EM ->
         assert_itf(injected_imports, TargetM, F, A, IM) % IG define end module and reexported
     ; assert_itf(injected_imports, TargetM, F, A, r(IM,EM)), % TODO: needed for output
       assert_itf(injected_imports, TargetM, F, A, EM)
@@ -629,35 +658,56 @@ save_itf_injected_imports(M, TargetM) :- % saving injected imports
     fail.
 save_itf_injected_imports(_M, _TargetM).
 
-save_meta_dynamic(Meta, DefType, M, F, A) :-
+save_meta(Meta, M, F, A) :-
     ( Meta\==0 -> assert_itf(meta, M, F, A, Meta)
     ; true
-    ),
+    ).
+
+save_dynamic(DefType, M, F, A) :-
     ( ( DefType=dynamic ; DefType=data ; DefType=concurrent) ->
        assert_itf(dynamic, M, F, A, DefType)
     ; true
     ).
 
-save_itf_of_to_asr(Base, M) :-
-    c_itf:exports(Base, F, A, DefType, Meta),
-    Meta \== 0,
-%       c_itf:imports(M,_IM,F,A,EndMod),
-    write_asr_fact(exports(M, F, A, DefType, Meta)),
-    add_exports(M, F, A, DefType, Meta),
-    fail.
-save_itf_of_to_asr(_Base, _M).
-
 add_exports(M, F, A, DefType, Meta) :-
-    ( adding_to_module(CM) ->
-        add_indirect_imports(CM, M, F, A) % TODO: needed?
-    ; assert_itf(exports, M, F, A, M)
-    ),
-    restore_defines(M, F, A, DefType, Meta),
-    save_meta_dynamic(Meta, DefType, M, F, A).
+    assert_itf(exports, M, F, A, M),
+    save_meta(Meta, M, F, A),
+    save_dynamic(DefType, M, F, A).
 
-add_indirect_imports(CM, M, F, A) :-
-    c_itf:restore_imports(CM, M, F, A, M), % TODO: wrong, this should be an indirect import!
-    assert_itf(indirect_imports, CM, F, A, M).
+%% NOTE: Loading of .ast files may not read .itf info (at least in some
+%% p_unit version). This code fed back imports and defines information
+%% back to c_itf database (using c_itf:restore_defines/5 and
+%% c_itf:restore_imports/5). There seems to be no difference in the
+%% lastest version (p_unit seems to have enough information to work
+%% properly), at least in large bundles, so I removed it (JF).
+%
+% :- use_module(library(compiler/c_itf), [restore_defines/5, restore_imports/5]).
+%
+% save_itf_of_to_asr(Base, M) :-
+%     c_itf:exports(Base, F, A, DefType, Meta),
+%     Meta \== 0,
+% %       c_itf:imports(M,_IM,F,A,EndMod),
+%     display(user_error, save_itf_of_to_asr__exports(Base, F, A, DefType, Meta)), nl(user_error), % TODO: SKIPPING THIS!?
+%     write_asr_fact(exports(M, F, A, DefType, Meta)),
+%     add_exports(M, F, A, DefType, Meta),
+%     fail.
+% save_itf_of_to_asr(_Base, _M).
+% 
+% add_exports(M, F, A, DefType, Meta) :-
+%     ( adding_to_module(CM) ->
+%         c_itf:restore_imports(CM, M, F, A, M),
+%         assert_itf(indirect_imports, CM, F, A, M)
+%     ; assert_itf(exports, M, F, A, M)
+%     ),
+%     c_itf:restore_defines(M, F, A, DefType, Meta),
+%     save_meta_dynamic(Meta, DefType, M, F, A).
+%
+% % TODO: (review)
+% % DTM: When loading ast file, if we are adding the module to the
+% % output, i.e., we add one module information to the current one (see
+% % load_package_info/1), we have to add import fact in
+% % itf_db. adding_to_module specifies the original (first) loaded module 
+% :- data adding_to_module/1.
 
 %% ---------------------------------------------------------------------------
 %! ## Compute one layer of related files for preprocessing unit closure
@@ -671,10 +721,10 @@ add_indirect_imports(CM, M, F, A) :-
 
 assert_related_files(Base, M) :-
     ( check_mod_exports_no_props(Base, M) ->
-       % Mark that the module exports no props (useful for Rel=trans)
-       % the closure finalizes when there is no property exported
-       assertz_fact(mod_exports_no_props(M)),
-       write_asr_fact(mod_exports_no_props(M))
+        % Mark that the module exports no props (useful for Rel=trans)
+        % the closure finalizes when there is no property exported
+        assertz_fact(mod_exports_no_props(M)),
+        write_asr_fact(mod_exports_no_props(M))
     ; true
     ),
     %
@@ -692,14 +742,6 @@ assert_related_files(Base, M) :-
         fail % (loop)
     ; true
     ).
-
-add_related_file(IMAbs) :-
-    \+ current_fact(processed_file(IMAbs)),
-    \+ current_fact(related_file(IMAbs)),
-    \+ mod_in_libcache(_, IMAbs),
-    assertz_fact(related_file(IMAbs)),
-    !.
-add_related_file(_IMAbs).
 
 % TODO: needed? always?
 resolve_imported_path(Base, IM, IMAbs) :-
@@ -756,13 +798,24 @@ treat_one_file_exp(yes, M, Opts, Base) :- % (main)
     % Save operators
     assert_operators_of(Base).
 treat_one_file_exp(no, M, _Outs, Base) :- % (related)
-    save_exported_assertions_of(Base, M),
+    save_exported_info(Base, M),
     save_relevant_properties_of(Base, M).
 
+% (do not export, also annotates props for initialization)
 add_assertions([]).
 add_assertions([A|As]) :-
+    A = as(_M,_Status,Type,Head,_Compat,_Calls,_Succ,_Comp,_Dic,_AsLoc,_Com,_),
+    maybe_add_init_prop(Head, Type),
     add_assertion(A),
     add_assertions(As).
+
+maybe_add_init_prop(Head, prop) :- !,
+    functor(Head, F, A),
+    functor(PD, F, A),
+    ( pending_init_prop(PD) -> true
+    ; assertz_fact(pending_init_prop(PD))
+    ).
+maybe_add_init_prop(_, _).
 
 % we do have to process include directives. If one include directive
 % belongs to a syntax pakage, then all things included from that
@@ -860,9 +913,10 @@ get_module_from_path(Path, Module) :-
     path_basename(Path, File),
     path_splitext(File, Module, _).
 
-save_exported_assertions_of(Base, M) :-
+save_exported_info(Base, M) :-
     ( % (failure-driven loop)
-      c_itf:exports(Base, F, A, _DefType, _Meta),
+      c_itf:exports(Base, F, A, DefType, Meta),
+        write_asr_fact(exports(M, F, A, DefType, Meta)),
         functor(PD, F, A),
         write_and_save_assertions_of(PD, M),
         fail % (loop)
@@ -928,8 +982,6 @@ write_asr_assrts([A|As]) :-
     c_itf_internal_pred/2, c_itf_internal_pred_decl/1,
     exports/5, imports_pred/7,
     end_goal_trans/1,
-    restore_defines/5,
-    restore_imports/5,
     % restore_multifile/4, % TODO: not used!
     imports/5,
     meta_args/2,
@@ -1132,10 +1184,11 @@ read_asr_data_loop__action(exports(M, F, A, DefType, Meta)) :- !,
     add_exports(M, F, A, DefType, Meta).
 read_asr_data_loop__action(mod_exports_no_props(M)) :- !,
     assertz_fact(mod_exports_no_props(M)).
-read_asr_data_loop__action(X) :- X = assertion_read(A1, A2, A3, A4, A5, A6, A7, A8, A9), !,
+read_asr_data_loop__action(X) :- X = assertion_read(PD, M, Status, Type, Body, Dict, Source, LB, LE), !,
     % X = assertion_read(_, M, _, _, Body, _, _, _, _),
     % add_assrt_indirect_imports(M, Body), % TODO:[see issue #576] originally enabled; both should be disabled or enabled to ensure a consistent behavior
-    add_assertion_read(A1, A2, A3, A4, A5, A6, A7, A8, A9).
+    maybe_add_init_prop(PD, Type),
+    add_assertion_read(PD, M, Status, Type, Body, Dict, Source, LB, LE).
 read_asr_data_loop__action(X) :- X = prop_clause_read(A1, A2, A3, A4, A5, A6, A7), !,
     add_prop_clause_read(A1, A2, A3, A4, A5, A6, A7).
 
@@ -1183,6 +1236,8 @@ close_asr_to_write :-
 
 % ---------------------------------------------------------------------------
 %! ## Checking that assertion properties are really properties
+
+% TODO: add pending_assrt_check
 
 delayed_prop_checks :- % TODO:[SLOW] do not repeat checking of all modules everytime
     assertion_read(PD, M, _Status, Type, Body, _Dict, S, LB, LE),
@@ -1267,7 +1322,7 @@ cleanup_punit :-
     %
     cleanup_commented_assrt, %local
     cleanup_comment_db, %local (+codegen_pcpe)
-    pr_key_clean. %local (+pr_order_set)
+    pr_key_clean(_). %local (+pr_order_set)
 
 cleanup_punit_local :-
     cleanup_program_keys,
@@ -1285,35 +1340,6 @@ cleanup_punit_local :-
 %       just_module_name(A,M),
 %       asserta_fact(curr_file(A,M)),
 %       assert_curr_files(As,Ms).
-
-%% ---------------------------------------------------------------------------
-
-% Fill type definition for all regtypes
-init_types :-
-    enum_regtype(Head,Prop),
-    get_module_from_sg(Head,Module),%% JCF
-    \+ mod_in_libcache(Module,_),  %% JCF: preloaded modules are processed already.
-    % definable (i.e., not basic --top, num, etc.-- not [] nor [_|_])
-    hook_legal_regtype(Head),
-    ( Head==Prop ->
-        findall((Head:-Body),
-                ( one_type_clause(Head,Body0),
-                  unexpand_meta_calls(Body0,Body)
-                ), Cls)
-    ; Cls=[(Head:-Prop)]
-    ),
-    ( Cls=[] -> true
-    ; hook_insert_regtype(Head,Cls)
-    ),
-    fail.
-init_types :-
-    ( hook_post_init_regtypes -> true ; true ).
-
-one_type_clause(Head,Body):-
-    clause_read(_,Head,Body,_VarNames,_Source,_LB,_LE).
-one_type_clause(Head,Body):-
-    % in other (imported) modules
-    prop_clause_read(_,Head,Body,_VarNames,_Source,_LB,_LE).
 
 %% ---------------------------------------------------------------------------
 
@@ -1367,7 +1393,8 @@ normalize_clauses(M):-
     % TODO: why twice? reuse compiler code instead?
     traverse_clauses(Cls0,Ds0,Cls1,Ds1), % TODO: delay clause_key/2 if traverse_clauses/4 do not need them
     traverse_clauses(Cls1,Ds1,Cls,Ds),
-    assert_program(Cls,Ds).
+    pr_key_clean(M), % (clean all keys for M)
+    assert_program(Cls,Ds,M).
 
 program_clause(M,Cl,Key,Dict):-
     retract_fact(clause_read(M,Head,Body,VarNames,Source,LB,LE)),
@@ -1391,11 +1418,11 @@ split([],[],[]).
 split([(Cl,K,D)|P0s],[Cl:K|Ps],[D|Ds]):-
     split(P0s,Ps,Ds).
 
-assert_program([],[]).
-assert_program([Cl:Key|Cls],[D|Ds]):-
+assert_program([],[],_M).
+assert_program([Cl:Key|Cls],[D|Ds],M):-
     rewrite_source_clause(Cl,Key,Clause), % TODO: use rewrite_source_all_clauses/2?
-    add_clause(Key,Clause,D),
-    assert_program(Cls,Ds).
+    add_clause(M,Key,Clause,D),
+    assert_program(Cls,Ds,M).
 
 % ---------------------------------------------------------------------------
 
@@ -1406,18 +1433,27 @@ assert_program([Cl:Key|Cls],[D|Ds]):-
 replace_program(Cls,Ds):-
     % TODO: only clauses, not directives; is it OK? (change done by 'jfc')
 %jcf%   retractall_fact(source_clause(_,_,_)),
-    pr_key_clean,
+    pr_key_clean(_), % (clean all keys for all modules)
     retractall_fact(source_clause(_,clause(_,_),_)),
     add_all_clauses(Cls,Ds).
 
 add_all_clauses([],[]).
 add_all_clauses([Cl:Key|Cls],[D|Ds]):-
-    add_clause(Key,Cl,D),
+    add_clause(_M,Key,Cl,D), % (see pr_key_add/2, M is guessed)
     add_all_clauses(Cls,Ds).
 
-add_clause(Key,Cl,D) :-
+add_clause(M,Key,Cl,D) :-
     assertz_fact(source_clause(Key,Cl,D)),
-    generate_pr_key(Cl).
+    generate_pr_key(M, Cl).
+
+generate_pr_key(M, Cl) :-
+    Cl = clause(H,_),
+    !,
+    functor(H, F, A),
+    functor(Key, F, A),
+    pr_key_add(M, Key), % (only added once)
+    ( add_head_unexpanded_data(H) -> true ; true ). % TODO: it was marked as a kludge, why? % TODO: may it fail?
+generate_pr_key(_, _). % TODO: not for directives
 
 %% ---------------------------------------------------------------------------
 
@@ -1566,41 +1602,51 @@ type_of_directive(Type,Body):-
 
 :- use_module(library(compiler/p_unit/unexpand), [add_head_unexpanded_data/1]).
 
-:- data pr_key/1.
+:- data pr_key/2. % pr_key(K,M) - fast key indexing
+:- data pr_key_inv/2. % pr_key_inv(M,K) - fast mod enum
 
-:- pred pr_key_clean + det # "Removes all information about predicate order.".
-pr_key_clean :-
-    retractall_fact(pr_key(_)).
-
-:- pred pr_key_get(K) => cgoal(K) + multi # "Current predicate keys".
-% it was predkey
-pr_key_get(K) :- pr_key(K).
-
-:- pred pr_key_add(K) => cgoal(K) + det # "Add a predicate key (once)".
-pr_key_add(K) :-
-    ( pr_key(K) -> true
-    ; assertz_fact(pr_key(K))
+% (M unbound: remove all info for all modules)
+:- pred pr_key_clean(M) + det # "Removes all information about predicate order for @var{M}.".
+pr_key_clean(M) :-
+    % retractall_fact(pr_key(_,M)),
+    % retractall_fact(pr_key_inv(M,_)).
+    ( % (failure-driven loop)
+      retract_fact(pr_key_inv(M,Key)),
+        retract_fact(pr_key(Key,M)),
+        fail
+    ; true
     ).
 
-generate_pr_key(Cl) :-
-    Cl = clause(H,_),
-    !,
-    functor(H, F, A),
-    functor(Key, F, A),
-    pr_key_add(Key), % (only added once)
-    ( add_head_unexpanded_data(H) -> true ; true ). % TODO: it was marked as a kludge, why? % TODO: may it fail?
-generate_pr_key(_). % TODO: not for directives
+:- pred pr_key_get(M, K) => (atm(M), cgoal(K)) + multi # "Enumerate predicate keys".
+% it was predkey
+pr_key_get(M, K) :- pr_key_inv(M, K).
+
+:- pred pr_key_add(M, K) : (atm(M), cgoal(K)) + det # "Add a predicate key (once)".
+:- pred pr_key_add(M, K) : (var(M), cgoal(K)) + det # "Add a predicate key (once), extract module from key".
+pr_key_add(M, K) :-
+    ( var(M) -> mod_from_pr_key(K, M) ; true ),
+    ( pr_key(K, M) -> true
+    ; assertz_fact(pr_key(K, M)),
+      assertz_fact(pr_key_inv(M, K))
+    ).
+
+mod_from_pr_key(K, M) :-
+    functor(K, MF, _),
+    ( module_split(MF, M, _) -> true % TODO: problem with multifile! deprecate 'multifile:'?
+    ; throw(error(no_module(K), mod_from_pr_key/2))
+    ).
 
 % TODO: used only in some transformations, check again
 :- pred add_defined_pred(ClKey, M) : (term(ClKey), atm(M)) + det
-   # "Add the necessary data in itf_db (and @pred{pr_key/1}) to define the
-   predicate @var{ClKey} in the module @var{M}.".
+   # "Add the necessary data in itf_db to define the predicate
+     @var{ClKey} in the module @var{M}.".
 add_defined_pred(Key, M) :-
-    \+ pr_key(Key),
+    \+ pr_key(Key, M),
     functor(Key, F, A),
     assert_itf(defined, M, F, A, _),
     !,
-    assertz_fact(pr_key(Key)).
+    assertz_fact(pr_key(Key, M)),
+    assertz_fact(pr_key_inv(M, Key)).
 add_defined_pred(_, _).
  
 :- pred new_predicate(+F,+A,-NewF) + det
@@ -1664,17 +1710,34 @@ new_internal_predicate(F,A,NewF):-
     ).
 
 % ---------------------------------------------------------------------------
-%! # Native props
+%! # Native props and regtypes
 
 :- use_module(library(compiler/p_unit/unexpand), [unexpand_meta_calls/2]).
-:- use_module(library(streams)).
 
 :- redefining(native/2). % also in basic_props % TODO: rename?
 :- data native/2.
 :- data regtype/2.
 
 % Fill p_unit:native/2 and regtype/2 from assertions
-init_native_props:-
+init_props :-
+    % identify and assert native props (also fills pending init regtypes)
+    ( % (failure-driven loop)
+      retract_fact(pending_init_prop(PD)),
+        init_native_prop(PD), % (this fills some pending_init_regtype/1)
+        fail
+    ; true
+    ),
+    % setup type definitions
+    ( % (failure-driven loop)
+      retract_fact(pending_init_regtype(PD,Prop0)),
+        init_regtype(PD,Prop0),
+        fail
+    ; true
+    ),
+    % post init regtypes
+    ( hook_post_init_regtypes -> true ; true ).
+
+init_native_prop(Goal) :-
     % (failure-driven loop)
 %Nop!   current_itf(visible,Goal,_),
     % only prop assertions
@@ -1682,36 +1745,57 @@ init_native_props:-
     %   possible fix: check that it is prop in one assertion_read/9 query ask for native in another
     assertion_read(Goal,_M,_,prop,Body,_,_,_,_),
     assertion_body(Goal,_Compat,_Call,_Succ,Comp,_Comm,Body),
-    % should assert most general goals?
+    % TODO: should assert most general goals?
     % can be native several times
-    ( builtin(native(Goal,Prop),Native),
-      member(Native,Comp),
-%         displayq( native_props( Goal , Prop ) ), nl,
-      asserta_fact(p_unit:native(Goal,Prop))
+    ( % (failure-driven loop)
+      builtin(native(Goal,Prop),Native),
+        member(Native,Comp),
+        asserta_fact(p_unit:native(Goal,Prop)),
+        fail
     ; true
     ),
     % can be regtype only once
     ( builtin(regtype(Prop0),Regtype),
-      member(Regtype,Comp) ->
-        unexpand_meta_calls(Prop0,Type), % TODO: why? (JF)
-        % displayq(regtype(Goal,Type)), nl,
-        asserta_fact(regtype(Goal,Type))
+      member(Regtype,Comp),
+      \+ pending_init_regtype(Goal,_) ->
+        unexpand_meta_calls(Prop0,NProp0), % TODO: why? (JF)
+        asserta_fact(regtype(Goal,NProp0)),
+        assertz_fact(pending_init_regtype(Goal,NProp0))
     ; true
     ),
     fail.
-%% init_native_props:-
-%%         current_fact(regtype(Head,Prop)),
-%%         display(regtype(Head,Prop)), nl,
-%%      fail.
-init_native_props.
+init_native_prop(_).
 
-% enum_regtype(-Goal, -NProp)
-enum_regtype(Goal, NProp) :-
-    current_fact(regtype(Goal,NProp0)),
+% Fill regtype definition
+init_regtype(Head,NProp0) :-
+    %asserta_fact(regtype(Head,NProp0)),
+    %display(user_error, rt(Head,NProp0)), nl(user_error),
     % TODO: equivalent to prop_to_native/2 in this case
-    ( prop_to_native_(Goal,NProp) -> true
+    ( prop_to_native_(Head,NProp) -> true
     ; NProp=NProp0
-    ).
+    ),
+    get_module_from_sg(Head,Module),%% JCF
+    \+ mod_in_libcache(Module,_),  %% JCF: preloaded modules are processed already.
+    % definable (i.e., not basic --top, num, etc.-- not [] nor [_|_])
+    hook_legal_regtype(Head),
+    ( Head==Prop ->
+        findall((Head:-Body),
+                ( one_type_clause(Head,Body0),
+                  unexpand_meta_calls(Body0,Body)
+                ), Cls)
+    ; Cls=[(Head:-Prop)]
+    ),
+    ( Cls=[] -> true
+    ; hook_insert_regtype(Head,Cls)
+    ),
+    fail.
+init_regtype(_,_).
+
+one_type_clause(Head,Body):-
+    clause_read(_,Head,Body,_VarNames,_Source,_LB,_LE).
+one_type_clause(Head,Body):-
+    % in other (imported) modules
+    prop_clause_read(_,Head,Body,_VarNames,_Source,_LB,_LE).
 
 % TODO: original success is commented (wrong)
 :- pred prop_to_native(+Prop,-NProp) % => cgoal * native_prop_term
@@ -1990,7 +2074,7 @@ gen_libcache(DataDir) :-
     cleanup_punit,
     bundle_path(core, 'Manifest/core.libcache.pl', P),
     %
-    preprocessing_unit_list([P],_Ms,E,[load_irrelevant]),
+    preprocessing_unit([P],_Ms,E,[load_irrelevant]),
     ( E == yes -> throw(error(failed_preprocesssing, gen_libcache/0)) ; true ),
     %assertz_fact(curr_module('core.libcache')),
     %assertz_fact(curr_file(P, 'core.libcache')),

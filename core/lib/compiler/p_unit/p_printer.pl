@@ -17,7 +17,7 @@
 :- use_module(library(aggregates)).
 
 :- use_module(library(compiler/p_unit),
-              [get_comment/1, pr_key_get/1, get_commented_assertion/2,
+              [get_comment/1, pr_key_get/2, get_commented_assertion/2,
                get_assertion/2, get_output_operator/3]).
 :- use_module(library(compiler/p_unit/program_keys), [predkey_from_sg/2]).
 
@@ -59,13 +59,13 @@ print_program_(S) :-
     ( curr_file(_,M) -> true ; true ), % TODO: base mod for unexpand, allow many for multiple output
     % print the clauses and its assertions in the proper order
     ( % (failure-driven loop)
-      pr_key_get(Goal), % TODO: wrong name in pr_key_get
+      pr_key_get(_M, Goal), % TODO: use M! (JF)
         print_from_prkey(S, M, Goal),
         fail
     ; true
     ),
     % impl_defined predicates do not have clauses, and thus are not enumerated
-    % by pr_key_get/1, because it is added by p_unit:add_clause/3. Why not
+    % by pr_key_get/2, because it is added by p_unit:add_clause/3. Why not
     % enumerate using itf_db?
     ( % (failure-driven loop)
       current_itf(impl_defines,Goal,M),
