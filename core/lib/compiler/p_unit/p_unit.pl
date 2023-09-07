@@ -629,9 +629,9 @@ save_itf_info_of(Base, M, yes) :-
     ( functor(Pred, F, A), c_itf:meta_args(M, Pred) -> assert_itf(meta, M, F, A, Pred) ; true ),
     save_dynamic(DefType, M, F, A),
     fail.
-save_itf_info_of(Base, M, _IsMain) :-
+save_itf_info_of(Base, M, IsMain) :-
     c_itf:exports(Base, F, A, DefType, Meta),
-    assert_itf(exports, M, F, A, M),
+    ( IsMain = yes -> assert_itf(exports, M, F, A, M) ; true ), % TODO: ciaopp do not expect 'exports' of non-main modules; fix
     ( true /*IsMain = no*/ ->
         % TODO: This should be needed only for non-main modules, but
         % c_itf:exports/5 also includes reexported predicates and the
@@ -670,7 +670,7 @@ save_dynamic(DefType, M, F, A) :-
     ).
 
 add_exports(M, F, A, DefType, Meta) :-
-    assert_itf(exports, M, F, A, M),
+    % assert_itf(exports, M, F, A, M), % TODO: ciaopp do not expect 'exports' of non-main modules; fix
     save_meta(Meta, M, F, A),
     save_dynamic(DefType, M, F, A).
 
