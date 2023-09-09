@@ -1778,12 +1778,12 @@ init_regtype(Head,NProp0) :-
     \+ mod_in_libcache(Module,_),  %% JCF: preloaded modules are processed already.
     % definable (i.e., not basic --top, num, etc.-- not [] nor [_|_])
     hook_legal_regtype(Head),
-    ( Head==Prop ->
+    ( Head==NProp ->
         findall((Head:-Body),
                 ( one_type_clause(Head,Body0),
                   unexpand_meta_calls(Body0,Body)
                 ), Cls)
-    ; Cls=[(Head:-Prop)]
+    ; Cls=[(Head:-NProp)]
     ),
     ( Cls=[] -> true
     ; hook_insert_regtype(Head,Cls)
