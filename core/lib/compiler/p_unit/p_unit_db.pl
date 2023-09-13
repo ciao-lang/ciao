@@ -55,6 +55,8 @@
 
 :- export(curr_module/1).
 :- export(curr_file/2).
+%:- export(defines_module/2).
+%:- export(defines_module_rev_idx/2).
 :- export(defines/3).
 :- export(imports/4).
 :- export(exports/2).
@@ -62,13 +64,13 @@
 :- export(meta/2).
 :- export(dynamic/1).
 :- export(impl_defines/2).
-:- export(defines_module/2).
-:- export(defines_module_rev_idx/2).
 :- export(pgm_assertion_read/9).
 :- export(pgm_prop_clause_read/7). % (for abolish_related_info/1)
 
 :- data curr_module/1.
 :- data curr_file/2.
+:- data defines_module/2.
+:- data defines_module_rev_idx/2. % reverse index (IG)
 :- data defines/3.
 :- data imports/4.
 :- data exports/2.
@@ -76,8 +78,6 @@
 :- data meta/2.
 :- data dynamic/1.
 :- data impl_defines/2.
-:- data defines_module/2.
-:- data defines_module_rev_idx/2. % reverse index (IG)
 :- data assertion_of/9. 
 :- data pgm_assertion_read/9.
 :- data clause_read/7.
@@ -86,6 +86,8 @@
 :- data locator/2.
 
 % (libcache)
+:- data lib_defines_module/2.
+:- data lib_defines_module_rev_idx/2. % (reverse index)
 :- data lib_defines/3.
 :- data lib_imports/4.
 :- data lib_exports/2.
@@ -93,8 +95,6 @@
 :- data lib_meta/2.
 :- data lib_dynamic/1.
 :- data lib_impl_defines/2.
-:- data lib_defines_module/2.
-:- data lib_defines_module_rev_idx/2. % (reverse index)
 :- data lib_assertion_read/9.
 :- data lib_prop_clause_read/7.
 
@@ -113,18 +113,17 @@ cleanup_p_unit_db :-
     cleanup_clause_db.
 
 cleanup_itf_db :-
+    retractall_fact(curr_module(_)),
+    retractall_fact(curr_file(_,_)),
+    retractall_fact(defines_module(_,_)),
+    retractall_fact(defines_module_rev_idx(_,_)),
     retractall_fact(defines(_,_,_)),
     retractall_fact(imports(_,_,_,_)),
     retractall_fact(exports(_,_)),
     retractall_fact(multifile(_,_)),
     retractall_fact(meta(_,_)),
     retractall_fact(dynamic(_)),
-    retractall_fact(curr_module(_)),
-    retractall_fact(curr_file(_,_)),
-    retractall_fact(impl_defines(_,_)),
-    % defines_module not cleaned here?, added by IG
-    retractall_fact(defines_module(_,_)),
-    retractall_fact(defines_module_rev_idx(_,_)).
+    retractall_fact(impl_defines(_,_)).
 
 :- export(cleanup_assrt_db/0). % TODO: needed for some assertion rewrites
 :- doc(cleanup_assrt_db, "Cleanups the assrt database.").
@@ -143,14 +142,14 @@ cleanup_clause_db :-
 :- export(cleanup_lib_p_unit_db/0).
 :- pred cleanup_lib_p_unit_db # "Cleans up all facts of lib_* predicates.".
 cleanup_lib_p_unit_db :-
+    retractall_fact(lib_defines_module(_,_)),
+    retractall_fact(lib_defines_module_rev_idx(_,_)),
     retractall_fact(lib_defines(_,_,_)),
     retractall_fact(lib_imports(_,_,_,_)),
     retractall_fact(lib_exports(_,_)),
     retractall_fact(lib_multifile(_,_)),
     retractall_fact(lib_meta(_,_)),
     retractall_fact(lib_dynamic(_)),
-    retractall_fact(lib_defines_module(_,_)),
-    retractall_fact(lib_defines_module_rev_idx(_,_)),
     retractall_fact(lib_impl_defines(_,_)),
     %
     retractall_fact(lib_assertion_read(_,_,_,_,_,_,_,_,_)),
@@ -162,6 +161,12 @@ cleanup_lib_p_unit_db :-
 
 :- use_module(library(compiler/c_itf), [module_expansion/9]).
 
+assert_itf(defines_module,M,_,_,Base):-
+    ( current_fact(defines_module(Base,M)) ->
+        true
+    ; assertz_fact(defines_module(Base,M)),
+      assertz_fact(defines_module_rev_idx(M, Base))
+    ).
 assert_itf(defined,M,F,A,_Type):- % already expanded
     assertz_fact(defines(F,A,M)).
 assert_itf(defines,M,F,A,_Type):-
@@ -213,12 +218,6 @@ assert_itf(dynamic,M,F,A,_Deftype):-
     functor(Goal0,F,A),
     goal_module_expansion( Goal0 , M , Goal ),
     assertz_if_needed(dynamic(Goal)).
-assert_itf(defines_module,M,_,_,Base):-
-    ( current_fact(defines_module(Base,M)) ->
-        true
-    ; assertz_fact(defines_module(Base,M)),
-      assertz_fact(defines_module_rev_idx(M, Base))
-    ).
 assert_itf(impl_defines,M,F,A,_DynType):-
     functor(Goal0,F,A),
     goal_module_expansion(Goal0, M, Goal),
@@ -292,6 +291,8 @@ retract_itf(exports,M0,F,A,_M):-
     functor(Goal,F,A),
     retract_fact(exports(Goal,M0)).
 
+current_itf(defines_module,M,Base):-
+    defines_module_(M, Base, _).
 current_itf(visible,Goal,X):-
     var(X),
     visible_goal(Goal).
@@ -339,22 +340,20 @@ current_itf(dynamic,Goal,_Deftype):-
     current_fact(dynamic(Goal)).
 current_itf(dynamic,Goal,_Deftype):-
     lib_dynamic(Goal).
-current_itf(defines_module,M,Base):-
-    defines_module_(M, Base).
 current_itf(impl_defines,Goal,M):-
     current_fact(impl_defines(Goal,M)).
 current_itf(impl_defines,Goal,M):-
     lib_impl_defines(Goal,M).
 
-defines_module_(M, Base) :-
+defines_module_(M, Base, InCache) :-
     var(M),
-    ( current_fact(defines_module(Base, M))
-    ; lib_defines_module(Base,M)
+    ( current_fact(defines_module(Base, M)) -> InCache = no
+    ; lib_defines_module(Base,M) -> InCache = yes
     ).
-defines_module_(M, Base) :-
+defines_module_(M, Base, InCache) :-
     nonvar(M), var(Base),
-    ( current_fact(defines_module_rev_idx(M, Base))
-    ; lib_defines_module_rev_idx(M, Base)
+    ( current_fact(defines_module_rev_idx(M, Base)) -> InCache = no
+    ; lib_defines_module_rev_idx(M, Base) -> InCache = yes
     ).
 
 % TODO: This is wrong, visibility depends on the module (except for multifiles); add M (JFMC)
@@ -403,12 +402,11 @@ get_module_from_sg(_,''). %% '\+/1' has no module in Sg. % TODO: ??
 
 % ---------------------------------------------------------------------------
 
-% TODO: good indexing?
 :- pred mod_in_libcache(M,Base) # "Module @var{M} with basename
    @var{Base} is a module already preloaded into libcache.".
 
 mod_in_libcache(M,Base):-
-    lib_defines_module(Base,M).
+    defines_module_(M, Base, yes).
 
 :- pred loaded_lib_p_unit_db # "Checks if libcache is loaded".
 loaded_lib_p_unit_db :-
@@ -574,13 +572,14 @@ literal_locator(LitKey,L):-
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 
 % Dumping data (for saving)
+dump_lib_data(lib_defines_module(A,B)) :- defines_module(A,B), \+ fake_module_name(B).
+%
 dump_lib_data(lib_defines(A,B,C)) :- defines(A,B,C), \+ fake_module_name(C).
 dump_lib_data(lib_imports(A,B,C,D)) :- imports(A,B,C,D). % , \+ fake_module_name(B). % TODO: otherwise we get 'Unknown predicate' warnings in fixpo_ops
 dump_lib_data(lib_exports(A,B)) :- exports(A,B), \+ fake_module_name(B).
 dump_lib_data(lib_multifile(A,B)) :- multifile(A,B).
 dump_lib_data(lib_meta(A,B)) :- meta(A,B), get_module_from_sg(A,M), \+ fake_module_name(M).
 dump_lib_data(lib_dynamic(A)) :- dynamic(A), get_module_from_sg(A,M), \+ fake_module_name(M).
-dump_lib_data(lib_defines_module(A,B)) :- defines_module(A,B), \+ fake_module_name(B).
 dump_lib_data(lib_impl_defines(A,B)) :- impl_defines(A,B).
 %
 dump_lib_data(lib_assertion_read(PD,M,Status,Type,Body1,Dict,S,LB,LE)) :-
