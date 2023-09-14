@@ -197,3 +197,10 @@ deepfind.test:
   script:
     - builder/etc/gitlab-ci.sh deepfind.test
   needs: [ciaopp_lite]
+
+exfilter.test:
+  stage: test
+  script:
+    - builder/etc/gitlab-ci.sh exfilter.test
+  allow_failure: true
+  needs: [ciaopp]
