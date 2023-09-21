@@ -83,6 +83,8 @@ transform_body('->'(A,B), M, '->'(AT,BT)) :-
     !,
     transform_body(A, M, AT),
     transform_body(B, M, BT).
+transform_body(true(H), M, true(HT)) :- !, % Note: unqualified true/1
+    transform_body(H, M, HT).
 transform_body(H, M, HT) :-
     transform_name(H, M, HT).
 %transform_body(A, A).
