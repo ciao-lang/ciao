@@ -325,7 +325,7 @@ current_itf(exports,Goal,M):- % IG change name to exported? do not confuse with 
 current_itf(exports,Goal,M):-
     lib_exports(Goal,M).
 current_itf(exports,Goal,user(File)):-
-    curr_file(_,user(File)),
+    curr_file(_,user(File)), % TODO: bad indexing
     current_fact(defines(F,A,user(File))),
     functor(Goal,F,A).
 current_itf(multifile,Goal,M):-
