@@ -253,10 +253,10 @@ do_rtchecks_sentence_tr(Head, Clauses, M, Dict) :-
 
 proc_ppassertion(check(Goal), PredName, Dict, Loc, rtcheck(NewGoal, PredName,
             Dict, Loc)) :-
-    get_check_props([Goal],calls,p(Goal),[NewGoal]). % TODO: which variables should not be further instantiated?
+    get_check_props([Goal],ppassrt,p(Goal),[NewGoal]). % TODO: which variables should not be further instantiated?
 proc_ppassertion(trust(Goal), PredName, Dict, Loc, RTCheck) :-
     ( current_prolog_flag(rtchecks_trust, yes) ->
-        get_check_props([Goal],calls,p(Goal),[NewGoal]), % TODO: which variables should not be further instantiated?
+        get_check_props([Goal],ppassrt,p(Goal),[NewGoal]), % TODO: which variables should not be further instantiated?
         RTCheck = rtcheck(NewGoal, PredName, Dict, Loc)
     ; RTCheck = true ).
 % TODO:
@@ -1069,7 +1069,10 @@ get_check_props_([Prop|Props],Check,HeadVars,[RtcProp|RtcProps]) :-
     get_check_props_(Props,Check,HeadVars,RtcProps).
 
 
-
+get_check_prop(fails(_), ppassrt, _HeadVars, RtcProp) :- !, % TODO: See other comp properties
+    RtcProp = fail.
+get_check_prop(Prop, ppassrt, HeadVars, RtcProp) :- !, 
+    get_check_prop(Prop, calls, HeadVars, RtcProp).
 get_check_prop(Prop, Type, _, RtcProp) :-
     (Type = calls ; Type = success),
     functor(Prop, F, A),
