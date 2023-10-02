@@ -1,20 +1,19 @@
 :- module(unexpand, [
-    module_spec/2,
     transform_clause_list/3, 
     transform_head/3,
     transform_body/3,
     transform_assrt_body/3,
     unexpand_meta_calls/2,
     transform_name/3,
-    generate_unexpanded_data/1,
-    clean_unexpanded_data/0, 
-    add_head_unexpanded_data/1,
-    unexpanded_import/3,
+    regenerate_unexpanded_data/1,
+    add_head_unexpanded_data/3,
     transform_metapred/3
 ], [assertions, datafacts]).
 
-% TODO: this is the inverse of mexpand.pl; synchronize! --JF
-% TODO: this should be relative to the current module --JF
+%! \title Module unexpansion
+
+% NOTE: make sure that this module is synchronized with the module
+% expansion rules in mexpand.pl
 
 :- use_module(library(formulae)).
 
@@ -28,7 +27,6 @@
 :- use_module(library(compiler/p_unit/p_unit_basic), [type_of_goal/2, meta_to_list/2]).
 
 :- use_module(library(compiler/p_unit/p_unit_db), [curr_file/2]).
-:- use_module(library(compiler/p_unit), [add_directive/1]).
 
 % -------------------------------------------------------------------------
 
@@ -103,15 +101,13 @@ transform_name(H, user(_), HT) :-
     transform_name(H, user, HT),!.
 transform_name(H, M, HT) :-
     transform_metapred(H, M, HT0),
-    HT0 =.. [ F | A ],
+    HT0 =.. [F|As],
     functor(HT0, F, N),
     transform_atom(F, N, M, FT),
-    reconstruct(FT, A, HT).
+    reconstruct(FT, As, HT).
 
-reconstruct(M:FT, A, M:HT):- !,
-    HT =.. [ FT | A ].
-reconstruct(FT, A, HT):-
-    HT =.. [ FT | A ].
+reconstruct(M:FT, As, M:HT) :- !, HT =.. [FT|As].
+reconstruct(FT, As, HT) :- HT =.. [FT|As].
 
 transform_terms([], [], _M, []).
 transform_terms([_|As0], [remove|Ts], M, As):-
@@ -212,6 +208,7 @@ remove_extra_args(N, A0, A) :-
     length(Extra, N),
     append(As, Extra, As0), !,
     A =.. [F|As].
+
 % ---------------------------------------------------------------------------
 
 % TODO: This code drops _M (because it can be 'multifile')
@@ -224,177 +221,132 @@ transform_head(H, _M, H).
 
 % Here we can translate from 'module:clause' to 'clause'
 
-% TODO: make sure that we do not have problems with the '=:='/2 predicate
-% TODO: _ModuleName unused!
-transform_atom(F, A, _ModuleName, MCT) :-
-    atom(F),
-    module_split(F, Q, CT),
-    !,
-    transform_reexported_atom(F, A, Q, M),
-    simplify_qualify(M:CT, A, MCT). % JF
-transform_atom(F, _A, _ModuleName, F).
+:- use_module(library(streams)).
 
-transform_reexported_atom(F, A, Q, M):-
-    functor(Goal,F,A),
-    type_of_goal(imported(Import),Goal),
-    % Q is the one from which it is effectively imported
-    module_spec(Import,Q),
+transform_atom(F, A, CurrMod, MCT) :-
+    atom(F),
+    module_split(F, M, CT),
     !,
-    M=Q.
-transform_reexported_atom(F, A, _Q, M):-
-    functor(Goal,F,A),
-    % it is probably reexported, take anyone:
-    type_of_goal(imported(Import),Goal),
-    !,
-    module_spec(Import,M).
-transform_reexported_atom(_F, _A, M, M).
+    simplify_qualify(M:CT, A, CurrMod, MCT). % JF
+transform_atom(F, _A, _CurrMod, F).
 
 % ---------------------------------------------------------------------------
 % JF {
 
-:- pred unexpanded_import(Name, Arity, Module).
-:- data unexpanded_import/3.
-:- pred unexpanded_defines(Name, Arity).
-:- data unexpanded_defines/2.
+:- pred unexpanded_import(Name, Arity, IM, Module).
+:- data unexpanded_import/4.
+:- pred unexpanded_defines(Name, Arity, Module).
+:- data unexpanded_defines/3.
 
 :- use_module(library(compiler/p_unit/p_unit_db), [current_itf/3]).
 :- use_module(library(pathnames), [path_basename/2]).
 
+regenerate_unexpanded_data(Mod) :-
+    clean_unexpanded_data(Mod),
+    generate_unexpanded_data(Mod).
+
 generate_unexpanded_data(user(File)) :-
     !, %% DTM: To support user files
-    path_basename(File, Module),
+    path_basename(File, Module), % TODO: wrong! this is not a valid module name
     generate_unexpanded_data(Module).
 generate_unexpanded_data(Module) :-
     % Generate inverse table for defines 
     current_itf(defines, MF, A),
     module_split(MF, Module, F),
-    assertz_fact(unexpanded_defines(F, A)), % TODO: missing Module? (for multimod)
+    assertz_fact(unexpanded_defines(F, A, Module)), % TODO: missing Module? (for multimod)
     fail.
 generate_unexpanded_data(Module) :-
     % Generate inverse table for imports
-%%    type_of_goal(imported(_ISpec), Goal), % TODO: include all imports, even indirect
     ( current_itf(imports(Module,direct),Goal,_) % unexpand from direct imports
     ; current_itf(imports(Module,injected),Goal,_) % TODO: unexpand also from injected imports
     ),
-    %         module_spec(ISpec, IM),
     functor(Goal, MF, A),
     module_split(MF, IM, F),
-    functor(GoalReexp, F, A),
-    ( current_itf(imports, GoalReexp, r(IM2,IM)) -> true ; IM2=IM ),
-    \+ unexpanded_import(F, A, IM2),
-    assertz_fact(unexpanded_import(F, A, IM2)),
+    unreexport_if_needed(IM, F, A, Module, IM2),
+    %
+    \+ unexpanded_import(F, A, IM2, Module),
+    assertz_fact(unexpanded_import(F, A, IM2, Module)),
     fail.
 generate_unexpanded_data(_).
 
-clean_unexpanded_data :-
-    retractall_fact(unexpanded_defines(_, _)),
-    retractall_fact(unexpanded_import(_, _, _)).
+% Obtain the actual module IM from which the possibly reexported
+% predicate EM:F/A is made visible in CurrMod
+unreexport_if_needed(EM, F, A, CurrMod, IM) :-
+    % TODO: see assert_itf(imports,M,F,A,r(IM,EM))! here F is unqualified intentionally!
+    ( functor(G, F, A), current_itf(imports(CurrMod,_), G, r(IM,EM)) -> true ; IM=EM ).
 
-simplify_qualify('multifile':F, _A, F):-  !.
-simplify_qualify(M:F, A, F) :-
-    functor(Goal, F, A),
-    ( current_itf(imports, Goal, r(M2,M)) ; M2=M ),
-    superfluous_qualify(M2, F, A), 
-    !.
-simplify_qualify(M:F, A, M2:F) :-
-    functor(Goal, F, A),
-    ( current_itf(imports, Goal, r(M2,M)) ; M2=M ),
-    !.
-simplify_qualify(MF, _, MF).
+clean_unexpanded_data(Mod) :-
+    retractall_fact(unexpanded_defines(_, _, Mod)),
+    retractall_fact(unexpanded_import(_, _, _, Mod)).
 
-% superfluous_qualify(M, F, A) :-
-%       display(superfluous_qualify(M, F, A)), nl,
-%       functor(Goal, F, A),
-%       current_itf(imports, Goal, r(_,EM)),
-%       module_split(F, _, Pred),
-%       !,
-%       module_concat(EM, Pred, NF),
-%       superfluous_qualify(M, NF, A).
-superfluous_qualify(M, F, A) :-
-    ( unexpanded_defines(F, A) ->
-        (\+ unexpanded_import(F, A, _) ->
-            % defined in module and not imported from any module
-            true 
-        ;  
-            % (defined in module and) imported from a module, BUT the
-            % qualification refers to the current module
-            curr_file(_, M),
-            % This is to avoid warning
-            add_directive(redefining(F/A)) % TODO: Hmmm avoid this!?
-        )
-    ; % (not defined in module and) imported only from one module
-        unexpanded_import(F, A, M),
-        \+ (unexpanded_import(F, A, M2), M2 \== M)
+% Simplify qualification M:P (F/A). This removes the module qualification if
+% it is not ambiguous. That is:
+%
+%  - F/A is defined in CurrMod and not imported from any other module
+%  - F/A is not defined in CurrMod but imported from only one module
+
+simplify_qualify('multifile':F, A, CurrMod, MF2) :- !,
+    % TODO: currently 'multifile' does not fill unexpanded_defines(F, _A, _CurrMod) but we may change it
+    ( unexpanded_import(F, A, _, CurrMod) -> 
+        MF2 = 'multifile':F % distinguish from imported
+    ; MF2 = F
+    ).
+simplify_qualify(M:F, A, CurrMod, MF2) :-
+    unreexport_if_needed(M, F, A, CurrMod, M2),
+    ( superfluous_qualify(M2, F, A, CurrMod) -> MF2 = F
+    ; MF2 = (M2:F)
+    ).
+
+superfluous_qualify(M, F, A, CurrMod) :-
+    ( unexpanded_defines(F, A, CurrMod) -> % defined in module (assume M=CurrMod)
+        % ... and not imported from any module
+        \+ unexpanded_import(F, A, _, CurrMod)
+    ; unexpanded_import(F, A, M, CurrMod) -> % (not defined in CurrMod) imported from M
+        % ... and not from any other module
+        \+ (unexpanded_import(F, A, M2, CurrMod), M2 \== M)
+    ; fail
     ).
 % JF }
 
-% { DTM
+% %% Old version: includes redefining/1 decl for local qualification; disabled by now (JF)
+% :- use_module(library(compiler/p_unit), [add_directive/1]).
+% % superfluous_qualify(M, F, A) :-
+% %       display(superfluous_qualify(M, F, A)), nl,
+% %       functor(Goal, F, A),
+% %       current_itf(imports, Goal, r(_,EM)),
+% %       module_split(F, _, Pred),
+% %       !,
+% %       module_concat(EM, Pred, NF),
+% %       superfluous_qualify(M, NF, A).
+% superfluous_qualify(M, F, A) :-
+%     ( unexpanded_defines(F, A) ->
+%         % (defined in module)
+%         (\+ unexpanded_import(F, A, _) ->
+%             % ... and not imported from any module
+%             true 
+%         ;   % ... and imported from a module, BUT the
+%             % qualification refers to the current module
+%             curr_file(_, M),
+%             % This is to avoid warning
+%             add_directive(redefining(F/A)) % TODO: Hmmm avoid this!?
+%         )
+%     ; % (not defined in module and) imported only from one module
+%         unexpanded_import(F, A, M),
+%         \+ (unexpanded_import(F, A, M2), M2 \== M)
+%     ).
 
-:- pred add_unexpanded_data(Module, F, A, CurrModule) :: (atm(Module), atm(F), num(A), atm(CurrModule))
-   # "Add necessary internal data to do a correct unexpansion. User _do
-   not have_ to use this predicate.".
-% The same predicated as one imported
-add_unexpanded_data(Module, F, A, _CurrModule) :-
-    unexpanded_import(F, A, Module),
-    !.
-% The predicate is already defined in this module
-add_unexpanded_data(Module, F, A, Module) :-
-    unexpanded_defines(F, A),
-    !.
-% New Predicate defines in _this_ module
-add_unexpanded_data(M, F, A, M) :- !,
-    assertz_fact(unexpanded_defines(F, A)).
-% New Predicate imported from other module
-add_unexpanded_data(Module, F, A, _CurrModule) :-  !,
-    assertz_fact(unexpanded_import(F, A, Module)).
-
-% DTM }
-
-% TODO: kludge; make sure that it is in some normal form before
-:- pred add_head_unexpanded_data(Head)
-# "@var{Head} can be Module:Functor(..), 'module:functor'(...) or
-   funtor(...). In the latter case, the current module is used as the
-   module containing the predicate. This predicate is only for
-   internal use. It adds all the necessary information to make
-   @pred{type_of_goal/2} and unexpansion process coherent.".
-
-add_head_unexpanded_data(M:Head) :- !, % TODO: only on recursive calls from this pred?
-    functor(Head, F, A),
-    % assert current_itf(defines, MF, A) ??
-    curr_file(_, CM),
-    add_unexpanded_data(M, F, A, CM).
-add_head_unexpanded_data(MHead) :-
-    MHead =.. [MF|As],
+% TODO: required by program replace when introducing new predicates (e.g., spec); do in a better way!
+add_head_unexpanded_data(_, MF, A) :-
     module_split(MF, M, F),
     !,
-    Head =.. [F|As],
-    add_head_unexpanded_data(M:Head).
-add_head_unexpanded_data(Head) :- % TODO: show warning?
-    curr_file(_, M),
-    add_head_unexpanded_data(M:Head).
+    add_unexpanded_data(M, F, A).
+add_head_unexpanded_data(M, F, A) :- % TODO: really allow unqualified names?
+    add_unexpanded_data(M, F, A).
 
-% ---------------------------------------------------------------------------
-
-% TODO: use code from c_itf.pl
-module_spec(Spec,M):-
-    functor(Spec,_,1), !,
-    arg(1,Spec,File),
-    remove_slash(File,M).
-module_spec(Spec,M):-
-    atom(Spec),
-    remove_slash(Spec,M).
-
-remove_slash(Spec,M):-
-    atom_codes(Spec,Codes),
-    last_datum(Codes,T,T,Datum),
-    atom_codes(M,Datum).
-
-last_datum([],L,[],L).
-last_datum([47|L],_,_,New):- !,
-    last_datum(L,T,T,New).
-last_datum([X|L],Old,Tail,New):- !,
-    Tail=[X|NTail],
-    last_datum(L,Old,NTail,New).
+add_unexpanded_data(M, F, A) :-
+    ( unexpanded_defines(F, A, M) -> true
+    ; assertz_fact(unexpanded_defines(F, A, M))
+    ).
 
 % -------------------------------------------------------------------------
 

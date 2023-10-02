@@ -1452,7 +1452,7 @@ generate_pr_key(M, Cl) :-
     functor(H, F, A),
     functor(Key, F, A),
     pr_key_add(M, Key), % (only added once)
-    ( add_head_unexpanded_data(H) -> true ; true ). % TODO: it was marked as a kludge, why? % TODO: may it fail?
+    add_head_unexpanded_data(M, F, A). % TODO: add to defined pred itf instead? assert current_itf(defines, MF, A)?
 generate_pr_key(_, _). % TODO: not for directives
 
 %% ---------------------------------------------------------------------------
@@ -1600,7 +1600,7 @@ type_of_directive(Type,Body):-
 
 % TODO: merge with itf_db?
 
-:- use_module(library(compiler/p_unit/unexpand), [add_head_unexpanded_data/1]).
+:- use_module(library(compiler/p_unit/unexpand), [add_head_unexpanded_data/3]).
 
 :- data pr_key/2. % pr_key(K,M) - fast key indexing
 :- data pr_key_inv/2. % pr_key_inv(M,K) - fast mod enum
@@ -1920,7 +1920,7 @@ inject_output_package(A) :-
       add_output_package(A)
     ).
 
-:- use_module(library(compiler/p_unit/unexpand), [generate_unexpanded_data/1, clean_unexpanded_data/0]).
+:- use_module(library(compiler/p_unit/unexpand), [regenerate_unexpanded_data/1]).
 
 load_package_info(M, File) :-
     set_ciaopp_expansion(true), % TODO: try to avoid this
@@ -1928,8 +1928,7 @@ load_package_info(M, File) :-
     set_ciaopp_expansion(false),
     % TODO: update unexpanded data or wait until we've loaded everything?
     %   cleaning and recomputing all unexpanded data all the time makes sense (JF)
-    clean_unexpanded_data,
-    generate_unexpanded_data(M).
+    regenerate_unexpanded_data(M).
 
 % ---------------------------------------------------------------------------
 %! # Packages that must be included in the output
@@ -1984,6 +1983,7 @@ get_output_operator(A,B,C) :-
 % TODO: per module?
 % Note: this is a simplified version for the current uses (see older
 %   version in Attic/ for more potential features)
+% TODO: only used in comments_pcpe.pl
 
 :- pred comment_db(Comment) : string(Comment) + no_rtcheck
    % IG: force no rtcheck because it is a data

@@ -14,8 +14,6 @@
 :- use_module(library(pretty_print), [pretty_print/4]).
 :- use_module(library(assertions/assrt_write)).
 
-:- use_module(library(aggregates)).
-
 :- use_module(library(compiler/p_unit),
               [get_comment/1, pr_key_get/2, get_commented_assertion/2,
                get_assertion/2, get_output_operator/3]).
@@ -47,19 +45,40 @@
     # "Prints the current program information into human readable format.".
 
 print_program(S) :-
-    with_mod_syntax(print_program_(S)).
+    with_mod_syntax(print_program_(S)). % TODO: mod syntax per module too
 
 print_program_(S) :-
     % Output comments (at the beginning)
-    get_all_comments(Comments),
-    print_comments(Comments, S),
+    print_comments(S),
     % Print the directives
-    get_printable_directives(Direcs),
-    print_directives(Direcs, S),
-    ( curr_file(_,M) -> true ; true ), % TODO: base mod for unexpand, allow many for multiple output
+    ( % (failure-driven loop) % TODO: add modules to comments and directives too
+      curr_file(_,M), % TODO: base mod for unexpand, allow many for multiple output
+        print_directives(S, M),
+        print_module(S, M),
+        fail
+    ; true
+    ).
+
+print_comments(S) :-
+    ( % (failure-driven loop)
+      get_comment(C), % TODO: per module
+        write_comment(C, S),
+        fail
+    ; true
+    ).
+
+print_directives(S, M) :-
+    ( % (failure-driven loop)
+      get_printable_directive(M, Cl),
+        print_directive(Cl, S),
+        fail
+    ; true
+    ).
+
+print_module(S, M) :-
     % print the clauses and its assertions in the proper order
     ( % (failure-driven loop)
-      pr_key_get(_M, Goal), % TODO: use M! (JF)
+      pr_key_get(M, Goal),
         print_from_prkey(S, M, Goal),
         fail
     ; true
@@ -72,49 +91,56 @@ print_program_(S) :-
         print_from_prkey(S, M, Goal),
         fail
     ; true
-    ),
-    % print new directives added during unexpansion % TODO: is there a better way?
-    print_new_directives(Direcs, S).
-
-% Print directive that may have been introduced during the output
-% TODO: this is weird... doing output twice could produce different results!
-print_new_directives(Direcs, S) :-
-    % (failure-driven loop)
-    ( get_printable_directives(Direcs2),
-      member(D2, Direcs2),
-        \+ member(D2, Direcs),
-        print_directive(D2, S),
-        fail
-    ; true
     ).
 
-% TODO: use failure-driven loops instead of findall/3 when possible
-print_from_prkey(S, M, PrKey) :- !,
-    % Get everything for the given key
-    findall(CA, get_commented_assertion(PrKey, CA), CAs),
-    get_filtered_assertions(PrKey, AsFiltered),
-    % TODO: SLOW! add reverse index from Head to ClIds
-    findall(C, get_clause(PrKey, C), Cls),
-    % Print everything
-    print_assrts(CAs, S),
-    print_assrts(AsFiltered, S),
-    print_clauses(Cls, M, S),
+% (only for redefining/1)
+% % Print directive that may have been introduced during the output
+% % TODO: this is weird... doing output twice could produce different results!
+% print_new_directives(Direcs, S) :-
+%     % (failure-driven loop)
+%     ( get_printable_directives(Direcs2),
+%       member(D2, Direcs2),
+%         \+ member(D2, Direcs),
+%         print_directive(D2, S),
+%         fail
+%     ; true
+%     ).
+
+% Print assertions and clauses for the given predicate
+print_from_prkey(S, M, PrKey) :-
+    ( % (failure-driven loop)
+      get_commented_assertion(PrKey, CA),
+        print_assrt(CA, S), nl(S),
+        fail
+    ; true
+    ),
+    ( % (failure-driven loop)
+      get_assertion(PrKey, AsFiltered),
+        print_assrt(AsFiltered, S), nl(S),
+        fail
+    ; true
+    ),
+    ( % (failure-driven loop)
+      get_clause(PrKey, C),
+        print_clause(C, M, S),
+        fail
+    ; true
+    ),
     nl(S).
 
+% TODO: SLOW! add reverse index from H to ClIds
 get_clause(H, clause(H,B):ClId*Dict) :-
     current_fact(source_clause(ClId,clause(H,B),Dict)).
 
 % ---------------------------------------------------------------------------
 
-get_printable_directives(Direcs) :-
-    findall(Cl, get_printable_directive(Cl), Direcs).
-
-get_printable_directive(directive(Body):ClId*Dict) :-
-    curr_file(Src, _),
+get_printable_directive(CurrMod, directive(Body):ClId*Dict) :-
+    curr_file(Src, CurrMod),
     current_fact(source_clause(ClId, directive(Body), Dict)),
     \+ special_directive(Body),
     ( clause_locator(ClId, loc(Src, _, _)) -> true % declared in curr_file
-    ; ClId = '\6\newdirective' % or added by add_directive/1 % TODO: kludge, add a separate db? (not source_clause/3)
+    ; % TODO: duplicated for each module! add it!
+      ClId = '\6\newdirective' % or added by add_directive/1 % TODO: kludge, add a separate db? (not source_clause/3)
     ).
 
 special_directive(D) :-
@@ -137,27 +163,7 @@ special_directive_(texec).
 special_directive_(test).
 
 % ---------------------------------------------------------------------------
-
-:- export(get_filtered_assertions/2).
-% Enumerate all (filtered) assertions
-get_filtered_assertions(Goal, AsFiltered) :-
-    get_all_assertions(Goal, AsFiltered).
-
-get_all_assertions(Goal, AsrList) :-
-    findall(Asr, get_assertion(Goal, Asr), AsrList).
-
-% ---------------------------------------------------------------------------
-
-get_all_comments(Comments) :-
-    findall(C, get_comment(C), Comments).
-
-% ---------------------------------------------------------------------------
 :- doc(section, "Print directives").
-
-print_directives([], _).
-print_directives([Cl|Cls], S) :-
-    print_directive(Cl, S),
-    print_directives(Cls, S).
 
 print_directive(directive(Body):_ClId*Dic, S) :-
     pretty_print(S, directive(Body), [], Dic),
@@ -165,11 +171,6 @@ print_directive(directive(Body):_ClId*Dic, S) :-
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Print clauses").
-
-print_clauses([], _M, _).
-print_clauses([Cl|Cls], M, S) :-
-    print_clause(Cl, M, S),
-    print_clauses(Cls, M, S).
 
 print_clause(clause(H1,B1):Clid*Dic, M, S) :-
     % TODO: do as transformation instead? (it simplifies something)
@@ -297,22 +298,6 @@ dump_lit(At, _, At).
 
 :- export(add_srcloc_prop/0).
 :- data add_srcloc_prop/0.
-
-print_assrts([], _).
-print_assrts([A|As], S) :-
-    %( ignore_print_assrt(A) -> true
-    %    ; print_assrt(A, S), nl(S)
-    %),
-    print_assrt(A, S), nl(S),
-    print_assrts(As, S).
-
-%ignore_print_assrt(A) :-
-%    A = as${
-%        type => Type,
-%        fromwhere => From
-%    },
-%    \+ From == commented, % TODO: write test assertions in this case too?
-%    Type == test.
 
 print_assrt(A, S) :-
     A = as${
@@ -474,16 +459,10 @@ complete_goal_dic__([], _, _, Dic, Dic).
 % ---------------------------------------------------------------------------
 :- doc(section, "Print comments").
 
-% E.g., print_comments(["line1\nline2","line3"], user_output) produces:
+% E.g., write_comment("line1\nline2", user_output) produces:
 %   % line1
 %   % line2
-%   % line3
 % Trailing newlines for each comment string are ignored.
-
-print_comments([], _S).
-print_comments([C|Cs], S) :-
-    write_comment(C, S),
-    print_comments(Cs, S).
 
 write_comment(C, S) :-
     comment_string(C, C2),
