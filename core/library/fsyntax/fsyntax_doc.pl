@@ -26,7 +26,7 @@
    predicate can be used as a function.
 
    The predicate associated with a function has the same name and one
-   more argument, meant as the place holder for the ``result'' of the
+   more argument, meant as the placeholder for the ``result'' of the
    function. In fact, this argument is just the one that will be
    syntactically connected to the surrounding goal or function, but it
    does not necessarily imply any directionality, i.e., it does not
@@ -62,17 +62,18 @@
    @tt{:- fun_eval arith(true)}, all the functors understood by
    @pred{is/2} will be also evaluated.  This is active from the
    declaration downwards until a @tt{:- fun_eval arith(false)}
-   declaration or the end of the module is reached.  Beware that
-   arithmetic functors are used in some cases for other purposes than
-   arithmetic: e.g. @tt{abolish(p/2)}.  But this is not so disturbing
-   as it may appear because this package is not active in
+   declaration or the end of the module is reached.  Note that
+   arithmetic functors are used in some cases for purposes other than
+   arithmetic, such as in, e.g., @tt{abolish(p/2)}.  However, this is
+   not as much of a problem as 
+   as it may appear because this package does not affect 
    declarations, except for the goal-including declarations
    @decl{initialization/1} and @decl{on_abort/1}.  Note that all the
    declarations introduced by this package, as is customary in Ciao,
-   are local to the module where they are included.
+   are local to the module in which they are included.
 
-   In addition to functors declared with the declaration
-   @pred{fun_eval/1}, the package defines as evaluable the functors used
+   In addition to functors declared with the @pred{fun_eval/1}
+   declaration, this package defines as evaluable the functors used
    for disjunctive and conditional expressions: @op{| /2} and
    @op{? /2} (defined as operators).  A disjunctive expression has the
    form @tt{(V1|V2)}, and its value when first evaluated is @tt{V1}, and
@@ -114,7 +115,7 @@ fact(N) := N * ~fact(--N) :- N > 0.
    expressions:
 @begin{verbatim}
 fact(N) := N = 0 ? 1
-     | N > 0 ? N * ~fact(--N).
+         | N > 0 ? N * ~fact(--N).
 @end{verbatim}
    The declaration @tt{:- fun_eval defined(true)} allows to locally
    define as evaluable functions being defined, so that the @tt{~}
@@ -140,7 +141,7 @@ fact(N) := N = 0 ? 1
        compiler optimizations.
    @end{itemize}
 
-   Some implementation details and a discussion of the recent
+   Some implementation details and a discussion of the more recent 
    combination of this library (which dates from Ciao version 0.2)
    with the lazy evaluation library can be found in
    @cite{functional-lazy-notation-flops2006}.
@@ -180,9 +181,11 @@ pair(A,B) := ^(A-B).
    @cindex{Other functionality} 
 
    In addition to the basic package @file{fsyntax}, a package
-   @lib{functional} is also provided, to allow programming with a more
-   functional-flavored style.  That package activates the declarations
-   @tt{:- fun_eval arith(true)} and @tt{:- fun_eval defined(true)},
+   @lib{functional} is also provided, which basically
+   activates flags that are commonly assumed in functional
+   programming style.  In paticular, this package activates the 
+   @tt{:- fun_eval arith(true)} and @tt{:- fun_eval defined(true)}
+   declarations, 
    and defines the @op{. /2} operator for use in lists (but be
    careful: this period cannot be followed by a whitespace!) and the
    operator @op{++ /2} as a function for appending lists. The
@@ -213,15 +216,20 @@ pair(A,B) := ^(A-B).
    abstraction is provided as functional syntactic sugar for predicate
    abstractions:
 
-   Predicate abstraction: @tt{''(X,Y) :- p(X,Z), q(Z,Y)}.
+   @begin{itemize}
+   @item Predicate abstraction: @tt{''(X,Y) :- p(X,Z), q(Z,Y)}.
 
-   Function abstraction: @tt{''(X) := ~q(~p(X))}.
+   @item Function abstraction: @tt{''(X) := ~q(~p(X))}.
+   @end{itemize}
 
    @noindent
    and function application is syntactic sugar over predicate application: 
 
-   Predicate application: @tt{..., P(X,Y), ...}
-   Function application: @tt{..., Y = ~P(X), ...}
+   @begin{itemize}
+   @item Predicate application: @tt{..., P(X,Y), ...}
+
+   @item Function application: @tt{..., Y = ~P(X), ...}
+   @end{itemize}
 
    The combination of this @tt{hiord} package with the @tt{fsyntax}
    and @tt{lazy} packages (and, optionally, the type inference and
@@ -404,7 +412,7 @@ rows(N,Ms,A) :-
 :- pred @@(Array,Index,Elem) :: array * list(int) * int
    # \"@@var@{Elem@} is the @@var@{Index@}-th element of @@var@{Array@}.\".
 
-:- op(55, xfx, '@@').
+:- op(150, xfx, '@@').
 :- fun_eval (@@)/2.
 V@@[I]    := ~arg(I,V).       %% Or: V@@[] := V. 
 V@@[I|Js] := ~arg(I,V)@@Js.
