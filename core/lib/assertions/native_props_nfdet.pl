@@ -23,19 +23,6 @@
 :- impl_defined(det/1).
 :- endif.
 
-:- export(fails/1).
-:- doc(fails(X), "Calls of the form @var{X} fail.").
-
-:- meta_predicate fails(goal).
-:- prop fails(X) + native
-   # "Calls of the form @var{X} fail.".
-
-:- if(defined(optim_comp)).
-:- '$props'(fails/1, [impnat=indefinable]).
-:- else.
-:- impl_defined(fails/1).
-:- endif.
-
 :- export(semidet/1).
 :- doc(semidet(X), "Calls of the form @var{X} are semi-deterministic,
    i.e., produce at most one solution (or do not terminate).

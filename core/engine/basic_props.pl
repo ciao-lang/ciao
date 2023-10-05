@@ -9,7 +9,7 @@
      % byte/1, in_byte/1,
      predname/1, atm_or_atm_list/1, compat/2, inst/2,
      iso/1, deprecated/1, srcloc/4, example/1,
-     not_further_inst/2, sideff/2, regtype/1,
+     fails/1, not_further_inst/2, sideff/2, regtype/1,
      native/1, native/2, rtcheck/1, rtcheck/2, no_rtcheck/1, eval/1,
      equiv/2, bind_ins/1, error_free/1, memo/1, filter/2, flag_values/1,
      pe_type/1 ],
@@ -562,6 +562,16 @@ rtcheck(Goal) :- rtcheck(Goal, complete).
 :- meta_predicate no_rtcheck(goal).
 
 no_rtcheck(Goal) :- rtcheck(Goal, impossible).
+
+:- meta_predicate fails(goal).
+:- prop fails(X) + native
+   # "Calls of the form @var{X} fail.".
+
+:- if(defined(optim_comp)).
+:- '$props'(fails/1, [impnat=indefinable]).
+:- else.
+:- impl_defined(fails/1).
+:- endif.
 
 :- prop not_further_inst(G,V)
     # "@var{V} is not further instantiated.". % by the predicate

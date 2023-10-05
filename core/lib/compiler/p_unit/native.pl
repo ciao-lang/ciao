@@ -153,7 +153,7 @@ native_property('native_props:multi'(G),multi(G)).
 native_property('native_props:semidet'(G),semidet(G)).
 native_property('native_props:nondet'(G),nondet(G)).
 native_property('native_props:covered'(G),covered(G)).
-native_property('native_props:fails'(G),fails(G)).
+native_property('basic_props:fails'(G),fails(G)).
 native_property('native_props:possibly_fails'(G),possibly_fails(G)).
 native_property('native_props:is_det'(G),is_det(G)).
 native_property('native_props:possibly_nondet'(G),possibly_nondet(G)).

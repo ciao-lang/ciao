@@ -28,7 +28,8 @@
 % ----------------------------------------------------------------------
 
 :- rtc_impl(native_props:det/1, native_props_rtc:rtc_det/1).
-:- rtc_impl(native_props:fails/1, native_props_rtc:rtc_fails/1).
+% fails/1 is defined in basic_props but we keep the rtc version in native_props_rtc
+:- rtc_impl(basic_props:fails/1, native_props_rtc:rtc_fails/1).
 :- rtc_impl(native_props:semidet/1, native_props_rtc:rtc_semidet/1).
 :- rtc_impl(native_props:multi/1, native_props_rtc:rtc_multi/1).
 
@@ -38,7 +39,6 @@
 :- rtc_impl(native_props:is_det/1, native_props_rtc:rtc_is_det/1).
 :- rtc_impl(native_props:non_det/1, native_props_rtc:rtc_non_det/1).
 :- rtc_impl(native_props:not_fails/1, native_props_rtc:rtc_not_fails/1).
-%:- rtc_impl(native_props:fails/1, native_props_rtc:rtc_fails/1).
 :- endif.
 
 % ----------------------------------------------------------------------

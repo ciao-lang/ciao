@@ -121,11 +121,11 @@ rtc_det(Goal) :-
     ; anot_sol(Sols) % annotate solution
     ).
 
-:- export(rtc_fails/1). % rtc_impl for native_props:fails/1
+:- export(rtc_fails/1). % rtc_impl for basic_props:fails/1
 :- meta_predicate rtc_fails(goal).
 rtc_fails(Goal) :-
     call(Goal), % no_exception_(Goal, fails, _), % TODO: exceptions treated separately
-    send_comp_rtcheck(Goal, fails, nondet).
+    send_comp_rtcheck(Goal, fails, multi).
 
 :- export(rtc_semidet/1). % rtc_impl for native_props:semidet/1
 :- meta_predicate rtc_semidet(goal).
@@ -240,7 +240,7 @@ rtc_not_fails(Goal) :-
 % :- export(rtc_fails/1).
 % :- meta_predicate rtc_fails(goal).
 % 
-% % rtcheck version for native_props:fails/1
+% % rtcheck version for basic_props:fails/1
 % rtc_fails(Goal) :-
 %     Solved = solved(no),
 %     no_exception_(Goal, fails, _),
