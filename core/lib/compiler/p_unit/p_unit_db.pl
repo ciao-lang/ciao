@@ -293,12 +293,6 @@ retract_itf(exports,M0,F,A,_M):-
 
 current_itf(defines_module,M,Base):-
     defines_module_(M, Base, _).
-current_itf(visible,Goal,X):-
-    var(X),
-    visible_goal(Goal).
-current_itf(visible,F,A):-
-    nonvar(A),
-    visible_spec(F,A).
 current_itf(defines,F,A):-
     current_fact(defines(F,A,_)).
 current_itf(defines,F,A):-
@@ -355,24 +349,6 @@ defines_module_(M, Base, InCache) :-
     ( current_fact(defines_module_rev_idx(M, Base)) -> InCache = no
     ; lib_defines_module_rev_idx(M, Base) -> InCache = yes
     ).
-
-% TODO: This is wrong, visibility depends on the module (except for multifiles); add M (JFMC)
-visible_goal(Goal):-
-    current_itf(imports,Goal,_).
-visible_goal(Goal):-
-    current_itf(defines,F,A),
-    functor(Goal,F,A).
-visible_goal(Goal):-
-    current_fact(multifile(Goal,_)).
-
-visible_spec(F,A):-
-    current_itf(defines,F,A).
-visible_spec(F,A):-
-    current_itf(imports,Goal,_),
-    functor(Goal,F,A).
-visible_spec(F,A):-
-    current_fact(multifile(Goal,_)),
-    functor(Goal,F,A).
 
 % ---------------------------------------------------------------------------
 

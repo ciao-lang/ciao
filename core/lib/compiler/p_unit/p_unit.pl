@@ -6,7 +6,7 @@
     %
     native_to_prop/2,
     prop_to_native/2,
-    native_to_props_visible/2,
+    native_to_props/2,
     dynamic_or_unknown_predicate/1,
     % Assertions
     get_assertion/2,
@@ -1648,22 +1648,22 @@ add_defined_pred(Key, M) :-
     assertz_fact(pr_key(Key, M)),
     assertz_fact(pr_key_inv(M, Key)).
 add_defined_pred(_, _).
- 
+
 :- pred new_predicate(+F,+A,-NewF) + det
-    # "Checks wether there is a predicate @var{F}/@var{A} in the
+    # "Checks whether there is a predicate @var{F}/@var{A} in the
        program and returns @var{NewF} so that there is no predicate
        @var{NewF}/@var{A} in the program.".
+
 new_predicate(F,A,NewF):-
-    curr_module(M), % TODO: choicepoints?
     new_predicate_name(F,F,A,0,NewF),
+    module_split(F, M, _),
     assert_itf(defined,M,NewF,A,_).
-    
+
 new_predicate_name(TmpF,F,A,N,NewF):-
-    current_itf(visible,TmpF,A), !,
+    current_itf(defines,TmpF,A), !, % already defined, increment suffix
     N1 is N+1,
     name(N1,S1),
-    "_"=[S],
-    atom_codes(Suffix,[S|S1]),
+    atom_codes(Suffix,[0'_|S1]),
     atom_concat(F,Suffix,TmpF1),
     new_predicate_name(TmpF1,F,A,N1,NewF).
 new_predicate_name(NewF,_F,_A,_N,NewF).
@@ -1739,7 +1739,6 @@ init_props :-
 
 init_native_prop(Goal) :-
     % (failure-driven loop)
-%Nop!   current_itf(visible,Goal,_),
     % only prop assertions
     % TODO: (IC) is ":- prop p(X). :- comp p(X) + native." recognized as a native prop?
     %   possible fix: check that it is prop in one assertion_read/9 query ask for native in another
@@ -1836,59 +1835,51 @@ native_to_prop(NProp2,Prop) :-
 
 %% ---------------------------------------------------------------------------
 
-:- pred native_to_props_visible(Props,Goals) => list(cgoal) * list(cgoal)
-    # "Maps native @var{Props} into their corresponding @var{Goals}
-      visible in the current module.".
-native_to_props_visible([],[]).
-native_to_props_visible([I|Info],OutputUser):-
-    native_to_props_visible_(I,OutputUser,OutputUser1),
-    native_to_props_visible(Info,OutputUser1).
+:- pred native_to_props(Props,Goals) => list(cgoal) * list(cgoal)
+   # "Maps native @var{Props} into their corresponding @var{Goals}
+      (using @pred{native_prop_map/3} when needed).".
+native_to_props([],[]).
+native_to_props([I|Info],OutputUser):-
+    native_to_props_(I,OutputUser,OutputUser1),
+    native_to_props(Info,OutputUser1).
 
-native_to_props_visible_(Prop,OutputUser,OutputUser1):-
+native_to_props_(Prop,OutputUser,OutputUser1):-
     native_prop_map(Prop,P,Vars), !,
     each_to_prop(Vars,P,OutputUser,OutputUser1).
-native_to_props_visible_(Prop,[O|OutputUser],OutputUser):-
-    native_to_prop_visible(Prop,O).
+native_to_props_(Prop,[O|OutputUser],OutputUser):-
+    native_to_prop_(Prop,O).
 
 each_to_prop([V|Vars],P,[O|OutputUser],OutputUser1):-
     functor(Prop,P,1),
     arg(1,Prop,V),
-    native_to_prop_visible(Prop,O),
+    native_to_prop_(Prop,O),
     each_to_prop(Vars,P,OutputUser,OutputUser1).
 each_to_prop([],_P,OutputUser,OutputUser).
 
-% TODO: document why?
-native_to_prop_visible(NProp,Prop):-
-    native_to_prop(NProp,Prop),
-    current_itf(visible,Prop,_), !.
-native_to_prop_visible(NProp,Prop):-
-    native_property(Prop,NProp), !. % builtin tables % TODO: bad indexing
-% should be:
-%% native_to_prop_visible(NProp,Prop):-
-%%      native_to_prop(NProp,Prop), !,
-%%      make_prop_visible(Prop).
-native_to_prop_visible(NProp,NProp).
+native_to_prop_(NProp,Prop) :- native_to_prop(NProp,Prop0), !, Prop = Prop0.
+% native_to_prop_(NProp,Prop) :- native_to_prop_r(NProp,Prop0,_RegType), !, Prop = Prop0,
+% TODO: avoid visibility checks here, this should be done in p_printer
+%     ( RegType = yes -> true % TODO: working?
+%     ; visible_goal(Prop) -> true
+%     ; warn_prop_not_visible(Prop)
+%     ).
+native_to_prop_(NProp,NProp). % TODO: for regtypes, better option?
 
-% % TYPE_SYMBOLS_NOT_WHAT_WE_WANT
-% native_to_prop_visible(NProp,Prop):-
-%       functor(NProp,T,1),
-% % not really: should check that it is indeed a type!!!
-%       rule_type_symbol(T), !,
-%       Prop=NProp.
-% native_to_prop_visible(NProp,NProp):-
-%       curr_module(M),
-%       builtin_package(B),
-%       ( clause_read(M,0,use_package(B),_,_Source,_LB,_LE)
-%       -> true
-%        ; assertz_fact( clause_read(M,0,use_package(B),no,0,0,0) )
-%       ).
-
-% make_prop_visible(Prop):-
-%       functor(Prop,F,A),
-%       extract_module(F,M),
-%       module_spec(Spec,M), % if it was reversible!
-%       functor(G,F,A),
-%       assert_itf_kludge(p_unit,imports(F,Spec)).
+% % TODO: alternative: use (a working version of) make_prop_visible/1
+% warn_prop_not_visible(Lit) :-
+%     message(warning, ['bug: native property ', Lit, ' not visible (missing inject_output_package/1 for this analysis?)']).
+% 
+% % TODO: This is wrong, visibility depends on the module (except for multifiles); add M (JFMC)
+% visible_goal(Goal) :- current_itf(imports,Goal,_).
+% visible_goal(Goal) :- functor(Goal,F,A), current_itf(defines,F,A).
+% visible_goal(Goal) :- current_fact(multifile(Goal,_)).
+% 
+% % make_prop_visible(Prop):-
+% %       functor(Prop,F,A),
+% %       extract_module(F,M),
+% %       module_spec(Spec,M), % if it was reversible!
+% %       functor(G,F,A),
+% %       assert_itf_kludge(p_unit,imports(F,Spec)).
 
 % ---------------------------------------------------------------------------
 %! # Inject packages for output (post-preprocessing unit)

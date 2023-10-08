@@ -117,7 +117,7 @@ vlist(L):- list(var,L).
 
 :- doc(native_prop_map(Prop,P,Vars),
    "@var{Prop} is a property @var{P}(@var{Vars}) representing a mapping
-    @tt{map}(@var{Vars},@var{P})").
+    @tt{map}(@var{P},@var{Vars})").
 
 native_prop_map(free(Vars),free,Vars):-
     nonvar(Vars).
