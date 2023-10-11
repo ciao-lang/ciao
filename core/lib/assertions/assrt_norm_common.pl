@@ -243,6 +243,7 @@ assertion_format(test,    X) :- assrt_format_code(X). %% For unit-test -- EMM
 %%assertion_format(type,    g). %% Added for now to put typedef there...
 %% assertion_format(compat,  d). %% Not using these as basic any more?!
 assertion_format(calls,   c).
+assertion_format(calls,   t).
 assertion_format(success, s).
 %% Entry for unit-test -- EMM
 assertion_format(texec,   g).
