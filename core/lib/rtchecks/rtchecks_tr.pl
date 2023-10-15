@@ -251,12 +251,11 @@ do_rtchecks_sentence_tr((?- _), _, _, _) :-
 do_rtchecks_sentence_tr(Head, Clauses, M, Dict) :-
     process_sentence(Head, true, Clauses, M, Dict).
 
-proc_ppassertion(check(Goal), PredName, Dict, Loc, rtcheck(NewGoal, PredName, Dict, Loc)) :-
-    get_check_props([Goal],ppassrt,p(Goal),[NewGoal]). % TODO: which variables should not be further instantiated?
+proc_ppassertion(check(Goal), PredName, Dict, Loc, RTCheck) :-
+    get_check_ppassrt(Goal, PredName, Dict, Loc, RTCheck).
 proc_ppassertion(trust(Goal), PredName, Dict, Loc, RTCheck) :-
     ( current_prolog_flag(rtchecks_trust, yes) ->
-        get_check_props([Goal],ppassrt,p(Goal),[NewGoal]), % TODO: which variables should not be further instantiated?
-        RTCheck = rtcheck(NewGoal, PredName, Dict, Loc)
+        get_check_ppassrt(Goal, PredName, Dict, Loc, RTCheck)
     ; RTCheck = true
     ).
 % TODO:
@@ -273,6 +272,10 @@ proc_ppassertion(trust(Goal), PredName, Dict, Loc, RTCheck) :-
 % is related to shared vars in hiord terms.
 proc_ppassertion(true(_),  _, _, _, true).
 proc_ppassertion(false(_), _, _, _, true).
+
+get_check_ppassrt(Goal, PredName, Dict, Loc, RTCheck) :-
+    get_check_props([Goal],ppassrt,p(Goal),[NewGoal]), % TODO: which variables should not be further instantiated?
+    RTCheck = rtcheck(NewGoal, PredName, Dict, Loc).
 
 % --------------------------------------------- (begin) goal translation
 
