@@ -4,7 +4,7 @@
     transform_body/3,
     transform_assrt_body/3,
     unexpand_meta_calls/2,
-    transform_name/3,
+    transform_lit/3,
     regenerate_unexpanded_data/1,
     add_head_unexpanded_data/3,
     transform_metapred/3
@@ -84,7 +84,7 @@ transform_body('->'(A,B), M, '->'(AT,BT)) :-
 transform_body(true(H), M, true(HT)) :- !, % Note: unqualified true/1
     transform_body(H, M, HT).
 transform_body(H, M, HT) :-
-    transform_name(H, M, HT).
+    transform_lit(H, M, HT).
 %transform_body(A, A).
 
 transform_body_disj((A;B), M, (AT;BT)) :-
@@ -96,15 +96,21 @@ transform_body_disj(A, M, AT) :-
     transform_body(AC, M, ATM),
     list_to_conj(AT, ATM).
 
+transform_lit(H, user(_), HT) :-
+    transform_lit(H, user, HT0), !, HT = HT0.
+transform_lit(H, CurrMod, HT) :-
+    transform_metapred(H, CurrMod, HT0),
+    transform_atom(HT0, CurrMod, HT).
 
-transform_name(H, user(_), HT) :-
-    transform_name(H, user, HT),!.
-transform_name(H, M, HT) :-
-    transform_metapred(H, M, HT0),
-    HT0 =.. [F|As],
+transform_atom(HT0, CurrMod, HT) :-
     functor(HT0, F, N),
-    transform_atom(F, N, M, FT),
-    reconstruct(FT, As, HT).
+    atom(F),
+    module_split(F, M, CT),
+    !,
+    simplify_qualify(M:CT, N, CurrMod, MCT),
+    HT0 =.. [_|As],
+    reconstruct(MCT, As, HT).
+transform_atom(H, _CurrMod, H). % TODO: when does it happen?
 
 reconstruct(M:FT, As, M:HT) :- !, HT =.. [FT|As].
 reconstruct(FT, As, HT) :- HT =.. [FT|As].
@@ -168,33 +174,38 @@ no
 ".
 
 transform_metapred(H, M, HT) :-
-    H =.. [F|A],
-    functor(H, F, FArity),
-    ( (type_of_goal(metapred(_Type,Meta),_),
-       functor(Meta, F, MetaArity)),
-      % this is something we have to keep in mind.
-      % When a metapredicate has addmodule option, 
-      % 2 things can happen:
-      % (A) We read the goal from ciao, so ciao 
-      %     expanded the goal, so the goal has more 
-      %     arguments than metapredicate definition.
-      % (B) A CiaoPP transformation added the goal,
-      %     so the goal has the same number of 
-      %     arguments than metapred declaration.
-      (FArity = MetaArity  ->  % case B
-          Meta =.. [ _ | Metaterms ]
-      ;   % case A
-          meta_to_list(Meta, Metaterms)
+    ( % Get Meta for H
+      functor(H, F, FArity),
+      ( MetaArity_G is FArity - 1 % when H (expanded) have one more argument (we must try this first!)
+      ; MetaArity_G = FArity % when H (expanded) do not have more arguments (or dcase "B" below)
       ),
-      transform_terms(A, Metaterms, M, A0)
+      functor(MetaG, F, MetaArity_G),
+      type_of_goal(metapred(_Type,Meta),MetaG),
+      functor(Meta, F, MetaArity),
+      % TODO: this has problems, if program transformations work at
+      % the expanded level, these extra arguments should be explicit
+      % in the transformed (module expanded) representation
+      %
+      % When a metapredicate has addmodule option, 
+      % two things can happen:
+      % (A) The goal is read from source and expanded with one more
+      %     argument.
+      % (B) The goal is added by a program transformation (without the
+      %     extra argument).
+      ( FArity = MetaArity  ->  % case B
+          Meta =.. [_|Metaterms]
+      ; % case A
+        meta_to_list(Meta, Metaterms)
+      ),
+      H =.. [F|A],
+      transform_terms(A, Metaterms, M, A2)
       ->
-          true
-      ; A0 = A
-   ),
-    reconstruct(F, A0, HT).
+        reconstruct(F, A2, HT)
+    ; HT = H
+    ).
 
 % ---------------------------------------------------------------------------
-% ---------------------------------------------------------------------------
+
 add_extra_args(N, A0, A) :-
     A0 =.. [F|As0],
     length(Extra, N),
@@ -211,24 +222,13 @@ remove_extra_args(N, A0, A) :-
 
 % ---------------------------------------------------------------------------
 
-% TODO: This code drops _M (because it can be 'multifile')
+% TODO: do not drop _M when we allow multifile predicates with non 'multifile:' qualifier
 transform_head(H, _M, HT) :- % any M (could be multifile:)
     H =.. [F|A],
     module_split(F, _MIgnore, FT),
     !,
     HT =.. [FT|A].
 transform_head(H, _M, H).
-
-% Here we can translate from 'module:clause' to 'clause'
-
-:- use_module(library(streams)).
-
-transform_atom(F, A, CurrMod, MCT) :-
-    atom(F),
-    module_split(F, M, CT),
-    !,
-    simplify_qualify(M:CT, A, CurrMod, MCT). % JF
-transform_atom(F, _A, _CurrMod, F).
 
 % ---------------------------------------------------------------------------
 % JF {
