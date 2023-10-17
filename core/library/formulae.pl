@@ -210,6 +210,7 @@ llist_to_conj([LL],C):- !,
 llist_to_conj([LL|LLs],(C,Cs)):- !,
     llist_to_disj(LL,C),
     llist_to_conj(LLs,Cs).
+llist_to_conj([],C) :- !, C = true.
 llist_to_conj(C,C).
 
 :- doc(disj_to_llist/2,"Turns a disjunctive (normal form) formula 
@@ -236,6 +237,7 @@ llist_to_disj([LL],D):- !,
 llist_to_disj([LL|LLs],(D;Ds)):- !,
     llist_to_conj(LL,D),
     llist_to_disj(LLs,Ds).
+llist_to_disj([],D) :- !, D = false.
 llist_to_disj(D,D).
 
 :- pred asbody_to_conj(A, B)
