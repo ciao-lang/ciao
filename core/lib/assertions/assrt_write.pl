@@ -173,42 +173,44 @@ conj_to_list((A,B), [A|Bs]) :- !,
 conj_to_list(A, [A]).
 
 print_prop_list(conj,List,AsComm,Tab,S) :-
-    print_conjunction(List,AsComm,Tab,S).
+    print_conj(List,AsComm,Tab,yes,S).
 print_prop_list(disj,List,AsComm,Tab,S) :-
-    print_disjunction(List,AsComm,Tab,S).
+    print_disj(List,AsComm,Tab,S).
 
-print_disjunction([],_AsComm,_Tab,_).
-print_disjunction([Prop],AsComm,Tab,S) :- !,
-    print_conjunction_0(Prop,AsComm,Tab,S).
-print_disjunction([Prop|Props],AsComm,Tab,S) :-
+print_disj([],_AsComm,_Tab,_).
+print_disj([Prop],AsComm,Tab,S) :- !,
+    print_conj_0(Prop,AsComm,Tab,yes,S).
+print_disj([Prop|Props],AsComm,Tab,S) :-
     display(S,'( '),
-    print_conjunction_0(Prop,AsComm,Tab,S),
-    print_disjunction_2(Props,AsComm,Tab,S).
-
-print_disjunction_2([],_AsComm,_Tab,S) :-
+    print_conj_0(Prop,AsComm,Tab,no,S),
+    print_disj_2(Props,AsComm,Tab,S),
     display(S,' )').
-print_disjunction_2([Prop|Props],AsComm,Tab,S) :-
+
+print_disj_2([],_AsComm,_Tab,_S).
+print_disj_2([Prop|Props],AsComm,Tab,S) :-
+    Tab2 is Tab - 2,
+    print_sep(nl,AsComm,Tab2,S),
     display(S,'; '),
-    print_conjunction_0(Prop,AsComm,Tab,S),
-    print_disjunction_2(Props,AsComm,Tab,S).
+    print_conj_0(Prop,AsComm,Tab,no,S),
+    print_disj_2(Props,AsComm,Tab,S).
 
-print_conjunction_0([],_AsComm,_Tab,S) :- !,
+print_conj_0([],_AsComm,_Tab,_Paren,S) :- !,
     display(S,'true').
-print_conjunction_0(A,AsComm,Tab,S) :-
-    print_conjunction(A,AsComm,Tab,S).
+print_conj_0(A,AsComm,Tab,Paren,S) :-
+    print_conj(A,AsComm,Tab,Paren,S).
 
-print_conjunction([],_AsComm,_Tab,_S).
-print_conjunction([Prop],_AsComm,_Tab,S) :- !,
+print_conj([],_AsComm,_Tab,_Paren,_S).
+print_conj([Prop],_AsComm,_Tab,_Paren,S) :- !,
     print_prop(Prop,S).
-print_conjunction([Prop|Props],AsComm,Tab,S) :-
-    display(S, '( '),
+print_conj([Prop|Props],AsComm,Tab,Paren,S) :-
+    ( Paren = yes -> display(S, '( ') ; true ),
     ownline_prop(Prop,OwnLine),
     print_prop(Prop,S),
-    print_conjunction_2(Props,OwnLine,AsComm,Tab,S).
+    print_conj_2(Props,OwnLine,AsComm,Tab,S),
+    ( Paren = yes -> display(S, ' )') ; true ).
 
-print_conjunction_2([],_PrevOwnLine,_AsComm,_Tab,S) :-
-    display(S, ' )').
-print_conjunction_2([Prop|Props],PrevOwnLine,AsComm,Tab,S) :-
+print_conj_2([],_PrevOwnLine,_AsComm,_Tab,_S).
+print_conj_2([Prop|Props],PrevOwnLine,AsComm,Tab,S) :-
     display(S, ','),
     ownline_prop(Prop,OwnLine),
     % use nl separator when either this or the previous properties
@@ -218,7 +220,7 @@ print_conjunction_2([Prop|Props],PrevOwnLine,AsComm,Tab,S) :-
     ),
     print_sep(Sep,AsComm,Tab,S),
     print_prop(Prop,S),
-    print_conjunction_2(Props,OwnLine,AsComm,Tab,S).
+    print_conj_2(Props,OwnLine,AsComm,Tab,S).
 
 print_sep(nonl,_AsComm,_Tab,S) :- display(S, ' ').
 print_sep(nl,AsComm,Tab,S) :- nl(S), comm_prefix(AsComm,S), tab(S,Tab).

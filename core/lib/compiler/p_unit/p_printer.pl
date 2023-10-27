@@ -1,6 +1,7 @@
 :- module(p_printer, [
     % TODO: syntax/operators may not be OK! use print_program/1
     print_assrt/2, % from deepfind_src/assrt_string.pl
+    print_assrt/3, % (like print_assrt/2, write from a different context)
     print_program/1
    ], [assertions, regtypes, hiord, datafacts]).
 
@@ -23,7 +24,6 @@
 :- use_module(library(compiler/p_unit/p_unit_db)).
 :- use_module(library(compiler/p_unit/unexpand), [
     transform_clause_list/3,
-    transform_assrt_body/3,
     transform_head/3,
     transform_body/3,
     transform_assrt_body/3]).
@@ -299,9 +299,14 @@ dump_lit(At, _, At).
 :- export(add_srcloc_prop/0).
 :- data add_srcloc_prop/0.
 
+% Print the assertion from its own (module) context
 print_assrt(A, S) :-
+    A = as${ module => M },
+    print_assrt(A, M, S).
+
+% Print the assertion from a (possibly different) module context
+print_assrt(A, M, S) :-
     A = as${
-        module => M,
         status => Status,
         type => Type,
         head => Head,
@@ -355,9 +360,8 @@ print_assrt(A, S) :-
 
 compact_assrt(In, Out) :-
     assertion_body(Pred, Compat, Call0, Succ, Comp0, Comm, In),
-    compact_props(Call0, compact_calls_prop, Call),
-    compact_props(Comp0, comp_remove_first_argument, Comp1),
-    compact_props(Comp1, compact_global_prop, Comp),
+    compact_call_props(Call0, Call),
+    compact_comp_props(Comp0, Comp),
     assertion_body(Pred, Compat, Call, Succ, Comp, Comm, Out).
 
 :- meta_predicate compact_props(?, pred(2), ?).
@@ -367,6 +371,16 @@ compact_props([A0|B0], CompactProp, [A|B]) :- !,
     compact_props(B0, CompactProp, B).
 compact_props(A, CompactProp, B) :-
     CompactProp(A, B).
+
+compact_call_props(Call0, Call) :-
+    compact_props(Call0, compact_calls_prop, Call).
+
+compact_calls_prop(A0, A) :- hook_compact_calls_prop(A0, A), !.
+compact_calls_prop(A, A).
+
+compact_comp_props(Comp0, Comp) :-
+    compact_props(Comp0, comp_remove_first_argument, Comp1),
+    compact_props(Comp1, compact_global_prop, Comp).
 
 % TODO: rename by comp_remove_goal_arg or comp_unapply? (similar to prop_unapply)
 comp_remove_first_argument(M:A, M:B) :- !,
@@ -380,9 +394,6 @@ comp_remove_first_argument(A, B) :-
 
 compact_global_prop(C0, C) :- hook_compact_global_prop(C0, C), !.
 compact_global_prop(C, C).
-
-compact_calls_prop(A0, A) :- hook_compact_calls_prop(A0, A), !.
-compact_calls_prop(A, A).
 
 % ---------------------------------------------------------------------------
 
