@@ -7,7 +7,7 @@
 
 % Database to store declaration for the currently compiled module
 :- data fun_eval/3.
-:- data eval_arith/1.
+:- data eval_arith/2.
 :- data eval_hiord/1.
 :- data defined_functions/1.
 :- data fun_return/4.
@@ -20,14 +20,14 @@
 % defunc(0, _, Mod) :- !, % no need for initialization
 defunc(end_of_file, end_of_file, Mod) :- !,
     retractall_fact(fun_eval(_,Mod,_)),
-    retractall_fact(eval_arith(Mod)),
+    retractall_fact(eval_arith(Mod,_)),
     retractall_fact(eval_hiord(Mod)),
     retractall_fact(defined_functions(Mod)),
     retractall_fact(fun_return(_,_,Mod,_)).
 defunc((?- _), _, _) :- !, fail.
 defunc((:- Decl), NewDecl, Mod) :- !,
     defunc_decl(Decl, NewDecl, Mod).
-% todo: the following rule seems to be redundant (jfmc)
+% TODO: the following rule seems to be redundant (jfmc)
 defunc((FuncHead := FuncValOpts), Clauses, Mod) :-
     nonvar(FuncValOpts),
     FuncValOpts = (FuncVal1 | FuncValR),
@@ -81,10 +81,10 @@ defunc_decl(fun_eval(Spec), _, Mod) :- !,
         make_fun_eval(P, Mod, QM)
     ; Spec = F/A, functor(P, F, A) ->
         make_fun_eval(P, Mod, (-))
-    ; Spec = arith(true) ->
-        asserta_fact(eval_arith(Mod))
     ; Spec = arith(false) ->
-        retractall_fact(eval_arith(Mod))
+        retractall_fact(eval_arith(Mod,_))
+    ; Spec = arith(Arith), valid_arith(Arith) ->
+        asserta_fact(eval_arith(Mod,Arith))
     ; Spec = hiord(true) ->
         asserta_fact(eval_hiord(Mod))
     ; Spec = hiord(false) ->
@@ -143,7 +143,7 @@ warning_function_decl :-
 
 % Are arithmetic operation interpreted as functions?
 arith_flag(Mod, ArithF) :-
-    eval_arith(Mod) -> ArithF = true ; ArithF = false.
+    ( eval_arith(Mod, Arith) -> ArithF = Arith ; ArithF = false ).
 /*
 % Does the module uses hiord?
 hiord_flag(Mod, HiordF) :-
@@ -179,9 +179,14 @@ normalize(F, Mod, _Arith, NrF) :-
     defunc_funabs_or_predabs(F, NF, Mod),
     NrF = '\6\Predabs'(NF).
 normalize(F, Mod, Arith, NrF) :-
-    is_arith_exp(F, Arith, F0), !,
-    NrF = '\6\Arit'(NF),
-    arith_false(Arith, NArith),
+    is_arith_exp(F, Arith, ArithF, F0), !,
+    NrF = '\6\Arit'(ArithF, NF),
+    disable_arith(Arith, NArith),
+    normalize_args_of(F0, Mod, NArith, NF).
+normalize(F, Mod, Arith, NrF) :-
+    is_arith_rel(F, Arith, F0), !,
+    NrF = '\6\AritRel'(Arith, NF),
+    disable_arith(Arith, NArith),
     normalize_args_of(F0, Mod, NArith, NF).
 normalize(~T, Mod, Arith, NrF) :- !,
     take_qualification(T, QM, Fun),
@@ -250,17 +255,25 @@ defunc_funabs_or_predabs(F, NF, Mod) :-
 defunc_funabs_or_predabs(F, NF, Mod) :-
     defunc_pred(F, NF, Mod).
 
-is_arith_exp(~(F),_Arith, F) :-
-    arith_exp(F), !.
-is_arith_exp(F, true, F) :-
-    arith_exp(F).
+is_arith_exp(~(F), _Arith, ArithF, F) :-
+    arith_exp(F), !, ArithF = true. % (default) % TODO: allow other ArithF?
+is_arith_exp(F, Arith, ArithF, F) :- \+ disabled_arith(Arith),
+    arith_exp(F),
+    ArithF = Arith.
 
-arith_false(true,  tempfalse).
-arith_false(false, false).
+is_arith_rel(F, Arith, F) :-
+    \+ Arith = true,
+    \+ disabled_arith(Arith),
+    arith_rel(F).
 
-restore_arith(false, false).
-restore_arith(tempfalse, true).
-restore_arith(true, true).
+disabled_arith(false).
+disabled_arith(tempfalse(_)).
+
+disable_arith(false, NArith) :- !, NArith = false.
+disable_arith(Prev,  tempfalse(Prev)).
+
+restore_arith(tempfalse(Prev), NArith) :- !, NArith = Prev.
+restore_arith(Arith, Arith).
 
 % PRE: 1st is not var
 take_qualification(QM:T, QM, T) :- !.
@@ -320,10 +333,11 @@ normalize_args_fun_but(N, Exc, T0, Mod, Arith, T1) :-
 % PRE: If is_evaluable(Exp) do not bind to non-variable NewExp
 defunc_nrf(V, V, G, G) :- var(V), !.
 defunc_nrf(^^(T), ^^(T), G, G) :- !.
-defunc_nrf(V, V, G, G) :- is_predabs(V), !. % todo: checking for eval_hiord here does not work
-defunc_nrf('\6\Arit'(Fun), V, Add, Rest) :-
+defunc_nrf(V, V, G, G) :- is_predabs(V), !. % TODO: checking for eval_hiord here does not work % TODO: needed with \6\Predabs? do like with \6\Arit
+defunc_nrf('\6\Arit'(Arith, Fun), V, Add, Rest) :-
     defunc_nrf_args_of(Fun, NFun, Add, Rest0),
-    Rest0 = (V is NFun, Rest).
+    arith_exp_eval(Arith, V, NFun, Eval),
+    Rest0 = (Eval, Rest).
 defunc_nrf('\6\Eval'(Pred, Ret_Arg), Ret_Arg, Add, Rest) :-
     defunc_nrf_args_of(Pred, NPred, Add, Rest0),
     Rest0 = (NPred, Rest).
@@ -360,7 +374,7 @@ defunc_nrf_opts('\6\Opts'(A,B), V, (A_As ; Assigns)) :- !,
 defunc_nrf_opts(A, V, A_As) :-
     defunc_nrf_assign(A, V, A_As).
 
-% todo: rename 'assign' by 'unify'? (jfmc) (to distinguish from imperative assignment)
+% TODO: rename 'assign' by 'unify'? (jfmc) (to distinguish from imperative assignment)
 defunc_nrf_assign(Val, V, (V = Val)) :- var(Val), !.
 defunc_nrf_assign(Val, V, Assign) :-
     is_evaluable(Val), !,
@@ -383,7 +397,10 @@ defunc_goal('\6\Unif_ret'(R, Val), Goal) :-
       defunc_nrf(Val, NVal, AddGoal, true),
       del_last_true((R = NVal, AddGoal), Goal)
     ).
-defunc_goal('\6\Arit'(G), G) :- !.       % For integer/1, float/1
+defunc_goal('\6\Arit'(_,G), G) :- !.    % For integer/1, float/1
+defunc_goal('\6\AritRel'(Arith, Rel), NewGoal) :- !,
+    defunc_nrf_args_of(Rel, NRel, NewGoal, NRel2),
+    arith_rel_goal(Arith, NRel, NRel2).
 defunc_goal('\6\Eval'(G,X), NG) :- !,    % A predicate is like a function
     functor(G, F, A),
     A1 is A-1,
@@ -417,48 +434,11 @@ take_out_arg(A, G, X, NG) :-
         take_out_arg(A1, G, X, NG)
     ).
 
-is_evaluable('\6\Arit'(_)).
+is_evaluable('\6\Arit'(_,_)).
 is_evaluable('\6\Eval'(_,_)).
 is_evaluable('\6\Opts'(_,_)).
 is_evaluable('\6\Cond'(_,_)).
 is_evaluable('\6\Predabs'(_)).
-
-% todo: Ask the compiler which terms are arithmetic expressions, do not place a table here
-arith_exp(-(_)).
-arith_exp(+(_)).
-arith_exp(--(_)).
-arith_exp(++(_)).
-arith_exp(+(_,_)).
-arith_exp(-(_,_)).
-arith_exp(*(_,_)).
-arith_exp(/(_,_)).
-arith_exp(//(_,_)).
-arith_exp(rem(_,_)).
-arith_exp(mod(_,_)).
-arith_exp(#(_,_)).
-arith_exp(/\(_,_)).
-arith_exp(\/(_,_)).
-arith_exp(\(_)).
-arith_exp(<<(_,_)).
-arith_exp(>>(_,_)).
-arith_exp(integer(_)).
-arith_exp(truncate(_)).
-arith_exp(float(_)).
-arith_exp(gcd(_,_)).
-arith_exp(abs(_)).
-arith_exp(sign(_)).
-arith_exp(float_integer_part(_)).
-arith_exp(float_fractional_part(_)).
-arith_exp(floor(_)).
-arith_exp(round(_)).
-arith_exp(ceiling(_)).
-arith_exp(**(_,_)).
-arith_exp(exp(_)).
-arith_exp(log(_)).
-arith_exp(sqrt(_)).
-arith_exp(sin(_)).
-arith_exp(cos(_)).
-arith_exp(atan(_)).
 
 make_fun_eval(P, Mod, QM) :-
     current_fact(fun_eval(P, Mod, QM)), !.
@@ -513,4 +493,78 @@ del_last_true((G, Gs), NG) :-
 del_last_true_(true, G, G).
 del_last_true_((G,Gs), G0, (G0,NG)) :-
     del_last_true_(Gs, G, NG).
+
+% ---------------------------------------------------------------------------
+% Syntax tables
+
+valid_arith(true).
+valid_arith(clpr).
+valid_arith(clpq).
+valid_arith(clpfd).
+
+% TODO: Ask the compiler which terms are arithmetic expressions, do not place a table here
+arith_exp(-(_)).
+arith_exp(+(_)).
+arith_exp(--(_)).
+arith_exp(++(_)).
+arith_exp(+(_,_)).
+arith_exp(-(_,_)).
+arith_exp(*(_,_)).
+arith_exp(/(_,_)).
+arith_exp(//(_,_)).
+arith_exp(rem(_,_)).
+arith_exp(mod(_,_)).
+arith_exp(#(_,_)).
+arith_exp(/\(_,_)).
+arith_exp(\/(_,_)).
+arith_exp(\(_)).
+arith_exp(<<(_,_)).
+arith_exp(>>(_,_)).
+arith_exp(integer(_)).
+arith_exp(truncate(_)).
+arith_exp(float(_)).
+arith_exp(gcd(_,_)).
+arith_exp(abs(_)).
+arith_exp(sign(_)).
+arith_exp(float_integer_part(_)).
+arith_exp(float_fractional_part(_)).
+arith_exp(floor(_)).
+arith_exp(round(_)).
+arith_exp(ceiling(_)).
+arith_exp(**(_,_)).
+arith_exp(exp(_)).
+arith_exp(log(_)).
+arith_exp(sqrt(_)).
+arith_exp(sin(_)).
+arith_exp(cos(_)).
+arith_exp(atan(_)).
+
+arith_rel(_>_).
+arith_rel(_>=_).
+arith_rel(_<_).
+arith_rel(_=<_).
+arith_rel(_=\=_).
+
+% Goal for arithmetic evaluation
+arith_exp_eval(true, V, NFun, Eval) :- Eval = (V is NFun). % using engine(arithmetic)
+arith_exp_eval(clpq, V, NFun, Eval) :- Eval = '.=.'(V, NFun). % using clpq
+arith_exp_eval(clpr, V, NFun, Eval) :- Eval = '.=.'(V, NFun). % using clpr
+arith_exp_eval(clpfd, V, NFun, Eval) :- Eval = '#='(V, NFun). % using clpfd
+
+% Goal for arithmetic relation
+arith_rel_goal(clpq, G, G2) :- arith_rel_goal_clpqr(G, G2).
+arith_rel_goal(clpr, G, G2) :- arith_rel_goal_clpqr(G, G2).
+arith_rel_goal(clpfd, G, G2) :- arith_rel_goal_clpfd(G, G2).
+
+arith_rel_goal_clpqr(A>B, '.>.'(A,B)).
+arith_rel_goal_clpqr(A<B, '.<.'(A,B)).
+arith_rel_goal_clpqr(A>=B, '.>=.'(A,B)).
+arith_rel_goal_clpqr(A=<B, '.=<.'(A,B)).
+arith_rel_goal_clpqr(A=\=B, '.<>.'(A,B)).
+
+arith_rel_goal_clpfd(A>B, '#>'(A,B)).
+arith_rel_goal_clpfd(A<B, '#<'(A,B)).
+arith_rel_goal_clpfd(A>=B, '#>='(A,B)).
+arith_rel_goal_clpfd(A=<B, '#=<'(A,B)).
+arith_rel_goal_clpfd(A=\=B, '#\='(A,B)).
 

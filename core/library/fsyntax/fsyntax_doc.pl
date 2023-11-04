@@ -58,19 +58,29 @@
    @section{Predefined evaluable functors} 
    @cindex{Predefined evaluable functors} 
 
-   By using the declaration
-   @tt{:- fun_eval arith(true)}, all the functors understood by
-   @pred{is/2} will be also evaluated.  This is active from the
-   declaration downwards until a @tt{:- fun_eval arith(false)}
-   declaration or the end of the module is reached.  Note that
-   arithmetic functors are used in some cases for purposes other than
-   arithmetic, such as in, e.g., @tt{abolish(p/2)}.  However, this is
-   not as much of a problem as 
-   as it may appear because this package does not affect 
-   declarations, except for the goal-including declarations
-   @decl{initialization/1} and @decl{on_abort/1}.  Note that all the
-   declarations introduced by this package, as is customary in Ciao,
-   are local to the module in which they are included.
+   By using the declaration @tt{:- fun_eval arith(true)}, all the
+   functors understood by @pred{is/2} will be also evaluated.  This is
+   active from the declaration downwards until a @tt{:- fun_eval
+   arith(false)} declaration or the end of the module is reached.
+
+   Note that arithmetic functors are used in some cases for purposes
+   other than arithmetic, such as in, e.g., @tt{abolish(p/2)}.
+   However, this is not as much of a problem as as it may appear
+   because this package does not affect declarations, except for the
+   goal-including declarations @decl{initialization/1} and
+   @decl{on_abort/1}.  Note that all the declarations introduced by
+   this package, as is customary in Ciao, are local to the module in
+   which they are included.
+
+   @begin{alert}
+   @bf{Experimentally}, the @tt{arith} flag can be set to the
+   following values to enable constraint-based arithmetic:
+   @begin{itemize}
+   @item @tt{:- fun_eval arith(clpfd)}: finite domains (requires the @tt{clpfd} package)
+   @item @tt{:- fun_eval arith(clpq)}: CLP(Q) (requires the @tt{clpq} package)
+   @item @tt{:- fun_eval arith(clpr)}: CLP(R) (requires the @tt{clpr} package)
+   @end{itemize}
+   @end{alert}
 
    In addition to functors declared with the @pred{fun_eval/1}
    declaration, this package defines as evaluable the functors used
@@ -524,7 +534,7 @@ including some assertions:
 @includeverbatim{fsyntax/examples/factf_assrt.pl}
 @end{verbatim}
 
-And, the same example written using @lib{clpq} constraints:
+The same example written using @lib{clpq} constraints:
 @begin{verbatim}
 @includeverbatim{fsyntax/examples/factf_clpq_assrt.pl}
 @end{verbatim}
@@ -536,6 +546,11 @@ which allows for example calling it ``backwards:''
 X = 4 ? 
 @end{verbatim}
 
+The same example written using arithmetic functors evaluable with
+@lib{clpq} (@bf{experimental} @tt{fun_eval arith(clpq)}):
+@begin{verbatim}
+@includeverbatim{fsyntax/examples/factf_arithclpq_assrt.pl}
+@end{verbatim}
 
 A very simple example using lazy evaluation:
 
