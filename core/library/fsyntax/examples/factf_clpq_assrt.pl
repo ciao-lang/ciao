@@ -1,4 +1,4 @@
-:- module(_,_,[assertions,nativeprops,fsyntax,clpqf]).
+:- module(_,_,[assertions,nativeprops,fsyntax,clpq]).
 
 :- fun_eval .=. /1.
 :- op(700,fx,[.=.]).
