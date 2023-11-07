@@ -5,12 +5,14 @@
         'SYSCALL'/1, 
         '$nodebug_call'/1,
         '$meta_call'/1,
+        '$meta_exp'/3,
         this_module/1
     ],[assertions, nortchecks, isomodes]).
 
 :- doc(title,"Higher-order support").
 
 :- doc(author,"Daniel Cabeza").
+:- doc(author,"Jose F. Morales (improvements)").
 
 :- doc(module,"This module is a wrapper for the
    implementation-defined predicate @pred{call/1}, and it implements
@@ -78,6 +80,11 @@ calln(Pred, Args) :-
 :- trust pred '$meta_call'(+A) : cgoal(A) + native(call(A)).
 :- impl_defined('$meta_call'/1).
 
+:- trust pred '$meta_exp'(+Metatype, +P, -E) # "Unify @var{E} with the
+   metaexpansion of @var{P} with metatype @var{Metatype} (using static
+   metaexpansion when possible and dynamic metaexpansion when
+   necessary)".
+:- impl_defined('$meta_exp'/3).
 
 :- meta_predicate this_module(addmodule).
 :- impl_defined(this_module/1). % TODO: avoid problems with addmodule and export

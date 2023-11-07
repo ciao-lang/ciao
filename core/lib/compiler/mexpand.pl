@@ -76,6 +76,9 @@ expand_goal(G, M, QM, NG) :-
 atom_expansion_add_goals(V, _, _, _, _, _, _) :- var(V), !, fail.
 atom_expansion_add_goals('$meta_call'(X), M, -, _Mode, 'hiord_rt:call'(X), G, G) :-
     accessible_in(M, hiord_rt, '$meta_call', 1), !.
+atom_expansion_add_goals('$meta_exp'(Metatype, P, E), M, -, Mode, NCall, G, G) :-
+    accessible_in(M, hiord_rt, '$meta_exp', 3), !,
+    meta_expansion_arg1(P, Metatype, M, -, Mode, fail, NP, NCall, 'term_basic:='(NP,E)).
 atom_expansion_add_goals(Call, M, QM, Mode, NCall, G, G) :-
     functor(Call, call, N), N > 1, % call/n
     ( mexpand_imports(M, _, call, 2, HM) -> HM = hiord_rt ),
@@ -83,8 +86,7 @@ atom_expansion_add_goals(Call, M, QM, Mode, NCall, G, G) :-
     Call =.. [_, P| LAs],
     As =.. [''| LAs],
     N1 is N-1,
-    meta_expansion_arg1(P, pred(N1), M, QM, Mode, true, NP, NCall,
-                        'hiord_rt:call'(NP,As)).
+    meta_expansion_arg1(P, pred(N1), M, QM, Mode, true, NP, NCall, 'hiord_rt:call'(NP,As)).
 atom_expansion_add_goals(A, M, QM, Mode, NA, G, G_) :-
     functor(A, F, N),
     atom_expansion(A, F, N, M, QM, A1, RM),
