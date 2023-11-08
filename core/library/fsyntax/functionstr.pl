@@ -144,11 +144,10 @@ warning_function_decl :-
 % Are arithmetic operation interpreted as functions?
 arith_flag(Mod, ArithF) :-
     ( eval_arith(Mod, Arith) -> ArithF = Arith ; ArithF = false ).
-/*
-% Does the module uses hiord?
-hiord_flag(Mod, HiordF) :-
-    eval_hiord(Mod) -> HiordF = true ; HiordF = false.
-*/
+
+% % Does the module uses hiord?
+% hiord_flag(Mod, HiordF) :-
+%     ( eval_hiord(Mod) -> HiordF = true ; HiordF = false ).
 
 defunc_funhead(Head, Mod, Arith, NPred, Ret_Arg, AddBody, RestBody) :-
     fun_to_pred_ret(Head, (-), Mod, Arith, Pred, Ret_Arg),
@@ -172,12 +171,12 @@ normalize(~V,_Mod,_Arith, NrF) :-
     NrF = '\6\Eval'(call(V, Ret_Arg), Ret_Arg). % Apply?
 normalize(^(T), Mod, Arith, NT) :- !,
     normalize_args_of(T, Mod, Arith, NT).
-normalize(F, Mod, _Arith, NrF) :-
-    is_funabs_or_predabs(F),
-    eval_hiord(Mod),
+normalize({F}, Mod, _Arith, NrF) :-
+    is_predabs(F, N),
+%    eval_hiord(Mod),
     !,
-    defunc_funabs_or_predabs(F, NF, Mod),
-    NrF = '\6\Predabs'(NF).
+    defunc_predabs(F, NF, Mod),
+    NrF = '\6\Predabs'(N, NF).
 normalize(F, Mod, Arith, NrF) :-
     is_arith_exp(F, Arith, ArithF, F0), !,
     NrF = '\6\Arit'(ArithF, NF),
@@ -224,35 +223,36 @@ normalize_args(N, T0, Mod, Arith, T1) :-
     normalize(A0, Mod, Arith, A1),
     normalize_args(N1, T0, Mod, Arith, T1).
 
-% Is a predicate abstraction?
-is_predabs((A :- _)) :-
-    nonvar(A),
-    ( A = (_ShVs -> A0) -> A1 = A0 ; A1 = A ),
-    nonvar(A1), functor(A1, '', _).
+% Is it a predicate (or function) abstraction? (gives arity in N)
+is_predabs(B, N) :-
+    ( split_shvs(B, _ShVs, A) -> true ; A = B ),
+    ( nonvar(A), A = (A1 :- _) -> true ; A1 = A ),
+    nonvar(A1),
+    ( A1 = (A2 := _) -> % TODO: make it optional (hiord {} without fsyntax)
+        nonvar(A2), functor(A2, '', N1),
+        N is N1 + 1
+    ; functor(A1, '', N)
+    ).
 
-% Is a function or predicate abstraction?
-is_funabs(B) :-
-    ( nonvar(B), B = (A :- _) -> true ; A = B ),
-    nonvar(A),
-    ( A = (_ShVs -> A0) -> A1 = A0 ; A1 = A ),
-    nonvar(A1), A1 = (A2 := _),
-    nonvar(A2), functor(A2, '', _).
-
-is_funabs_or_predabs(A) :- is_predabs(A) ; is_funabs(A).
-
-% Defunc for predicate or function abstractions
-defunc_funabs_or_predabs(F, NF, Mod) :-
+split_shvs(F, ShVs, F0) :-
+    nonvar(F),
     ( F = (ShVs -> Head := R :- Body) ->
         F0 = (Head := R :- Body)
     ; F = (ShVs -> Head := R) ->
         F0 = (Head := R)
     ; F = (ShVs -> Head :- Body) ->
         F0 = (Head :- Body)
-    ),
+    ; F = (ShVs -> Head) ->
+        F0 = Head
+    ).
+
+% Defunc for predicate (or function) abstractions
+defunc_predabs(F, NF, Mod) :-
+    split_shvs(F, ShVs, F0),
     !,
     defunc_pred(F0, (Head2 :- Body2), Mod),
     NF = (ShVs -> Head2 :- Body2).
-defunc_funabs_or_predabs(F, NF, Mod) :-
+defunc_predabs(F, NF, Mod) :-
     defunc_pred(F, NF, Mod).
 
 is_arith_exp(~(F), _Arith, ArithF, F) :-
@@ -333,17 +333,16 @@ normalize_args_fun_but(N, Exc, T0, Mod, Arith, T1) :-
 % PRE: If is_evaluable(Exp) do not bind to non-variable NewExp
 defunc_nrf(V, V, G, G) :- var(V), !.
 defunc_nrf(^^(T), ^^(T), G, G) :- !.
-defunc_nrf(V, V, G, G) :- is_predabs(V), !. % TODO: checking for eval_hiord here does not work % TODO: needed with \6\Predabs? do like with \6\Arit
 defunc_nrf('\6\Arit'(Arith, Fun), V, Add, Rest) :-
     defunc_nrf_args_of(Fun, NFun, Add, Rest0),
     arith_exp_eval(Arith, V, NFun, Eval),
     Rest0 = (Eval, Rest).
+defunc_nrf('\6\Predabs'(N,X1), V, Add, Rest) :- !,
+    mexp_pred_eval(N, X1, V, MExp),
+    Add = (MExp, Rest).
 defunc_nrf('\6\Eval'(Pred, Ret_Arg), Ret_Arg, Add, Rest) :-
     defunc_nrf_args_of(Pred, NPred, Add, Rest0),
     Rest0 = (NPred, Rest).
-defunc_nrf('\6\Predabs'(Predabs), V, Add, Rest) :-
-    V = Predabs,
-    Add = Rest.
 defunc_nrf(Opts, V, Add, Rest) :-
     Opts = '\6\Opts'(_,_), !,
     Add = (Assigns, Rest),
@@ -387,6 +386,7 @@ defunc_nrf_assign(Val, V, Assign) :-
 
 % defunc_goal(Goal, NewGoal) :- NewGoal is a goal which is equivalent to Goal
 % (which is normalized) but without functions.
+defunc_goal('$meta_exp'(_,_,_), _) :- !, fail. % (do not translate this one)
 defunc_goal(^^(G), G) :- !.
 defunc_goal('\6\Unif_ret'(R, Val), Goal) :-
     ( nonvar(Val),
@@ -438,7 +438,7 @@ is_evaluable('\6\Arit'(_,_)).
 is_evaluable('\6\Eval'(_,_)).
 is_evaluable('\6\Opts'(_,_)).
 is_evaluable('\6\Cond'(_,_)).
-is_evaluable('\6\Predabs'(_)).
+is_evaluable('\6\Predabs'(_,_)).
 
 make_fun_eval(P, Mod, QM) :-
     current_fact(fun_eval(P, Mod, QM)), !.
@@ -568,3 +568,4 @@ arith_rel_goal_clpfd(A>=B, '#>='(A,B)).
 arith_rel_goal_clpfd(A=<B, '#=<'(A,B)).
 arith_rel_goal_clpfd(A=\=B, '#\='(A,B)).
 
+mexp_pred_eval(N, PA, V, '$meta_exp'(pred(N),PA,V)).
