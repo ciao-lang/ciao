@@ -337,6 +337,7 @@ defunc_nrf('\6\Arit'(Arith, Fun), V, Add, Rest) :-
     defunc_nrf_args_of(Fun, NFun, Add, Rest0),
     arith_exp_eval(Arith, V, NFun, Eval),
     Rest0 = (Eval, Rest).
+defunc_nrf('\6\AritRel'(_,X), X, G, G) :- !. % (non goals)
 defunc_nrf('\6\Predabs'(N,X1), V, Add, Rest) :- !,
     mexp_pred_eval(N, X1, V, MExp),
     Add = (MExp, Rest).
