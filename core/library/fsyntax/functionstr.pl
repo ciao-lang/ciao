@@ -173,7 +173,7 @@ normalize(^(T), Mod, Arith, NT) :- !,
     normalize_args_of(T, Mod, Arith, NT).
 normalize({F}, Mod, _Arith, NrF) :-
     is_predabs(F, N),
-%    eval_hiord(Mod),
+    eval_hiord(Mod),
     !,
     defunc_predabs(F, NF, Mod),
     NrF = '\6\Predabs'(N, NF).
