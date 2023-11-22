@@ -219,26 +219,33 @@ pair(A,B) := ^(A-B).
    Ciao provides in its standard library the @tt{hiord} package, which
    supports a form of higher-order untyped logic programming with
    predicate abstractions @cite{ciao-hiord-tr,daniel-phd,ciao-hiord}.
-   Predicate abstractions are Ciao's translation to logic programming
-   of the lambda expressions of functional programming: they define
-   unnamed predicates which will be ultimately executed by a
-   higher-order call, unifying its arguments appropriately. A function
-   abstraction is provided as functional syntactic sugar for predicate
-   abstractions:
+   Goal and predicate arguments in @tt{meta_predicate}s allow
+   @concept{predicate abstractions}, which are Ciao's translation to
+   logic programming of the lambda expressions of functional
+   programming: they define unnamed predicates which can be ultimately
+   executed by a higher-order call, unifying its arguments
+   appropriately.
+
+   The @tt{fsyntax} package together with the
+   @tt{:- fun_eval hiord(true)} enables enhanced support for higher order
+   predicates. First, it allows specifying higher-order terms using
+   the @tt{@{...@}} syntax in arbitrary term positions (fully
+   statically without delayed @em{meta-expansion}). Second, it allows
+   predicate abstractions with functional notation:
 
    @begin{itemize}
-   @item Predicate abstraction: @tt{''(X,Y) :- p(X,Z), q(Z,Y)}.
+   @item Predicate abstraction: @tt{P = @{''(X,Y) :- p(X,Z), q(Z,Y)@}}.
 
-   @item Function abstraction: @tt{''(X) := ~q(~p(X))}.
+   @item Functional abstraction: @tt{P = @{''(X) := ~q(~p(X))@}}.
    @end{itemize}
 
    @noindent
-   and function application is syntactic sugar over predicate application: 
+   and function application as syntactic sugar over predicate application: 
 
    @begin{itemize}
    @item Predicate application: @tt{..., P(X,Y), ...}
 
-   @item Function application: @tt{..., Y = ~P(X), ...}
+   @item Functional application: @tt{..., Y = ~P(X), ...}
    @end{itemize}
 
    The combination of this @tt{hiord} package with the @tt{fsyntax}
@@ -249,10 +256,6 @@ pair(A,B) := ^(A-B).
    results can be obtained by deriving higher-order data from any
    other higher-order data (see @cite{daniel-phd}), as well as some of
    the functionality of full higher-order logic programming.
-
-   At this moment, it is necessary to specify the @tt{:- fun_eval
-   hiord(true)} option to enable correct handling of function
-   abstractions.
    ").
 
 %%  \item[Laziness:] Lazy evaluation is a program evaluation technique
