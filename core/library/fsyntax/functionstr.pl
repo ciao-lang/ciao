@@ -4,6 +4,7 @@
 
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(terms), [copy_args/3]).
+:- use_module(library(terms_check), [instance/2]).
 
 % Database to store declaration for the currently compiled module
 :- data fun_eval/3.
@@ -11,6 +12,7 @@
 :- data eval_hiord/1.
 :- data defined_functions/1.
 :- data fun_return/4.
+:- data abbrev/3. % TODO: document feature
 
 %%%% Sentence translation %%%%
 
@@ -21,6 +23,7 @@
 defunc(end_of_file, end_of_file, Mod) :- !,
     retractall_fact(fun_eval(_,Mod,_)),
     retractall_fact(eval_arith(Mod,_)),
+    retractall_fact(abbrev(_,Mod,_)),
     retractall_fact(eval_hiord(Mod)),
     retractall_fact(defined_functions(Mod)),
     retractall_fact(fun_return(_,_,Mod,_)).
@@ -96,6 +99,8 @@ defunc_decl(fun_eval(Spec), _, Mod) :- !,
     ; function_output_arg(Spec, Fun, A, QM) ->
         asserta_fact(fun_return(Fun, A, Mod, QM)),
         make_fun_eval(Fun, Mod, QM)
+    ; Spec = abbrev(Pattern, Val) ->
+        assertz_fact(abbrev(Pattern, Mod, Val))
     ; message(error, ['Invalid fun_eval specification: ',Spec])
     ).
 defunc_decl(fun_return(FSpec), _, Mod) :- !,
@@ -171,6 +176,9 @@ normalize(~V,_Mod,_Arith, NrF) :-
     NrF = '\6\Eval'(call(V, Ret_Arg), Ret_Arg). % Apply?
 normalize(^(T), Mod, Arith, NT) :- !,
     normalize_args_of(T, Mod, Arith, NT).
+normalize(F, Mod, Arith, NrF) :-
+    is_abbrev(F, Mod, NF), !, % TODO: detect loops?
+    normalize(NF, Mod, Arith, NrF).
 normalize({F}, Mod, _Arith, NrF) :-
     is_predabs(F, N),
     eval_hiord(Mod),
@@ -274,6 +282,13 @@ disable_arith(Prev,  tempfalse(Prev)).
 
 restore_arith(tempfalse(Prev), NArith) :- !, NArith = Prev.
 restore_arith(Arith, Arith).
+
+is_abbrev(F, Mod, NF) :-
+    functor(F, N, A),
+    functor(F0, N, A),
+    abbrev(F0, Mod, NF0), instance(F, F0), % (pattern matching)
+    !,
+    F = F0, NF = NF0.
 
 % PRE: 1st is not var
 take_qualification(QM:T, QM, T) :- !.
