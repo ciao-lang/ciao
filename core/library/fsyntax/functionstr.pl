@@ -28,6 +28,8 @@ defunc(end_of_file, end_of_file, Mod) :- !,
     retractall_fact(defined_functions(Mod)),
     retractall_fact(fun_return(_,_,Mod,_)).
 defunc((?- _), _, _) :- !, fail.
+defunc(('SHELL' :- Decl), R, Mod) :- toplevel_decl(Decl), !, % declarations from the toplevel
+    defunc_decl(Decl, _, Mod), R = ('SHELL':-true).
 defunc((:- Decl), NewDecl, Mod) :- !,
     defunc_decl(Decl, NewDecl, Mod).
 % TODO: the following rule seems to be redundant (jfmc)
@@ -117,6 +119,9 @@ defunc_decl(initialization(Goal), (:- initialization(NGoal)), Mod) :- !,
 defunc_decl(on_abort(Goal), (:- on_abort(NGoal)), Mod) :- !,
     arith_flag(Mod, ArithF),
     normalize(Goal, Mod, ArithF, NGoal).
+
+% decl allowed in toplevel
+toplevel_decl(fun_eval(_)).
 
 defunc_lazy_decl(function(Spec), LazySpec, Mod) :- !,
     warning_function_decl,
