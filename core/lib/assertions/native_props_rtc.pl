@@ -125,7 +125,8 @@ rtc_det(Goal) :-
 :- meta_predicate rtc_fails(goal).
 rtc_fails(Goal) :-
     call(Goal), % no_exception_(Goal, fails, _), % TODO: exceptions treated separately
-    send_comp_rtcheck(Goal, fails, multi).
+    % NOTE: succeeds = multi+terminates (since we reached this point, we know 'terminates')
+    send_comp_rtcheck(Goal, fails, succeeds).
 
 :- export(rtc_semidet/1). % rtc_impl for native_props:semidet/1
 :- meta_predicate rtc_semidet(goal).

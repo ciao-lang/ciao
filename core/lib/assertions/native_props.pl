@@ -172,7 +172,8 @@ valid_type([Type|Rest]) :-
 :- else.
 :- export(succeeds/1). % TODO: very crazy. % TODO: rename!
 :- meta_predicate succeeds(goal).
-:- prop succeeds(Goal) + no_rtcheck # "A call to @var{Goal} succeeds.".
+:- prop succeeds(Goal) + no_rtcheck # "A call to @var{Goal} succeeds
+   (@prop{terminates/1} and @prop{not_fails/1}).".
 
 :- impl_defined(succeeds/1).
 :- endif.
