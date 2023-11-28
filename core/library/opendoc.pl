@@ -14,6 +14,7 @@
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(lists), [member/2]).
 :- use_module(engine(system_info), [get_os/1]).
+:- use_module(library(system), [find_executable/2]).
 
 % ---------------------------------------------------------------------------
 
@@ -125,5 +126,11 @@ esc_code(X) --> [X].
 generic_viewer('open') :- get_os('DARWIN'), !.
 generic_viewer('cygstart') :- get_os('Win32'), !.
 %viewer('start') :- get_os('Win32'), !.
-generic_viewer('xdg-open') :- get_os('LINUX'), !.
+generic_viewer(Viewer) :- get_os('LINUX'), !,
+    ( X = 'wslview' % try this first for WSL
+    ; X = 'xdg-open'
+    ),
+    find_executable(X, _),
+    !,
+    X = Viewer.
 
