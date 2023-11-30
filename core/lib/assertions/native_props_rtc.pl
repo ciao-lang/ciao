@@ -631,8 +631,8 @@ check_if_valid(>(Lin_Expr1, Lin_Expr2)) :-
     lin_expr(Lin_Expr2),
     Lin_Expr1 > Lin_Expr2.
 
-lin_expr(PPL_Var) :-
-    ppl_var(PPL_Var), !.
+lin_expr(X) :- % in the rt version variables should be instantiated
+    number(X), !.
 lin_expr(Coeff) :-
     coefficient(Coeff).
 lin_expr(+(Lin_Expr)) :-
@@ -652,12 +652,8 @@ lin_expr(*(Lin_Expr, Coeff)) :-
     coefficient(Coeff),
     lin_expr(Lin_Expr).
 
-ppl_var(Var) :-
-    var(Var).
-
 coefficient(Coeff) :-
-    ground(Coeff),
-    int(Coeff). % TODO: shouldn't it be a num/1?
+    integer(Coeff).
 
 % ===========================================================================
 :- doc(section, "Other properties").
