@@ -290,6 +290,15 @@ pred_expansion(P, N, M, QM, Mode, 'PAEnv'(P,PA)) :-
     atom_expansion_add_goals(G, M, QM, Mode, NG, no, no),
     copy_term('PA'(P,H,NG),PA). % rename vars
 
+pred_expansion_pa(Hh, B, N, M, QM, Mode, 'PAEnv'(ShVs,PA)) :-
+    head_and_shvs(Hh, H, ShVs),
+    check_pred(H, N, {Hh :- B}),
+    body_expansion(B, M, QM, Mode, NB),
+    ( nonvar(ShVs), ShVs = -(_) -> % negative sharing (requires shpa package)
+        PA = 'PA'(ShVs,H,NB) % (do not rename vars)
+    ; copy_term('PA'(ShVs,H,NB),PA) % rename vars
+    ).
+
 % Given P (arity A), create G (arity A+N) and H goal (arity N), where
 % H contains the N missing arguments, equivalent to the following
 % pseudocode:
@@ -319,12 +328,6 @@ mexpand__missing_args(P, N, _M, H, G) :-
     % (H2 = Ga1, H3 = Ga3, ... Hn = Gan)
     A1 is A+1,
     mexpand__unify_args(1, N, H, A1, G).
-
-pred_expansion_pa(Hh, B, N, M, QM, Mode, 'PAEnv'(ShVs,PA)) :-
-    head_and_shvs(Hh, H, ShVs),
-    check_pred(H, N, {Hh :- B}),
-    body_expansion(B, M, QM, Mode, NB),
-    copy_term('PA'(ShVs,H,NB),PA). % rename vars
 
 head_and_shvs((ShVs-> H), H, ShVs) :- !.
 head_and_shvs(H, H, []).
