@@ -38,7 +38,7 @@ do_load_compilation_module(_, File, Base) :-
     redo_decls(Base).
 
 % Translation hooks without module qualification is ambiguous.
-% (there is no explicit connection with load_compilaion_module)
+% (there is no explicit connection with load_compilation_module)
 check_qualified_hook(P, DeclF, DeclA, Ln0, Ln1) :-
     ( nonvar(P), P = (_:_) -> true
     ; error_in_lns(Ln0, Ln1, error,
