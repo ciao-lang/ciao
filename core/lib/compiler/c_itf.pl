@@ -2133,7 +2133,7 @@ call_goal_trans(T) :-
 :- doc(section, "Compile clauses").
 
 compile_clauses(Base, Module, Mode) :-
-    expand_clause(0, 0, Module, _, _, _), % Translator initialization
+    expand_clause(before_mexp, 0, 0, Module, _, _, _), % Translator initialization
     current_fact(clause_of(Base,H,B,Dict,Src,Ln0,Ln1), CRef),
       erase(CRef),
       asserta_fact(location(Src,Ln0,Ln1), Ref),
@@ -2148,8 +2148,9 @@ compile_clauses(_, _, _).
 
 :- export(module_expansion/9).
 module_expansion(H, B, Module, Dict, Mode, H0, B0, H2, B2) :-
-    expand_clause(H, B, Module, Dict, H0, B0),
-    expand_head_body(H0, B0, Module, Dict, Mode, H2, B2).
+    expand_clause(before_mexp, H, B, Module, Dict, H0, B0),
+    expand_head_body(H0, B0, Module, Dict, Mode, H1, B1),
+    expand_clause(after_mexp, H1, B1, Module, Dict, H2, B2).
 
 expand_head_body(H0, B0, Module, Dict, Mode, H2, B2) :-
     ( Mode = interpreted,

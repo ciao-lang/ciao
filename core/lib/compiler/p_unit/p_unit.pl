@@ -996,7 +996,7 @@ write_asr_assrts([A|As]) :-
     assr_head_expansion/7
 ]).
 :- use_module(library(compiler/translation), [
-    expand_clause/6, del_goal_trans/1, del_clause_trans/1
+    expand_clause/7, del_goal_trans/1, del_clause_trans/1
 ]).
 :- use_module(library(formulae), [asbody_to_conj/2]).
 
@@ -1099,7 +1099,7 @@ db_clause_of(Head, Base, M, H, B, VarNames, Source, Line0, Line1) :-
 activate_second_translation(Base, M) :-
     activate_translation(Base, M, add_clause_trans),
     activate_translation(Base, M, add_goal_trans),
-    expand_clause(0, 0, M, _, _, _). % Translator initialization
+    expand_clause(before_mexp, 0, 0, M, _, _, _). % Translator initialization
 
 deactivate_second_translation(_Base, M) :-
     end_goal_trans(M),

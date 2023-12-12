@@ -1,6 +1,6 @@
 :- module(translation, [
     expand_term/4,
-    expand_clause/6,
+    expand_clause/7,
     goal_trans/3,
     add_sentence_trans_and_init/3,
     add_sentence_trans/3,
@@ -126,25 +126,25 @@ term_trans_args(N, X, Ts, Dict, Y) :-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-expand_clause(H, B, M, Dict, H1, B1) :-
-    clause_translations(M, KVs),
+expand_clause(Phase, H, B, M, Dict, H1, B1) :-
+    clause_translations(M, Phase, KVs),
     pqueue_values(KVs, Ts),
     !,
     do_translations(Ts, clause(H,B), Dict, clause(H1,B1)).
-expand_clause(H, B,_M,_Dict, H, B).
+expand_clause(_Phase, H, B,_M,_Dict, H, B).
 
-:- data clause_translations/2.
+:- data clause_translations/3.
 
 add_clause_trans(M, S, Prior) :-
     check_priority(Prior),
+    ( Prior > 100000 -> Phase = after_mexp ; Phase = before_mexp ),
     meta_spec_trans(M, S, Tr),
-    ( retract_fact(clause_translations(M,Ts0)) -> true ; Ts0 = [] ),
+    ( retract_fact(clause_translations(M,Phase,Ts0)) -> true ; Ts0 = [] ),
     pqueue_insert(Ts0, Prior, Tr, Ts),
-    asserta_fact(clause_translations(M,Ts)).
+    asserta_fact(clause_translations(M,Phase,Ts)).
 
 del_clause_trans(M) :-
-    retractall_fact(clause_translations(M,_)).
-
+    retractall_fact(clause_translations(M,_,_)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
