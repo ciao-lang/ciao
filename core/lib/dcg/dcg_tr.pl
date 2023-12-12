@@ -44,12 +44,13 @@ dcg_translate_dcg(X, Y, M, S0, S) :-
     ;   dcg_connect2(X, Y0, S=Tail, Y)
     ).
 
-dcg_connect((_->_), X, X) :- X = (_->_), !.
-dcg_connect(_, (P->Q), ((P->Q),true)) :- !.
+% (special case for Eq=true)
+dcg_connect((_->_), X, X) :- X = (_->_), !. % (avoid connect if orig was {(_->_)})
+dcg_connect(_, (P->Q), ((P->Q),true)) :- !. % (probably {(_->_)})
 dcg_connect(_, X, X).
 
-dcg_connect2((_->_), (P->Q0), Eq, (P->Q)) :- !, dcg_and(Q0, Eq, Q).
-dcg_connect2(_, (P->Q), Eq, ((P->Q),Eq)) :- !.
+dcg_connect2((_->_), (P->Q0), Eq, (P->Q)) :- !, dcg_and(Q0, Eq, Q). % (avoid connect if orig was {(_->_)})
+dcg_connect2(_, (P->Q), Eq, ((P->Q),Eq)) :- !. % (probably {(_->_)})
 dcg_connect2(_, X0, Eq, X) :- dcg_and(X0, Eq, X).
 
 dcg_translate_dcg_(X, Y, _M, S, S0, S) :- var(X), !,
