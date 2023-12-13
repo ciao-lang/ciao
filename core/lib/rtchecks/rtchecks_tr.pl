@@ -274,7 +274,10 @@ proc_ppassertion(true(_),  _, _, _, true).
 proc_ppassertion(false(_), _, _, _, true).
 
 get_check_ppassrt(Goal, PredName, Dict, Loc, RTCheck) :-
-    get_check_props([Goal],ppassrt,p(Goal),[NewGoal]), % TODO: which variables should not be further instantiated?
+    conj_to_list(Goal, GoalList),
+    varset(Goal, RelevantVars), % note: assume Goal contains all relevant vars
+    get_check_props(GoalList,ppassrt,RelevantVars,NewGoalList), % TODO: which variables should not be further instantiated?
+    list_to_conj(NewGoalList, NewGoal),
     RTCheck = rtcheck(NewGoal, PredName, Dict, Loc).
 
 % --------------------------------------------- (begin) goal translation
@@ -779,7 +782,8 @@ compat_rtcheck(
     member((Status, Type), StatusTypes),
     \+(Compat == []),
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
-    get_check_props(Compat,compat,Pred,CheckProps),
+    varset(Pred, RelevantVars),
+    get_check_props(Compat,compat,RelevantVars,CheckProps),
     ChkCompat = checkc(CheckProps, CompatNames, PropName-PropDict, Exit).
 
 compat_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs,
@@ -799,7 +803,8 @@ calls_rtcheck(
     member((Status, Type), StatusTypes),
     \+(Call == []),
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
-    get_check_props(Call, calls, Pred, CheckProps),
+    varset(Pred, RelevantVars),
+    get_check_props(Call, calls,  RelevantVars, CheckProps),
     ChkCall = checkc(CheckProps, CallNames, PropName-PropDict, Exit).
 
 calls_rtchecks(Assertions, Pred, PLoc, UsePosLoc, PosLocs, StatusTypes,
@@ -832,13 +837,14 @@ success_rtcheck(
     member((Status, Type), StatusTypes),
     \+(Succ == []),
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
+    varset(Pred, RelevantVars),
     (
         Call=[] -> Exit=true, ChkCall=true
     ;
-        get_check_props(Call, calls, Pred, CheckProps),
+        get_check_props(Call, calls, RelevantVars, CheckProps),
         ChkCall = checkc(CheckProps, Exit)
     ),
-    get_check_props(Succ, success, Pred, RtcSucc),
+    get_check_props(Succ, success, RelevantVars, RtcSucc),
     ChkSucc = i(PosLoc, PredName, Dict, RtcSucc, SuccNames, Exit).
 
 
@@ -863,9 +869,10 @@ compatpos_rtcheck(
     member((Status, Type), StatusTypes),
     \+(Compat == []),
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
-    get_check_props(Compat, compat,Pred, CheckProps),
+    varset(Pred, RelevantVars),
+    get_check_props(Compat, compat, RelevantVars, CheckProps),
     ChkCompat = checkc(CheckProps, Exit),
-    get_check_props(Compat, compatpos, Pred, RtcCompat),
+    get_check_props(Compat, compatpos, RelevantVars, RtcCompat),
     ChkCompatPos = i(PosLoc, PredName, Dict, RtcCompat, CompatNames, Exit).
 
 :- pred collapse_dups(+list, ?list) # "Unifies duplicated terms.".
@@ -914,14 +921,15 @@ comp_rtcheck(
         comp(ChkCall, Call, Exit, ChkComp, Comp)) :-
     member((Status, Type), StatusTypes),
     \+(Comp == []),
+    varset(Pred, RelevantVars),
     (
         Call=[] -> Exit=true, ChkCall=true
     ;
-        get_check_props(Call, calls, Pred, CheckProps),
+        get_check_props(Call, calls, RelevantVars, CheckProps),
         ChkCall = checkc(CheckProps, Exit)
     ),
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
-    get_check_props(Comp, comp, Pred, RtcComp),
+    get_check_props(Comp, comp, RelevantVars, RtcComp),
     ChkComp = i(PosLoc, PredName, Dict, RtcComp, CompNames, Exit).    
 
 comp_call_lit(comp(ChkCall, Call, Exit, _, _),
@@ -1004,7 +1012,8 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
     TestInfo = testinfo(Pred, ABody, ADict, ASource, ALB, ALE),
     AsrLoc   = asrloc(loc(ASource, ALB, ALE)),
     assertion_body(Pred, DP, CP, AP, GP, _, ABody),
-    get_check_props(GP,comp,Pred,RtcGPProps),
+    varset(Pred, RelevantVars),
+    get_check_props(GP, comp, RelevantVars, RtcGPProps),
     %
     comps_to_goal(RtcGPProps, GPPropsGoal, GPPropsGoal0),
     %
@@ -1025,7 +1034,7 @@ test_entry_body_goal(TestEntryBody, TestBodyGoal) :-
     ( AP == [] ->
         APCheckGoal = GPCheckGoal
     ;
-        get_check_props(AP, success, Pred, CheckProps),
+        get_check_props(AP, success, RelevantVars, CheckProps),
         APChkLit = checkif(true, success, PredName, DictName, CheckProps, APName, [AsrLoc]),
         APCheckGoal = (GPCheckGoal, catch(APChkLit, Ex, throw(postcondition(Ex))))
     ),
@@ -1054,40 +1063,26 @@ clean_rtc_impl_db :-
 
 % ----------------------------------------------------------------------
 
-:- pred get_check_props(L1,Chk,Sg,L2) : list * term * term * var => list
-* term * term * list # "For every property from a list of property
+:- pred get_check_props(L1,Chk,Vars,L2) : list * term * list * var => list
+* term * list * list # "For every property from a list of property
 terms @var{L1} either add to @var{L2} a custom implementation of this
 property (e.g.  for run-time checks) if one exists or add the property
 term with no changes. @var{Chk} denotes which kind of run-time check
 it is coming from. Can be an @tt{atm} or @tt{var}.".
 
+get_check_props([],_,_,[]).
+get_check_props([Prop|Props],Check,RelevantVars,[RtcProp|RtcProps]) :-
+    get_check_prop(Prop,Check,RelevantVars,RtcProp),
+    get_check_props(Props,Check,RelevantVars,RtcProps).
 
-get_check_props(Props,Check,AssrtHead,RtcProps) :-
-    varset(AssrtHead, HeadVars),
-    get_check_props_(Props,Check,HeadVars,RtcProps).
-
-get_check_props_([],_,_,[]).
-get_check_props_([Prop|Props],Check,HeadVars,[RtcProp|RtcProps]) :-
-    get_check_prop(Prop,Check,HeadVars,RtcProp),
-    get_check_props_(Props,Check,HeadVars,RtcProps).
-
-get_check_prop(fails(_), ppassrt, _HeadVars, RtcProp) :- !, % TODO: See other comp properties
+get_check_prop(fails(_), ppassrt, _RelevantVars, RtcProp) :- !, % TODO: See other comp properties
     RtcProp = fail.
-get_check_prop(A, ppassrt, HeadVars, RtcProp) :-
-    % expand mshare/2 in ppassrt: recover relevant variables for
-    % mshare/2 (assuming that this is generated by analysis) from the
-    % rest of var/1 ground/1 checks
-    conj_to_list(A, Gs),
-    select(mshare(Sh), Gs, Gs2),
-    !,
-    varset(A, Vs),
-    get_check_prop(mshare(Vs,Sh), ppassrt, HeadVars, RtcPropSh),
-    RtcProp = (RtcPropSh, RtcProp2),
-    % TODO: emit rest of checks, do in a better way? do conj_to_list/2 for ppassrt before?
-    list_to_conj(Gs2, A2),
-    get_check_prop(A2, ppassrt, HeadVars, RtcProp2).
-get_check_prop(Prop, ppassrt, HeadVars, RtcProp) :- !, 
-    get_check_prop(Prop, calls, HeadVars, RtcProp).
+get_check_prop(mshare(Sh), ppassrt, RelevantVars, RtcProp) :- !, 
+    % Note that for program points, RelevantVars represent the list of all variables in the program point,
+    % rather than the head variables
+    get_check_prop(mshare(RelevantVars,Sh), ppassrt, RelevantVars, RtcProp).
+get_check_prop(Prop, ppassrt, RelevantVars, RtcProp) :- !, 
+    get_check_prop(Prop, calls, RelevantVars, RtcProp).
 get_check_prop(Prop, Type, _, RtcProp) :-
     (Type = calls ; Type = success),
     functor(Prop, F, A),
@@ -1109,9 +1104,9 @@ get_check_prop(Prop, comp, _, RtcProp) :-
 get_check_prop(mshare(Vs,Sh),_,_,rtc_mshare(Vs2,Sh2)) :- !,
     mshare_tr(Vs,Sh,Vs2,Sh2).
 
-get_check_prop(Prop,Check,HeadVars,RtcProp) :-
+get_check_prop(Prop,Check,RelevantVars,RtcProp) :-
     varset(Prop,PropVars),
-    intersect_vars(PropVars, HeadVars, PropArgs),
+    intersect_vars(PropVars, RelevantVars, PropArgs),
     get_check_prop_(Prop,Check,PropArgs,RtcProp).
 
 get_check_prop_(compat(Prop),_,Args,rtc_compat(Prop,Args)) :- !.
