@@ -1136,8 +1136,14 @@ get_check_prop_(Prop,comp,_Args,Prop).
 mshare_tr(Vs,Sh,Vs2,Sh2) :- % list(var) * list(list(var)) * var * var
     copy_term(Vs-Sh,Vs0-Sh0),
     number_vars(Vs0,1),
-    sort(Sh0,Sh2),
+    sort_list(Sh0,Sh3),
+    sort(Sh3,Sh2),
     zip(Vs0,Vs,Vs2).
+
+sort_list([], []).
+sort_list([X|Xs], [Y|Ys]) :-
+    sort(X,Y),
+    sort_list(Xs, Ys).
 
 number_vars([N|Vs],N) :-
     N1 is N+1,
