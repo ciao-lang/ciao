@@ -10,9 +10,10 @@
 :- data fun_eval/3.
 :- data eval_arith/2.
 :- data eval_hiord/1.
+:- data eval_statevars/1. % TODO: document feature
 :- data defined_functions/1.
 :- data fun_return/4.
-:- data abbrev/3. % TODO: document feature
+:- data macro_rule/5. % TODO: document feature
 
 %%%% Sentence translation %%%%
 
@@ -23,8 +24,9 @@
 defunc(end_of_file, end_of_file, Mod) :- !,
     retractall_fact(fun_eval(_,Mod,_)),
     retractall_fact(eval_arith(Mod,_)),
-    retractall_fact(abbrev(_,Mod,_)),
+    retractall_fact(macro_rule(_,Mod,_,_,_)),
     retractall_fact(eval_hiord(Mod)),
+    retractall_fact(eval_statevars(Mod)),
     retractall_fact(defined_functions(Mod)),
     retractall_fact(fun_return(_,_,Mod,_)).
 defunc((?- _), _, _) :- !, fail.
@@ -94,6 +96,10 @@ defunc_decl(fun_eval(Spec), _, Mod) :- !,
         asserta_fact(eval_hiord(Mod))
     ; Spec = hiord(false) ->
         retractall_fact(eval_hiord(Mod))
+    ; Spec = statevars(true) ->
+        asserta_fact(eval_statevars(Mod))
+    ; Spec = statevars(false) ->
+        retractall_fact(eval_statevars(Mod))
     ; Spec = defined(true) ->
         asserta_fact(defined_functions(Mod))
     ; Spec = defined(false) ->
@@ -101,8 +107,10 @@ defunc_decl(fun_eval(Spec), _, Mod) :- !,
     ; function_output_arg(Spec, Fun, A, QM) ->
         asserta_fact(fun_return(Fun, A, Mod, QM)),
         make_fun_eval(Fun, Mod, QM)
-    ; Spec = abbrev(Pattern, Val) ->
-        assertz_fact(abbrev(Pattern, Mod, Val))
+    ; Spec = abbrev(Pattern, Val) -> % TODO: document
+        assertz_fact(macro_rule(Pattern, Mod, Val, -, -))
+    ; Spec = macro(Pattern, Val, SubOut, SubExpr) -> % TODO: document
+        assertz_fact(macro_rule(Pattern, Mod, Val, SubOut, SubExpr))
     ; message(error, ['Invalid fun_eval specification: ',Spec])
     ).
 defunc_decl(fun_return(FSpec), _, Mod) :- !,
@@ -182,13 +190,18 @@ normalize(~V,_Mod,_Arith, NrF) :-
 normalize(^(T), Mod, Arith, NT) :- !,
     normalize_args_of(T, Mod, Arith, NT).
 normalize(F, Mod, Arith, NrF) :-
-    is_abbrev(F, Mod, NF), !, % TODO: detect loops?
+    match_macro_rule(F, Mod, NF, SubOut, SubExpr), !, % TODO: detect loops?
+    ( SubOut == (-) -> true
+    ; normalize(SubExpr, Mod, Arith, NSubExpr), % (treat inner macro parts)
+      SubOut = NSubExpr
+    ),
     normalize(NF, Mod, Arith, NrF).
 normalize({F}, Mod, _Arith, NrF) :-
-    is_predabs(F, N),
+    is_predabs(F),
     eval_hiord(Mod),
     !,
     defunc_predabs(F, NF, Mod),
+    norm_predabs_arity(NF, N),
     NrF = '\6\Predabs'(N, NF).
 normalize(F, Mod, Arith, NrF) :-
     is_arith_exp(F, Arith, ArithF, F0), !,
@@ -224,9 +237,12 @@ normalize(T, Mod, Arith, NT) :-
     normalize_args_of(T, Mod, Arith, NT).
 
 normalize_args_of(T, Mod, Arith, NT) :-
-    functor(T, F, A),
+    ( eval_statevars(Mod) -> normalize_statevars(T, T1)
+    ; T1 = T
+    ),
+    functor(T1, F, A),
     functor(NT, F, A),
-    normalize_args(A, T, Mod, Arith, NT).
+    normalize_args(A, T1, Mod, Arith, NT).
 
 normalize_args(0, _, _Mod,_Arith, _ ) :- !.
 normalize_args(N, T0, Mod, Arith, T1) :-
@@ -237,15 +253,20 @@ normalize_args(N, T0, Mod, Arith, T1) :-
     normalize_args(N1, T0, Mod, Arith, T1).
 
 % Is it a predicate (or function) abstraction? (gives arity in N)
-is_predabs(B, N) :-
+is_predabs(B) :-
     ( split_shvs(B, _ShVs, A) -> true ; A = B ),
     ( nonvar(A), A = (A1 :- _) -> true ; A1 = A ),
     nonvar(A1),
     ( A1 = (A2 := _) -> % TODO: make it optional (hiord {} without fsyntax)
-        nonvar(A2), functor(A2, '', N1),
-        N is N1 + 1
-    ; functor(A1, '', N)
+        nonvar(A2), functor(A2, '', _)
+    ; functor(A1, '', _)
     ).
+
+% Get arity of a normalized predicate abstraction
+norm_predabs_arity(B, N) :-
+    ( split_shvs(B, _ShVs, A) -> true ; A = B ),
+    ( nonvar(A), A = (A1 :- _) -> true ; A1 = A ),
+    functor(A1, _, N).
 
 split_shvs(F, ShVs, F0) :-
     nonvar(F),
@@ -288,12 +309,12 @@ disable_arith(Prev,  tempfalse(Prev)).
 restore_arith(tempfalse(Prev), NArith) :- !, NArith = Prev.
 restore_arith(Arith, Arith).
 
-is_abbrev(F, Mod, NF) :-
+match_macro_rule(F, Mod, NF, SubOut, SubExpr) :-
     functor(F, N, A),
     functor(F0, N, A),
-    abbrev(F0, Mod, NF0), instance(F, F0), % (pattern matching)
+    macro_rule(F0, Mod, NF0, SubOut0, SubExpr0), instance(F, F0), % (pattern matching)
     !,
-    F = F0, NF = NF0.
+    F = F0, NF = NF0, SubOut = SubOut0, SubExpr = SubExpr0.
 
 % PRE: 1st is not var
 take_qualification(QM:T, QM, T) :- !.
@@ -343,6 +364,26 @@ normalize_args_fun_but(N, Exc, T0, Mod, Arith, T1) :-
     normalize(A0, Mod, Arith, A1),
     normalize_args_fun_but(N1, Exc, T0, Mod, Arith, T1).
 
+% Expand !V arguments in atom as '\6\before'(V) and '\6\after'(V)
+normalize_statevars(X, X2) :-
+    ( nonvar(X),
+      functor(X, _, A),
+      A > 0,
+      X =.. [F|Args],
+      normalize_statevars_(Args, Args2),
+      \+ Args == Args2 ->
+        X2 =.. [F|Args2]
+    ; % (no !V, discard)
+      X2 = X
+    ).
+
+normalize_statevars_([], []).
+normalize_statevars_([Arg|Args], ['\6\before'(V),'\6\after'(V)|Args2]) :- nonvar(Arg), Arg = (!(V)), var(V), !,
+    normalize_statevars_(Args, Args2).
+normalize_statevars_([Arg|Args], [Arg|Args2]) :-
+    normalize_statevars_(Args, Args2).
+
+% ---------------------------------------------------------------------------
 %%%% Translating normal forms to terms + goals %%%%
 
 % defunc_nrf(Exp, NewExp, AddGoal, RestGoal) :- NewExp is an expression
@@ -407,7 +448,8 @@ defunc_nrf_assign(Val, V, Assign) :-
 
 % defunc_goal(Goal, NewGoal) :- NewGoal is a goal which is equivalent to Goal
 % (which is normalized) but without functions.
-defunc_goal('$meta_exp'(_,_,_), _) :- !, fail. % (do not translate this one)
+defunc_goal('$meta_exp'(_,_,_), _) :- !, fail. % (do not translate, needed to treat meta args correctly)
+defunc_goal('\6\loop'(_,_,_,_), _) :- !, fail. % (do not translate, needed to treat meta args correctly)
 defunc_goal(^^(G), G) :- !.
 defunc_goal('\6\Unif_ret'(R, Val), Goal) :-
     ( nonvar(Val),
