@@ -125,6 +125,8 @@ native_prop_map(not_free(Vars),not_free,Vars):-
     nonvar(Vars).
 native_prop_map(not_ground(Vars),not_ground,Vars):-
     nonvar(Vars).
+native_prop_map(linear(Vars),linear,Vars):-
+    nonvar(Vars).
 
 %------------------------------------------------------------------------%
 % Should correspond with native/1 above:
