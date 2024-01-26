@@ -163,10 +163,6 @@ warning_function_decl :-
 arith_flag(Mod, ArithF) :-
     ( eval_arith(Mod, Arith) -> ArithF = Arith ; ArithF = false ).
 
-% % Does the module uses hiord?
-% hiord_flag(Mod, HiordF) :-
-%     ( eval_hiord(Mod) -> HiordF = true ; HiordF = false ).
-
 defunc_funhead(Head, Mod, Arith, NPred, Ret_Arg, AddBody, RestBody) :-
     fun_to_pred_ret(Head, (-), Mod, Arith, Pred, Ret_Arg),
     defunc_nrf_args_of(Pred, NPred, AddBody, RestBody).
@@ -196,9 +192,15 @@ normalize(F, Mod, Arith, NrF) :-
       SubOut = NSubExpr
     ),
     normalize(NF, Mod, Arith, NrF).
-normalize({F}, Mod, _Arith, NrF) :-
-    is_predabs(F),
+normalize('\006\curly_block'(Sents), Mod, _Arith, NrF) :-
     eval_hiord(Mod),
+    !,
+    norm_curly_block(Sents, Mod, NF),
+    norm_predabs_arity(NF, N),
+    NrF = '\6\Predabs'(N, NF).
+normalize({F}, Mod, _Arith, NrF) :-
+    eval_hiord(Mod),
+    is_predabs(F),
     !,
     defunc_predabs(F, NF, Mod),
     norm_predabs_arity(NF, N),
@@ -252,9 +254,11 @@ normalize_args(N, T0, Mod, Arith, T1) :-
     normalize(A0, Mod, Arith, A1),
     normalize_args(N1, T0, Mod, Arith, T1).
 
+% ---------------------------------------------------------------------------
+
 % Is it a predicate (or function) abstraction? (gives arity in N)
 is_predabs(B) :-
-    ( split_shvs(B, _ShVs, A) -> true ; A = B ),
+    split_shvs(B, _, A),
     ( nonvar(A), A = (A1 :- _) -> true ; A1 = A ),
     nonvar(A1),
     ( A1 = (A2 := _) -> % TODO: make it optional (hiord {} without fsyntax)
@@ -264,30 +268,86 @@ is_predabs(B) :-
 
 % Get arity of a normalized predicate abstraction
 norm_predabs_arity(B, N) :-
-    ( split_shvs(B, _ShVs, A) -> true ; A = B ),
+    split_shvs(B, _, A),
     ( nonvar(A), A = (A1 :- _) -> true ; A1 = A ),
     functor(A1, _, N).
 
-split_shvs(F, ShVs, F0) :-
+split_shvs(F, MaybeShVs, F0) :-
     nonvar(F),
     ( F = (ShVs -> Head := R :- Body) ->
-        F0 = (Head := R :- Body)
+        MaybeShVs = yes(ShVs), F0 = (Head := R :- Body)
     ; F = (ShVs -> Head := R) ->
-        F0 = (Head := R)
+        MaybeShVs = yes(ShVs), F0 = (Head := R)
     ; F = (ShVs -> Head :- Body) ->
-        F0 = (Head :- Body)
+        MaybeShVs = yes(ShVs), F0 = (Head :- Body)
     ; F = (ShVs -> Head) ->
-        F0 = Head
+        MaybeShVs = yes(ShVs), F0 = Head
+    ; MaybeShVs = no, F0 = F
     ).
+
+:- use_module(library(terms_vars), [varset/2]). % (for add_shvs)
+
+% mark closure (non)shared vars (if needed)
+add_shvs(yes(ShVs), (H :- B), (ShVs -> H :- B)).
+% add_shvs(no, HB, HB). % use share-nothing by default
+% add_shvs(no, (H :- B), (-[] -> H :- B)). % use share-parent by default
+add_shvs(no, (H :- B), (-HeadVars -> H :- B)) :-
+    % use share-parent by default, excluding variables in the head
+    varset(H, HeadVars).
 
 % Defunc for predicate (or function) abstractions
 defunc_predabs(F, NF, Mod) :-
-    split_shvs(F, ShVs, F0),
-    !,
-    defunc_pred(F0, (Head2 :- Body2), Mod),
-    NF = (ShVs -> Head2 :- Body2).
-defunc_predabs(F, NF, Mod) :-
-    defunc_pred(F, NF, Mod).
+    split_shvs(F, MaybeShVs, F0),
+    defunc_pred(F0, NF0, Mod),
+    add_shvs(MaybeShVs, NF0, NF).
+
+% Merge multiple clauses into a single one
+% TODO: This is a temporary solution until multiple clauses are
+% supported in PA
+norm_curly_block(Sents0, Mod, NrF) :-
+    split_shvs_block(Sents0, MaybeShVs, Sents1),
+    defunc_pred_sents(Sents1, Mod, Cls),
+    ( check_heads(Cls, HeadN, HeadF) -> true
+    ; fail % TODO: emit an error instead
+    ),
+    functor(Head, HeadN, HeadF),
+    merge_cls(Cls, Head, Mod, Body),
+    add_shvs(MaybeShVs, (Head :- Body), NrF).
+
+% (shvs only in first clause)
+split_shvs_block([S0|Ss], MaybeShVs, [S|Ss]) :-
+    S0 = sentence(Cl, VarNames, Singletons, Ln0, Ln1),
+    split_shvs(Cl, MaybeShVs, Cl2),
+    S = sentence(Cl2, VarNames, Singletons, Ln0, Ln1).
+
+% All heads must be consistent
+check_heads([], _, _).
+check_heads([Cl|Cls], N, F) :-
+    cl_decomp(Cl, H, _),
+    functor(H, N, F),
+    check_heads(Cls, N, F).
+
+defunc_pred_sents([], _Mod, []).
+defunc_pred_sents([sentence(Cl0,_,_,_,_)|Ss], Mod, [Cl|Cls]) :-
+    defunc_pred(Cl0, Cl, Mod),
+    defunc_pred_sents(Ss, Mod, Cls).
+
+cl_decomp(X, _, _) :- var(X), !, fail.
+cl_decomp((H :- B), H, B).
+cl_decomp(H, H, true).
+
+% Compose a single body
+merge_cls([Cl], Head, Mod, Body) :- !,
+    merge_cls_body(Cl, Head, Mod, Body).
+merge_cls([Cl|Cls], Head, Mod, (Body ; RestBody)) :-
+    merge_cls_body(Cl, Head, Mod, Body),
+    merge_cls(Cls, Head, Mod, RestBody).
+
+merge_cls_body(Cl, Head, _Mod, Body) :-
+    cl_decomp(Cl, H, B),
+    Body = (Head=H, B).
+
+% ---------------------------------------------------------------------------
 
 is_arith_exp(~(F), _Arith, ArithF, F) :-
     arith_exp(F), !, ArithF = true. % (default) % TODO: allow other ArithF?
