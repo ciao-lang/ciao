@@ -192,19 +192,6 @@ normalize(F, Mod, Arith, NrF) :-
       SubOut = NSubExpr
     ),
     normalize(NF, Mod, Arith, NrF).
-normalize('\006\curly_block'(Sents), Mod, _Arith, NrF) :-
-    eval_hiord(Mod),
-    !,
-    norm_curly_block(Sents, Mod, NF),
-    norm_predabs_arity(NF, N),
-    NrF = '\6\Predabs'(N, NF).
-normalize({F}, Mod, _Arith, NrF) :-
-    eval_hiord(Mod),
-    is_predabs(F),
-    !,
-    defunc_predabs(F, NF, Mod),
-    norm_predabs_arity(NF, N),
-    NrF = '\6\Predabs'(N, NF).
 normalize(F, Mod, Arith, NrF) :-
     is_arith_exp(F, Arith, ArithF, F0), !,
     NrF = '\6\Arit'(ArithF, NF),
@@ -235,6 +222,25 @@ normalize((A?B), Mod, Arith, '\6\Cond'(NA,NB)) :- !,
     restore_arith(Arith, NArith),
     normalize(A, Mod, NArith, NA),
     normalize(B, Mod, NArith, NB).
+normalize('\006\curly_block'(Sents), Mod, _Arith, NrF) :-
+    eval_hiord(Mod),
+    !,
+    norm_curly_block(Sents, Mod, NF),
+    norm_predabs_arity(NF, N),
+    NrF = '\6\Predabs'(N, NF).
+normalize({F}, Mod, _Arith, NrF) :-
+    eval_hiord(Mod),
+    is_predabs(F),
+    !,
+    defunc_predabs(F, NF, Mod),
+    norm_predabs_arity(NF, N),
+    NrF = '\6\Predabs'(N, NF).
+normalize({F}, Mod, Arith, NrF) :-
+    eval_hiord(Mod),
+    !,
+    restore_arith(Arith, NArith),
+    normalize(F, Mod, NArith, NF),
+    NrF = '\6\Block'(NF).
 normalize(T, Mod, Arith, NT) :-
     normalize_args_of(T, Mod, Arith, NT).
 
@@ -472,6 +478,9 @@ defunc_nrf(Opts, V, Add, Rest) :-
 defunc_nrf('\6\Cond'(Cond, Val), V, Add, Rest) :- !,
     Add = ((Cond -> Assign), Rest),
     defunc_nrf_assign(Val, V, Assign).
+defunc_nrf('\6\Block'(Goal), V, Add, Rest) :- !,
+    Add = (('\6\block_expr'(Goal,Val),Assign), Rest),
+    defunc_nrf_assign(Val, V, Assign).
 defunc_nrf(T0, T1, Add, Rest) :-
     defunc_nrf_args_of(T0, T1, Add, Rest).
 
@@ -508,8 +517,13 @@ defunc_nrf_assign(Val, V, Assign) :-
 
 % defunc_goal(Goal, NewGoal) :- NewGoal is a goal which is equivalent to Goal
 % (which is normalized) but without functions.
-defunc_goal('$meta_exp'(_,_,_), _) :- !, fail. % (do not translate, needed to treat meta args correctly)
-defunc_goal('\6\loop'(_,_,_,_), _) :- !, fail. % (do not translate, needed to treat meta args correctly)
+%
+% Do not translate the following special goals (needed to treat meta args correctly)
+defunc_goal('$meta_exp'(_,_,_), _) :- !, fail.
+defunc_goal('\6\loop'(_,_,_,_), _) :- !, fail.
+defunc_goal('\6\block_goal'(_), _) :- !, fail.
+defunc_goal('\6\block_expr'(_,_), _) :- !, fail.
+%
 defunc_goal(^^(G), G) :- !.
 defunc_goal('\6\Unif_ret'(R, Val), Goal) :-
     ( nonvar(Val),
@@ -531,6 +545,8 @@ defunc_goal('\6\Eval'(G,X), NG) :- !,    % A predicate is like a function
     take_out_arg(A, G, X, NG).
 defunc_goal('\6\Opts'(A,B), (A|B)) :- !. % To give a warning
 defunc_goal('\6\Cond'(A,B), (A?B)) :- !. % To give a warning
+defunc_goal('\6\Block'(Goal), NG) :- !,
+    NG = '\6\block_goal'(Goal).
 defunc_goal((U1 = U2), NewGoal) :-
     (V = U1, Fun = U2 ; V = U2, Fun = U1),
     ( nonvar(Fun),
@@ -561,6 +577,7 @@ is_evaluable('\6\Arit'(_,_)).
 is_evaluable('\6\Eval'(_,_)).
 is_evaluable('\6\Opts'(_,_)).
 is_evaluable('\6\Cond'(_,_)).
+is_evaluable('\6\Block'(_)).
 is_evaluable('\6\Predabs'(_,_)).
 
 make_fun_eval(P, Mod, QM) :-
