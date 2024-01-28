@@ -3,7 +3,7 @@
 :- include(arrays_ops).
 
 :- doc(title,"Some simple array operations with syntactic support").
-:- doc(author,"Pro Grammer").
+:- doc(author,"The Ciao Development Team").
 
 :- doc(module,"This library implements a very simple set of
    operations on arrays. The idea is to illustrate the use of
@@ -18,7 +18,7 @@
 %% :- doc(doinclude,vector/1).
 %% :- doc(doinclude,dim/1).
 
-:- regtype array(A) #"@var{A} is a multi-dimensional array.".
+:- regtype array(A) # "@var{A} is a multi-dimensional array.".
 % Should obviously be defined in more detail...
 array(A) :- struct(A).
 
@@ -46,11 +46,11 @@ rows(N,Ms,A):-
     fixed_array(Ms,Arg),
     rows(N-1,Ms,A).
 
-:- pred @(Array,Index,Elem):: array * dim * int
+:- pred get_elem(Array,Index,Elem):: array * dim * int
 # "@var{Elem} is the @var{Index}-th element of @var{Array}.".
 
-V@[I]    := ~arg(I,V).
-V@[I|Js] := ~arg(I,V)@Js.
+get_elem(V,[])     := V.
+get_elem(V,[I|Js]) := ~get_elem(~arg(I,V),Js).
 
 :- pred <+>(V1,V2,V3) :: vector * vector * vector
 # "@var{V3} is @var{V1} + @var{V2}.".
@@ -64,7 +64,7 @@ V1 <+> V2 := V3 :-
 vecplus_(0,_,_,_).
 vecplus_(N,V1,V2,V3) :- 
     N > 0,
-    V3@[N] = V1@[N] + V2@[N],
+    V3[N] = V1[N] + V2[N],
     vecplus_(N-1,V1,V2,V3).
 
 :- pred <*>(V1,V2,V3) :: vector * vector * vector
@@ -77,4 +77,4 @@ V1 <*> V2 := ~vecmul_(N,V1,V2,0) :-
 vecmul_(0,  _,  _, Acc, Acc).
 vecmul_(N, V1, V2, Acc, IP) :-
     N > 0,
-    vecmul_( N-1, V1, V2, Acc + ( V1@[N] * V2@[N] ), IP).
+    vecmul_( N-1, V1, V2, Acc + ( V1[N] * V2[N] ), IP).

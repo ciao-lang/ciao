@@ -406,7 +406,7 @@ a(@em{A21},..,@em{A2M}), ..., a(@em{AN1},...,} @tt{@em{ANM}))}, where
 simplicity arity limitations, solved in any case typically by further
 nesting with logarithmic access time). The following recursive
 definition defines the property @tt{fixed_array/2} and also the array
-access operator @tt{@@}:
+access predicate @tt{get_elem/3}:
 
 @begin{verbatim}
 fixed_array([N|Ms],A):-
@@ -422,27 +422,31 @@ rows(N,Ms,A) :-
     array(Ms,Arg),
     rows(N-1,Ms,A).
 
-:- pred @@(Array,Index,Elem) :: array * list(int) * int
+:- pred get_elem(Array,Index,Elem):: array * list(int) * int
    # \"@@var@{Elem@} is the @@var@{Index@}-th element of @@var@{Array@}.\".
 
-:- op(150, xfx, '@@').
-:- fun_eval (@@)/2.
-V@@[I]    := ~arg(I,V).       %% Or: V@@[] := V. 
-V@@[I|Js] := ~arg(I,V)@@Js.
+get_elem(V,[])     := V.
+get_elem(V,[I|Js]) := ~get_elem(~arg(I,V),Js).
 @end{verbatim}
 
-This allows writing, e.g., @tt{M = fixed_array([2,2]), M@@[2,1] = 3}
-(which could also be expressed as @tt{fixed_array([2,2])@@[2,1] = 3}),
+Rather than using @tt{get_elem/3} directly, we will use @tt{:-
+push_prolog_flag(read_postfix_blocks, on)} and @tt{fun_eval abbrev}
+(see @tt{array_ops.pl} later) to allow the more compact notation
+@tt{M[I1,...,In]} as an abbreviation for
+@tt{~get_elem(M,[I1,...,In])}.
+
+This allows writing, e.g., @tt{M = fixed_array([2,2]), M[2,1] = 3}
+(which could also be expressed as @tt{fixed_array([2,2])[2,1] = 3}),
 where the call to the @tt{fixed_array} property generates an empty @em{2
-x 2} array @em{M} and @tt{M@@[2,1] = 3} puts @em{3} in @em{M[2,1]}. 
+x 2} array @em{M} and @tt{M[2,1] = 3} puts @em{3} in @em{M[2,1]}. 
 This can be done in the top level:
 @begin{verbatim}
-?- M = ~fixed_array([2,2]), M@@[2,1] = 3.
+?- M = ~fixed_array([2,2]), M[2,1] = 3.
 @end{verbatim}
 @noindent
-provided the @tt{op} and @tt{function} declarations are 
+provided the @tt{op} and @tt{fun_eval} declarations are 
 loaded into the top level also. 
-Another example of use is: @tt{A3@@[N+1,M] = A1@@[N-1,M] + A2@@[N,M+2]}.
+Another example of use is: @tt{A3[N+1,M] = A1[N-1,M] + A2[N,M+2]}.
 
 Such functionality can be grouped into a @em{package} as follows. The
 package main file (@tt{arrays.pl}) might be:
