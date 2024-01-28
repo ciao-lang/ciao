@@ -1,0 +1,13 @@
+{
+  "name": "Ciao Prolog dev container",
+
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  "customizations": {
+    "vscode" : {
+      "extensions" : [ "ciao-lang.ciao-prolog-vsc" ]
+    }
+  }
+}
