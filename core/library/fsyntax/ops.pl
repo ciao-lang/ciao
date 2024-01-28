@@ -1,4 +1,3 @@
-:- op(1150,  fx, (function)).
 :- op(1150,  fx, (fun_eval)).
 :- op(1150,  fx, (fun_return)).
 % Experiment (related to types) --MH

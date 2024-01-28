@@ -80,9 +80,6 @@ defunc_pred(Head, (NewHead :- NewBody), Mod) :-
     defunc_head(Head, Mod, ArithF, NewHead, Body, true),
     del_last_true(Body, NewBody).
 
-defunc_decl(function(Spec), R, Mod) :- !,
-    warning_function_decl,
-    defunc_decl(fun_eval(Spec), R, Mod).
 defunc_decl(fun_eval(Spec), _, Mod) :- !,
     ( Spec = QM:F/A, functor(P, F, A) ->
         make_fun_eval(P, Mod, QM)
@@ -131,9 +128,6 @@ defunc_decl(on_abort(Goal), (:- on_abort(NGoal)), Mod) :- !,
 % decl allowed in toplevel
 toplevel_decl(fun_eval(_)).
 
-defunc_lazy_decl(function(Spec), LazySpec, Mod) :- !,
-    warning_function_decl,
-    defunc_lazy_decl(fun_eval(Spec), LazySpec, Mod).
 defunc_lazy_decl(fun_eval(Spec), LazySpec, Mod) :- !,
     ( Spec = F/A, functor(P, F, A)  ->
         make_fun_eval(P, Mod, (-)),
@@ -155,9 +149,6 @@ defunc_lazy_decl(fun_return(Spec), LazySpec, Mod) :- !,
         LazySpec = F/A-Arg
     ; message(error, ['Invalid fun_return specification in lazy declaration: ',Spec])
     ).
-
-warning_function_decl :-
-    message(warning, ['Declaration "function" deprecated, please use "fun_eval" instead']).
 
 % Are arithmetic operation interpreted as functions?
 arith_flag(Mod, ArithF) :-
