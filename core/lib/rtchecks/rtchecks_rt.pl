@@ -22,6 +22,7 @@
 :- use_module(library(terms_vars), [varset/2]).
 :- use_module(library(freeze), [freeze/2]).
 :- use_module(engine(basic_props_rtc)). % [compat_*/1]
+:- use_module(library(terms_check), [instance/2]).
 
 :- reexport(library(rtchecks/rtchecks_send)).
 
@@ -154,6 +155,7 @@ rtc_inst('$:'(Goal),Args) :- !, rtc_inst_(Goal,Args).
 % TODO: create automatically
 rtc_inst_('term_typing:var'(A)   , _   ) :- !, var(A).
 rtc_inst_('term_typing:nonvar'(A), _   ) :- !, nonvar(A).
+rtc_inst_('terms_check:instance'(A,B), _   ) :- !, instance(A,B).
 rtc_inst_(Goal,Args) :- \+ non_inst(Goal,Args).
 
 non_inst(Goal                   , Args) :- % TODO: fix
