@@ -25,6 +25,8 @@
 
 :- rtc_impl(native_props:indep/2, native_props:indep/2).
 
+:- rtc_impl(native_props:clique/1, native_props_rtc:rtc_clique/1).
+
 % ----------------------------------------------------------------------
 
 :- rtc_impl(native_props:det/1, native_props_rtc:rtc_det/1).

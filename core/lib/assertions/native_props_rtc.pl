@@ -76,6 +76,13 @@ maplist_varset([V|Vs],[Us|Uss]) :-
 
 % ----------------------------------------------------------------------
 
+% rtcheck version for native_props:clique/1
+% The clique-set is not taken into account because all variables in the set are 'top'.
+:- export(rtc_clique/1).
+rtc_clique(_X).
+
+% ----------------------------------------------------------------------
+
 :- use_module(library(write), [numbervars/3]).
 
 % TODO: It can be made more efficient (it is not strictly necessary to
