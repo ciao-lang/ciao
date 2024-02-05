@@ -275,10 +275,16 @@ proc_ppassertion(false(_), _, _, _, true).
 
 get_check_ppassrt(Goal, PredName, Dict, Loc, RTCheck) :-
     conj_to_list(Goal, GoalList),
-    varset(Goal, RelevantVars), % note: assume Goal contains all relevant vars
+    get_relevant_variables(GoalList, RelevantVars),
     get_check_props(GoalList,ppassrt,RelevantVars,NewGoalList), % TODO: which variables should not be further instantiated?
     list_to_conj(NewGoalList, NewGoal),
     RTCheck = rtcheck(NewGoal, PredName, Dict, Loc).
+
+get_relevant_variables(GoalList, RelevantVars) :-
+    ( select(clique(_Vars), GoalList, GoalList2) -> true % variables included in clique/1 are not considered
+    ;   GoalList2 = GoalList  % note: assume Goal contains all relevant vars
+    ),
+    varset(GoalList2, RelevantVars).
 
 % --------------------------------------------- (begin) goal translation
 
