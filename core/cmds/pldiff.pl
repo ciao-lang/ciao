@@ -20,9 +20,7 @@
 
    @section{Usage (pldiff)}
 
-   @begin{verbatim}
    @includefact{usage_text/1}
-   @end{verbatim}
 
    but you can also use the program as a library and invoke the predicate:
 

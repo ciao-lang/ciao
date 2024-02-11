@@ -319,9 +319,7 @@ available when invoking @apl{ciaoc}:
 
 @sp{2}
 
-@begin{verbatim}
 @includefact{usage_message/1}
-@end{verbatim}
 ").
 
 % @item{Active modules:} @cindex{modules, active} 

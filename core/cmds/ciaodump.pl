@@ -31,9 +31,7 @@
 
    @section{Usage}
 
-   @begin{verbatim}
-@includefact{usage_text/1}
-   @end{verbatim}
+   @includefact{usage_text/1}
 ").
 
 :- use_module(engine(messages_basic), [message/2]).
