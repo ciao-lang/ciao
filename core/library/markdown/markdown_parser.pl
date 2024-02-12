@@ -540,6 +540,13 @@ detect_code_cmd(Text, Cmd) :-
 %! match_front_cmd(?Cmd):
 %    Match a valid front command `Cmd`.
 
+% Hack to avoid parsing @author{...} as a front command
+% TODO: better solution!
+match_front_cmd(_Cmd) -->
+    sc_char(C), { cmdchar(C) },
+    sc_str("author{"),
+    !,
+    { fail }.
 % A front command
 match_front_cmd(Cmd) -->
     sc_char(C), { cmdchar(C) },
