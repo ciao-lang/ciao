@@ -26,8 +26,6 @@
 '$builder_hook'(lib_force_build('library/clpr')). % See WARNING note above
 '$builder_hook'(lib('library')).
 '$builder_hook'(src('examples')).
-%
-'$builder_hook'(manual('ciao_internals', [main='doc/internals/SETTINGS.pl'])).
 
 % ---------------------------------------------------------------------------
 % ciaobase: the minimum part needed for @apl{ciao_builder} to compile
