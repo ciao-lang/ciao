@@ -6,17 +6,13 @@ The important thing is that the file read is named by a symbolic name
 "@tt{file}". The main application file declares another file where the
 symbolic names are assigned actual file names:
 
-@begin{verbatim}
-@includeverbatim{symfnames/examples/main.pl}
-@end{verbatim}
+@includecode{symfnames/examples/main.pl}
 
 Now, the file @tt{myfiles.pl} can be used to change the file you want to 
 read from without having to recompile the application. The current 
 assignment is:
 
-@begin{verbatim}
-@includeverbatim{symfnames/examples/myfiles.pl}
-@end{verbatim}
+@includecode{symfnames/examples/myfiles.pl}
 
 @noindent
 so the execution of the application will show the first line of
@@ -24,7 +20,6 @@ so the execution of the application will show the first line of
 
 @begin{verbatim}
 file_alias(file,'main.pl').
-
 @end{verbatim}
 
 @noindent

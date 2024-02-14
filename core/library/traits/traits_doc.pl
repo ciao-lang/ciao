@@ -45,9 +45,9 @@
 
    Example code:
 
-   @begin{verbatim}@includeverbatim{traits/examples/trait_test.pl}@end{verbatim}
+   @includecode{traits/examples/trait_test.pl}
 
    which should be equivalent to:
 
-   @begin{verbatim}@includeverbatim{traits/examples/trait_orig.pl}@end{verbatim}
+   @includecode{traits/examples/trait_orig.pl}
 ").

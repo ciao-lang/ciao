@@ -37,9 +37,7 @@
    @tt{bfchain/2} predicate (which will be executed breadth-first)
    will find the connection correctly:
 
-@begin{verbatim}
-@includeverbatim{sr/examples/chain.pl}
-@end{verbatim}
+@includecode{sr/examples/chain.pl}
 
    A second package, @lib{'sr/bfall'}, allows executing @em{all} the
    predicates in a given module in breadth-first mode. In this case,
@@ -50,9 +48,7 @@
    program. The following program (written in standard syntax) runs
    breadth-first:
 
-@begin{verbatim}
-@includeverbatim{sr/examples/chain_bfall.pl}
-@end{verbatim}
+@includecode{sr/examples/chain_bfall.pl}
 
    There is another version, package @lib{'sr/af'}, which ensures
    AND-fairness by goal shuffling.  This reduces the number of cases
@@ -61,9 +57,7 @@
    @lib{'sr/af'} the following code correctly answers ``@tt{no}'' when
    executing @tt{test/0}:
 
-@begin{verbatim}
-@includeverbatim{sr/examples/sublistapp.pl}
-@end{verbatim}
+@includecode{sr/examples/sublistapp.pl}
 
    There is also a package @lib{'sr/afall'} which again allows
    executing @em{all} the predicates in a given module in

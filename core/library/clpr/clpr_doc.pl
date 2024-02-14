@@ -37,19 +37,13 @@ the same program, or even within the same toplevel session.").
 @item 'Reversible' Fibonacci (clpr):
 @end{itemize}
 
-@noindent
-@begin{verbatim}
-@includeverbatim{clpqr/examples/fib_r}
-@end{verbatim}
+@includecode{clpqr/examples/fib_r}
 
 @begin{itemize}
 @item Dirichlet problem for Laplace's equation (clpr):
 @end{itemize}
 
-@noindent
-@begin{verbatim}
-@includeverbatim{clpqr/examples/laplace}
-@end{verbatim}
+@includecode{clpqr/examples/laplace}
 
 @subsection{Meta-programming with CLP(R)}
 

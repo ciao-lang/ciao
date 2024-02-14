@@ -74,19 +74,12 @@ nums_from(X) := [X | nums_from(X+1)].
    function in a different module is used and it returns a big amount of
    data. As an example, we have the following module @tt{module1}:
 
-@begin{verbatim}
-@includeverbatim{lazy/examples/module1.pl}
-@end{verbatim}
-
+@includecode{lazy/examples/module1.pl}
 
 @noindent
    and another module @tt{module2}:
 
-
-@begin{verbatim}
-@includeverbatim{lazy/examples/module1.pl}
-@end{verbatim}
-
+@includecode{lazy/examples/module1.pl}
 
 @noindent
    Function @tt{test/0} in module @tt{m1} needs to execute function

@@ -72,9 +72,6 @@ In the following example we give an implementation of
 clash with the built-in predicate of the same name. The code is 
 available in the module @tt{library(attr/example/myfreeze)}
 
-@begin{verbatim}
-@includeverbatim{attr/examples/myfreeze.pl}
-@end{verbatim}
-
+@includecode{attr/examples/myfreeze.pl}
 
 ").

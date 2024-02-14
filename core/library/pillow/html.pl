@@ -664,9 +664,9 @@ textarea_data(S) -->
    @end{itemize}
 
    As an example, suposse the following HTML template:
-@begin{verbatim}
-@includeverbatim{pillow/examples/template.html}
-@end{verbatim}
+
+@includecode{pillow/examples/template.html}
+
    The following query in the Ciao toplevel shows how the template is
    parsed, and the dictionary returned:
 @begin{verbatim}

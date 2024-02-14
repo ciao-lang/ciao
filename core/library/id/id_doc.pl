@@ -55,17 +55,13 @@ all goals deeper than 100 will fail.
 
 An example of code using this package would be:
 
-@begin{verbatim}
-@includeverbatim{id/examples/example_id.pl}
-@end{verbatim}
+@includecode{id/examples/example_id.pl}
 
 The order of solutions are first the shallower and then the
 deeper. Solutions which are between two cutoff are given in the usual left
 to right order. For example,
 
-@begin{verbatim}
-@includeverbatim{id/examples/example2.pl}
-@end{verbatim}
+@includecode{id/examples/example2.pl}
 
 Another complete proof procedure implemented is the @lib{bf} package
 (@concept{breadth first execution}).").

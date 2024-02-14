@@ -33,8 +33,6 @@
    @ref{Fast/concurrent update of facts} suffice.
 
    Example:
-@begin{verbatim}
-@includeverbatim{dynamic_clauses/examples/selfmodif.pl}
-@end{verbatim}
+@includecode{dynamic_clauses/examples/selfmodif.pl}
 ").
 

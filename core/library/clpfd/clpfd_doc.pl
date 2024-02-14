@@ -104,9 +104,7 @@ The main call is @tt{queens(N, L, Lab)} which looks for a solution
 the call to @tt{labeling/2} at the end of definition of @tt{queens/3},
 which tries to find a solution for the problem.
 
-@begin{verbatim}
-@includeverbatim{clpfd/examples/queens.pl}
-@end{verbatim}
+@includecode{clpfd/examples/queens.pl}
 
 ").
 

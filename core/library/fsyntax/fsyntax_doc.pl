@@ -133,10 +133,8 @@ fact(N) := N = 0 ? 1
    the functor being defined. For example, for the @tt{fact} invocations
    in the previous definitions, which can now be written as, e.g. 
    (we provide the full module definition):
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/factf_fsyntax.pl}
-@end{verbatim}
 
+@includecode{fsyntax/examples/factf_fsyntax.pl}
 
 @noindent
    This behaviour is reverted using 
@@ -201,16 +199,13 @@ pair(A,B) := ^(A-B).
    operator @op{++ /2} as a function for appending lists. The
    factorial example above can be written as follows using the
    @lib{functional} package:
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/factf.pl}
-@end{verbatim}
+
+@includecode{fsyntax/examples/factf.pl}
 
    @noindent
    Which is equivalent to:
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/factf_fsyntax.pl}
-@end{verbatim}
 
+@includecode{fsyntax/examples/factf_fsyntax.pl}
 
    See the end of this chapter for additional examples.
 
@@ -346,9 +341,7 @@ der(x ** N, N * x ** N1) :-
   features.  For example, it provides compact and familiar notation
   for regular types and other properties:
 
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/propsf.pl}
-@end{verbatim}
+@includecode{fsyntax/examples/propsf.pl}
 
 @noindent
 where the functional clauses expand to (note the use of higher-order
@@ -450,25 +443,22 @@ Another example of use is: @tt{A3[N+1,M] = A1[N-1,M] + A2[N,M+2]}.
 
 Such functionality can be grouped into a @em{package} as follows. The
 package main file (@tt{arrays.pl}) might be:
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/arrays.pl} 
-@end{verbatim}
+
+@includecode{fsyntax/examples/arrays.pl} 
+
 @noindent where file @tt{arrays_ops.pl} may contain:
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/arrays_ops.pl} 
-@end{verbatim}
+
+@includecode{fsyntax/examples/arrays_ops.pl} 
+
 @noindent The main file is @tt{arrays_rt.pl} which would contain for example 
 (note that it also uses @tt{arrays_ops.pl}, and that is why the contents of 
 @tt{arrays_ops.pl} were not put directly in @tt{arrays.pl}):
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/arrays_rt.pl} 
-@end{verbatim}
+
+@includecode{fsyntax/examples/arrays_rt.pl} 
+
 A file using this package would be:
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/arrays_test.pl} 
-@end{verbatim}
 
-
+@includecode{fsyntax/examples/arrays_test.pl} 
 
 @section{Examples of combining with higher order} 
 
@@ -530,21 +520,17 @@ instead of lists of ASCII codes).
 
 A definition of the Fibonacci function, written in functional notation: 
 
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/fib_fun.pl}
-@end{verbatim}
+@includecode{fsyntax/examples/fib_fun.pl}
 
 This is the factorial example, written in functional notation and
 including some assertions:
 
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/factf_assrt.pl}
-@end{verbatim}
+@includecode{fsyntax/examples/factf_assrt.pl}
 
 The same example written using @lib{clpq} constraints:
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/factf_clpq_assrt.pl}
-@end{verbatim}
+
+@includecode{fsyntax/examples/factf_clpq_assrt.pl}
+
 @noindent
 which allows for example calling it ``backwards:''
 @begin{verbatim}
@@ -555,35 +541,26 @@ X = 4 ?
 
 The same example written using arithmetic functors evaluable with
 @lib{clpq} (@bf{experimental} @tt{fun_eval arith(clpq)}):
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/factf_arithclpq_assrt.pl}
-@end{verbatim}
+
+@includecode{fsyntax/examples/factf_arithclpq_assrt.pl}
 
 A very simple example using lazy evaluation:
 
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/lazy_simple.pl}
-@end{verbatim}
+@includecode{fsyntax/examples/lazy_simple.pl}
 
 A naive reverse example, using functional notation:
 
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/revf.pl}
-@end{verbatim}
+@includecode{fsyntax/examples/revf.pl}
 
 And the same example using some assertions:
 
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/revf_assrt_new.pl}
-@end{verbatim}
+@includecode{fsyntax/examples/revf_assrt_new.pl}
 
 Finally, a simple stream creation example where assertions are used to
 define a safety policy (that no file outside @tt{/tmp} should be
 opened):
 
-@begin{verbatim}
-@includeverbatim{fsyntax/examples/open_file_f_wide.pl}
-@end{verbatim}
+@includecode{fsyntax/examples/open_file_f_wide.pl}
 
    ").
 

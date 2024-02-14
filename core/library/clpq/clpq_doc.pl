@@ -35,31 +35,19 @@ the same program, or even within the same toplevel session.").
 @item 'Reversible' Fibonacci (clpq):
 @end{itemize}
 
-@noindent
-@begin{verbatim}
-@includeverbatim{clpqr/examples/fib_q}
-@end{verbatim}
-
+@includecode{clpqr/examples/fib_q}
 
 @begin{itemize}
 @item Matrix multiplication (clpq):
 @end{itemize}
 
-@noindent
-@begin{verbatim}
-@includeverbatim{clpqr/examples/mmatrix_q}
-@end{verbatim}
-
+@includecode{clpqr/examples/mmatrix_q}
 
 @begin{itemize}
 @item Queens (clpq):
 @end{itemize}
 
-@noindent
-@begin{verbatim}
-@includeverbatim{clpqr/examples/nqueens_q}
-@end{verbatim}
-
+@includecode{clpqr/examples/nqueens_q}
 
 @subsection{Meta-programming with CLP(Q)}
 
@@ -146,7 +134,5 @@ no
 %% @item Critical (cpm critical path routine, clpq):
 %% @end{itemize}
 %% 
-%% @noindent
-%% @begin{verbatim}
-%% @includeverbatim{examples/critical}
-%% @end{verbatim}
+%% @includecode{examples/critical}
+

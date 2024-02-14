@@ -136,16 +136,10 @@ $~(_,_,_). % todo: change by impl_defined? (jfmc)
 
     @subsection{Using argument names in a toy database}
 
-@noindent
-@begin{verbatim}
-@includeverbatim{argnames/examples/simple_db}
-@end{verbatim}
+@includecode{argnames/examples/simple_db}
 
     @subsection{Complete code for the zebra example}
 
-@noindent
-@begin{verbatim}
-@includeverbatim{argnames/examples/zebra_argnames}
-@end{verbatim}
+@includecode{argnames/examples/zebra_argnames}
 
    ").
