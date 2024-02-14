@@ -269,63 +269,60 @@ following sections.
 @begin{enumerate}
 
 @item @bf{Select installation options:} From the directory where the
-      sources are stored, run:
+  sources are stored, run:
 
 @begin{verbatim}
 ./ciao-boot.sh configure
 @end{verbatim}
 
-      It will perform a default configuration, where the system will
-      be configured to run from the sources directly, and configured
-      in the user's home directory (recommended for Ciao developers or
-      users without admin rights).
+  It will perform a default configuration, where the system will be
+  configured to run from the sources directly, and configured in the
+  user's home directory (recommended for Ciao developers or users
+  without admin rights).
 
-      The option @tt{--instype=global} will prepare Ciao to be
-      installed as the system administrator (@tt{root}) in a standard
-      directory available for all users in the machine (e.g.,
-      @tt{/usr/local}).
+  The option @tt{--instype=global} will prepare Ciao to be installed
+  as the system administrator (@tt{root}) in a standard directory
+  available for all users in the machine (e.g., @tt{/usr/local}).
 
-      For 32-bit builds in 64-bit architectures use the
-      @tt{--core:m32=yes} configuration flag.
+  For 32-bit builds in 64-bit architectures use the
+  @tt{--core:m32=yes} configuration flag.
 
-      In case you want to install elsewhere, or change any of the
-      installation options, you can use a customized configuration
-      procedure (see @tt{./ciao-boot.sh help} for more information). The
-      meaning of some important options is as follows:
+  In case you want to install elsewhere, or change any of the
+  installation options, you can use a customized configuration
+  procedure (see @tt{./ciao-boot.sh help} for more information). The
+  meaning of some important options is as follows:
 
- @begin{itemize}
+  @begin{itemize}
+  @item @tt{--prefix}: prefix for the default values of installation
+    directories (@tt{<prefix>/bin}, @tt{<prefix>/lib}, etc).
 
-       @item @tt{--prefix}: prefix for the default values of
-       installation directories (@tt{<prefix>/bin}, @tt{<prefix>/lib},
-       etc).
+  @item @tt{--bindir}: directory where the Ciao commands will be
+    installed. For example, if @tt{--bindir} is set to
+    @tt{/usr/local/bin}, then the Ciao @concept{compiler}
+    (@apl{ciaoc}) will be stored at
+    @tt{/usr/local/bin/ciaoc}. Actually, it will be a link to
+    @tt{ciaoc-}@em{VersionNumber}. This applies also to other
+    executables below and is done so that several versions of Ciao can
+    coexist on the same machine.  Note that the @em{version installed
+    latest} will be the one started by default when typing @tt{ciao},
+    @tt{ciaoc}, etc.  @cindex{binary directory}
 
-       @item @tt{--bindir}: directory where the Ciao commands will be
-       installed. For example, if @tt{--bindir} is set to
-       @tt{/usr/local/bin}, then the Ciao @concept{compiler}
-       (@apl{ciaoc}) will be stored at
-       @tt{/usr/local/bin/ciaoc}. Actually, it will be a link to
-       @tt{ciaoc-}@em{VersionNumber}. This applies also to other
-       executables below and is done so that several versions of Ciao
-       can coexist on the same machine.  Note that the @em{version
-       installed latest} will be the one started by default when
-       typing @tt{ciao}, @tt{ciaoc}, etc.  @cindex{binary directory}
+  @item The Ciao installation procedure will create a new subdirectory
+    @tt{ciao/<vers>} denoted @tt{INSTALL_CIAOROOT} below
+    @tt{--prefix}. The @tt{<vers>} directory indicate the Ciao system
+    version. It allows having several Ciao versions installed
+    simultaneously.
 
-       @item The Ciao installation procedure will create a new
-       subdirectory @tt{ciao/<vers>} denoted @tt{INSTALL_CIAOROOT}
-       below @tt{--prefix}. The @tt{<vers>} directory indicate the
-       Ciao system version. It allows having several Ciao versions
-       installed simultaneously.
+  @item @tt{--mandir}: directory where the @concept{manuals} in
+    @apl{man} format will be installed.
 
-       @item @tt{--mandir}: directory where the @concept{manuals} in
-       @apl{man} format will be installed.
-
-       @item @tt{--infodir}: directory where the @concept{manuals} in
-       @apl{info} format will be installed.
+  @item @tt{--infodir}: directory where the @concept{manuals} in
+    @apl{info} format will be installed.
 
 @end{itemize}
 
-@item @bf{Build Ciao:} At the ciao top level
-      directory type @tt{./ciao-boot.sh build}.
+@item @bf{Build Ciao:} At the ciao top level directory type
+   @tt{./ciao-boot.sh build}.
 
 @comment{
       This will:
@@ -359,72 +356,107 @@ following sections.
       all the distribution modules, and very probably everything is
       fine.
 }
+
 @item @bf{Install Ciao:} To install Ciao in the directories selected
-      in the configuration script during step 2 above, type
-      @tt{./ciao-boot.sh install}. This will:
+  in the configuration script during step 2 above, type
+  @tt{./ciao-boot.sh install}. This will:
 
-      @begin{itemize}
+  @begin{itemize}
 
-      @item Install the executables of the Ciao @concept{program
-            development tools} (i.e., the general driver/top-level
-            @apl{ciao}, the standalone compiler @apl{ciaoc}, the
-            script interpreter @apl{ciao-shell}, miscellaneous
-            utilities, etc.) in the selected binary directory. In
-            order to use these tools, make sure that the @tt{PATH}
-            @cindex{PATH} @concept{environment variable} contains such
-            path.
+  @item Install the executables of the Ciao @concept{program
+    development tools} (i.e., the general driver/top-level @apl{ciao},
+    the standalone compiler @apl{ciaoc}, the script interpreter
+    @apl{ciao-shell}, miscellaneous utilities, etc.) in the selected
+    binary directory. In order to use these tools, make sure that the
+    @tt{PATH} @cindex{PATH} @concept{environment variable} contains
+    such path.
 
-      @item Install the Ciao libraries under @tt{INSTALL_CIAOROOT} (these
-            will be automatically found).
+  @item Install the Ciao libraries under @tt{INSTALL_CIAOROOT} (these
+    will be automatically found).
 
-      @item Install the Ciao manuals in several formats (such as GNU
-            @tt{info}, @tt{html}, @tt{pdf}, etc.) under
-            @tt{INSTALL_CIAOROOT} and other documentation-specific
-            paths. In order for these manuals to be found when typing
-            @tt{M-x info} within @apl{emacs}, or by the standalone
-            @apl{info} and @apl{man} commands, the @tt{MANPATH}
-            @cindex{MANPATH} and @tt{INFOPATH} @cindex{INFOPATH}
-            @concept{environment variables} of users both need to
-            contain the path specified at @tt{--mandir} and
-            @tt{--infodir}. Documentation in other formats can be
-            accesed with the @tt{ciao doc} command.
+  @item Install the Ciao manuals in several formats (such as GNU
+    @tt{info}, @tt{html}, @tt{pdf}, etc.) under @tt{INSTALL_CIAOROOT}
+    and other documentation-specific paths. In order for these manuals
+    to be found when typing @tt{M-x info} within @apl{emacs}, or by
+    the standalone @apl{info} and @apl{man} commands, the @tt{MANPATH}
+    @cindex{MANPATH} and @tt{INFOPATH} @cindex{INFOPATH}
+    @concept{environment variables} of users both need to contain the
+    path specified at @tt{--mandir} and @tt{--infodir}. Documentation
+    in other formats can be accesed with the @tt{ciao doc} command.
 
-      @item Install under @tt{INSTALL_CIAOROOT} the Ciao interface
-            with GNU @apl{emacs} (which provides an interactive
-            interface to the Ciao program development tools, as well
-            as some other auxiliary files).
+  @item Install under @tt{INSTALL_CIAOROOT} the Ciao interface with
+    GNU @apl{emacs} (which provides an interactive interface to the
+    Ciao program development tools, as well as some other auxiliary
+    files).
 
-      @end{itemize}
+  @end{itemize}
 
 @item @bf{Set up user environments:} The installation process will
-      modify the startup files automatically by default. If you
-      disable this option in the configuration or you wish to switch
-      between different installations, it would be necessary to modify
-      the startup files manually.
+  modify the startup files automatically by default. If you disable
+  this option in the configuration or you wish to switch between
+  different installations, it would be necessary to modify the startup
+  files manually.
 
-      The installation process generates a @apl{ciao-env} command to
-      update the environments for @apl{sh}-like and @apl{csh}like
-      shells. It also generates a @tt{INSTALL_CIAOROOT/ciao-mode-init}
-      (for emacs) with appropriate definitions which will take care of
-      all needed @concept{environment variable definitions} and
-      @concept{emacs mode setup}.
+  The installation process generates a @apl{ciao-env} command to
+  update the environments for @apl{sh}-like and @apl{csh}like
+  shells. It also generates a @tt{INSTALL_CIAOROOT/ciao-mode-init}
+  (for emacs) with appropriate definitions which will take care of all
+  needed @concept{environment variable definitions} and @concept{emacs
+  mode setup}.
 
-      @include{UserSetup.lpdoc}
+  @begin{itemize} 
+ 
+  @item For users a @index{csh-compatible shell} (@apl{csh},
+    @apl{tcsh}, ...), add to @file{~/.cshrc}:
 
-      If you are installing Ciao globally in a multi-user machine,
-      make sure that you instruct all users that to do the same.  If
-      you are the system administrator, the previous steps can be done
-      once and for all, and globally for all users by including the
-      lines above in the central startup scripts (e.g., in Linux
-      @file{/etc/bashrc}, @file{/etc/csh.login},
-      @file{/etc/csh.cshrc}, @file{/etc/skel},
-      @file{/usr/share/emacs/.../lisp/site-init.pl}, etc.).
+@begin{verbatim}
+if ( -x <prefix>/bin/ciao-env ) then
+   eval `<prefix>/bin/ciao-env --csh`
+endif
+@end{verbatim}
+
+  @item For users of an @index{sh-compatible shell} (@apl{sh},
+    @apl{bash}, ...), the installer will add to @file{~/.bashrc} the
+    next lines:
+
+@begin{verbatim}
+if [ -x <prefix>/bin/ciao-env ]; then
+   eval "$(<prefix>/bin/ciao-env --sh)"
+fi
+@end{verbatim}
+
+  @item For users of an @apl{zsh} shell, the same lines will be added
+    to @file{~/.zshrc}.
+
+    This will set up things so that the Ciao executables are found and
+    you can access the Ciao system manuals using the @apl{info}
+    command. Note that, depending on your shell, @em{you may have to
+    log out and back in} for the changes to take effect.
+
+  @item Also, if you use @apl{emacs} (highly recommended) the install
+    will add the next line to your @file{~/.emacs} file:
+
+@begin{verbatim}
+(load-file "INSTALL_CIAOROOT/ciao-site-file.el")
+(if (file-exists-p "INSTALL_CIAOROOT/ciao-site-file.el")
+  (load-file "INSTALL_CIAOROOT/ciao-site-file.el")
+)
+@end{verbatim}
+
+  @end{itemize}
+
+  If you are installing Ciao globally in a multi-user machine, make
+  sure that you instruct all users that to do the same.  If you are
+  the system administrator, the previous steps can be done once and
+  for all, and globally for all users by including the lines above in
+  the central startup scripts (e.g., in Linux @file{/etc/bashrc},
+  @file{/etc/csh.login}, @file{/etc/csh.cshrc}, @file{/etc/skel},
+  @file{/usr/share/emacs/.../lisp/site-init.pl}, etc.).
 
 @item @bf{Check installation / read documentation:} You may now want
-      to check your installation (see @ref{Checking for correct
-      installation}) and read the documentation. There are
-      special ``getting started'' sections at the beginning of the
-      manual.
+  to check your installation (see @ref{Checking for correct
+  installation}) and read the documentation. There are special
+  ``getting started'' sections at the beginning of the manual.
 
 @end{enumerate}
 
