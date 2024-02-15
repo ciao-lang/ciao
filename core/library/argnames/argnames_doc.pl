@@ -131,15 +131,14 @@ $~(_,_,_). % todo: change by impl_defined? (jfmc)
 
 :- doc(appendix,"
 
-   Two simple examples of the use of the argnames library package
-   follow.  
+Two simple examples of the use of the argnames library package follow.
 
-    @subsection{Using argument names in a toy database}
+@subsection{Using argument names in a toy database}
 
 @includecode{argnames/examples/simple_db}
 
-    @subsection{Complete code for the zebra example}
+@subsection{Complete code for the zebra example}
 
 @includecode{argnames/examples/zebra_argnames}
 
-   ").
+").

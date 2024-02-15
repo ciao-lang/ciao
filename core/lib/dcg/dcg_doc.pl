@@ -23,7 +23,7 @@ notation for expressing definite clause grammars. A DCG rule in
 Prolog takes the general form
 
 @begin{verbatim}
-@var{head} --> @var{body}.
+head --> body.
 @end{verbatim}
 
 @noindent

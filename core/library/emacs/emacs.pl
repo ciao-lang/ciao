@@ -40,13 +40,11 @@
  
    @item This @apl{emacs} should be running the @index{emacs server}. This 
      can be done by including the following line in your @file{.emacs} 
-     file:  
-
-@begin{verbatim}   
+     file:
+@begin{verbatim}
 ;; Start a server that emacsclient can connect to.
 (server-start)
-@end{verbatim}   
-
+@end{verbatim}
      @noindent Or typing @tt{M-x server-start} within @apl{emacs}.
      
    @end{itemize}   

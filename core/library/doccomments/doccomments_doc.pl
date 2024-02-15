@@ -40,16 +40,16 @@
    postfix operators:
 
 @begin{verbatim}
-@tt{\%!} @em{Comment}      (or)    @tt{/*!} @em{Comment} @tt{*/}
-@tt{\%}  @em{...}                  
+%! Comment      (or)    /*! Comment */
+%  ...                  
 @end{verbatim}
 
    @noindent which is used to write arbitrary chunks of documentation
    (usually referring to the code after them).
 
 @begin{verbatim}
-@tt{\%<} @em{Comment}      (or)    @tt{/*<} @em{Comment} @tt{*/}
-@tt{\%}  @em{...}                  
+%< Comment      (or)    /*< Comment */
+%  ...                  
 @end{verbatim}
 
    @noindent which is used to write chunks of documentation (usually
@@ -79,14 +79,14 @@ This package allows using an alternative syntax for machine-readable
 comments. Essentially, most comments of the form:
 
 @begin{verbatim}
-:- doc(@em{CommentType},@em{Body}).
+:- doc(CommentType, Body).
 @end{verbatim}
 
 @noindent
 can be written as:
 
 @begin{verbatim}
-@tt{\%!} @@@em{CommentType} @em{Body}
+%! @@CommentType Body
 @end{verbatim}
  
 @noindent
