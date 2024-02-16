@@ -135,16 +135,16 @@
 :- doc(code_class(Code,Class), "Unifies @var{Class} with an integer
    corresponding to the lexical class of the character whose code is
    @var{Code}, with the following correspondence:
-   @begin{verbatim}
+   ```
     0 - layout (includes space, newline, tab)
     1 - small letter
     2 - capital letter (including '_')
     3 - digit
-    4 - graphic (includes #$&*+-./:<=>?@@^\\\\`~ )
-    5 - punctuation (includes !;""'%(),[]@{|@} )
+    4 - graphic (includes #$&*+-./:<=>?@^\\`~ )
+    5 - punctuation (includes !;""'%(),[]{|} )
     6 - extended identifier continuation
     7 - invalid
-   @end{verbatim}
+   ```
    Note that in @concept{ISO-Prolog} the back quote @tt{`} is a punctuation
    character, whereas in Ciao it is a graphic character.  Thus, if
    compatibility with @concept{ISO-Prolog} is desired, the programmer should

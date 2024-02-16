@@ -254,12 +254,14 @@ tag_attrib((Att = Val)) :- atm(Att), string(Val).
    @item{@em{name}@bf{(}@em{text}@bf{)}} A term with functor
    @em{name}/1, different from the special functors defined herein,
    represents an HTML environment of name @em{name} and included text
-   @em{text}. For example, the term @begin{verbatim}
-   address('clip@@clip.dia.fi.upm.es')
-   @end{verbatim} is translated into
-   the HTML source @begin{verbatim}
-   <address>clip@@clip.dia.fi.upm.es</address>
-   @end{verbatim}
+   @em{text}. For example, the term:
+   ```
+   address('clip@clip.dia.fi.upm.es')
+   ```
+   is translated into the HTML source:
+   ```
+   <address>clip@clip.dia.fi.upm.es</address>
+   ```
 
    @item{@em{name}@bf{(}@em{atts}@bf{,}@em{text}@bf{)}} A term with
    functor @em{name}/2, different from the special functors defined

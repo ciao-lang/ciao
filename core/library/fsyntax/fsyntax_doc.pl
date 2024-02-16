@@ -401,7 +401,7 @@ nesting with logarithmic access time). The following recursive
 definition defines the property @tt{fixed_array/2} and also the array
 access predicate @tt{get_elem/3}:
 
-@begin{verbatim}
+```
 fixed_array([N|Ms],A):-
     functor(A,a,N),
     rows(N,Ms,A).
@@ -416,11 +416,11 @@ rows(N,Ms,A) :-
     rows(N-1,Ms,A).
 
 :- pred get_elem(Array,Index,Elem):: array * list(int) * int
-   # \"@@var@{Elem@} is the @@var@{Index@}-th element of @@var@{Array@}.\".
+   # \"@var{Elem} is the @var{Index}-th element of @var{Array}.\".
 
 get_elem(V,[])     := V.
 get_elem(V,[I|Js]) := ~get_elem(~arg(I,V),Js).
-@end{verbatim}
+```
 
 Rather than using @tt{get_elem/3} directly, we will use @tt{:-
 push_prolog_flag(read_postfix_blocks, on)} and @tt{fun_eval abbrev}

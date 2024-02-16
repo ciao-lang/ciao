@@ -56,10 +56,10 @@
     A format may be spread over several lines. The control
     sequence @tt{\\\\c} followed by a @key{LFD} will translate to the 
     empty string:  
-    @begin{verbatim}
-    ?- format(""Hello \\\\c
+    ```
+    ?- format(""Hello \\c
     world!"", []).
-    @end{verbatim}
+    ```
     @noindent
     will result in @tt{Hello world!}.").
 
@@ -108,23 +108,23 @@ times to print the character.
 (Print float).  The argument is a float.  The float and @var{N} will be
 passed to the C @tt{printf()} function as  
 
-@begin{verbatim}
-printf(""%.@var{N}e"", @var{Arg})
-printf(""%.@var{N}E"", @var{Arg})
-printf(""%.@var{N}f"", @var{Arg})
-printf(""%.@var{N}g"", @var{Arg})
-printf(""%.@var{N}G"", @var{Arg})
-@end{verbatim}
+```
+printf(""%.Ne"", Arg)
+printf(""%.NE"", Arg)
+printf(""%.Nf"", Arg)
+printf(""%.Ng"", Arg)
+printf(""%.NG"", Arg)
+```
 
 If @var{N} is not supplied the action defaults to
 
-@begin{verbatim}
-printf(""%e"", @var{Arg})
-printf(""%E"", @var{Arg})
-printf(""%f"", @var{Arg})
-printf(""%g"", @var{Arg})
-printf(""%G"", @var{Arg})
-@end{verbatim}
+```
+printf(""%e"", Arg)
+printf(""%E"", Arg)
+printf(""%f"", Arg)
+printf(""%g"", Arg)
+printf(""%G"", Arg)
+```
 
 @item ~@var{N}d
 (Print decimal.) The argument is an integer. @var{N} is interpreted as the
@@ -165,8 +165,8 @@ Hello 1,234.5 world!
 
 @item ~@var{N}r
 (Print radix.) The argument is an integer. @var{N} is interpreted as a radix.
-@var{N} should be >= 2 and <= 36.  If @var{N} is missing the radix defaults to
-8.  The letters @tt{a-z} will denote digits larger than 9.  Example:  
+@var{N} should be >= 2 and <= 36.  If @var{N} is missing the radix defaults to 8.
+The letters @tt{a-z} will denote digits larger than 9.  Example:  
 
 @begin{verbatim}
 ?- format(""Hello ~2r world!"", [15]).

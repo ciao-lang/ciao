@@ -80,19 +80,19 @@ in a Prolog clause.  The cut symbol does not need to be enclosed in
 As an example, here is a simple grammar which parses an arithmetic
 expression (made up of digits and operators) and computes its value.
 
-@begin{verbatim}
-expr(Z) --> term(X), ""+"", expr(Y), @{Z is X + Y@}.
-expr(Z) --> term(X), ""-"", expr(Y), @{Z is X - Y@}.
+```
+expr(Z) --> term(X), ""+"", expr(Y), {Z is X + Y}.
+expr(Z) --> term(X), ""-"", expr(Y), {Z is X - Y}.
 expr(X) --> term(X).
 
-term(Z) --> number(X), ""*"", term(Y), @{Z is X * Y@}.
-term(Z) --> number(X), ""/"", term(Y), @{Z is X / Y@}.
+term(Z) --> number(X), ""*"", term(Y), {Z is X * Y}.
+term(Z) --> number(X), ""/"", term(Y), {Z is X / Y}.
 term(Z) --> number(Z).
 
 number(C) --> ""+"", number(C).
-number(C) --> ""-"", number(X), @{C is -X@}.
-number(X) --> [C], @{0'0=<C, C=<0'9, X is C - 0'0@}.
-@end{verbatim}
+number(C) --> ""-"", number(X), {C is -X}.
+number(X) --> [C], {0'0=<C, C=<0'9, X is C - 0'0}.
+```
 
 In the last rule, @var{C} is the ASCII code of some digit.
 
@@ -169,9 +169,9 @@ p(X, S0, S) :-
 Extra conditions expressed as explicit procedure calls naturally translate
 as themselves, e.g.
 
-@begin{verbatim}
-p(X) --> [X], @{integer(X), X>0@}, q(X).
-@end{verbatim}
+```
+p(X) --> [X], {integer(X), X>0}, q(X).
+```
 
 @noindent
 translates to

@@ -440,8 +440,7 @@ creep option, only requires @key{RET}.
 The only option which really needs to be remembered is '@tt{h}'
 (followed by @key{RET}). This provides help in the form of the following
 list of available options.
-
-@begin{verbatim}
+```
 <cr>   creep            c      creep
  l     leap             s      skip
  r     retry            r <i>  retry i
@@ -452,11 +451,11 @@ list of available options.
  n     nodebug          =      debugging
  +     spy this         -      nospy this
  a     abort            
- @@     command          u      unify
+ @     command          u      unify
  <     reset printdepth < <n>  set printdepth
  ^     reset subterm    ^ <n>  set subterm
  ?     help             h      help
-@end{verbatim}
+```
 
 @begin{itemize}
 

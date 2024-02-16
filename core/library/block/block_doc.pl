@@ -21,14 +21,14 @@
    having uninstantiated arguments in the first and third position or
    in the second and third position will suspend.
 
-@begin{verbatim}
+```
 :- block merge(-,?,-), merge(?,-,-).
 
 merge([], Y, Y).
 merge(X, [], X).
-merge([H|X], [E|Y], [H|Z]) :- H @@< E,  merge(X, [E|Y], Z).
-merge([H|X], [E|Y], [E|Z]) :- H @@>= E, merge([H|X], Y, Z).
-@end{verbatim}
+merge([H|X], [E|Y], [H|Z]) :- H @< E,  merge(X, [E|Y], Z).
+merge([H|X], [E|Y], [E|Z]) :- H @>= E, merge([H|X], Y, Z).
+```
 
    @bf{Simulating @tt{block} with @pred{when/2} predicate}: In the
    predicate above, execution of @tt{merge(X,Y,Z)} is suspended while
@@ -36,7 +36,7 @@ merge([H|X], [E|Y], [E|Z]) :- H @@>= E, merge([H|X], Y, Z).
    obtained with @pred{when/2} using the negated condition
    @tt{((nonvar(X);nonvar(Z)),(nonvar(Y);nonvar(Z)))}. 
 
-@begin{verbatim}
+```
 :- use_module(library(when)).
 
 merge(X,Y,Z) :-
@@ -45,9 +45,9 @@ merge(X,Y,Z) :-
 
 merge_([], Y, Y).
 merge_(X, [], X).
-merge_([H|X], [E|Y], [H|Z]) :- H @@< E,  merge(X, [E|Y], Z).
-merge_([H|X], [E|Y], [E|Z]) :- H @@>= E, merge([H|X], Y, Z).
-@end{verbatim}
+merge_([H|X], [E|Y], [H|Z]) :- H @< E,  merge(X, [E|Y], Z).
+merge_([H|X], [E|Y], [E|Z]) :- H @>= E, merge([H|X], Y, Z).
+```
 ").
 
 :- decl block(BlockSpecs) : sequence_or_list(cgoal) #

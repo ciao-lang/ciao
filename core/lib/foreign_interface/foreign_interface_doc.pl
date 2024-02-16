@@ -266,11 +266,11 @@ or as:
 
 should appear in the C code as
 
-@begin{verbatim}
-void get_int(int *thisint) @{
+```c
+void get_int(int *thisint) {
     ....
-@}
-@end{verbatim}
+}
+```
 
 Note the type of the (single) argument of the function.  Besides, the
 return value of a function can always be used as an output argument,

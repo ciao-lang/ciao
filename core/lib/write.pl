@@ -123,8 +123,8 @@ write_term_internal(Term, OptList, N) :-
  cero. If it is positive, it denotes the depth limit on printing compound
  terms. If it is cero, there is no limit. Default value is @tt{0} (no limit).
 
- @item @bf{priority(}@em{prio}@bf{):} @em{prio} is an integer between 1 and
- 1200. If the term to be printed has higher priority than @em{prio}, it will be
+ @item @bf{priority(}@em{prio}@bf{):} @em{prio} is an integer between 1 and 1200.
+ If the term to be printed has higher priority than @em{prio}, it will be
  printed parenthesized.  Default value is 1200 (no term parenthesized).
 
 @end{itemize}.").

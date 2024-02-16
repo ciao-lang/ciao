@@ -544,8 +544,8 @@ file_property_(Other, _) :-
 % ---------------------------------------------------------------------------
 :- export(modif_time/2).
 :- doc(modif_time(File, Time), "The file @var{File} was last
-     modified at @var{Time}, which is in seconds since January, 1,
-     1970. Fails if @var{File} does not exist.").
+     modified at @var{Time}, which is in seconds since January, 1, 1970.
+     Fails if @var{File} does not exist.").
 :- pred modif_time(+atm, ?int).
 
 modif_time(Path, Time) :-

@@ -85,24 +85,24 @@ comments. Essentially, most comments of the form:
 @noindent
 can be written as:
 
-@begin{verbatim}
-%! @@CommentType Body
-@end{verbatim}
+```
+%! @CommentType Body
+```
  
 @noindent
 @em{Body} can expand over several lines but each must have a @tt{\%}
 in the first column. For example, the following:
 
-@begin{verbatim}
-\%! @@title  A nice module
-\% 
-\%  @@author Pro Grammer
-\% 
-\%  @@module This is a very nice module indeed. 
-\%          It can be used for several purposes.
-\%
-\%  @@hide   internal/3
-@end{verbatim}
+```
+%! @title  A nice module
+% 
+%  @author Pro Grammer
+% 
+%  @module This is a very nice module indeed. 
+%          It can be used for several purposes.
+%
+%  @hide   internal/3
+```
 
 @noindent
 is equivalent to:

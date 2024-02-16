@@ -50,10 +50,10 @@ goal failed
 
 (note the message inserted on failure).  The execution can be cut as follows:
 
-@begin{verbatim}
+```
 ?- use_package(det_hook).
-@{Including /home/clip/lib/ciao/ciao-1.7/library/det_hook/det_hook.pl
-@}
+{Including /home/clip/lib/ciao/ciao-1.7/library/det_hook/det_hook.pl
+}
 
 yes
 ?- enumerate(X), '!!'.
@@ -63,7 +63,8 @@ goal cut
 X = 1 ? ;
 
 no
-@end{verbatim}").
+```
+").
 
 :- doc(bug, "If the started goals do not exhaust their solutions,
 and '!!'/0 is not used, the database will populate with facts which

@@ -181,16 +181,16 @@ contain @em{anchored expressions} of the form \\\\(@tt{regexp}\\\\).
 which were matched on success.  Note that since POSIX expressions are
 being read inside a string, backslashes will have to be doubled.  For
 example,
-
-@begin{verbatim}
-?- match_posix_matches(\"\\\\(aa|bb\\\\)\\\\(bb|aa\\\\)\", \"bbaa\", M).
+```
+?- match_posix_matches(\"\\(aa|bb\\)\\(bb|aa\\)\", \"bbaa\", M).
 M = [\"bb\",\"aa\"] ? ;
 no
 
-?- match_posix_matches(\"\\\\(aa|bb\\\\)\\\\(bb|aa\\\\)\", \"aabb\", M).
+?- match_posix_matches(\"\\(aa|bb\\)\\(bb|aa\\)\", \"aabb\", M).
 M = [\"aa\",\"bb\"] ? ;
 no
-@end{verbatim}".
+```
+".
 
 
 match_posix_matches(Exp, IN, Match) :-
