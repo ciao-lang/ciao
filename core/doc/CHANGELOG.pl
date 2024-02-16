@@ -1104,8 +1104,8 @@
         @tt{text-char-description} and @tt{string-to-char}.  This
         fixes a bug in the Ciao Emacs Mode when running in emacs
         23, that shows wrong descriptions for @tt{M-...} key
-        bindings. The new code runs correctly in emacs 21 and
-        22. (Jose Morales)
+        bindings. The new code runs correctly in emacs 21 and 22.
+        (Jose Morales)
       @item Coloring strings before functional calls and @tt{0'}
         characters (strings like @tt{\"~w\"} were colored
         incorrectly) (Jose Morales)
