@@ -181,14 +181,14 @@ Example:
 % Find file X in the same directory as the executable
 % or in the sources.
 find_asset(Name, Path) :-
-	( current_executable(ExecPath),
-	  path_split(ExecPath, Dir, _)
-	; bundle_path(<SomeBundle>, 'images', Dir)
-	),
-	path_concat(Dir, Name, Path0),
-	file_exists(Path0),
-	!,
-	Path = Path0.
+    ( current_executable(ExecPath),
+      path_split(ExecPath, Dir, _)
+    ; bundle_path(<SomeBundle>, 'images', Dir)
+    ),
+    path_concat(Dir, Name, Path0),
+    file_exists(Path0),
+    !,
+    Path = Path0.
 @end{verbatim}
 
 The example predicate @tt{find_assert/2} above will look for arbitrary
