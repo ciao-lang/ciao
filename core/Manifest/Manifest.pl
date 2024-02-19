@@ -11,7 +11,6 @@ alias_paths([
     %
     rtchecks = 'lib/rtchecks'
 ]).
-readme('INSTALLATION', [main='doc/common/INSTALLATION_CIAO.lpdoc']).
 readme('CHANGELOG', [main='doc/common/CHANGELOG_CIAO.pl']).
 %
 manual('ciao_internals', [main='doc/internals/SETTINGS.pl']).
