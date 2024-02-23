@@ -48,94 +48,81 @@ Depending on the operating system and package management tool, you may
 need to install the following dependencies (using `sudo` or as
 administrator or `root` user):
 
- - Debian/Ubuntu:
-   ```
+ - **Debian/Ubuntu**:
+   ```sh
    $ apt-get install build-essential
-   # (optional) for 32 bits compatibility mode (x86)
-   $ apt-get install gcc-multilib libc6-i386 libc6-dev-i386 g++-multilib
-   # (optional) for emacs-based IDE
-   $ apt-get install emacs
-   # (optional) for line edition from the terminal
-   $ apt-get install rlwrap
-   # (optional) for generating documentation in PDF format
-   $ apt-get install texlive texinfo imagemagick
-   ```
-   (valid for both `x86` and `arm` architectures)
-	
- - Fedora:
-   ```
-   $ dnf install gcc make which kernel-headers kernel-devel emacs
-   # (optional) for emacs-based IDE
-   $ dnf install emacs
-   # (optional) for 32 bits compatibility mode (x86)
-   $ dnf install glibc-devel.i686 glibc-devel libstdc++-devel.i686
-   # (optional) for line edition from the terminal
-   $ dnf install rlwrap
-   # (optional) for generating documentation in PDF format
-   $ dnf install texlive texinfo texinfo-tex ImageMagick
-   ```
-   (use `yum` instead of `dnf` above in older versions of Fedora)
-	
- - Arch Linux:
-   ```
-   # Optional, upgrade if needed
-   $ pacman -Syu
-   # Dependencies for build and development environment
-   # (base-devel: includes gcc, make, which)
-   $ pacman -S base-devel linux-headers
-   # (optional) for 32 bits compatibility mode (x86)
-   # NOTE: Remember to enable multilib (https://wiki.archlinux.org/index.php/Multilib)
-   $ pacman -S lib32-glibc lib32-libstdc++5
-   # (optional) for emacs-based IDE
-   $ pacman -S emacs
-   # (optional) for line edition from the terminal
-   $ pacman -S rlwrap
-   # (optional) for generating documentation in PDF format
-   $ pacman -S texlive-core texinfo imagemagick
+   $ apt-get install emacs # optional
+   $ apt-get install rlwrap # optional
+   $ apt-get install texlive texinfo imagemagick # optional
    ```
 
- - macOS:
+ - Debian/Ubuntu (additional for **x86, 32-bits**):
+   ```sh
+   $ apt-get install gcc-multilib libc6-i386 libc6-dev-i386 g++-multilib
+   ```
+	
+ - **Fedora**:
+   ```sh
+   $ dnf install gcc make which kernel-headers kernel-devel
+   $ dnf install emacs # optional
+   $ dnf install rlwrap # optional
+   $ dnf install texlive texinfo texinfo-tex ImageMagick # optional
+   ```
+
+ - Fedora (additional for **x86, 32-bits**):
+   ```sh
+   $ dnf install glibc-devel.i686 glibc-devel libstdc++-devel.i686
+   ```
+	
+ - **Arch Linux**:
+   ```sh
+   $ pacman -Syu # optional, upgrade if needed
+   $ pacman -S base-devel linux-headers
+   $ pacman -S emacs # optional
+   $ pacman -S rlwrap # optional
+   $ pacman -S texlive-core texinfo imagemagick # optional
+   ```
+
+ - Arch Linux (additional for **x86, 32-bits**):
+   ```sh
+   $ pacman -S lib32-glibc lib32-libstdc++5
+   ```
+   Remember to enable multilib (https://wiki.archlinux.org/index.php/Multilib).
+
+ - **macOS**:
    - Install command line tools for Xcode (from the App store)
    - Install emacs and ImageMagick (and texinfo if needed, but recent
      versions of macOS include it). A software management tool like
      homebrew or macports is recommended, e.g. (as root/sudo):
-     ```
+     ```sh
      $ brew install emacs-mac imagemagick
      ```
    - Install TexLive. If using homebrew we recommend installing the
      MacTeX distribution, available from: `https://www.tug.org/mactex`.
    - Install the following packages:
-     ```
-     # (optional) for line edition from the terminal
-     $ brew install rlwrap
+     ```sh
+     $ brew install rlwrap # optional
      ```
 	
- - FreeBSD:
+ - **FreeBSD**:
    - Install GCC or clang and the following packages:
-     ```
+     ```sh
      $ pkg install gmake
-     # (optional) for emacs-based IDE
-     $ pkg install emacs ImageMagick expat
-     # NOTE: use emacs-nox and ImageMagick-nox if X11 support is not needed
-     # (optional) for line edition from the terminal
-     $ pkg install rlwrap
-     # (optional) for generating documentation in PDF format
-     $ pkg install texinfo texlive-full
+     $ pkg install emacs ImageMagick expat # optional
+     $ pkg install rlwrap # optional
+     $ pkg install texinfo texlive-full # optional
      ```
 
- - NetBSD:
+ - **NetBSD**:
    - Install GCC or clang and the following packages:
-     ```
+     ```sh
      $ pkgin install gmake
-     # (optional) for emacs-based IDE
-     $ pkgin install emacs ImageMagick expat
-     # (optional) for line edition from the terminal
-     $ pkgin install rlwrap
-     # (optional) for generating documentation in PDF format
-     $ pkgin install tex-texinfo texlive-collection-latex
+     $ pkgin install emacs ImageMagick expat # optional
+     $ pkgin install rlwrap # optional
+     $ pkgin install tex-texinfo texlive-collection-latex # optional
      ```
 
- - Windows (using Windows Subsystem or Linux):
+ - **Windows** (using Windows Subsystem or Linux):
    - Install [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
    - Install some Linux distribution (e.g., Ubuntu) from the Windows Store.
    - Open a `bash` terminal and install the dependencies for the
@@ -143,42 +130,35 @@ administrator or `root` user):
 
  - Windows (native, **experimental**)
    - Install [MSYS2](http://www.msys2.org/) and the following packages:
-     ```
+     ```sh
      pacman --noconfirm -S mingw-w64-x86_64-gcc
      ```
 	
- - Android (using the Termux Linux environment):
+ - **Android** (using the Termux Linux environment):
    - Install [Termux](https://termux.com/)
    - Install the following packages:
-     ```
+     ```sh
      $ pkg install clang make
-     # (optional) for emacs-based IDE
-     $ pkg install emacs
-     # (optional) for line edition from the terminal
-     $ pkg install rlwrap
+     $ pkg install emacs # optional
+     $ pkg install rlwrap # optional
      ```
 	
 The dependencies above typically include a relatively modern C
-compiler (GCC or clang), libraries, and build tools. Documentation
-generation in PDF format requires TeX and ImageMagick.
+compiler (GCC or clang), libraries, and build tools. The optional
+dependencies are:
 
-**Additional dependencies:**
-
-Some advanced libraries and components require an additional set of
-software packages:
-
-```
-# Debian/Ubuntu:
-$ apt-get install g++ libgsl0-dev libgsl0ldbl
-$ apt-get install default-jdk ant ant-optional
- 
-# Fedora:
-$ yum install gsl gsl-devel ant gcc-c++
-```
-
-To install the Java JDK on Fedora, please visit Sun Java website
-(`http://java.sun.com/javase/downloads/index.jsp`) and follow the
-installation instructions there.
+ - [emacs](https://www.gnu.org/software/emacs/): required for
+   emacs-based IDE (use `emacs-nox` is no graphical interface is
+   needed)
+ - [ImageMagick](https://en.wikipedia.org/wiki/ImageMagick): used
+   image conversion in `lpdoc` (use `ImageMagick-nox` if no graphical
+   interface is needed)
+ - [TeX](https://en.wikipedia.org/wiki/TeX): typesetting system used
+   as backed to generate documentation in
+   [info](https://www.gnu.org/software/texinfo/manual/texinfo/html_node/Info-Format-Specification.html)
+   and PDF formats.
+ - [rlwrap](https://github.com/hanslub42/rlwrap): readline wrapper
+   utility that provides line edition from terminals.
 
 # Upgrading or uninstalling components
 
@@ -189,7 +169,7 @@ Upgrading a bundles requires uninstallation followed by
 
 E.g., uninstalling the **development environment** (if installed)
 requires:
-```
+```sh
 ciao uninstall ciao_emacs; ciao rm ciao_emacs; ciao rm devenv
 ```
 Once all bundles have been removed, the core Ciao system can be
@@ -198,10 +178,11 @@ directory (then, remove the directory).
 
 # Upgrading or uninstalling Ciao
 
-If installed using `curl`, the system is installed in a
-per-version subdirectory under `~/.ciaoroot/`. E.g., development
-version is installed at `~/.ciaoroot/master`. Proper uninstallation
-requires executing `./ciao-boot.sh uninstall` from that directory.
+If installed using `curl`, the system is installed in a per-version
+subdirectory under `~/.ciaoroot/`. E.g., development version is
+installed at `~/.ciaoroot/master`. Proper uninstallation requires
+executing `./ciao-boot.sh uninstall` from that directory.
+
 It can be automatized with a script like:
 ```sh
 ( cd ~/.ciaoroot/master; ./ciao-boot.sh uninstall )
