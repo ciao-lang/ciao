@@ -1,4 +1,4 @@
-This describes the installation procedure for the Ciao system,
+This describes the installation procedure for the Ciao Prolog system,
 including libraries and manuals:
 
 1. Check / install the [**requirements and dependencies**](#Requirements%20and%20dependencies).
@@ -8,13 +8,16 @@ including libraries and manuals:
    curl https://ciao-lang.org/boot -sSfL | sh
    ```
 
+This installs Ciao by default in `~/.ciaoroot/<ciao_version>`. 
+
 Please report as [issues](https://github.com/ciao-lang/ciao/issues)
 any problems found during the installation process.
 
 You can explore additional components at the **[bundle
 catalog](/bundles.html)** (including links to documentation and source
 code repositories) and install them with the `ciao get BUNDLENAME`
-command.
+command (see also [**bundle management**](/ciao/build/doc/ciao.html/builder_doc.html)).
+
 
 For *customized installations* or *developer builds*, please consult
 the [**manual installation from
@@ -176,17 +179,20 @@ ciao uninstall ciao_emacs; ciao rm ciao_emacs; ciao rm devenv
 
 # Upgrading or uninstalling Ciao
 
-For full cleanup, first remove all installed bundles (see above) .
+For full cleanup, first remove all installed bundles (see above).
+
 Once all bundles have been removed, the core Ciao system can be
 uninstalled running `./ciao-boot.sh uninstall` from the source
 directory; then, remove the directory.
 
 If installed using `curl`, the system is installed in a per-version
-subdirectory under `~/.ciaoroot/<ciao_version>`. E.g., the development
-version is installed at `~/.ciaoroot/master`. Proper uninstallation
-requires executing `./ciao-boot.sh uninstall` from that directory.
+subdirectory under `~/.ciaoroot`, i.e.,
+`~/.ciaoroot/<ciao_version>`. The development version is installed at
+`~/.ciaoroot/master`. Proper uninstallation requires first executing
+`./ciao-boot.sh uninstall` inside that directory and then removing the
+whole `~/.ciaoroot/<ciao_version>` directory. 
 
-It can be automated with a script such as:
+This can be automated with a script such as (e.g., for master):
 ```sh
 ( cd ~/.ciaoroot/master; ./ciao-boot.sh uninstall )
 rm -rf ~/.ciaoroot/master
