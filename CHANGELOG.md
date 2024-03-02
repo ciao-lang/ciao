@@ -1,222 +1,333 @@
 # Changelog
  
 ## [1.22.0] - 2022-9-28 
- TBD
+
+Build system:
+
+ - ADDED: Add initial support for implicit workspaces. This enables builds of
+   bundles (and dependencies) under a bundle-local `.wksp/` directory,
+   without need to setup workspaces. Currently `CIAOPATH` still needs
+   to be modified.
+ - ADDED: Using prebuilt docs in curl-based installation skips doc gen.
+ - IMPROVED: Improved ciao-boot.sh (network-based installer)
+ - FIX: Fix curl installation examples.
+
+Compiler:
+
+ - IMPROVED: minor improvements in emugen generator
+ - CHANGED: assume implicit `library(...)` in `_/_` package names
+   E.g., `bf/bfall` works in the package list without single quotes.
+
+Libraries:
+
+ - ADDED: New `modes` package.
+ - IMPROVED: Allow more standard code fences in markdown parser.
+ - IMPROVED: Colors for dark background in htmlfontify CSS (`syntax_highlight` library)
+ - CHANGED: `bf/` moved to `sr/`
+ - CHANGED: `system:time/1` renamed to `system:now/1` (compatible with SICStus).
+ - ADDED: `time/1` metapredicate to measure execution time.
+
+Foreign interface:
+
+ - ADDED: new `foreign_interface` example for creating custom type translations
+ - ADDED: new `use_foreign_gluecode_header/1` foreign interface directive
+ - CHANGED: removed `use_foreign_source/2` (it should not depend on os/arch)
+
+Engine (mostly internal changes):
+
+ - ADDED: internal `'$yield'/0` predicate to suspend the current wam()
+   function.
+ - FIX: limit internal buffer in `copy_file` (workaround EMSCRIPTEN issue)
+ - CHANGED: Removed NECK_PROCEED profile trace hook
+ - IMPROVED: Some progress on merging with optim-comp branch (merged
+   most of the support C code, faster emugen, simpler instruction set
+   descriptions, avoid local variable reuse when the C compiler is
+   smart enough). See commit logs for much detailed description of
+   changes.
+
+Runtime checks, testing, and debugging:
+
+ - ADDED: allow unittest runners in the same process (e.g., for wasm32)
+ - IMPROVED: better detection of failed tests
+ - IMPROVED: unittest summary now shows line numbers of assertion that failed
+ - IMPROVED: simplify stdout/stderr redirection code
+ - FIX: fix bug in pretty printing of rtchecks (locate asrloc properly).
+ - FIX: no timeout for architectures not support them (yet)
+
+Ciao WASM backend:
+
+ - ADDED: new `terminate` function
+ - ADDED: experimental internal support for JS foreign interface
+ - IMPROVED: using JS classes in a few places
+ - IMPROVED: allow query expansion and solution printing in high level interface
+ - FIX: remove special (and now wrong) case for `open()` in EMSCRIPTEN
+ - FIX: Fixes to path when locating `file_packager.py` (for brew versions of emscripten)
+ - FIX: adding missing `site_link_npm_node_modules`
+ - FIX: Capture errors in `writeFile`/`readFile`
+ - FIX: Avoid op issues with solution serialization
+ - FIX: Make sure that promises return promises, other minor changes
+ - FIX: static dep to `library(timeout)` to avoid dynamic recompilation
+ - FIX: workaround stdout stderr flush after queries
+ - FIX: `wait_no_deps()` wait until all deps has been loaded
+ - CHANGED: wasm grade installation copies CSS and SVG files
+ - CHANGED: Use `sols` instead of `sol` in query iterator solution
+ - CHANGED: Deprecate `use_module_from_string`
+ - CHANGED: replace OS/ARCH by EMSCRIPTEN/wasm32, build grade from asmjs by wasm
+
+Emacs mode:
+
+ - IMPROVEMENT: Allow `ciao-inferior-mode` in buffers without process (useful for
+   syntax highlight).
+ - CHANGED: Format buffer key binding changed to `C-c C-f`
+ - FIX: Fix bug in `ciao-show-inferior-process`, minor simplifications.
+ - FIX: Support for `_doc.pl` files for info and ascii output (lpdoc
+   correctly eliminates `_doc` in output but Emacs still tried to open
+   `_doc.info`, `_doc_ascii`, etc.).
+
+Website: 
+
+ - ADDED: Added/updated pointers to CiaoPP tutorials.
+ - ADDED: Added/updated pointers main documentation items from
+   frontpage.
+ - ADDED: Theme button.
+ - IMPROVED: Ported all text to markdown
+ - IMPROVED: Bundle catalog runs locally in the browser (see dynamic
+   preview lpdoc cells).
+ - IMPROVED: Better playground integration.
+
+Continuous integration scripts (github):
+
+ - FIX: Use emsdk only if needed.
+ - ADDED: Updated build script to compile wasm engine and release
+   website.
  
 ## [1.21.0] - 2022-3-2 
- - Build system:
-   - IMPROVED: Partial rewrite of network-based installation
-     (better selection of releases, allow prebuilt docs and
-     binaries).
-   - IMPROVED: Tighter integration of `ciao publish` into the
-     builder.
-   - IMPROVED: Third-party commands moved to "advanced" help. 
- - Core (compiler/engine, toplevel, libraries):
-   - ADDED: Support PowerPC 64-bit in little-endian mode.
-   - ADDED: Replaced `using_tty/0` with `system_extra:istty/1`
-     (specify fd).
-   - ADDED: cgoal/1 property (to distinguish from callable/1 ISO
-     pred).
-   - ADDED: `binexec` option for automatic spawning of active
-     modules. This produces multi-purpose binaries that can start
-     as either normal processes or active modules.
-   - ADDED: Added `ivar/1` meta-property in assertions
-     (expands to `var/1` plus independence from all other vars).
-   - ADDED: New rtchecks (run-time assertion checking) code for
-     `det/1`, `semidet/1`, `multidet/1`, `nondet/1` 
-     properties.
-   - ADDED: Option to run unit tests in the same process.
-   - ADDED: Custom headers in foreign interface gluecode (useful
-     for custom type translations).
-   - IMPROVED: Faster dependency checks in the compiler (see
-     `itf_sections`). Improves x2 loading time of large
-     executables.
-   - IMPROVED: `iso` package renamed `iso_strict`, code
-     adapted.
-   - IMPROVED: merged `bf` and `af` search rule
-     translation modules.
-   - IMPROVED: Document need for `devenv` for running tests.
-   - IMPROVED: Preserve timestamps when engine metadata does not
-     change.
-   - IMPROVED: More resilient unit test runner.
-   - FIXED: Fixes to termux compilation (Android).
-   - FIXED: Cleanup of itf when `opt_suff/1` used.
-   - FIXED: Default hostname to `localhost` in active modules.
-   - FIXED: Location of relative paths in `reexport`.
-   - FIXED: Documentation of timeout library.
-   - FIXED: Allow multiple doccomments before condcomp directives.
-   - FIXED: Markdown parser issues.
-   - FIXED: Fix `|` operator priority to 1105 (ISO DCG draft).
-   - FIXED: Bug in `sub_atom/5`.
-   - FIXED: Removed bashism in `config-sysdep.sh`.
-   - FIXED: Use stderr consistently in unit test output. 
- - Ciao emacs mode:
-   - ADDED: Distribute flycheck and company support for
-     ciao-mode.
-   - ADDED: New `ciao-emacs` command (start emacs with
-     "batteries included"). It preinstalls markdown mode and
-     contrib packages.
-   - IMPROVED: library for navigating options menus (used in,
-     e.g., CiaoPP): allow cursor navigation, eliminated need for
-     OK/cancel buttons, allow integer values in responses.
-   - CHANGED: Change check assertions binding to `C-c V`.
-   - FIXED: `=>` is no longer a prompt recognised my ciao-emacs.
-   - FIXED: Issue in passing of system-args to ciao process.  
+
+Build system:
+ - IMPROVED: Partial rewrite of network-based installation
+   (better selection of releases, allow prebuilt docs and
+   binaries).
+ - IMPROVED: Tighter integration of `ciao publish` into the
+   builder.
+ - IMPROVED: Third-party commands moved to "advanced" help. 
+
+Core (compiler/engine, toplevel, libraries):
+ - ADDED: Support PowerPC 64-bit in little-endian mode.
+ - ADDED: Replaced `using_tty/0` with `system_extra:istty/1`
+   (specify fd).
+ - ADDED: cgoal/1 property (to distinguish from callable/1 ISO
+   pred).
+ - ADDED: `binexec` option for automatic spawning of active
+   modules. This produces multi-purpose binaries that can start
+   as either normal processes or active modules.
+ - ADDED: Added `ivar/1` meta-property in assertions
+   (expands to `var/1` plus independence from all other vars).
+ - ADDED: New rtchecks (run-time assertion checking) code for
+   `det/1`, `semidet/1`, `multidet/1`, `nondet/1` 
+   properties.
+ - ADDED: Option to run unit tests in the same process.
+ - ADDED: Custom headers in foreign interface gluecode (useful
+   for custom type translations).
+ - IMPROVED: Faster dependency checks in the compiler (see
+   `itf_sections`). Improves x2 loading time of large
+   executables.
+ - IMPROVED: `iso` package renamed `iso_strict`, code
+   adapted.
+ - IMPROVED: merged `bf` and `af` search rule
+   translation modules.
+ - IMPROVED: Document need for `devenv` for running tests.
+ - IMPROVED: Preserve timestamps when engine metadata does not
+   change.
+ - IMPROVED: More resilient unit test runner.
+ - FIXED: Fixes to termux compilation (Android).
+ - FIXED: Cleanup of itf when `opt_suff/1` used.
+ - FIXED: Default hostname to `localhost` in active modules.
+ - FIXED: Location of relative paths in `reexport`.
+ - FIXED: Documentation of timeout library.
+ - FIXED: Allow multiple doccomments before condcomp directives.
+ - FIXED: Markdown parser issues.
+ - FIXED: Fix `|` operator priority to 1105 (ISO DCG draft).
+ - FIXED: Bug in `sub_atom/5`.
+ - FIXED: Removed bashism in `config-sysdep.sh`.
+ - FIXED: Use stderr consistently in unit test output. 
+
+Ciao emacs mode:
+ - ADDED: Distribute flycheck and company support for
+   ciao-mode.
+ - ADDED: New `ciao-emacs` command (start emacs with
+   "batteries included"). It preinstalls markdown mode and
+   contrib packages.
+ - IMPROVED: library for navigating options menus (used in,
+   e.g., CiaoPP): allow cursor navigation, eliminated need for
+   OK/cancel buttons, allow integer values in responses.
+ - CHANGED: Change check assertions binding to `C-c V`.
+ - FIXED: `=>` is no longer a prompt recognised my ciao-emacs.
+ - FIXED: Issue in passing of system-args to ciao process.  
  
 ## [1.20.0] - 2021-3-18 
- - Build system:
-   - ADDED: Experimental `analyze` build grade for analyzing whole
-     bundles (depends on CiaoPP).
-   - FIXED: Fix activation links for `pkgconfig` files in
-     3rd-party installation.
-   - DEPRECATED: Removed support for 3rd-party `bower` package
-     system (all existing uses ported to `npm`). 
- - Language, compiler, and toplevel:
-   - FIXED: Fix a bug that redirected `main/1` calls from the
-     toplevel to the `ciaosh` `main/1` predicate (accidentally via
-     the `user` module).
-   - FIXED: Detect wrong arity in `add_goal_trans` directives.
-   - IMPROVED: Towards a more modular `native_props.pl`,
-     documentation improvements.
-   - IMPROVED: Progress towards merging optim-comp branch for native
-     compilation.
-   - IMPROVED: Refactored default language packages (they can be used
-     from modules and toplevels).
-   - CHANGED: `note` messages go to user error (like other
-     compiler messages). 
- - Engine:
-   - ADDED: Support for new Apple M1. This port is based on existing
-     support for the aarch64 (ARM64) architecture. NOTE: some
-     executable formats depend on redoing 'codesign' after the
-     executable is linked (this may cause issues when distributing
-     binaries). 
- - Runtime checks, testing, and debugging:
-   - IMPROVED: `mshare/1` internally represented as
-     `mshare/2`, with explicit relevant arguments (for
-     `rtchecks`).
-   - IMPROVED: Refactor pieces of embedded debugger.
-   - IMPROVED: Note message for modules compiled with the trace
-     or debug packages.
-   - FIXED: Do not ignore assertions with empty compats, calls,
-     success, and comps fields (also for `texec`).
-   - FIXED: Improve debugging of modules with rtcheck instrumentation.
-   - FIXED: Expansion for runtime checks preserve `?- ...` 
-     directives. 
- - Libraries:
-   - ADDED: Support for Unicode (UTF8) in source code:
-     - Pre-generated character code classes for 0..127
-     - Documented code class types and identifier syntax for Unicode
-       source code (see `tokenize.pl`).
-     - Very efficient and compact (8KB) code class table (see
-       `unicode_gen.pl` for details). 
-   - ADDED: Unicode escape \\uDDDD and \\UDDDDDDDD in strings and atoms.
-   - ADDED: Added byte-oriented predicates (see `stream_utils.pl`) and
-     types (`basic_props:bytelist/1`), using them when needed.
-   - ADDED: Added string_bytes/2 predicate. This predicate bidirectionally
-     transforms between lists of character codes and lists of bytes
-     (using UTF8 encoding/decoding). It is equivalent to =/2 when at
-     least one of the lists is already a list of ASCII codes (0..127).
-   - ADDED: Stronger redirection predicates (`open_std_redirect/3` and
-     `close_std_redirect/1`), which allow the redirection of the standard
-     output/error file descriptors together with the default output
-     stream, `user_output`, and `user_error`. Added `system:fd_dup/2` and
-     `system:fd_close/1` predicates to manipulate POSIX file
-     descriptors.
-   - ADDED: Added `stream_utils:copy_stream/3` predicate (copies bytes from one
-     stream to the other).
-   - ADDED: Extended `io_once_port_reify/@{3,4@}` with better redirections
-     (subset of process channels available for `process_call/3`).
-   - ADDED: Parsing of version strings (`version_strings:version_parse/4`).
-   - IMPROVED: Heuristics in `write_assertion/@{6,7@}`, more
-     readable output.
-   - IMPROVED: Allow JSON values (not only lists) as top argument for
-     JSON write and parse.
-   - IMPROVED: Faster and more reliable sockets predicates. New
-     `socket_sendall/2`, `socket_send_stream/2`, changed
-     `socket_send/3`. `socket_recv_code/3` is replaced by
-     `socket_recv/3` (treating the returned length is encouraged, do
-     not use `socket_recv/2`).
-   - IMPROVED: Faster and more robust HTTP libraries (sockets improvements,
-     faster IO). Several bug fixes.
-   - FIXED: Fixed bug in markdown parser which confused some
-     predicate heads with items.
-   - FIXED: Allow numbers (as constants) in assertion head arguments.
-   - FIXED: Fixed bug in `attrdump.pl` introduced when `assoc` replaced
-     `dict`.
-   - FIXED: Write blanks before -0.Nan if needed. Fixed some corner cases in
-     parser for 0.Inf, 0.Nan .
-   - FIXED: Cleanups in messages_basic:messages/1.
-   - FIXED: Allow `use_package(tabling)` in a toplevel. 
- - ISO and Portability:
-   - ADDED: Implemented `at_end_of_stream/0`,
-     `at_end_of_stream/1`. Peek byte in `at_end_of_stream/@{0,1@}` for
-     improved ISO compatibility.
-   - ADDED: Implemented `peek_byte/1`, `peek_byte/2`.
-   - ADDED: Added call_det/2 predicate (compatible with `gprolog`).
-   - ADDED: Added forall/2 predicate (compatible with `gprolog`).
-   - FIXED: callable/1 is an instantiation check.
-   - IMPROVED: Added version_data flag as
-     `ciao(Major,Minor,Patch,Extra)`.
-   - IMPROVED: Added stream property `type(_)` in `open/4` 
-     predicate (for compatibility).
-   - ADDED: `--iso-strict` flag in `ciaoc` and `ciaosh` to enable
-     stricter compatibility ISO mode by default. Use with care, switching the flag
-     will not enforce the recompilation of already compiled user files
-     and modules (i.e., .po files).
-   - IMPROVED: Additions to the `iso_strict.pl` package (only for code
-     using this package):
-     - More compatible version of `absolute_file_name/2` (do not
-       repeat last path component when resolving library paths).
-     - Allow stream aliases in most IO operations.
-     - Import `keysort/2` and `format/?` predicates by default.
-     - Enable `call/N` by default.
-     - Enable `runtime_ops` package by default.  
- - Ciao emacs mode:
-   - ADDED: Initial support for `flycheck`, integrating ciaoc,
-     ciaopp, lpdoc, and testing.
-   - ADDED: Support for company mode (text completion). Manuals
-     are located dynamically. Completion list obtained using
-     @lib{librowser}.
-   - ADDED: Extended Ciao mode (`ciao-emacs-plus.el`) using
-     `flycheck` and `company` extensions.
-   - ADDED: `M-x ciao-server-start`, `M-x ciao-server-stop` 
-     to start/stop the `ciao-serve` process (serving local HTML
-     documentation and hub for HTTP based interface to active
-     modules).
-   - ADDED: Mark and color new `passed`, `failed`,
-     `aborted` message types (for unit tests).
-   - IMPROVED: Replace outdated `word-help` by
-     `info-look`.
-   - IMPROVED: Better binding for next error, better code
-     highlight, narrow error location.
-   - IMPROVED: Allow short location paths (resolved from the
-     elisp side). See `bundle_paths:bundle_extend_path/2` for
-     details on path extension.
-   - IMPROVED: Faster font-lock in `ciao-inferior-mode`, only
-     treat keywords.
-   - FIXED: Fixed indentation and coloring of `=:=`.
-   - FIXED: Fix build errors when compiling using emacs 27.1. 
- - Unit Tests:
-   - ADDED: Allow `opt_suff/1` in unit tests (for alternative
-     source files, e.g., for flycheck).
-   - ADDED: New options for handling tests for stdout and stderr
-     in unittest.
-   - ADDED: Added support for test filters (see options in
-     `run_tests/4`).
-   - ADDED: Using 'passed', 'failed', and 'aborted' message types.
-   - ADDED: Test timeout.
-   - ADDED: Initial support for integrated regression testing
-     (see `save`, `compare`, etc. actions in `run_tests/3`).
-   - IMPROVED: More flexible quering of results and statistics
-     (`get_statistical_summary/2`, `print_statistical_summary/1`,
-     `status(S)` option).
-   - IMPROVED: Simpler one-line output per test.
-   - IMPROVED: Warnings when predicate fails/throws and there were no
-     failure/exception properties in test assertion.
-   - FIXED: Unittest regression does not depend on Ciao root path.  
+
+Build system:
+ - ADDED: Experimental `analyze` build grade for analyzing whole
+   bundles (depends on CiaoPP).
+ - FIXED: Fix activation links for `pkgconfig` files in
+   3rd-party installation.
+ - DEPRECATED: Removed support for 3rd-party `bower` package
+   system (all existing uses ported to `npm`). 
+
+Language, compiler, and toplevel:
+ - FIXED: Fix a bug that redirected `main/1` calls from the
+   toplevel to the `ciaosh` `main/1` predicate (accidentally via
+   the `user` module).
+ - FIXED: Detect wrong arity in `add_goal_trans` directives.
+ - IMPROVED: Towards a more modular `native_props.pl`,
+   documentation improvements.
+ - IMPROVED: Progress towards merging optim-comp branch for native
+   compilation.
+ - IMPROVED: Refactored default language packages (they can be used
+   from modules and toplevels).
+ - CHANGED: `note` messages go to user error (like other
+   compiler messages). 
+
+Engine:
+ - ADDED: Support for new Apple M1. This port is based on existing
+   support for the aarch64 (ARM64) architecture. NOTE: some
+   executable formats depend on redoing 'codesign' after the
+   executable is linked (this may cause issues when distributing
+   binaries). 
+
+Runtime checks, testing, and debugging:
+ - IMPROVED: `mshare/1` internally represented as
+   `mshare/2`, with explicit relevant arguments (for
+   `rtchecks`).
+ - IMPROVED: Refactor pieces of embedded debugger.
+ - IMPROVED: Note message for modules compiled with the trace
+   or debug packages.
+ - FIXED: Do not ignore assertions with empty compats, calls,
+   success, and comps fields (also for `texec`).
+ - FIXED: Improve debugging of modules with rtcheck instrumentation.
+ - FIXED: Expansion for runtime checks preserve `?- ...` 
+   directives. 
+
+Libraries:
+ - ADDED: Support for Unicode (UTF8) in source code:
+   - Pre-generated character code classes for 0..127
+   - Documented code class types and identifier syntax for Unicode
+     source code (see `tokenize.pl`).
+   - Very efficient and compact (8KB) code class table (see
+     `unicode_gen.pl` for details). 
+ - ADDED: Unicode escape \\uDDDD and \\UDDDDDDDD in strings and atoms.
+ - ADDED: Added byte-oriented predicates (see `stream_utils.pl`) and
+   types (`basic_props:bytelist/1`), using them when needed.
+ - ADDED: Added string_bytes/2 predicate. This predicate bidirectionally
+   transforms between lists of character codes and lists of bytes
+   (using UTF8 encoding/decoding). It is equivalent to =/2 when at
+   least one of the lists is already a list of ASCII codes (0..127).
+ - ADDED: Stronger redirection predicates (`open_std_redirect/3` and
+   `close_std_redirect/1`), which allow the redirection of the standard
+   output/error file descriptors together with the default output
+   stream, `user_output`, and `user_error`. Added `system:fd_dup/2` and
+   `system:fd_close/1` predicates to manipulate POSIX file
+   descriptors.
+ - ADDED: Added `stream_utils:copy_stream/3` predicate (copies bytes from one
+   stream to the other).
+ - ADDED: Extended `io_once_port_reify/@{3,4@}` with better redirections
+   (subset of process channels available for `process_call/3`).
+ - ADDED: Parsing of version strings (`version_strings:version_parse/4`).
+ - IMPROVED: Heuristics in `write_assertion/@{6,7@}`, more
+   readable output.
+ - IMPROVED: Allow JSON values (not only lists) as top argument for
+   JSON write and parse.
+ - IMPROVED: Faster and more reliable sockets predicates. New
+   `socket_sendall/2`, `socket_send_stream/2`, changed
+   `socket_send/3`. `socket_recv_code/3` is replaced by
+   `socket_recv/3` (treating the returned length is encouraged, do
+   not use `socket_recv/2`).
+ - IMPROVED: Faster and more robust HTTP libraries (sockets improvements,
+   faster IO). Several bug fixes.
+ - FIXED: Fixed bug in markdown parser which confused some
+   predicate heads with items.
+ - FIXED: Allow numbers (as constants) in assertion head arguments.
+ - FIXED: Fixed bug in `attrdump.pl` introduced when `assoc` replaced
+   `dict`.
+ - FIXED: Write blanks before -0.Nan if needed. Fixed some corner cases in
+   parser for 0.Inf, 0.Nan .
+ - FIXED: Cleanups in messages_basic:messages/1.
+ - FIXED: Allow `use_package(tabling)` in a toplevel. 
+
+ISO and Portability:
+ - ADDED: Implemented `at_end_of_stream/0`,
+   `at_end_of_stream/1`. Peek byte in `at_end_of_stream/@{0,1@}` for
+   improved ISO compatibility.
+ - ADDED: Implemented `peek_byte/1`, `peek_byte/2`.
+ - ADDED: Added call_det/2 predicate (compatible with `gprolog`).
+ - ADDED: Added forall/2 predicate (compatible with `gprolog`).
+ - FIXED: callable/1 is an instantiation check.
+ - IMPROVED: Added version_data flag as
+   `ciao(Major,Minor,Patch,Extra)`.
+ - IMPROVED: Added stream property `type(_)` in `open/4` 
+   predicate (for compatibility).
+ - ADDED: `--iso-strict` flag in `ciaoc` and `ciaosh` to enable
+   stricter compatibility ISO mode by default. Use with care, switching the flag
+   will not enforce the recompilation of already compiled user files
+   and modules (i.e., .po files).
+ - IMPROVED: Additions to the `iso_strict.pl` package (only for code
+   using this package):
+   - More compatible version of `absolute_file_name/2` (do not
+     repeat last path component when resolving library paths).
+   - Allow stream aliases in most IO operations.
+   - Import `keysort/2` and `format/?` predicates by default.
+   - Enable `call/N` by default.
+   - Enable `runtime_ops` package by default.
+
+Ciao emacs mode:
+ - ADDED: Initial support for `flycheck`, integrating ciaoc,
+   ciaopp, lpdoc, and testing.
+ - ADDED: Support for company mode (text completion). Manuals
+   are located dynamically. Completion list obtained using
+   @lib{librowser}.
+ - ADDED: Extended Ciao mode (`ciao-emacs-plus.el`) using
+   `flycheck` and `company` extensions.
+ - ADDED: `M-x ciao-server-start`, `M-x ciao-server-stop` 
+   to start/stop the `ciao-serve` process (serving local HTML
+   documentation and hub for HTTP based interface to active
+   modules).
+ - ADDED: Mark and color new `passed`, `failed`,
+   `aborted` message types (for unit tests).
+ - IMPROVED: Replace outdated `word-help` by
+   `info-look`.
+ - IMPROVED: Better binding for next error, better code
+   highlight, narrow error location.
+ - IMPROVED: Allow short location paths (resolved from the
+   elisp side). See `bundle_paths:bundle_extend_path/2` for
+   details on path extension.
+ - IMPROVED: Faster font-lock in `ciao-inferior-mode`, only
+   treat keywords.
+ - FIXED: Fixed indentation and coloring of `=:=`.
+ - FIXED: Fix build errors when compiling using emacs 27.1.
+
+Unit Tests:
+ - ADDED: Allow `opt_suff/1` in unit tests (for alternative
+   source files, e.g., for flycheck).
+ - ADDED: New options for handling tests for stdout and stderr
+   in unittest.
+ - ADDED: Added support for test filters (see options in
+   `run_tests/4`).
+ - ADDED: Using 'passed', 'failed', and 'aborted' message types.
+ - ADDED: Test timeout.
+ - ADDED: Initial support for integrated regression testing
+   (see `save`, `compare`, etc. actions in `run_tests/3`).
+ - IMPROVED: More flexible quering of results and statistics
+   (`get_statistical_summary/2`, `print_statistical_summary/1`,
+   `status(S)` option).
+ - IMPROVED: Simpler one-line output per test.
+ - IMPROVED: Warnings when predicate fails/throws and there were no
+   failure/exception properties in test assertion.
+ - FIXED: Unittest regression does not depend on Ciao root path.  
  
 ## [1.19.0] - 2020-3-20 
- Highlights of this release:
+
+Highlights of this release:
+
  - Build system: optional (weak) dependencies in bundle
    Manifest, out-of-tree builds by default in bundles (sources are
    no longer polluted with .po/.itf files).
@@ -238,403 +349,423 @@
  - Installation: new instructions for Windows based on WSL and
    for Android based on Termux. 
  
- Detailed list of new features and changes:
- - Builder and installation:
-   - ADDED: Optional (weak) dependencies in bundle
-     Manifests. Weak dependencies allow bundles with conditional
-     code which depends on the availability of other bundles.
-   - ADDED: Allow gitlab aliases in `ciao get`, i.e.,
-     `ciao get gitlab.x.y.z/some/path` will recognize (as a
-     heuristic) that we are trying to install a bundle from a Gitlab
-     repository. It should work for any instance of gitlab (as long
-     as there is public access to the repository).
-   - ADDED: Exposed `third-party-install` command (e.g.,
-     `ciao third-party-install ciao_ppl.ppl` to install `ppl` 
-     3rd-party from `ciao_ppl` bundle).
-   - ADDED: Execute `autoreconf -i` when GNU build system is
-     selected and the `configure` file is not available
-     (3rd-party installer).
-   - ADDED: Support for `zsh` shell, unified config in
-     `--core:update_shell=[yes|no]` 
-   - ENHANCED: Improved interactive `ciao-boot.sh` (reordered
-     questions, check deps).
-   - EXPERIMENTAL: Support for `--parallel=yes` build option.
-   - FIXED: Throw exception if foreign config tool is not found.
-   - FIXED: Absolute path in rpath for 3rd-party libs.
-   - FIXED: Make sure that `cache/` dir exists before loading
-     bundle manifest hooks.
-   - FIXED: `ciao clean-tree` works with non-absolute paths.
-   - FIXED: Do not assume `/bin/rm` is there, use `TMPDIR` 
-     if defined.
-   - FIXED: Make `./ciao-boot.sh clean` work even if
-     `core` is not built.
-   - FIXED: Make sure that building `core` prepares the bin grade
-     (`core.ciaobase`). 
- - Language, compiler, and toplevel:
-   - ADDED: Out-of-tree builds, enabled by default. Use
-     `CIAOCCACHE=0` to disable it. The compilation of modules
-     under a bundle produces `.itf` and `.po` files located in
-     the build/cache directory of their corresponding workspace.
-   - ENHANCED: Using atomic file writes everywhere in the
-     compiler. Now several processes may compile simultaneously the
-     same code base without corrupting the `.po`/`.itf` 
-     compiler output files (there are a few documented bugs in the
-     build scripts that should be fixed in the next commits to allow
-     parallel systems builds).
-   - ENHANCED: New internal representation for predicate
-     abstraction, which fixes a potential performance problem due to
-     unnecessary renaming of shared variables.
-   - ENHANCED: Pretty printing of solutions from the toplevel is
-     now orders of magnitude faster for some corner cases.
-   - CHANGED: Using standard hiord argument order. This changes
-     the argument ordering for predicate abstractions for `hiord` 
-     to make it compatible with other systems and languages. The old
-     order was implemented to favor 1st argument indexing, but it
-     can be confusing because of the difference with other languages
-     with higher-order (specially for partial applications).
-     Note that was overdue because it was a complicated backwards
-     incompatible change that required many changes in the compiler
-     and libraries (including the assertion language, parametric
-     properties, runtime checks, and parts of the CiaoPP analysis
-     framework).
-   - CHANGED: Made the semantics of shared variables in
-     predicate abstractions more strict. Now only the variables
-     specified in `ShVs` for `call((ShVs -> ''(...) :- ...), ...)` 
-     will share with the caller's body variables. No other
-     variables will be implicitly shared.
-   - CHANGED: Conditional compilation is built-in in the
-     compiler now. This improves the portability of some
-     experimental libraries.
-   - EXPERIMENTAL: `string_type` package for native strings.
-   - EXPERIMENTAL: a default behavior was defined for
-     `ciao-serve` so that it provides the available manuals in
-     `index.html` (via the HTTP protocol).
-   - FIXED: Make partial application work as expected (e.g.,
-     `X=append, Y = X([1]), Y([2], Z)`)
-   - FIXED: Syntactic errors in assertion normalization are now
-     treated correctly by `c_itf.pl`.
-   - FIXED: Program point assertions
-     (`check/1`,`true/1`,etc.) are not removed by
-     `mexpand.pl` 
-   - FIXED: `load_compilation_module/1` was incorrectly
-     ignoring modules that were already processed (e.g., compiled)
-     but not loaded in the context of `c_itf.pl`.
-   - ENHANCED: Pretty printing of solutions detects cyclic terms
-     automatically. The `check_cycles` flag is no longer needed
-     and has been removed.
-   - REMOVED: `check_cycles` flag is no longer needed. 
- - Engine:
-   - ADDED: Support for `aarch64` on Android (using Termux).
-   - ADDED: Support for 64-bits in tabling libraries. Trie
-     adapted to allow the use of big numbers.
-   - FIXED: using C `-fno-stack-check` option as a workaround
-     for Darwin19/Xcode-11 bug (macOS Catalina)
-   - FIXED: Using C `MoveFileEx()` intead of `rename()` in
-     Win32.
-   - FIXED: Normalize `c_headers_directory()` in Win32.
-   - FIXED: Fix C warnings due to casts of integers of different
-     sizes.
-   - FIXED: Using `__builtin_mul_overflow()` for better
-     32-bit/64-bit portability.
-   - FIXED: Fix evaluation of right shift with large numbers.
-   - FIXED: Fixed round-trip property in float to string and
-     string to float conversions. The new code is based on the
-     extremely fast Ryu algorithm (see 2018 paper).
-   - FIXED: Added `lib(engine)` to `core/Manifest` (this
-     ensures that `engine/` files are copied in global
-     installations).
-   - FIXED: Thread-safe and more efficient reimplementation of
-     exceptions.
-   - FIXED: Handler for signals that are not intercepted.
-   - FIXED: Fix right shift of negative `smallint`. For
-     `Shift` in 0..70 and `V=(-1<<57)` or `V=(-1)`, `X
-     is V>>Shift` produced `X=0` instead of a negative number. 
- - Runtime checks, testing, and debugging:
-   - ADDED: New `timeout/2` property for test assertions (10
-     min default).
-   - ADDED: New `generate_from_calls_n/2` property for test
-     assertions (generate multiple test states from the calls field,
-     1 by default).
-   - ENHANCED: Major cleanups in `rtchecks` package.
-   - CHANGED: Default value of `try_sols/2` is 2 (rather than
-     infinite).
-   - CHANGED: `unittest` aborts on compilation errors.
-   - CHANGED: Replaced `num_solutions('>'(N))` by
-     `num_solutions('<'(N))` (due to new hiord).
-   - FIXED: rtchecks for exception properties rethrow rtcheck
-     error exceptions.
-   - FIXED: Added `@@` option also in embedded debugger (see
-     `debug` or `trace` package). 
- - Libraries:
-   - ADDED: Improvements to TCLP: support for 64 bits, interface
-     with the Mod TCLP modular framework, new solver interfaces
-     (difference constraints, CLP(Q), CLP(R)), new constraint solver
-     over lattices (`abs_new_constraint`), a new framework for
-     incremental evaluation of lattice-based aggregates
-     (`tclp_aggregates`).
-   - ADDED: New `system:get_numcores/1`, obtains the number
-     of logical CPU cores.
-   - ENHANCED: Updated pretty printing-style formatting of
-     clauses and assertions.
-   - CHANGED: Inline foreign code feature moved to
-     `foreign_inliner` package.
-   - CHANGED: Update indentation rules in
-     `write:portray_clause/@{1,2@}`.
-   - CHANGED: All code ported to the new hiord argument order
-     and predicate abstraction sharing rules.
-   - FIXED: Bug in fastrw due to wrong integer casting (64-bit).
-   - FIXED: `C-c` restarts the toplevel only if it was
-     started (for embedded toplevels).
-   - FIXED: `bfall` and `afall` search rules compatible
-     with more language extensions.
-   - FIXED: Add missing parenthesis for `(,)/2` in
-     `assrt_write` predicates.
-   - FIXED: Fix foreign interface C embedding example.
-   - FIXED: Missing cuts, `==/2`, and meta_predicate
-     declarations in `assoc.pl`.
-   - FIXED: Avoid invalid cross-device link errors in
-     `file_buffer.pl` predicates.
-   - FIXED: Missing GC roots in `system:extract_paths/2`. 
- - Reference manual:
-   - ADDED: Installation instructions for Windows based on WSL
-     and for Android based on Termux.
-   - ENHANCED: Improved documentation of several libraries
-     (`regexp`, `runtime_control`, read).
-   - ENHANCED: Separate language conventions from introduction.
-   - FIXED: Document that `call_with_time_limit/@{2,3@}` behaves
-     as `once/1`.
-   - FIXED: Added `classic_predicates.pl` (for classic
-     compatibility package) 
- - Ciao emacs mode:
-   - ENHANCED: Indentation code rewritten (supporting block
-     syntax, better indentation of if-then-else, argument-based
-     indentation for columns).
-   - ENHANCED: New syntax coloring code (better multiline
-     coloring of strings and comments, quoted atoms, doccomments
-     blocks, documentation commands, assertion syntax)
-   - ENHANCED: Coloring of info manuals generated by LPdoc.
-   - ENHANCED: Do not set tty colors for ciao faces (modern
-     terminals look great with the default colors).
-   - CHANGED: Using 4-space indentation by default.
-   - CHANGED: `C-g` clears compilation error marks.
-   - CHANGED: Blanks instead of tabs in ciao-mode.
-   - CHANGED: Set default emacs init file to
-     `~/.emacs.d/init.d` (`~/.emacs.el`, `~/.emacs` are
-     still detected if present)
-   - EXPERIMENTAL: `M-x ciao-serve` (starts a Ciao server),
-     `M-x ciao-dist` (prepares data for a Ciao service).
-   - FIXED: `word-help-extract-index` ignore missing indices.
-   - FIXED: use the lpdoc toplevel to generate/view buffer
-     documentation (instead of a shell).
-   - FIXED: Modified error location colors for clarity when
-     background is dark.
-   - FIXED: Fixing many elisp compilation warnings.
-   - REMOVED: Dropped support for xemacs.  
+Bellow is a detailed list of new features and changes.
+
+Builder and installation:
+ - ADDED: Optional (weak) dependencies in bundle
+   Manifests. Weak dependencies allow bundles with conditional
+   code which depends on the availability of other bundles.
+ - ADDED: Allow gitlab aliases in `ciao get`, i.e.,
+   `ciao get gitlab.x.y.z/some/path` will recognize (as a
+   heuristic) that we are trying to install a bundle from a Gitlab
+   repository. It should work for any instance of gitlab (as long
+   as there is public access to the repository).
+ - ADDED: Exposed `third-party-install` command (e.g.,
+   `ciao third-party-install ciao_ppl.ppl` to install `ppl` 
+   3rd-party from `ciao_ppl` bundle).
+ - ADDED: Execute `autoreconf -i` when GNU build system is
+   selected and the `configure` file is not available
+   (3rd-party installer).
+ - ADDED: Support for `zsh` shell, unified config in
+   `--core:update_shell=[yes|no]` 
+ - ENHANCED: Improved interactive `ciao-boot.sh` (reordered
+   questions, check deps).
+ - EXPERIMENTAL: Support for `--parallel=yes` build option.
+ - FIXED: Throw exception if foreign config tool is not found.
+ - FIXED: Absolute path in rpath for 3rd-party libs.
+ - FIXED: Make sure that `cache/` dir exists before loading
+   bundle manifest hooks.
+ - FIXED: `ciao clean-tree` works with non-absolute paths.
+ - FIXED: Do not assume `/bin/rm` is there, use `TMPDIR` 
+   if defined.
+ - FIXED: Make `./ciao-boot.sh clean` work even if
+   `core` is not built.
+ - FIXED: Make sure that building `core` prepares the bin grade
+   (`core.ciaobase`). 
+
+Language, compiler, and toplevel:
+ - ADDED: Out-of-tree builds, enabled by default. Use
+   `CIAOCCACHE=0` to disable it. The compilation of modules
+   under a bundle produces `.itf` and `.po` files located in
+   the build/cache directory of their corresponding workspace.
+ - ENHANCED: Using atomic file writes everywhere in the
+   compiler. Now several processes may compile simultaneously the
+   same code base without corrupting the `.po`/`.itf` 
+   compiler output files (there are a few documented bugs in the
+   build scripts that should be fixed in the next commits to allow
+   parallel systems builds).
+ - ENHANCED: New internal representation for predicate
+   abstraction, which fixes a potential performance problem due to
+   unnecessary renaming of shared variables.
+ - ENHANCED: Pretty printing of solutions from the toplevel is
+   now orders of magnitude faster for some corner cases.
+ - CHANGED: Using standard hiord argument order. This changes
+   the argument ordering for predicate abstractions for `hiord` 
+   to make it compatible with other systems and languages. The old
+   order was implemented to favor 1st argument indexing, but it
+   can be confusing because of the difference with other languages
+   with higher-order (specially for partial applications).
+   Note that was overdue because it was a complicated backwards
+   incompatible change that required many changes in the compiler
+   and libraries (including the assertion language, parametric
+   properties, runtime checks, and parts of the CiaoPP analysis
+   framework).
+ - CHANGED: Made the semantics of shared variables in
+   predicate abstractions more strict. Now only the variables
+   specified in `ShVs` for `call((ShVs -> ''(...) :- ...), ...)` 
+   will share with the caller's body variables. No other
+   variables will be implicitly shared.
+ - CHANGED: Conditional compilation is built-in in the
+   compiler now. This improves the portability of some
+   experimental libraries.
+ - EXPERIMENTAL: `string_type` package for native strings.
+ - EXPERIMENTAL: a default behavior was defined for
+   `ciao-serve` so that it provides the available manuals in
+   `index.html` (via the HTTP protocol).
+ - FIXED: Make partial application work as expected (e.g.,
+   `X=append, Y = X([1]), Y([2], Z)`)
+ - FIXED: Syntactic errors in assertion normalization are now
+   treated correctly by `c_itf.pl`.
+ - FIXED: Program point assertions
+   (`check/1`,`true/1`,etc.) are not removed by
+   `mexpand.pl` 
+ - FIXED: `load_compilation_module/1` was incorrectly
+   ignoring modules that were already processed (e.g., compiled)
+   but not loaded in the context of `c_itf.pl`.
+ - ENHANCED: Pretty printing of solutions detects cyclic terms
+   automatically. The `check_cycles` flag is no longer needed
+   and has been removed.
+ - REMOVED: `check_cycles` flag is no longer needed. 
+
+Engine:
+ - ADDED: Support for `aarch64` on Android (using Termux).
+ - ADDED: Support for 64-bits in tabling libraries. Trie
+   adapted to allow the use of big numbers.
+ - FIXED: using C `-fno-stack-check` option as a workaround
+   for Darwin19/Xcode-11 bug (macOS Catalina)
+ - FIXED: Using C `MoveFileEx()` intead of `rename()` in
+   Win32.
+ - FIXED: Normalize `c_headers_directory()` in Win32.
+ - FIXED: Fix C warnings due to casts of integers of different
+   sizes.
+ - FIXED: Using `__builtin_mul_overflow()` for better
+   32-bit/64-bit portability.
+ - FIXED: Fix evaluation of right shift with large numbers.
+ - FIXED: Fixed round-trip property in float to string and
+   string to float conversions. The new code is based on the
+   extremely fast Ryu algorithm (see 2018 paper).
+ - FIXED: Added `lib(engine)` to `core/Manifest` (this
+   ensures that `engine/` files are copied in global
+   installations).
+ - FIXED: Thread-safe and more efficient reimplementation of
+   exceptions.
+ - FIXED: Handler for signals that are not intercepted.
+ - FIXED: Fix right shift of negative `smallint`. For
+   `Shift` in 0..70 and `V=(-1<<57)` or `V=(-1)`, `X
+   is V>>Shift` produced `X=0` instead of a negative number. 
+
+Runtime checks, testing, and debugging:
+ - ADDED: New `timeout/2` property for test assertions (10
+   min default).
+ - ADDED: New `generate_from_calls_n/2` property for test
+   assertions (generate multiple test states from the calls field,
+   1 by default).
+ - ENHANCED: Major cleanups in `rtchecks` package.
+ - CHANGED: Default value of `try_sols/2` is 2 (rather than
+   infinite).
+ - CHANGED: `unittest` aborts on compilation errors.
+ - CHANGED: Replaced `num_solutions('>'(N))` by
+   `num_solutions('<'(N))` (due to new hiord).
+ - FIXED: rtchecks for exception properties rethrow rtcheck
+   error exceptions.
+ - FIXED: Added `@@` option also in embedded debugger (see
+   `debug` or `trace` package). 
+
+Libraries:
+ - ADDED: Improvements to TCLP: support for 64 bits, interface
+   with the Mod TCLP modular framework, new solver interfaces
+   (difference constraints, CLP(Q), CLP(R)), new constraint solver
+   over lattices (`abs_new_constraint`), a new framework for
+   incremental evaluation of lattice-based aggregates
+   (`tclp_aggregates`).
+ - ADDED: New `system:get_numcores/1`, obtains the number
+   of logical CPU cores.
+ - ENHANCED: Updated pretty printing-style formatting of
+   clauses and assertions.
+ - CHANGED: Inline foreign code feature moved to
+   `foreign_inliner` package.
+ - CHANGED: Update indentation rules in
+   `write:portray_clause/@{1,2@}`.
+ - CHANGED: All code ported to the new hiord argument order
+   and predicate abstraction sharing rules.
+ - FIXED: Bug in fastrw due to wrong integer casting (64-bit).
+ - FIXED: `C-c` restarts the toplevel only if it was
+   started (for embedded toplevels).
+ - FIXED: `bfall` and `afall` search rules compatible
+   with more language extensions.
+ - FIXED: Add missing parenthesis for `(,)/2` in
+   `assrt_write` predicates.
+ - FIXED: Fix foreign interface C embedding example.
+ - FIXED: Missing cuts, `==/2`, and meta_predicate
+   declarations in `assoc.pl`.
+ - FIXED: Avoid invalid cross-device link errors in
+   `file_buffer.pl` predicates.
+ - FIXED: Missing GC roots in `system:extract_paths/2`. 
+
+Reference manual:
+ - ADDED: Installation instructions for Windows based on WSL
+   and for Android based on Termux.
+ - ENHANCED: Improved documentation of several libraries
+   (`regexp`, `runtime_control`, read).
+ - ENHANCED: Separate language conventions from introduction.
+ - FIXED: Document that `call_with_time_limit/@{2,3@}` behaves
+   as `once/1`.
+ - FIXED: Added `classic_predicates.pl` (for classic
+   compatibility package) 
+
+Ciao emacs mode:
+ - ENHANCED: Indentation code rewritten (supporting block
+   syntax, better indentation of if-then-else, argument-based
+   indentation for columns).
+ - ENHANCED: New syntax coloring code (better multiline
+   coloring of strings and comments, quoted atoms, doccomments
+   blocks, documentation commands, assertion syntax)
+ - ENHANCED: Coloring of info manuals generated by LPdoc.
+ - ENHANCED: Do not set tty colors for ciao faces (modern
+   terminals look great with the default colors).
+ - CHANGED: Using 4-space indentation by default.
+ - CHANGED: `C-g` clears compilation error marks.
+ - CHANGED: Blanks instead of tabs in ciao-mode.
+ - CHANGED: Set default emacs init file to
+   `~/.emacs.d/init.d` (`~/.emacs.el`, `~/.emacs` are
+   still detected if present)
+ - EXPERIMENTAL: `M-x ciao-serve` (starts a Ciao server),
+   `M-x ciao-dist` (prepares data for a Ciao service).
+ - FIXED: `word-help-extract-index` ignore missing indices.
+ - FIXED: use the lpdoc toplevel to generate/view buffer
+   documentation (instead of a shell).
+ - FIXED: Modified error location colors for clarity when
+   background is dark.
+ - FIXED: Fixing many elisp compilation warnings.
+ - REMOVED: Dropped support for xemacs.  
  
 ## [1.18.0] - 2018-12-06 
- - Backward-incompatible changes in this version:
-   - Changed the defaults for modules declared with
-     `module/3`. The following predicates and features are no
-     longer included by default in module/3. They should be
-     enabled explicitly with the following packages or modules:
-     - `call/N`: `hiord` package.
-     - `data`, `concurrent` declarations,
-       `assertz_fact/1`, etc.: `datafacts` package.
-     - `dynamic` declarations, `assertz/1`, etc.:
-       `dynamic` package.
-     - `set_prolog_flag/2`, etc.:
-       `engine(runtime_control)` (which merges deprecated
-       `engine(prolog_flags)` and `engine(prolog_sys)`).
-     - nl/0, nl/1, display/0, open/3, etc.: library(streams)
-       (which reexports stream handling and operations, namely
-       `engine(stream_basic)` and `engine(io_basic)`). 
-   - Added `noprelude` that prevents loading the prelude
-     (default definitions).
-   - The `pure` package now includes a minimum set of
-     control constructs `(,)/2`, `true/0`, `fail/0`. 
- - Language, compiler, toplevel:
-   - Major update of the Ciao manual (basic language, language
-     extensions, Ciao standard library, additional libraries,
-     abstract data types, ISO and compatibility, etc.).
-   - Built-in build system and software packaging system
-     (*bundles*) (see documentation for details).
-   - Added (optional) `CIAOROOT` and `CIAOPATH` 
-     environment variables (replace `CIAOLIB`). `CIAOROOT` 
-     points to the root of the Ciao sources rather than the lib
-     directory.
-   - New `ciao-env` command to set up the environment for
-     some specific Ciao installations.
-   - Fix `MANPATH`,`INFOPATH` in `ciao-env` (trailing
-     `:` was incorrectly removed, it is meaningful and
-     represents default paths).
-   - Fixed `ciaosh -e Goal` (accepts any goal), removed
-     `-g` option.
-   - DCG `phrase/3` available by default in classic mode
-     (toplevel, user modules, and modules declared with
-     `module/2`).
-   - Fixes in runtime check versions of `mshare/1`,
-     `indep/1`, `indep/2`, and `covered/2`.
-   - Fixed issues with cyclic terms in debugger (when
-     `check_cycles` flag is activated).
-   - (experimental) `ciao-serve` command to start a Ciao
-     server to serve both HTTP and active module requests. 
- - Ciao emacs mode:
-   - Added `M-x ciao-set-ciao-root`, `M-x
-     ciao-set-ciao-path` (see `CIAOROOT` and `CIAOPATH` 
-     changes).
-   - Improved syntax highlighting. 
- - Engine:
-   - Fixed a bug while freeing sources in `eng_call/@{3,4@}`.
-   - Fixed bug in dynamic/data predicates (uninitialized
-     registers may lead to memory corruption during garbage
-     collection).
-   - Added `ciao_root/1`, replaces `ciao_lib_dir/1`.
-   - Improved documentation and examples for interfacing with
-     C/C++ (including embedding engines in C/C++ applications). 
- - Libraries:
-   - Fixed bug in tokenizer (dealing with `\\^` escape
-     sequences in strings).
-   - Refurbished HTTP libraries (separated from pillow, see
-     documentation).
-   - Added `library(io_port_reify)` (like `port_reify` 
-     but allows IO redirection).
-   - Added `filter/3`, `partition/4`, `maplist/N` to
-     `library(hiordlib)`.
-   - Added `library(opendoc)` (opens a document with the
-     default OS viewer).
-   - Revamped active modules model and implementation (see
-     documentation for details).
-   - Renamed `library(file_utils)` to
-     `library(stream_utils)`.
-   - Predicates `stream_to_string/@{2,3@}` replaced by
-     `read_to_end/@{2,3@}` (which do not close the stream).
-   - Added `library(terms_io)` (`terms_to_file/2`,
-     `file_to_terms/2`).
-   - (experimental) `library(timeout)` 
-     (`call_with_time_limit/@{2,3@}`).
-   - (experimental) package for traits (interfaces).  
+
+Backward-incompatible changes in this version:
+ - Changed the defaults for modules declared with
+   `module/3`. The following predicates and features are no
+   longer included by default in module/3. They should be
+   enabled explicitly with the following packages or modules:
+   - `call/N`: `hiord` package.
+   - `data`, `concurrent` declarations,
+     `assertz_fact/1`, etc.: `datafacts` package.
+   - `dynamic` declarations, `assertz/1`, etc.:
+     `dynamic` package.
+   - `set_prolog_flag/2`, etc.:
+     `engine(runtime_control)` (which merges deprecated
+     `engine(prolog_flags)` and `engine(prolog_sys)`).
+   - nl/0, nl/1, display/0, open/3, etc.: library(streams)
+     (which reexports stream handling and operations, namely
+     `engine(stream_basic)` and `engine(io_basic)`). 
+ - Added `noprelude` that prevents loading the prelude
+   (default definitions).
+ - The `pure` package now includes a minimum set of
+   control constructs `(,)/2`, `true/0`, `fail/0`. 
+
+Language, compiler, toplevel:
+ - Major update of the Ciao manual (basic language, language
+   extensions, Ciao standard library, additional libraries,
+   abstract data types, ISO and compatibility, etc.).
+ - Built-in build system and software packaging system
+   (*bundles*) (see documentation for details).
+ - Added (optional) `CIAOROOT` and `CIAOPATH` 
+   environment variables (replace `CIAOLIB`). `CIAOROOT` 
+   points to the root of the Ciao sources rather than the lib
+   directory.
+ - New `ciao-env` command to set up the environment for
+   some specific Ciao installations.
+ - Fix `MANPATH`,`INFOPATH` in `ciao-env` (trailing
+   `:` was incorrectly removed, it is meaningful and
+   represents default paths).
+ - Fixed `ciaosh -e Goal` (accepts any goal), removed
+   `-g` option.
+ - DCG `phrase/3` available by default in classic mode
+   (toplevel, user modules, and modules declared with
+   `module/2`).
+ - Fixes in runtime check versions of `mshare/1`,
+   `indep/1`, `indep/2`, and `covered/2`.
+ - Fixed issues with cyclic terms in debugger (when
+   `check_cycles` flag is activated).
+ - (experimental) `ciao-serve` command to start a Ciao
+   server to serve both HTTP and active module requests. 
+
+Ciao emacs mode:
+ - Added `M-x ciao-set-ciao-root`, `M-x
+   ciao-set-ciao-path` (see `CIAOROOT` and `CIAOPATH` 
+   changes).
+ - Improved syntax highlighting. 
+
+Engine:
+ - Fixed a bug while freeing sources in `eng_call/@{3,4@}`.
+ - Fixed bug in dynamic/data predicates (uninitialized
+   registers may lead to memory corruption during garbage
+   collection).
+ - Added `ciao_root/1`, replaces `ciao_lib_dir/1`.
+ - Improved documentation and examples for interfacing with
+   C/C++ (including embedding engines in C/C++ applications). 
+
+Libraries:
+ - Fixed bug in tokenizer (dealing with `\\^` escape
+   sequences in strings).
+ - Refurbished HTTP libraries (separated from pillow, see
+   documentation).
+ - Added `library(io_port_reify)` (like `port_reify` 
+   but allows IO redirection).
+ - Added `filter/3`, `partition/4`, `maplist/N` to
+   `library(hiordlib)`.
+ - Added `library(opendoc)` (opens a document with the
+   default OS viewer).
+ - Revamped active modules model and implementation (see
+   documentation for details).
+ - Renamed `library(file_utils)` to
+   `library(stream_utils)`.
+ - Predicates `stream_to_string/@{2,3@}` replaced by
+   `read_to_end/@{2,3@}` (which do not close the stream).
+ - Added `library(terms_io)` (`terms_to_file/2`,
+   `file_to_terms/2`).
+ - (experimental) `library(timeout)` 
+   (`call_with_time_limit/@{2,3@}`).
+ - (experimental) package for traits (interfaces).  
  
-@comment{We skip development version 1.17 this time} 
+## [1.17.0] - 2020-3-20
+
+(Skipped version)
  
 ## [1.16.0] - 2016-12-31 
- - Engine:
-   - Generating the emulator loop with our own code expansion
-     and emulator generator (emugen).
-   - Refactor, clean up, rewrite some engine parts.
-   - Reworking custom engine compilation (under `build/` 
-     directory). Ciao headers must be included now using
-     `#include <ciao/...>` rather than double quotes.
-   - Fix bug in arithmetic shifting operators by 0.
-   - Fix `X is (1<<20)*(1<<10)` returned `X=0` (detect
-     multiplication overflows using `__builtin_smul_overflow` 
-     to avoid C undefined behaviours, i.e., in clang).
-   - Fixes in bignums and float to integer conversion in
-     64-bits mode.
-   - `lib/engine/` merged into `engine/` (no need to
-     separate Prolog and C files).
-   - 64-bit port, enabled by default (this was a very large
-     change which required rewriting some parts of the engine).
-   - Adding `--trace-instr` engine option (traces
-     instructions, for debugging).
-   - Faster implementation of `unify_with_occurs_check/2`.
-   - Fix potential overflow in string to number conversion.
-   - Better support for `UTF8`.
-   - Properly escaping all control characters in quoted atom
-     print (ISO compliance).
-   - Fix ending of quoted atom and strings (ISO compliance).
-   - Fix `get_char/1` (ISO conformance, past end of file).
-   - Fix in treatment of `EOF` in IO predicates (do not
-     assume `EOF == -1`).
-   - `CIAOARCH` replaced by `CIAOOS` (e.g., Linux) and
-     `CIAOARCH` (e.g., `i686`). New `ciao_sysconf` 
-     command (replaces `ciao_get_arch` script), which accepts
-     the arguments `--os`, `--arch`, and `--osarch`. 
- - Portability and OS support:
-   - Using `clang` as default C compiler in MacOS.
-   - Identify `MINGW64_NT` as Win32 (which is commonly
-     accepted as a generic OS name which does not necessarily mean
-     32-bits).
-   - Drop support for IRIX and SunOS4.
-   - Improved support for NetBSD (NetBSD 7), FreeBSD.
-   - Support for Raspberry Pi.
-   - (experimental) support for MINGW32 and MINGW64 (and MSYS2)
-     builds (for Windows).
-   - (experimental) support for EMSCRIPTEN as compilation
-     target. 
- - Language, compiler, toplevel:
-   - Conditional compilation library `library(condcomp)` 
-     enabled by default.
-   - Deprecated `alias(a(b(...)))` as a module specifier
-     name (using the more compatible `alias(a/b/...)` instead).
-   - Fix exit status (returns 1) for toplevel and executables
-     on abort, e.g., due to uncaught exceptions or unexpected
-     failure.
-   - New `ciaoc_sdyn` tool to help in the distribution of
-     standalone executables with foreign code (collects all
-     required dynamic libraries).
-   - Starting work on new build system.
-   - (experimental) syntax extension for infix dot `(A.B)` 
-     (see `set_prolog_flag(read_infix_dot, on)`).
-   - (experimental) syntax extension for string data type (see
-     `set_prolog_flag(read_string_data_type, on)`). 
- - Libraries:
-   - Fix `system:touch/1`, implemented through C
-     `utime()`.
-   - Fix buffer overflow in `absolute_file_name/?` with
-     `nul/NUL` in Win32 (it is a reserved name).
-   - Fix bug in check for cyclic terms, implemented faster C
-     (low-level) version.
-   - Fix `get_tmp_dir/1` so that it always produces a
-     normalized path, with no trailing `/`, and considering
-     `TMPDIR` on POSIX systems.
-   - Better use of `current_executable/1` implementation
-     (macOS: `_NSGetExecutablePath()`, Linux: `readlink` on
-     `/proc/self/exe`, Windows: `GetModuleFileName()` with
-     `hModule = NULL`).
-   - Added support for `phrase/2` and `phrase/3` in DCGs
-     (in `dcg_phrase` package).
-   - Added `library(global_vars)`, backtrackable global
-     variables.
-   - Added `library(datetime)`, manipulate date and time in
-     different formats.
-   - Added `library(clpfd)`, new CLP(FD) implementation.
-   - Added `library(glob)`, support *glob* patterns,
-     filenames with wildcard characters.
-   - Added `library(pathnames)`, predicates for file path
-     name manipulation, compatible with common semantics in other
-     languages.
-   - Added `library(port_reify)`, metacalls which reify the
-     `exit` port so that it can be delayed.
-   - Added `library(process)`, portable high-level
-     interface for child process creation, supporting stream
-     redirection, background processes, signals, etc.
-   - Added `library(text_template)`, text-based templates.
-   - Added `library(http_get)`, retrieve files via
-     HTTP/HTTPs/FTP protocol.
-   - Added `system:get_home/1`,
-     `system:find_executable/2`.
-   - Added `system:extract_paths/2`, split atom containing a
-     colon-separated path list as individual paths.
-   - Deprecated `exec/?` from `library(system)`.
-   - Deprecated `system:get_exec_dir/1`, can be replaced
-     by `current_executable/1` and `path_dirname/2`.
-   - (experimental) `library(indexer)`, a package that
-     extends first-argument indexing.
-   - (experimental) heap limits exceptions
-     (`set_heap_limit/1`).
-   - (experimental) `library(stream_wait)`, wait for input
-     to be available, with timeouts. 
- - Ciao emacs mode:
-   - Cleanups, refactoring into smaller individual components
-     (highlighting, interaction with Ciao, etc.).
-   - `M-x ciao-grep*` emacs command (search over all code). 
- - Foreign interface:
-   - Fix exception throw from C builtins during shallow
-     backtracking.
-   - Allow exception throwing using arbitrary terms.
-   - Foreign interface types corresponding to different
-     fixed-width C types
-     (`c_int`,`c_size`,`c_uint8`, etc.).
+
+Engine:
+ - Generating the emulator loop with our own code expansion
+   and emulator generator (emugen).
+ - Refactor, clean up, rewrite some engine parts.
+ - Reworking custom engine compilation (under `build/` 
+   directory). Ciao headers must be included now using
+   `#include <ciao/...>` rather than double quotes.
+ - Fix bug in arithmetic shifting operators by 0.
+ - Fix `X is (1<<20)*(1<<10)` returned `X=0` (detect
+   multiplication overflows using `__builtin_smul_overflow` 
+   to avoid C undefined behaviours, i.e., in clang).
+ - Fixes in bignums and float to integer conversion in
+   64-bits mode.
+ - `lib/engine/` merged into `engine/` (no need to
+   separate Prolog and C files).
+ - 64-bit port, enabled by default (this was a very large
+   change which required rewriting some parts of the engine).
+ - Adding `--trace-instr` engine option (traces
+   instructions, for debugging).
+ - Faster implementation of `unify_with_occurs_check/2`.
+ - Fix potential overflow in string to number conversion.
+ - Better support for `UTF8`.
+ - Properly escaping all control characters in quoted atom
+   print (ISO compliance).
+ - Fix ending of quoted atom and strings (ISO compliance).
+ - Fix `get_char/1` (ISO conformance, past end of file).
+ - Fix in treatment of `EOF` in IO predicates (do not
+   assume `EOF == -1`).
+ - `CIAOARCH` replaced by `CIAOOS` (e.g., Linux) and
+   `CIAOARCH` (e.g., `i686`). New `ciao_sysconf` 
+   command (replaces `ciao_get_arch` script), which accepts
+   the arguments `--os`, `--arch`, and `--osarch`. 
+
+Portability and OS support:
+ - Using `clang` as default C compiler in MacOS.
+ - Identify `MINGW64_NT` as Win32 (which is commonly
+   accepted as a generic OS name which does not necessarily mean
+   32-bits).
+ - Drop support for IRIX and SunOS4.
+ - Improved support for NetBSD (NetBSD 7), FreeBSD.
+ - Support for Raspberry Pi.
+ - (experimental) support for MINGW32 and MINGW64 (and MSYS2)
+   builds (for Windows).
+ - (experimental) support for EMSCRIPTEN as compilation
+   target. 
+
+Language, compiler, toplevel:
+ - Conditional compilation library `library(condcomp)` 
+   enabled by default.
+ - Deprecated `alias(a(b(...)))` as a module specifier
+   name (using the more compatible `alias(a/b/...)` instead).
+ - Fix exit status (returns 1) for toplevel and executables
+   on abort, e.g., due to uncaught exceptions or unexpected
+   failure.
+ - New `ciaoc_sdyn` tool to help in the distribution of
+   standalone executables with foreign code (collects all
+   required dynamic libraries).
+ - Starting work on new build system.
+ - (experimental) syntax extension for infix dot `(A.B)` 
+   (see `set_prolog_flag(read_infix_dot, on)`).
+ - (experimental) syntax extension for string data type (see
+   `set_prolog_flag(read_string_data_type, on)`). 
+
+Libraries:
+ - Fix `system:touch/1`, implemented through C
+   `utime()`.
+ - Fix buffer overflow in `absolute_file_name/?` with
+   `nul/NUL` in Win32 (it is a reserved name).
+ - Fix bug in check for cyclic terms, implemented faster C
+   (low-level) version.
+ - Fix `get_tmp_dir/1` so that it always produces a
+   normalized path, with no trailing `/`, and considering
+   `TMPDIR` on POSIX systems.
+ - Better use of `current_executable/1` implementation
+   (macOS: `_NSGetExecutablePath()`, Linux: `readlink` on
+   `/proc/self/exe`, Windows: `GetModuleFileName()` with
+   `hModule = NULL`).
+ - Added support for `phrase/2` and `phrase/3` in DCGs
+   (in `dcg_phrase` package).
+ - Added `library(global_vars)`, backtrackable global
+   variables.
+ - Added `library(datetime)`, manipulate date and time in
+   different formats.
+ - Added `library(clpfd)`, new CLP(FD) implementation.
+ - Added `library(glob)`, support *glob* patterns,
+   filenames with wildcard characters.
+ - Added `library(pathnames)`, predicates for file path
+   name manipulation, compatible with common semantics in other
+   languages.
+ - Added `library(port_reify)`, metacalls which reify the
+   `exit` port so that it can be delayed.
+ - Added `library(process)`, portable high-level
+   interface for child process creation, supporting stream
+   redirection, background processes, signals, etc.
+ - Added `library(text_template)`, text-based templates.
+ - Added `library(http_get)`, retrieve files via
+   HTTP/HTTPs/FTP protocol.
+ - Added `system:get_home/1`,
+   `system:find_executable/2`.
+ - Added `system:extract_paths/2`, split atom containing a
+   colon-separated path list as individual paths.
+ - Deprecated `exec/?` from `library(system)`.
+ - Deprecated `system:get_exec_dir/1`, can be replaced
+   by `current_executable/1` and `path_dirname/2`.
+ - (experimental) `library(indexer)`, a package that
+   extends first-argument indexing.
+ - (experimental) heap limits exceptions
+   (`set_heap_limit/1`).
+ - (experimental) `library(stream_wait)`, wait for input
+   to be available, with timeouts. 
+
+Ciao emacs mode:
+ - Cleanups, refactoring into smaller individual components
+   (highlighting, interaction with Ciao, etc.).
+ - `M-x ciao-grep*` emacs command (search over all code). 
+
+Foreign interface:
+ - Fix exception throw from C builtins during shallow
+   backtracking.
+ - Allow exception throwing using arbitrary terms.
+ - Foreign interface types corresponding to different
+   fixed-width C types
+   (`c_int`,`c_size`,`c_uint8`, etc.).
  
 ## [1.14.2] - 2011-08-12 
 
@@ -654,563 +785,564 @@ New development version (Jose Morales)
 
 It has been a long while since declaring the last major version
 (basically since moving to subversion after 1.10/1.12), so quite a bit
-is included in this release. Here is the (longish) summary:
+is included in this release. Here is the (longish) summary.
  
- - Extensions to functional notation:
-   - Introduced `fsyntax` package (just functional
-     syntax). (Daniel Cabeza)
-   - Added support to define on the fly a return argument
-     different from the default one
-     (e.g. `~functor(~,f,2)`). (Daniel Cabeza)
-   - Use of '`:- function(defined(true)).`' so that the
-     defined function does not need to be preceded by `~` in the
-     return expression of a functional clause. (Daniel Cabeza)
-   - Functional notation: added to documentation to reflect more
-     of the FLOPS paper text and explanations. Added new
-     functional syntax examples: arrays, combination with
-     constraints, using func notation for properties, lazy
-     evaluation, etc. (Manuel Hermenegildo)
-   - Added functional abstractions to `fsyntax` and correct
-     handling of predicate abstractions (the functions in the body
-     where expanded outside the abstraction). (Jose Morales)
-   - Improved translation of functions. In particular, old
-     translation could lose last call optimization for functions
-     with body or with conditional expressions. Furthermore, the
-     translation avoids now some superfluous intermediate
-     unifications. To be studied more involved
-     optimizations. (Daniel Cabeza, Jose Morales).
-   - More superfluous unifications taken out from translated code,
-     in cases where a goal `~f(X) = /Term/` appears in the
-     body. (Daniel Cabeza)
-   - Added `library/argnames_fsyntax.pl`: Package to be able to
-     use `$~/2` as an operator. (Daniel Cabeza)
-   - Added a new example for lazy evaluation, saving memory using
-     lazy instead of eager evaluation. (Amadeo Casas) 
+Extensions to functional notation:
+ - Introduced `fsyntax` package (just functional
+   syntax). (Daniel Cabeza)
+ - Added support to define on the fly a return argument
+   different from the default one
+   (e.g. `~functor(~,f,2)`). (Daniel Cabeza)
+ - Use of '`:- function(defined(true)).`' so that the
+   defined function does not need to be preceded by `~` in the
+   return expression of a functional clause. (Daniel Cabeza)
+ - Functional notation: added to documentation to reflect more
+   of the FLOPS paper text and explanations. Added new
+   functional syntax examples: arrays, combination with
+   constraints, using func notation for properties, lazy
+   evaluation, etc. (Manuel Hermenegildo)
+ - Added functional abstractions to `fsyntax` and correct
+   handling of predicate abstractions (the functions in the body
+   where expanded outside the abstraction). (Jose Morales)
+ - Improved translation of functions. In particular, old
+   translation could lose last call optimization for functions
+   with body or with conditional expressions. Furthermore, the
+   translation avoids now some superfluous intermediate
+   unifications. To be studied more involved
+   optimizations. (Daniel Cabeza, Jose Morales).
+ - More superfluous unifications taken out from translated code,
+   in cases where a goal `~f(X) = /Term/` appears in the
+   body. (Daniel Cabeza)
+ - Added `library/argnames_fsyntax.pl`: Package to be able to
+   use `$~/2` as an operator. (Daniel Cabeza)
+ - Added a new example for lazy evaluation, saving memory using
+   lazy instead of eager evaluation. (Amadeo Casas) 
+
+Improvements to signals and exceptions:
+ - Distinguished between exceptions and signals. Exceptions are
+   thrown and caught (using @pred{throw/1} and @pred{catch/3}).
+   Signals are sent and intercepted (using @pred{send_signal/1} 
+   and @pred{intercept/3}). (Jose Morales, Remy Haemmerle)
+ - Back-port of the (improved) low-level exception handling from
+   `optim_comp` branch. (Jose Morales)
+ - Fixed @pred{intercept/3} bug, with caused the toplevel to not
+   properly handle exceptions after one was handled and
+   displayed (bug reported by Samir Genaim on 04 Dec 05, in ciao
+   mailing list, subject ```ciao top-level : exception
+   handling`''). Updated documentation. (Daniel Cabeza)
+ - @pred{intercept/3} does not leave pending choice points if
+   the called goal is deterministic (the same optimization that
+   was done for @pred{catch/3}). (Jose Morales) 
+
+New/improved libraries:
+ - New `assoc` library to represent association tables.
+   (Manuel Carro, Pablo Chico)
+ - New `regexp` library to handle regular expressions.
+   (Manuel Carro, Pablo Chico)
+ - Fixed bug in string_to_number that affected ASCII to
+   floating point number conversions (@pred{number_codes/2} 
+   and bytecode read). (Jose Morales)
+ - `system.pl`: Added predicates @pred{copy_file/2} and
+   @pred{copy_file/3}. Added predicates @pred{get_uid/1},
+   @pred{get_gid/1}, @pred{get_pwnam/1}, @pred{get_grnam/1} 
+   implemented natively to get default user and groups of the
+   current process. (Edison Mera)
+ - Added library for mutable variables. (Remy Haemmerle)
+ - Added package for block declarations (experimental). (Remy
+   Haemmerle)
+ - Ported CHR as a Ciao package (experimental). (Tom
+   Schrijvers)
+ - Debugged and improved performance of the CHR library port.
+   (Remy Haemmerle)
+ - `contrib/math`: A library with several math functions
+   that depends on the GNU Scientific Library (GSL). (Edison
+   Mera)
+ - `io_aux.pl`: Added @pred{messages/1} 
+   predicate. Required to facilitate printing of compact
+   messages (compatible with emacs). (Edison Mera)
+ - Added library `hrtimer.pl` that allow us to measure the
+   time using the higest resolution timer available in the
+   current system. (Edison Mera)
+ - Global logical (backtrackable) variables (experimental).
+   (Jose Morales)
+ - New dynamic handling (`dynamic_clauses` package). Not
+   yet documented. (Daniel Cabeza)
+ - Moved `\\=` from `iso_misc` to
+   `term_basic`. (Daniel Cabeza)
+ - `lib/lists.pl`: Added predicate
+   @pred{sequence_to_list/2}. (Daniel Cabeza)
+ - `lib/lists.pl`: Codification of @pred{subordlist/2} 
+   improved. Solutions are given in other order. (Daniel
+   Cabeza)
+ - `lib/filenames.pl`: Added
+   @pred{file_directory_base_name/3}. (Daniel Cabeza)
+ - `library/symlink_locks.pl`: preliminary library to make
+   locks a la emacs. (Daniel Cabeza)
+ - `lib/between.pl`: Bug in `between/3` fixed: when the
+   low bound was a float, an smaller integer was
+   generated. (Daniel Cabeza)
+ - Fixed bug related to implication operator `->` in Fuzzy
+   Prolog (Claudio Vaucheret)
+ - `contrib/gendot`: Generator of dot files, for drawing graphs
+   using the dot tool. (Claudio Ochoa)
+ - Addded `zeromq` library (bindings for the Zero Message
+   Queue (ZeroMQ, 0MQ) cross-platform messaging middleware)
+   (Dragan Ivanovic)
+ - Minor documentation changes in `javall` library (Jesus
+   Correas)
+ - Fix a bug in calculator `pl2java` example (Jesus
+   Correas)
+ - `lib/aggregates.pl`: Deleted duplicated clauses of
+   @pred{findnsols/4}, detected by Pawel. (Daniel Cabeza)
+ - Added library to transform between color spaces (HSL and
+   HVS) (experimental). (Jose Morales)
+ - Added module qualification in DCGs. (Remy Haemmerle, Jose
+   Morales)
+ - @pred{prolog_sys:predicate_property/2} behaves similar to
+   other Prolog systems (thanks to Paulo Moura for reporting
+   this bug). (Jose Morales)
+ - Added DHT library (implementation of distributed hash
+   table) (Arsen Kostenko)
+ - Adding property `intervals/2` in `native_props.pl` 
+   (for intervals information) (Luthfi Darmawan)
+ - Added code to call polynomial root finding of GSL (Luthfi
+   Darmawan)
+ - Some improvements (not total, but easy to complete) to
+   error messages given by errhandle.pl . Also, some of the
+   errors in `sockets_c.c` are now proper exceptions
+   instead of faults. (Manuel Carro)
+ - `sockets` library: added a library (`nsl`) needed
+   for Solaris (Manuel Carro)
+ - Driver, utilities, and benchmarking programs from the ECRC
+   suite. These are aimed at testing some well-defined
+   characteristics of a Prolog system. (Manuel Carro)
+ - `library/getopts.pl`: A module to get command-line
+   options and values. Intended to be used by Ciao
+   executables. (Manuel Carro) 
+
+Improved ISO compliance:
+ - Ported the Prolog ISO conformance testing.
+ - Fixed read of files containing single ```%`'' char
+   (reported by Ulrich Neumerkel). (Jose Morales)
+ - Added exceptions in @pred{=../2}. (Remy Haemmerle)
+ - Added exceptions in arithmetic predicates. (Remy
+   Haemmerle)
+ - Arithmetics integer functions throw exceptions when used
+   with floats. (Remy Haemmerle)
+ - Added exceptions for resource errors. (Remy Haemmerle) 
+
+Improvements to constraint solvers:
+ - Improved CLPQ documentation. (Manuel Hermenegildo)
+ - Added `clp_meta/1` and `clp_entailed/1` to the clpq and clpr
+   packages (Samir Genaim):
+   - `clp_meta/1`: meta-programming with clp constraints,
+     e.g, `clp_meta([A.>.B,B.>.1])`.
+   - `clp_entailed/1`: checks if the store entails
+     specific cnstraints, e.g, `clp_entailed([A.>.B])` 
+     succeeds if the current store entailes `A.>.B`,
+     otherwise fails. 
+ - Exported the simplex predicates from CLP(Q,R). (Samir Genaim) 
+
+Other language extensions:
+ - Added new `bf/bfall` package. It allows running all
+   predicates in a given module in breadth-first mode without
+   changing the syntax of the clauses (i.e., no `<-` 
+   needed). Meant basically for experimentation and,
+   specially, teaching pure logic programming. (Manuel
+   Hermenegildo)
+ - Added `afall` package in the same line as `bf/bfall` 
+   (very useful!). (Manuel Hermenegildo)
+ - Improved documentation of `bf` and `af` 
+   packages. (Manuel Hermenegildo)
+ - Added partial commons-style dialect support, including
+   dialect flag. (Manuel Hermenegildo)
+ - `yap_compat` and `commons_compat` compatibility
+   packages (for Yap and Prolog Commons dialects). (Jose
+   Morales)
+ - `argnames` package: enhanced to allow argument name
+   resolution at runtime. (Jose Morales)
+ - A package for conditional compilation of code (`:-
+   use_package(condcomp)`). (Jose Morales) 
+
+Extensions for parallelism (And-Prolog):
+ - Low-level support for andprolog library has been taken out
+   of the engine and moved to `library/apll` in a similar
+   way as the sockets library. We are planning to reduce the
+   size of the actual engine further, by taking some
+   components out of engine, such as locks, in future
+   releases. (Amadeo Casas)
+ - Improved support for deterministic parallel goals,
+   including some bug fixes. (Amadeo Casas)
+ - Goal stack definition added to the engine. (Amadeo Casas)
+ - And-parallel code and the definition of goal stacks in the
+   engine are now wrapped with conditionals (via
+   `AND_PARALLEL_EXECUTION` variable), to avoid the
+   machinery necessary to run programs in parallel affects in
+   any case the sequential execution. (Amadeo Casas)
+ - Stack expansion supported when more than one agent is
+   present in the execution of parallel deterministic
+   programs. This feature is still in experimental. Support
+   for stack expansion in nondeterministic benchmarks will be
+   added in a future release. (Amadeo Casas)
+ - Support for stack unwinding in deterministic parallel
+   programs, via `metachoice`/`metacut`. However,
+   garbage collection in parallel programs is still
+   unsupported. We are planning to include support for it in
+   a future release. (Amadeo Casas)
+ - Backward execution of nondeterministic parallel goals made
+   via events, without speculation and continuation
+   join. (Amadeo Casas)
+ - Improved agents support. New primitives included that aim
+   at increasing the flexibility of creation and management
+   of agents. (Amadeo Casas)
+ - Agents synchronization is done now by using locks, instead
+   of using `assertz`/`retract`, to improve efficiency
+   in the execution of parallel programs. (Amadeo Casas)
+ - Optimized version of `call/1` to invoke deterministic
+   goals in parallel has been added
+   (`call_handler_det/1`). (Amadeo Casas)
+ - Optimization: locks/`new_atom` only created when the
+   goal is stolen by other process, and not when this is
+   pushed on to the `goal_stack`. (Amadeo Casas)
+ - Integration with the new annotation algorithms supported
+   by CiaoPP, both with and without preservation of the order
+   of the solutions. (Amadeo Casas)
+ - New set of examples added to the `andprolog` 
+   library. (Amadeo Casas)
+ - Several bug fixes to remove some cases in execution of
+   parallel code in which races could appear. (Amadeo Casas)
+ - `andprolog_rt:&` by `par_rt:&` have been moved to
+   `native_builtin` (Amadeo Casas)
+ - `indep/1` and `indep/2` have been moved to
+   `native_props`, as `ground/1`, `var/1`,
+   etc. (Amadeo Casas)
+ - Added assertions to the `library/apll` and
+   `library/andprolog` libraries. (Amadeo Casas)
+ - Removed clauses in `pretty_print` for the `&>/2` and
+   `<&/1` operators. (Amadeo Casas)
+ - Shorter code for `<& / 1` and `<&! / 1` (Manuel
+   Carro)
+ - Trying to solve some problems when resetting WAM pointers
+   (Manuel Carro)
+ - Better code to clean the stacks (Manuel Carro) 
+
+Improvements to foreign (C language) interface:
+ - Better support for cygwin and handling of dll libraries in
+   Windows. Now usage of external dll libraries are supported
+   in Windows under cygwin. (Edison Mera)
+ - Improvements to documentation of foreign interface (examples).
+   (Manuel Hermenegildo)
+ - Allow reentrant calls from Prolog to C and then from C to
+   Prolog. (Jose Morales)
+ - Fix bug that prevented `ciaoc -c MODULE` from generating
+   dynamic `.so` libraries files. (Jose Morales)
+ - Fix bug that prevented `ciaoc MODULE && rm MODULE && ciaoc
+   MODULE` from emitting correct executables (previously,
+   dynamic `.so` libraries files where ignored in executable
+   recompilations when only the main file was missing). (Jose
+   Morales) 
+
+Run-Time Checking and Unit Tests:
+ - Added support to perfom run-time checking of assertions
+   and predicates outside @apl{ciaopp} (see the documentation
+   for more details). In addition to those already
+   available, the new properties that can be run-time checked
+   are: `exception/1`, `exception/2`,
+   `no_exception/1`, `no_exception/2`,
+   `user_output/2`, `solutions/2`,
+   `num_solutions/2`, `no_signal/1`, `no_signal/2`,
+   `signal/1`, `signal/2`, `signals/2`,
+   `throws/2`. See library
+   `assertions/native_props.pl` (Edison Mera)
+ - Added support for testing via the @lib{unittest} library.
+   Documentation available at
+   `library(unittest/unittest)`. (Edison Mera) 
+
+Profiling:
+ - Improved profiler, now it is cost center-based and works
+   together with the run-time checking machinery in order to
+   also validate execution time-related properties. (Edison
+   Mera)
+ - A tool for automatic bottleneck detection has been
+   developed, which is able to point at the predicates
+   responsible of lack of performance in a program. (Edison
+   Mera)
+ - Improved profiler documentation. (Manuel Hermenegildo) 
+
+Debugger enhancements:
+ - Added the flag `check_cycles` to control whether the
+   debugger takes care of cyclic terms while displaying
+   goals. The rationale is that to check for cyclic terms
+   may lead to very high response times when having big
+   terms. By default the flag is in off, which implies that
+   a cyclic term in the execution could cause infinite loops
+   (but otherwise the debugger is much more speedy). (Daniel
+   Cabeza)
+ - Show the variable names instead of underscores with
+   numbers. Added option `v` to show the variables
+   list. Added `v <N>` option, where `N` is the
+   `Name` of the variable you like to watch
+   (experimental). (Edison Mera)
+ - Distinguish between program variables and
+   compiler-introduced variables. Show variables modified in
+   the current goal. (Edison Mera)
+ - `debug_mode` does not leave useless choicepoints (Jose
+   Morales) 
+
+Emacs mode:
+ - Made ciao mode NOT ask by default if one wants to set up
+   version control when first saving a file. This makes more
+   sense if using other version control systems and probably
+   in any case (several users had asked for this). There is a
+   global customizable variable (which appears in the LPdoc
+   area) which can be set to revert to the old behaviour.
+   Updated the manual accordingly. (Manuel Hermenegildo)
+ - Added possibility of chosing which emacs Ciao should use
+   during compilation, by LPdoc, etc. Previously only a
+   default emacs was used which is not always the right
+   thing, specially, e.g., in Mac OS X, where the
+   latest/right emacs may not even be in the paths. Other
+   minor typos etc. (Manuel Hermenegildo)
+ - Moved the version control menu entries to the LPdoc
+   menu. (Manuel Hermenegildo)
+ - Updated highlighting for new functional syntax, unit
+   tests, and all other new features. (Manuel Hermenegildo)
+ - Completed CiaoPP-java environment (menus, buttons, etc.)
+   and automated loading when visiting Java files (still
+   through hand modification of .emacs). CiaoPP help (e.g.,
+   for properties) now also available in Java mode. (Manuel
+   Hermenegildo)
+ - Changes to graphical interface to adapt better to current
+   functionality of CiaoPP option browser. Also some minor
+   aesthetic changes. (Manuel Hermenegildo)
+ - Various changes and fixes to adapt to emacs-22/23 lisp. In
+   particular, fixed cursor error in emacs 23 in Ciao shell
+   (from Emilio Gallego). Also fixed prompt in ciaopp and
+   LPdoc buffers for emacs 23. (Manuel Hermenegildo)
+ - Unified several versions of the Ciao emacs mode (including
+   the one with the experimental toolbar in xemacs) that had
+   diverged. Sorely needed to be able to make progress
+   without duplication. (Manuel Hermenegildo)
+ - New version of ciao.el supporting tool bar in xemacs and
+   also, and perhaps more importantly, in newer emacsen (>=
+   22), where it previously did not work either. New icons
+   with opaque background for xemacs tool bar. (Manuel
+   Hermenegildo)
+ - Using `key-description` instead of a combination of
+   `text-char-description` and `string-to-char`. This
+   fixes a bug in the Ciao Emacs Mode when running in emacs
+   23, that shows wrong descriptions for `M-...` key
+   bindings. The new code runs correctly in emacs 21 and 22.
+   (Jose Morales)
+ - Coloring strings before functional calls and `0'` 
+   characters (strings like `"~w"` were colored
+   incorrectly) (Jose Morales)
+ - `@@begin@{verbatim@}` and `@@include` colored as
+   LPdoc commands only inside LPdoc comments. (Jose Morales)
+ - Fixed colors for dark backgrounds (workaround to avoid a
+   bug in emacs) (Jose Morales)
+ - Added an automatic indenter (contrib/plindent) and
+   formatting tool, under emacs you can invoque it using the
+   keyword `C-c I` in the current buffer containing your
+   prolog source. (Edison Mera) 
+
+Packaging and distribution:
+ - User-friendly, binary installers for several systems are
+   now generated regularly and automatically: Ubuntu/Debian,
+   Fedora/RedHat, Windows (XP, Vista, 7) and MacOSX. (Edison
+   Mera, Remy Haemmerle) 
+
+Improvements in Ciao toplevel:
+ - Introduced `check_cycles` `prolog_flag` which
+   controls whether the toplevel handles or not cyclic terms.
+   Flag is set to false by default (cycles not detected and
+   handled) in order to speed up responses. (Daniel Cabeza)
+ - Modified @pred{valid_solution/2} so that it asks no
+   question when there are no pending choice points and the
+   `prompt_alternatives_no_bindings` prolog flag is
+   on. (Jose Morales)
+ - Now 'Y' can be used as well as 'y' to accept a solution of a
+   query. (Daniel Cabeza)
+ - Added newline before `true` when displaying empty
+   solutions. (Jose Morales)
+ - Multifile declarations of packages used by the toplevel were
+   not properly handled. Fixed. (Daniel Cabeza)
+ - Fixed bug in output of bindings when current output
+   changed.
+ - Changes so that including files in the toplevel (or loading
+   packages) does not invoke an expansion of the ending
+   `end_of_file`. This makes sense because the toplevel code is
+   never completed, and thus no cleanup code of translations is
+   invoked. (Daniel Cabeza) 
+
+Compiler enhancements and bug fixes:
+ - Added a command line option to `ciaoc` for generating code
+   with runtime checks. (Daniel Cabeza)
+ - Now the compiler reads assertions by default (when using the
+   assertion package), and verifies their syntax. (Edison Mera)
+ - Added option `-w` to `ciaoc` compiler to generate the
+   WAM code of the specified prolog files. (Edison Mera)
+ - Fixed bug in exemaker: now when
+   @pred{main/0} and @pred{main/1} exists, @pred{main/0} is
+   always the program entry (before in modules either could
+   be). (Daniel Cabeza)
+ - Fixed bug: when compiling a file, if an imported file had no
+   itf and it used the redefining declaration, the declaration was
+   forgotten between the reading of the imported file (to get
+   its interface) and its later compilation. By now those
+   declarations are never forgotten, but perhaps it could be
+   done better. (Daniel Cabeza)
+ - The unloading of files kept some data related to them, which
+   caused in some cases errors or warnings regarding module
+   redefinitions. Now this is fixed. (Daniel Cabeza)
+ - Undefined predicate warnings also for predicate calls
+   qualified with current module (bug detected by Pawel
+   Pietrzak). (Daniel Cabeza)
+ - Fixed bug `debugger_include` (that is, now a change in a
+   file included from a module which is debugged is detected
+   when the module is reloaded). (Daniel Cabeza)
+ - Fixed `a(B) :- _=B, b, c(B)` bug in compilation of
+   unification. (Jose Morales) 
+
+Improving general support for language extensions:
+ - Every package starts with '`:- package(...)`' declaration
+   now. This allows a clear distinction between packages,
+   modules, and files that are just included; all of them using
+   the same `.pl` extension. (Jose Morales)
+ - Added priority in syntax translations. Users are not required
+   to know the details of translations in order to use them
+   (experimental: the the correct order for all the Ciao
+   packages is still not fixed) (Jose Morales)
+ - Now the initialization of sentence translations is done in
+   the translation package, when they are added. In this way,
+   previous active translations cannot affect the initialization
+   of new translations, and initializations are not started each
+   time a new sentence translation is added. Additionally, now
+   the initialization of sentence translations in the toplevel
+   is done (there was a bug). (Daniel Cabeza)
+ - Added `addterm(Meta)` meta-data specification for the
+   implementation of the changes to provide a correct
+   @pred{clause/2} predicate. (Daniel Cabeza)
+ - Generalized `addmodule` meta-data specification to
+   `addmodule(Meta)`, `addmodule` is now an alias for
+   `addmodule(?)`. Needed for the implementation of the
+   changes to provide a correct @pred{clause/2} 
+   predicate. (Daniel Cabeza) 
+
+Improvements to system assertions:
+ - Added regtype @pred{basic_props:num_code/1} and more
+   assertions to `basic_props.pl` (German Puebla)
+ - Added trust assertion for
+   @pred{atomic_basic:number_codes/2} in order to have more
+   accurate analysis info (first argument a number and second
+   argument is a list of num_codes) (German Puebla)
+ - Added some more binding insensitivity assertions in
+   `basic_props.pl` (German Puebla)
+ - Added the @pred{basic_props:filter/2} property which is
+   used at the global control level in order to guarantee
+   termination. (German Puebla)
+ - Added `equiv` assertion for @pred{basiccontrol:fail/0} 
+   (German Puebla)
+ - Modified eval assertion so that partial evaluation does
+   not loop with ill-typed, semi-instantiated calls to
+   @pred{is/2} (this problem was reported some time ago)
+   (German Puebla)
+ - Replaced `true` assertions for arithmetic predicates
+   with `trust` assertions (`arithmetic.pl`). (German
+   Puebla)
+ - Added assertions for @pred{term_basic:'\\='/2} (the *not
+   unification*) (German Puebla)
+ - Added assertions for @pred{lists:nth/3} predicate and
+   @pred{lists:reverse/3}. (German Puebla)
+ - Changed calls to @pred{atom/1} to @pred{atm/1} in
+   @pred{c_itf_props:moddesc/1} (it is a regular type) (Jesus
+   Correas)
+ - @pred{formulae:assert_body_type/1} switched to `prop`,
+   it is not a `regtype`. (Jesus Correas)
+ - Added assertions to @pred{atom_concat/2}. (Jesus Correas)
+ - Added some assertions to `dec10_io`, `lists`,
+   `strings` libraries. (Jesus Correas)
+ - Removed `check` from pred and success froom many
+   library assertions. (Jesus Correas)
+ - Fixed a problem when reading multiple disjunction in
+   assertions (`library/formulae.pl` and
+   `lib/assertions/assrt_write.pl`). (Pawel Pietrzak)
+ - Added/improved assertions in several modules under
+   `lib/` (Pawel Pietrzak) 
+
+Engine enhancements:
+ - Added support for Ciao compilation in `ppc64` 
+   architecture. (Manuel Carro)
+ - `sun4v` added in `ciao_get_arch`. (Amadeo Casas)
+ - Solved compilation issue in Sparc. (Manuel Carro, Amadeo
+   Casas)
+ - Support for 64 bits Intel processor (in 32-bit compatibility
+   mode). (Manuel Carro)
+ - Switched the default memory manager from linear to the binary
+   tree version (which improves management of small memory
+   blocks). (Remy Haemmerle)
+ - Using `mmap` in Linux/i86, Linux/Sparc and Mac OS X
+   (Manuel Carro)
+ - A rename of the macro `REGISTER` to `CIAO_REGISTER`.
+   There have been reports of the macro name clashing with an
+   equally-named one in third-party packages (namely, the PPL
+   library). (Manuel Carro)
+ - A set of macros `CIAO_REG_n` (`n` currently goes from
+   `1` to `4`, but it can be enlarged) to force the GCC
+   compiler to store a variable in a register. This includes
+   assignments of hardware registers for `n = 1` to `3`,
+   in seemingly ascending order of effectiveness. See coments
+   in registers.h (Manuel Carro)
+ - An assignement of (local) variables to be definitely stored
+   in registers for some (not all) functions in the engine --
+   notably `wam.c`. These were decided making profiling of C
+   code to find out bottlenecks and many test runs with
+   different assignments of C variables to registers. (Manuel
+   Carro)
+ - Changed symbol name to avoid clashes with other third-party
+   packages (such as minisat). (Manuel Carro)
+ - Fixed a memory alignment problem (for RISC architectures
+   where words must be word-aligned, like Sparc). (Jose Morales)
+ - Unifying some internal names (towards merge with optim_comp
+   experimental branch). (Jose Morales) 
+
+Attributed variables:
+ - Attributes of variables are correctly displayed in the
+   toplevel even if they contain cyclic terms. Equations added
+   in order to define cyclic terms in attributes are output
+   after the attributes, and do use always new variable names
+   (doing otherwise was very involved). (Daniel Cabeza)
+ - `lib/attrdump.pl`: The library now works for infinite
+   (cyclic) terms. (Daniel Cabeza)
+ - Changed multifile predicate @pred{dump/3} to
+   @pred{dump_constraints/3}. (Daniel Cabeza)
+ - Added @pred{copy_extract_attr_nc/3} which is a faster version
+   of @pred{copy_extract_attr/3} but does not handle cyclic
+   terms properly. (Daniel Cabeza)
+ - Added @pred{term_basic:copy_term_nat/2} to copy a term
+   taking out attributes. (Daniel Cabeza) 
+
+Documentation:
+ - Added `deprecated/1`. (Manuel Hermenegildo)
+ - Improvements to documentation of `rtchecks` and
+   tests. (Manuel Hermenegildo)
+ - Many updates to manuals: dates, copyrights, etc. Some text
+   updates also. (Manuel Hermenegildo)
+ - Fixed all manual generation errors reported by LPdoc
+   (still a number of warnings and notes left). (Manuel
+   Hermenegildo)
+ - Adding some structure (minor) to all manuals (Ciao, LPdoc,
+   CiaoPP) using new LPdoc `doc_structure/1`. (Jose
+   Morales) 
+
+Ciao Website:
+ - Redesigned the Ciao website. It is generated again through
+   LPdoc, but with new approach. (Jose Morales)  
  
- - Improvements to signals and exceptions:
-   - Distinguished between exceptions and signals. Exceptions are
-     thrown and caught (using @pred{throw/1} and @pred{catch/3}).
-     Signals are sent and intercepted (using @pred{send_signal/1} 
-     and @pred{intercept/3}). (Jose Morales, Remy Haemmerle)
-   - Back-port of the (improved) low-level exception handling from
-     `optim_comp` branch. (Jose Morales)
-   - Fixed @pred{intercept/3} bug, with caused the toplevel to not
-     properly handle exceptions after one was handled and
-     displayed (bug reported by Samir Genaim on 04 Dec 05, in ciao
-     mailing list, subject ```ciao top-level : exception
-     handling`''). Updated documentation. (Daniel Cabeza)
-   - @pred{intercept/3} does not leave pending choice points if
-     the called goal is deterministic (the same optimization that
-     was done for @pred{catch/3}). (Jose Morales) 
- 
- - New/improved libraries:
-   - New `assoc` library to represent association tables.
-     (Manuel Carro, Pablo Chico)
-   - New `regexp` library to handle regular expressions.
-     (Manuel Carro, Pablo Chico)
-   - Fixed bug in string_to_number that affected ASCII to
-     floating point number conversions (@pred{number_codes/2} 
-     and bytecode read). (Jose Morales)
-   - `system.pl`: Added predicates @pred{copy_file/2} and
-     @pred{copy_file/3}. Added predicates @pred{get_uid/1},
-     @pred{get_gid/1}, @pred{get_pwnam/1}, @pred{get_grnam/1} 
-     implemented natively to get default user and groups of the
-     current process. (Edison Mera)
-   - Added library for mutable variables. (Remy Haemmerle)
-   - Added package for block declarations (experimental). (Remy
-     Haemmerle)
-   - Ported CHR as a Ciao package (experimental). (Tom
-     Schrijvers)
-   - Debugged and improved performance of the CHR library port.
-     (Remy Haemmerle)
-   - `contrib/math`: A library with several math functions
-     that depends on the GNU Scientific Library (GSL). (Edison
-     Mera)
-   - `io_aux.pl`: Added @pred{messages/1} 
-     predicate. Required to facilitate printing of compact
-     messages (compatible with emacs). (Edison Mera)
-   - Added library `hrtimer.pl` that allow us to measure the
-     time using the higest resolution timer available in the
-     current system. (Edison Mera)
-   - Global logical (backtrackable) variables (experimental).
-     (Jose Morales)
-   - New dynamic handling (`dynamic_clauses` package). Not
-     yet documented. (Daniel Cabeza)
-   - Moved `\\=` from `iso_misc` to
-     `term_basic`. (Daniel Cabeza)
-   - `lib/lists.pl`: Added predicate
-     @pred{sequence_to_list/2}. (Daniel Cabeza)
-   - `lib/lists.pl`: Codification of @pred{subordlist/2} 
-     improved. Solutions are given in other order. (Daniel
-     Cabeza)
-   - `lib/filenames.pl`: Added
-     @pred{file_directory_base_name/3}. (Daniel Cabeza)
-   - `library/symlink_locks.pl`: preliminary library to make
-     locks a la emacs. (Daniel Cabeza)
-   - `lib/between.pl`: Bug in `between/3` fixed: when the
-     low bound was a float, an smaller integer was
-     generated. (Daniel Cabeza)
-   - Fixed bug related to implication operator `->` in Fuzzy
-     Prolog (Claudio Vaucheret)
-   - `contrib/gendot`: Generator of dot files, for drawing graphs
-     using the dot tool. (Claudio Ochoa)
-   - Addded `zeromq` library (bindings for the Zero Message
-     Queue (ZeroMQ, 0MQ) cross-platform messaging middleware)
-     (Dragan Ivanovic)
-   - Minor documentation changes in `javall` library (Jesus
-     Correas)
-   - Fix a bug in calculator `pl2java` example (Jesus
-     Correas)
-   - `lib/aggregates.pl`: Deleted duplicated clauses of
-     @pred{findnsols/4}, detected by Pawel. (Daniel Cabeza)
-   - Added library to transform between color spaces (HSL and
-     HVS) (experimental). (Jose Morales)
-   - Added module qualification in DCGs. (Remy Haemmerle, Jose
-     Morales)
-   - @pred{prolog_sys:predicate_property/2} behaves similar to
-     other Prolog systems (thanks to Paulo Moura for reporting
-     this bug). (Jose Morales)
-   - Added DHT library (implementation of distributed hash
-     table) (Arsen Kostenko)
-   - Adding property `intervals/2` in `native_props.pl` 
-     (for intervals information) (Luthfi Darmawan)
-   - Added code to call polynomial root finding of GSL (Luthfi
-     Darmawan)
-   - Some improvements (not total, but easy to complete) to
-     error messages given by errhandle.pl . Also, some of the
-     errors in `sockets_c.c` are now proper exceptions
-     instead of faults. (Manuel Carro)
-   - `sockets` library: added a library (`nsl`) needed
-     for Solaris (Manuel Carro)
-   - Driver, utilities, and benchmarking programs from the ECRC
-     suite. These are aimed at testing some well-defined
-     characteristics of a Prolog system. (Manuel Carro)
-   - `library/getopts.pl`: A module to get command-line
-     options and values. Intended to be used by Ciao
-     executables. (Manuel Carro) 
- 
- - Improved ISO compliance:
-   - Ported the Prolog ISO conformance testing.
-   - Fixed read of files containing single ```%`'' char
-     (reported by Ulrich Neumerkel). (Jose Morales)
-   - Added exceptions in @pred{=../2}. (Remy Haemmerle)
-   - Added exceptions in arithmetic predicates. (Remy
-     Haemmerle)
-   - Arithmetics integer functions throw exceptions when used
-     with floats. (Remy Haemmerle)
-   - Added exceptions for resource errors. (Remy Haemmerle) 
- 
- - Improvements to constraint solvers:
-   - Improved CLPQ documentation. (Manuel Hermenegildo)
-   - Added `clp_meta/1` and `clp_entailed/1` to the clpq and clpr
-     packages (Samir Genaim):
-     - `clp_meta/1`: meta-programming with clp constraints,
-       e.g, `clp_meta([A.>.B,B.>.1])`.
-     - `clp_entailed/1`: checks if the store entails
-       specific cnstraints, e.g, `clp_entailed([A.>.B])` 
-       succeeds if the current store entailes `A.>.B`,
-       otherwise fails. 
-   - Exported the simplex predicates from CLP(Q,R). (Samir Genaim) 
- 
- - Other language extensions:
-   - Added new `bf/bfall` package. It allows running all
-     predicates in a given module in breadth-first mode without
-     changing the syntax of the clauses (i.e., no `<-` 
-     needed). Meant basically for experimentation and,
-     specially, teaching pure logic programming. (Manuel
-     Hermenegildo)
-   - Added `afall` package in the same line as `bf/bfall` 
-     (very useful!). (Manuel Hermenegildo)
-   - Improved documentation of `bf` and `af` 
-     packages. (Manuel Hermenegildo)
-   - Added partial commons-style dialect support, including
-     dialect flag. (Manuel Hermenegildo)
-   - `yap_compat` and `commons_compat` compatibility
-     packages (for Yap and Prolog Commons dialects). (Jose
-     Morales)
-   - `argnames` package: enhanced to allow argument name
-     resolution at runtime. (Jose Morales)
-   - A package for conditional compilation of code (`:-
-     use_package(condcomp)`). (Jose Morales) 
- 
- - Extensions for parallelism (And-Prolog):
-   - Low-level support for andprolog library has been taken out
-     of the engine and moved to `library/apll` in a similar
-     way as the sockets library. We are planning to reduce the
-     size of the actual engine further, by taking some
-     components out of engine, such as locks, in future
-     releases. (Amadeo Casas)
-   - Improved support for deterministic parallel goals,
-     including some bug fixes. (Amadeo Casas)
-   - Goal stack definition added to the engine. (Amadeo Casas)
-   - And-parallel code and the definition of goal stacks in the
-     engine are now wrapped with conditionals (via
-     `AND_PARALLEL_EXECUTION` variable), to avoid the
-     machinery necessary to run programs in parallel affects in
-     any case the sequential execution. (Amadeo Casas)
-   - Stack expansion supported when more than one agent is
-     present in the execution of parallel deterministic
-     programs. This feature is still in experimental. Support
-     for stack expansion in nondeterministic benchmarks will be
-     added in a future release. (Amadeo Casas)
-   - Support for stack unwinding in deterministic parallel
-     programs, via `metachoice`/`metacut`. However,
-     garbage collection in parallel programs is still
-     unsupported. We are planning to include support for it in
-     a future release. (Amadeo Casas)
-   - Backward execution of nondeterministic parallel goals made
-     via events, without speculation and continuation
-     join. (Amadeo Casas)
-   - Improved agents support. New primitives included that aim
-     at increasing the flexibility of creation and management
-     of agents. (Amadeo Casas)
-   - Agents synchronization is done now by using locks, instead
-     of using `assertz`/`retract`, to improve efficiency
-     in the execution of parallel programs. (Amadeo Casas)
-   - Optimized version of `call/1` to invoke deterministic
-     goals in parallel has been added
-     (`call_handler_det/1`). (Amadeo Casas)
-   - Optimization: locks/`new_atom` only created when the
-     goal is stolen by other process, and not when this is
-     pushed on to the `goal_stack`. (Amadeo Casas)
-   - Integration with the new annotation algorithms supported
-     by CiaoPP, both with and without preservation of the order
-     of the solutions. (Amadeo Casas)
-   - New set of examples added to the `andprolog` 
-     library. (Amadeo Casas)
-   - Several bug fixes to remove some cases in execution of
-     parallel code in which races could appear. (Amadeo Casas)
-   - `andprolog_rt:&` by `par_rt:&` have been moved to
-     `native_builtin` (Amadeo Casas)
-   - `indep/1` and `indep/2` have been moved to
-     `native_props`, as `ground/1`, `var/1`,
-     etc. (Amadeo Casas)
-   - Added assertions to the `library/apll` and
-     `library/andprolog` libraries. (Amadeo Casas)
-   - Removed clauses in `pretty_print` for the `&>/2` and
-     `<&/1` operators. (Amadeo Casas)
-   - Shorter code for `<& / 1` and `<&! / 1` (Manuel
-     Carro)
-   - Trying to solve some problems when resetting WAM pointers
-     (Manuel Carro)
-   - Better code to clean the stacks (Manuel Carro) 
- 
- - Improvements to foreign (C language) interface:
-   - Better support for cygwin and handling of dll libraries in
-     Windows. Now usage of external dll libraries are supported
-     in Windows under cygwin. (Edison Mera)
-   - Improvements to documentation of foreign interface (examples).
-     (Manuel Hermenegildo)
-   - Allow reentrant calls from Prolog to C and then from C to
-     Prolog. (Jose Morales)
-   - Fix bug that prevented `ciaoc -c MODULE` from generating
-     dynamic `.so` libraries files. (Jose Morales)
-   - Fix bug that prevented `ciaoc MODULE && rm MODULE && ciaoc
-     MODULE` from emitting correct executables (previously,
-     dynamic `.so` libraries files where ignored in executable
-     recompilations when only the main file was missing). (Jose
-     Morales) 
- 
- - Run-Time Checking and Unit Tests:
-   - Added support to perfom run-time checking of assertions
-     and predicates outside @apl{ciaopp} (see the documentation
-     for more details). In addition to those already
-     available, the new properties that can be run-time checked
-     are: `exception/1`, `exception/2`,
-     `no_exception/1`, `no_exception/2`,
-     `user_output/2`, `solutions/2`,
-     `num_solutions/2`, `no_signal/1`, `no_signal/2`,
-     `signal/1`, `signal/2`, `signals/2`,
-     `throws/2`. See library
-     `assertions/native_props.pl` (Edison Mera)
-   - Added support for testing via the @lib{unittest} library.
-     Documentation available at
-     `library(unittest/unittest)`. (Edison Mera) 
- 
- - Profiling:
-   - Improved profiler, now it is cost center-based and works
-     together with the run-time checking machinery in order to
-     also validate execution time-related properties. (Edison
-     Mera)
-   - A tool for automatic bottleneck detection has been
-     developed, which is able to point at the predicates
-     responsible of lack of performance in a program. (Edison
-     Mera)
-   - Improved profiler documentation. (Manuel Hermenegildo) 
- 
- - Debugger enhancements:
-   - Added the flag `check_cycles` to control whether the
-     debugger takes care of cyclic terms while displaying
-     goals. The rationale is that to check for cyclic terms
-     may lead to very high response times when having big
-     terms. By default the flag is in off, which implies that
-     a cyclic term in the execution could cause infinite loops
-     (but otherwise the debugger is much more speedy). (Daniel
-     Cabeza)
-   - Show the variable names instead of underscores with
-     numbers. Added option `v` to show the variables
-     list. Added `v <N>` option, where `N` is the
-     `Name` of the variable you like to watch
-     (experimental). (Edison Mera)
-   - Distinguish between program variables and
-     compiler-introduced variables. Show variables modified in
-     the current goal. (Edison Mera)
-   - `debug_mode` does not leave useless choicepoints (Jose
-     Morales) 
- 
- - Emacs mode:
-   - Made ciao mode NOT ask by default if one wants to set up
-     version control when first saving a file. This makes more
-     sense if using other version control systems and probably
-     in any case (several users had asked for this). There is a
-     global customizable variable (which appears in the LPdoc
-     area) which can be set to revert to the old behaviour.
-     Updated the manual accordingly. (Manuel Hermenegildo)
-   - Added possibility of chosing which emacs Ciao should use
-     during compilation, by LPdoc, etc. Previously only a
-     default emacs was used which is not always the right
-     thing, specially, e.g., in Mac OS X, where the
-     latest/right emacs may not even be in the paths. Other
-     minor typos etc. (Manuel Hermenegildo)
-   - Moved the version control menu entries to the LPdoc
-     menu. (Manuel Hermenegildo)
-   - Updated highlighting for new functional syntax, unit
-     tests, and all other new features. (Manuel Hermenegildo)
-   - Completed CiaoPP-java environment (menus, buttons, etc.)
-     and automated loading when visiting Java files (still
-     through hand modification of .emacs). CiaoPP help (e.g.,
-     for properties) now also available in Java mode. (Manuel
-     Hermenegildo)
-   - Changes to graphical interface to adapt better to current
-     functionality of CiaoPP option browser. Also some minor
-     aesthetic changes. (Manuel Hermenegildo)
-   - Various changes and fixes to adapt to emacs-22/23 lisp. In
-     particular, fixed cursor error in emacs 23 in Ciao shell
-     (from Emilio Gallego). Also fixed prompt in ciaopp and
-     LPdoc buffers for emacs 23. (Manuel Hermenegildo)
-   - Unified several versions of the Ciao emacs mode (including
-     the one with the experimental toolbar in xemacs) that had
-     diverged. Sorely needed to be able to make progress
-     without duplication. (Manuel Hermenegildo)
-   - New version of ciao.el supporting tool bar in xemacs and
-     also, and perhaps more importantly, in newer emacsen (>=
-     22), where it previously did not work either. New icons
-     with opaque background for xemacs tool bar. (Manuel
-     Hermenegildo)
-   - Using `key-description` instead of a combination of
-     `text-char-description` and `string-to-char`. This
-     fixes a bug in the Ciao Emacs Mode when running in emacs
-     23, that shows wrong descriptions for `M-...` key
-     bindings. The new code runs correctly in emacs 21 and 22.
-     (Jose Morales)
-   - Coloring strings before functional calls and `0'` 
-     characters (strings like `"~w"` were colored
-     incorrectly) (Jose Morales)
-   - `@@begin@{verbatim@}` and `@@include` colored as
-     LPdoc commands only inside LPdoc comments. (Jose Morales)
-   - Fixed colors for dark backgrounds (workaround to avoid a
-     bug in emacs) (Jose Morales)
-   - Added an automatic indenter (contrib/plindent) and
-     formatting tool, under emacs you can invoque it using the
-     keyword `C-c I` in the current buffer containing your
-     prolog source. (Edison Mera) 
- 
- - Packaging and distribution:
-   - User-friendly, binary installers for several systems are
-     now generated regularly and automatically: Ubuntu/Debian,
-     Fedora/RedHat, Windows (XP, Vista, 7) and MacOSX. (Edison
-     Mera, Remy Haemmerle) 
- 
- - Improvements in Ciao toplevel:
-   - Introduced `check_cycles` `prolog_flag` which
-     controls whether the toplevel handles or not cyclic terms.
-     Flag is set to false by default (cycles not detected and
-     handled) in order to speed up responses. (Daniel Cabeza)
-   - Modified @pred{valid_solution/2} so that it asks no
-     question when there are no pending choice points and the
-     `prompt_alternatives_no_bindings` prolog flag is
-     on. (Jose Morales)
-   - Now 'Y' can be used as well as 'y' to accept a solution of a
-     query. (Daniel Cabeza)
-   - Added newline before `true` when displaying empty
-     solutions. (Jose Morales)
-   - Multifile declarations of packages used by the toplevel were
-     not properly handled. Fixed. (Daniel Cabeza)
-   - Fixed bug in output of bindings when current output
-     changed.
-   - Changes so that including files in the toplevel (or loading
-     packages) does not invoke an expansion of the ending
-     `end_of_file`. This makes sense because the toplevel code is
-     never completed, and thus no cleanup code of translations is
-     invoked. (Daniel Cabeza) 
- 
- - Compiler enhancements and bug fixes:
-   - Added a command line option to `ciaoc` for generating code
-     with runtime checks. (Daniel Cabeza)
-   - Now the compiler reads assertions by default (when using the
-     assertion package), and verifies their syntax. (Edison Mera)
-   - Added option `-w` to `ciaoc` compiler to generate the
-     WAM code of the specified prolog files. (Edison Mera)
-   - Fixed bug in exemaker: now when
-     @pred{main/0} and @pred{main/1} exists, @pred{main/0} is
-     always the program entry (before in modules either could
-     be). (Daniel Cabeza)
-   - Fixed bug: when compiling a file, if an imported file had no
-     itf and it used the redefining declaration, the declaration was
-     forgotten between the reading of the imported file (to get
-     its interface) and its later compilation. By now those
-     declarations are never forgotten, but perhaps it could be
-     done better. (Daniel Cabeza)
-   - The unloading of files kept some data related to them, which
-     caused in some cases errors or warnings regarding module
-     redefinitions. Now this is fixed. (Daniel Cabeza)
-   - Undefined predicate warnings also for predicate calls
-     qualified with current module (bug detected by Pawel
-     Pietrzak). (Daniel Cabeza)
-   - Fixed bug `debugger_include` (that is, now a change in a
-     file included from a module which is debugged is detected
-     when the module is reloaded). (Daniel Cabeza)
-   - Fixed `a(B) :- _=B, b, c(B)` bug in compilation of
-     unification. (Jose Morales) 
- 
- - Improving general support for language extensions:
-   - Every package starts with '`:- package(...)`' declaration
-     now. This allows a clear distinction between packages,
-     modules, and files that are just included; all of them using
-     the same `.pl` extension. (Jose Morales)
-   - Added priority in syntax translations. Users are not required
-     to know the details of translations in order to use them
-     (experimental: the the correct order for all the Ciao
-     packages is still not fixed) (Jose Morales)
-   - Now the initialization of sentence translations is done in
-     the translation package, when they are added. In this way,
-     previous active translations cannot affect the initialization
-     of new translations, and initializations are not started each
-     time a new sentence translation is added. Additionally, now
-     the initialization of sentence translations in the toplevel
-     is done (there was a bug). (Daniel Cabeza)
-   - Added `addterm(Meta)` meta-data specification for the
-     implementation of the changes to provide a correct
-     @pred{clause/2} predicate. (Daniel Cabeza)
-   - Generalized `addmodule` meta-data specification to
-     `addmodule(Meta)`, `addmodule` is now an alias for
-     `addmodule(?)`. Needed for the implementation of the
-     changes to provide a correct @pred{clause/2} 
-     predicate. (Daniel Cabeza) 
- 
- - Improvements to system assertions:
-   - Added regtype @pred{basic_props:num_code/1} and more
-     assertions to `basic_props.pl` (German Puebla)
-   - Added trust assertion for
-     @pred{atomic_basic:number_codes/2} in order to have more
-     accurate analysis info (first argument a number and second
-     argument is a list of num_codes) (German Puebla)
-   - Added some more binding insensitivity assertions in
-     `basic_props.pl` (German Puebla)
-   - Added the @pred{basic_props:filter/2} property which is
-     used at the global control level in order to guarantee
-     termination. (German Puebla)
-   - Added `equiv` assertion for @pred{basiccontrol:fail/0} 
-     (German Puebla)
-   - Modified eval assertion so that partial evaluation does
-     not loop with ill-typed, semi-instantiated calls to
-     @pred{is/2} (this problem was reported some time ago)
-     (German Puebla)
-   - Replaced `true` assertions for arithmetic predicates
-     with `trust` assertions (`arithmetic.pl`). (German
-     Puebla)
-   - Added assertions for @pred{term_basic:'\\='/2} (the *not
-     unification*) (German Puebla)
-   - Added assertions for @pred{lists:nth/3} predicate and
-     @pred{lists:reverse/3}. (German Puebla)
-   - Changed calls to @pred{atom/1} to @pred{atm/1} in
-     @pred{c_itf_props:moddesc/1} (it is a regular type) (Jesus
-     Correas)
-   - @pred{formulae:assert_body_type/1} switched to `prop`,
-     it is not a `regtype`. (Jesus Correas)
-   - Added assertions to @pred{atom_concat/2}. (Jesus Correas)
-   - Added some assertions to `dec10_io`, `lists`,
-     `strings` libraries. (Jesus Correas)
-   - Removed `check` from pred and success froom many
-     library assertions. (Jesus Correas)
-   - Fixed a problem when reading multiple disjunction in
-     assertions (`library/formulae.pl` and
-     `lib/assertions/assrt_write.pl`). (Pawel Pietrzak)
-   - Added/improved assertions in several modules under
-     `lib/` (Pawel Pietrzak) 
- 
- - Engine enhancements:
-   - Added support for Ciao compilation in `ppc64` 
-     architecture. (Manuel Carro)
-   - `sun4v` added in `ciao_get_arch`. (Amadeo Casas)
-   - Solved compilation issue in Sparc. (Manuel Carro, Amadeo
-     Casas)
-   - Support for 64 bits Intel processor (in 32-bit compatibility
-     mode). (Manuel Carro)
-   - Switched the default memory manager from linear to the binary
-     tree version (which improves management of small memory
-     blocks). (Remy Haemmerle)
-   - Using `mmap` in Linux/i86, Linux/Sparc and Mac OS X
-     (Manuel Carro)
-   - A rename of the macro `REGISTER` to `CIAO_REGISTER`.
-     There have been reports of the macro name clashing with an
-     equally-named one in third-party packages (namely, the PPL
-     library). (Manuel Carro)
-   - A set of macros `CIAO_REG_n` (`n` currently goes from
-     `1` to `4`, but it can be enlarged) to force the GCC
-     compiler to store a variable in a register. This includes
-     assignments of hardware registers for `n = 1` to `3`,
-     in seemingly ascending order of effectiveness. See coments
-     in registers.h (Manuel Carro)
-   - An assignement of (local) variables to be definitely stored
-     in registers for some (not all) functions in the engine --
-     notably `wam.c`. These were decided making profiling of C
-     code to find out bottlenecks and many test runs with
-     different assignments of C variables to registers. (Manuel
-     Carro)
-   - Changed symbol name to avoid clashes with other third-party
-     packages (such as minisat). (Manuel Carro)
-   - Fixed a memory alignment problem (for RISC architectures
-     where words must be word-aligned, like Sparc). (Jose Morales)
-   - Unifying some internal names (towards merge with optim_comp
-     experimental branch). (Jose Morales) 
- 
- - Attributed variables:
-   - Attributes of variables are correctly displayed in the
-     toplevel even if they contain cyclic terms. Equations added
-     in order to define cyclic terms in attributes are output
-     after the attributes, and do use always new variable names
-     (doing otherwise was very involved). (Daniel Cabeza)
-   - `lib/attrdump.pl`: The library now works for infinite
-     (cyclic) terms. (Daniel Cabeza)
-   - Changed multifile predicate @pred{dump/3} to
-     @pred{dump_constraints/3}. (Daniel Cabeza)
-   - Added @pred{copy_extract_attr_nc/3} which is a faster version
-     of @pred{copy_extract_attr/3} but does not handle cyclic
-     terms properly. (Daniel Cabeza)
-   - Added @pred{term_basic:copy_term_nat/2} to copy a term
-     taking out attributes. (Daniel Cabeza) 
- 
- - Documentation:
-   - Added `deprecated/1`. (Manuel Hermenegildo)
-   - Improvements to documentation of `rtchecks` and
-     tests. (Manuel Hermenegildo)
-   - Many updates to manuals: dates, copyrights, etc. Some text
-     updates also. (Manuel Hermenegildo)
-   - Fixed all manual generation errors reported by LPdoc
-     (still a number of warnings and notes left). (Manuel
-     Hermenegildo)
-   - Adding some structure (minor) to all manuals (Ciao, LPdoc,
-     CiaoPP) using new LPdoc `doc_structure/1`. (Jose
-     Morales) 
- 
- - Ciao Website:
-   - Redesigned the Ciao website. It is generated again through
-     LPdoc, but with new approach. (Jose Morales)  
- 
-@comment{note: approximate release date (r7508)} 
 ## [1.10.8] - 2007-01-28 
- Backports and bug fixes to stable 1.10:
+
+Backports and bug fixes to stable 1.10:
+
  - Changes to make Ciao 1.10 compile with the latest GCC
    releases.
  - Imported from
@@ -1228,30 +1360,32 @@ is included in this release. Here is the (longish) summary:
  - Force the creation of the module containing the foreign
    interface compilation options before they are needed. 
  
+@comment{approximate release date, check SVN r7508} 
+
 ## [1.13.0] - 2005-07-03 
- New development version after 1.12. (Jose Morales)
+
+New development version after 1.12. (Jose Morales)
  
 ## [1.12.0] - 2005-07-03 
- Temporary version before transition to SVN. (Jose Morales)
- 
-@comment{version: 1.11.247,2004-07-02
-    Improved front cover (old authors are now listed as editors, mention UNM,
-    new TR number including system version, pointer to
-    @tt{www.ciaohome.org}, mention multi-paradigm, etc.). Also changed
-    mention of GPL in summary to LGPL.  (Manuel Hermenegildo)
- } 
+
+Temporary version before transition to SVN. (Jose Morales)
+
+## [1.11.247] - 2004-07-02
+
+Improved front cover (old authors are now listed as editors, mention
+UNM, new TR number including system version, pointer to
+`www.ciaohome.org`, mention multi-paradigm, etc.). Also changed
+mention of GPL in summary to LGPL.  (Manuel Hermenegildo)
  
 ## [1.11.1] - 2003-04-04 
- New development version to begin the builtin modularization (Jose
- Morales)
- 
-@comment{version: 1.10.1,2003-04-04
-    Version skipped (Jose Morales)
- } 
+
+New development version to begin the builtin modularization (Jose
+Morales)
  
 @comment{TODO: (pre SVN) missing notes from 1.10.0 to 1.10.7} 
  
 ## [1.10.0] - 2004-07-29 
+
  - Classical prolog mode as default behavior.
  - Emacs-based environment improved.
    - Improved emacs inferior (interaction) mode for Ciao and CiaoPP.
@@ -1386,34 +1520,29 @@ is included in this release. Here is the (longish) summary:
      foreign_interface, javall, persdb_mysql, prolog_sys, old_database,
      and terms_vars.  
  
-@comment{version: 1.9.355,2004-07-02
-    Improved front cover (old authors are now listed as editors, mention UNM,
-    new TR number including system version, pointer to
-    @tt{www.ciaohome.org}, mention multi-paradigm, etc.). Also changed
-    mention of GPL in summary to LGPL.  (Manuel Hermenegildo)
- } 
+## [1.9.38] - 2002-12-12
+
+Manual now posted in pdf format (since lpdoc now generates much better pdf).
+(Manuel Hermenegildo)
  
-@comment{version: 1.9.38,2002-12-12
-    Manual now posted in pdf format (since lpdoc now generates much better pdf).
-    (Manuel Hermenegildo)
- } 
+## [1.9.34] - 2002-11-30
+
+Installation can now be done in Test distribution directory (for
+testing purposes).  (Manuel Hermenegildo)
  
-@comment{version: 1.9.34,2002-11-30
-    Installation can now be done in Test distribution directory (for testing
-    purposes).  (Manuel Hermenegildo)
- } 
- 
-@comment{version: 1.9.33,2002-11-30
-    Modified installation site text to make more explicit the fact that we
-    support Mac OS X and XP.  (Manuel Hermenegildo)
- } 
+## [1.9.33] - 2002-11-30
+
+Modified installation site text to make more explicit the fact that we
+support Mac OS X and XP.  (Manuel Hermenegildo)
  
 ## [1.9.0] - 2002-05-16 
- New development version after stable 1.8p0 (MCL, DCG)
+
+New development version after stable 1.8p0 (MCL, DCG)
  
 @comment{TODO: (pre SVN) missing notes from 1.8.0 to 1.8.3} 
  
 ## [1.8.0] - 2002-05-16 
+
  - Improvements related to supported platforms:
    - Support for Mac OS X 10.1, based on the Darwin kernel.
    - Initial support for compilation on Linux for Power PC
@@ -1584,59 +1713,61 @@ is included in this release. Here is the (longish) summary:
      it has been installed, so that other programs can be located
      without being explicitly in the \$PATH.
    - Loading programs is somewhat faster now.
-   - Some improvement in printing path names in Windows.  
+   - Some improvement in printing path names in Windows.
  
-@comment{version: 1.7.203,2002-04-20
-    Minor changes to Ciao description.  (Manuel Hermenegildo)
- } 
+## [1.7.203] - 2002-04-20
+
+Minor changes to Ciao description.  (Manuel Hermenegildo)
  
-@comment{version: 1.7.155,2001-11-24
-    Minor changes to installation scripts to make sure permissions are left correctly
-    if installation is aborted.  (Manuel Hermenegildo)
- } 
+## [1.7.155] - 2001-11-24
+
+Minor changes to installation scripts to make sure permissions are
+left correctly if installation is aborted.  (Manuel Hermenegildo)
  
-@comment{version: 1.7.154,2001-11-23
-    'ciao' script now locally adds CIAOBIN path to PATH if not already present
-    (MCL)
- } 
+## [1.7.154] - 2001-11-23
+
+`ciao` script now locally adds `CIAOBIN` path to `PATH` if not already
+present (MCL)
  
-@comment{version: 1.7.108,2001-06-02
-    Minor bug in main Makefile during uninstallation fixed: added rm -f of engine
-    Makefile before linking.  (Manuel Hermenegildo)
- } 
+## [1.7.108] - 2001-06-02
+
+Minor bug in main `Makefile` during uninstallation fixed: added `rm -f`
+of engine `Makefile` before linking.  (Manuel Hermenegildo)
  
-@comment{version: 1.7.101,2001-05-15
-    Minor error in manual fixed: the section explaining the Ciao name did not
-    appear.  (Manuel Hermenegildo)
- } 
+## [1.7.101] - 2001-05-15
+
+Minor error in manual fixed: the section explaining the Ciao name did
+not appear.  (Manuel Hermenegildo)
  
-@comment{version: 1.7.100,2001-05-13
-    Added @tt{/usr/share/info} to default @tt{INFOPATH} paths.  (Manuel
-    Hermenegildo)
- } 
+## [1.7.100] - 2001-05-13
+
+Added `/usr/share/info` to default `INFOPATH` paths.  (Manuel
+Hermenegildo)
  
-@comment{version: 1.7.87,2001-04-08
-    Added @tt{doc} and @tt{install_doc} targets to top level installation @tt{Makefile}
-    (can be used to regenerate and reinstall documentation if
-    @apl{lpdoc} is available.  (Manuel Hermenegildo)
- } 
+## [1.7.87] - 2001-04-08
+
+Added `doc` and `install_doc` targets to top level installation
+`Makefile` (can be used to regenerate and reinstall documentation
+if @apl{lpdoc} is available.  (Manuel Hermenegildo)
  
-@comment{version: 1.7.14,2000-08-29
-    Updated COMMON to include makefile-sysindep; changed SETLOCAL{CIAOC,CIAOSHELL} to
-    SETLOCALCIAO (MCL)
- } 
+## [1.7.14] - 2000-08-29
+
+Updated `COMMON` to include makefile-sysindep; changed `SETLOCAL\{CIAOC,CIAOSHELL\}` to
+`SETLOCALCIAO` (MCL)
  
-@comment{version: 1.7.12,2000-08-22
-    Changed a bug in the installation: the .sta engine was not being copied!
-    (MCL)
- } 
+## [1.7.12] - 2000-08-22
+
+Changed a bug in the installation: the .sta engine was not being
+copied!  (MCL)
  
 ## [1.7.0] - 2000-07-12 
- Development version following even 1.6 distribution.
+
+Development version following even 1.6 distribution.
  
 @comment{TODO: (pre SVN) missing notes from 1.6.0 to 1.6.3} 
  
 ## [1.6.0] - 2000-07-12 
+
  - Source-level debugger in emacs, breakpts.
  - Emacs environment improved, added menus for Ciaopp and LPDoc.
  - Debugger embeddable in executables.
@@ -1666,20 +1797,21 @@ is included in this release. Here is the (longish) summary:
  - Many improvements to autodocumenter.
  - Many bug fixes in libraries and engine. 
  
-@comment{version: 1.5.134,2000-05-09
-    Changed location of suite to examples, updated documentation.  (MCL)
- } 
+## [1.5.134] - 2000-05-09
+
+Changed location of suite to examples, updated documentation.  (MCL)
  
-@comment{version: 1.5.94,2000-03-28
-    The manual intro now provides an overview of the different parts of the
-    manual.  (Manuel Hermenegildo)
- } 
+## [1.5.94] - 2000-03-28
+
+The manual intro now provides an overview of the different parts of
+the manual.  (Manuel Hermenegildo)
  
 ## [1.5.0] - 1999-11-29
 
 Development version following even 1.4 distribution.
  
 ## [1.4.0] - 1999-11-27 
+
  - Documentation greatly improved.
  - Automatic (re)compilation of foreign files.
  - Concurrency primitives revamped; restored &Prolog-like
@@ -1725,10 +1857,10 @@ Development version following even 1.0 distribution.
    needed no access to the file system is required.
  - Many bugs fixed. 
  
-@comment{version: 0.9.32,1999-04-05
- Improved uninstallation makefiles so that (almost) nothing is left
- behind. (Manuel Hermenegildo)
- } 
+## [0.9.32] - 1999-04-05
+
+Improved uninstallation makefiles so that (almost) nothing is left
+behind. (Manuel Hermenegildo)
  
 ## [0.9.0] - 1999-03-10 
 
@@ -1777,6 +1909,7 @@ Development version following even 1.0 distribution.
 @comment{TODO: (pre SVN) missing notes from 0.5.0 to 0.5.50} 
  
 ## [0.5.0] - 1998-3-23 
+
  - First Windows version.
  - Integrated debugger in toplevel.
  - Implemented DCG's as (Ciao-style) expansions.
@@ -1794,6 +1927,7 @@ Development version following even 1.0 distribution.
  - Added new compilation warnings. 
  
 ## [0.3.0] - 1997-8-20 
+
  - Ciao builtins modularized.
  - New prolog flags can be defined by libraries.
  - Standalone comand-line compiler available, with automatic `make`.
@@ -1801,6 +1935,7 @@ Development version following even 1.0 distribution.
  - First version using the automatic documentation generator. 
  
 ## [0.2.0] - 1997-4-16 
+
  - First module system implemented.
  - Implemented exceptions using catch/3 and throw/1.
  - Added functional & record syntax.
