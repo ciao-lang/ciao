@@ -1,7 +1,7 @@
 This describes the installation procedure for the Ciao system,
 including libraries and manuals:
 
-1. Check the [**requirements and dependencies**](#Requirements%20and%20dependencies).
+1. Check / install the [**requirements and dependencies**](#Requirements%20and%20dependencies).
 2. Begin the interactive [**network-based installation**](/ciao/build/doc/ciao.html/Install.html#Network-based%20installation%20options)
    typing the following *one-liner* in an `sh`-compatible terminal:
    ```
@@ -35,7 +35,8 @@ Installing [**Emacs**](https://www.gnu.org/software/emacs/) or
 is highly recommended: the Ciao distribution includes a very powerful
 *application development environment* which enables, e.g., syntax
 coloring, source code formatting, embedded top-level, source-level
-debugging, context-sensitive on-line help, etc.
+debugging, context-sensitive on-line help, generating documentation,
+etc., etc.
 
 In any case, it is easy to use Ciao from a terminal and edit code with
 any editor of your choice. The top level includes some minimal editing
@@ -125,7 +126,7 @@ administrator or `root` user):
  - **Windows** (using Windows Subsystem or Linux):
    - Install [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
    - Install some Linux distribution (e.g., Ubuntu) from the Windows Store.
-   - Open a `bash` terminal and install the dependencies for the
+   - Open a `wsl` terminal and install the dependencies for the
      selected distribution (see points above), e.g., Debian/Ubuntu.
 
  - Windows (native, **experimental**)
@@ -148,7 +149,7 @@ compiler (GCC or clang), libraries, and build tools. The optional
 dependencies are:
 
  - [emacs](https://www.gnu.org/software/emacs/): required for
-   emacs-based IDE (use `emacs-nox` is no graphical interface is
+   emacs-based IDE (use `emacs-nox` if no graphical interface is
    needed)
  - [ImageMagick](https://en.wikipedia.org/wiki/ImageMagick): used
    image conversion in `lpdoc` (use `ImageMagick-nox` if no graphical
@@ -164,26 +165,28 @@ dependencies are:
 
 Bundles installed via `ciao get` must be uninstalled and removed
 explicitly. Currently, this needs to be done manually per bundle.
-Upgrading a bundles requires uninstallation followed by
+Upgrading a bundle requires uninstallation followed by
 (re)installation.
 
 E.g., uninstalling the **development environment** (if installed)
-requires:
+requires: 
 ```sh
 ciao uninstall ciao_emacs; ciao rm ciao_emacs; ciao rm devenv
 ```
-Once all bundles have been removed, the core Ciao system can be
-uninstalled running `./ciao-boot.sh uninstall` from the source
-directory (then, remove the directory).
 
 # Upgrading or uninstalling Ciao
 
-If installed using `curl`, the system is installed in a per-version
-subdirectory under `~/.ciaoroot/`. E.g., development version is
-installed at `~/.ciaoroot/master`. Proper uninstallation requires
-executing `./ciao-boot.sh uninstall` from that directory.
+For full cleanup, first remove all installed bundles (see above) .
+Once all bundles have been removed, the core Ciao system can be
+uninstalled running `./ciao-boot.sh uninstall` from the source
+directory; then, remove the directory.
 
-It can be automatized with a script like:
+If installed using `curl`, the system is installed in a per-version
+subdirectory under `~/.ciaoroot/<ciao_version>`. E.g., the development
+version is installed at `~/.ciaoroot/master`. Proper uninstallation
+requires executing `./ciao-boot.sh uninstall` from that directory.
+
+It can be automated with a script such as:
 ```sh
 ( cd ~/.ciaoroot/master; ./ciao-boot.sh uninstall )
 rm -rf ~/.ciaoroot/master
