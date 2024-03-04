@@ -1,5 +1,5 @@
 :- bundle(builder).
-version('1.22.0'). % (same as 'core')
+version('1.23.0'). % (same as 'core')
 depends([core]).
 alias_paths([ciaobld = 'src']).
 %
