@@ -47,7 +47,7 @@
 
 @begin{description}
 
-@item{@tt{version}} The Ciao version, as a term
+@item{@tt{version_data}} The Ciao version, as a term
       @tt{ciao}(@var{Version},@var{Patch},@var{CommitInfo}).
       @var{Version} and @var{Patch} are atoms.  @var{CommitInfo} is a
       structure describing the commit information (branch, id, date,
