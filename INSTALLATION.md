@@ -146,6 +146,12 @@ administrator or `root` user):
      $ pkg install emacs # optional
      $ pkg install rlwrap # optional
      ```
+
+ - [**GNU Guix**](https://guix.gnu.org/):
+   - Use the following environment:
+     ```sh
+     guix shell gcc-toolchain make
+     ```
 	
 The dependencies above typically include a relatively modern C
 compiler (GCC or clang), libraries, and build tools. The optional
