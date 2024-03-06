@@ -14,17 +14,17 @@ Build system:
    to be modified.
  - ADDED: Using prebuilt docs in curl-based installation skips doc gen.
  - IMPROVED: Improved ciao-boot.sh (network-based installer)
- - FIX: Fix curl installation examples.
+ - FIX: Fixed curl installation examples.
 
 Compiler:
 
  - IMPROVED: minor improvements in emugen generator
  - CHANGED: assume implicit `library(...)` in `_/_` package names
-   E.g., `bf/bfall` works in the package list without single quotes.
+   E.g., `sr/bfall` works in the package list without single quotes.
 
 Libraries:
 
- - ADDED: New `modes` package.
+ - ADDED: New additional `modes` package.
  - IMPROVED: Allow more standard code fences in markdown parser.
  - IMPROVED: Colors for dark background in htmlfontify CSS (`syntax_highlight` library)
  - CHANGED: `bf/` moved to `sr/`
@@ -55,8 +55,8 @@ Runtime checks, testing, and debugging:
  - IMPROVED: better detection of failed tests
  - IMPROVED: unittest summary now shows line numbers of assertion that failed
  - IMPROVED: simplify stdout/stderr redirection code
- - FIX: fix bug in pretty printing of rtchecks (locate asrloc properly).
- - FIX: no timeout for architectures not support them (yet)
+ - FIX: fix bug in pretty-printing of rtchecks (locate asrloc properly)
+ - FIX: no timeout for architectures not supporting them (yet)
 
 Ciao WASM backend:
 
