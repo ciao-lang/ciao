@@ -142,7 +142,7 @@ administrator or `root` user):
    - Install [Termux](https://termux.com/)
    - Install the following packages:
      ```sh
-     $ pkg install clang make
+     $ pkg install clang make binutils
      $ pkg install emacs # optional
      $ pkg install rlwrap # optional
      ```
