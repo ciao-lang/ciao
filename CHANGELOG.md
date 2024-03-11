@@ -2,7 +2,106 @@
 
 ## [1.23.0] - 2024-3-04
 
-TBD
+Build system:
+
+ - ADDED: Publish commands to manage tags.
+ - ADDED: Instructions to publish bundles.
+ - FIXED: Include `nodefs.js` for `EMSCRIPTENwasm32`.
+
+Compiler:
+
+ - ADDED: Experimental support for clause translation after module expansion.
+ - ADDED: '$meta_exp'/3 builtin (explicit meta expansions).
+ - ADDED: Hooks to customize handling source debugging information.
+ - ADDED: Hooks for toplevel get line.
+ - CHANGED: Factorized toplevel and debugger IO (`toplevel_io:top_get_line/1`).
+ - FIXED: Debugger must not enter internal `foreign_js_rt` module.
+ - ADDED: The `p_unit` library has been promoted from CiaoPP, as part
+   of Ciao compiler. This component is used by CiaoPP (and potentially
+   other static analysis tools) to read, manipulate, and output
+   programs.
+ - IMPROVED: `p_unit`: Code cleanups, simplifications, optimizations.
+ - IMPROVED: `p_unit`: Incremental loading.
+ - IMPROVED: `p_unit`: Initial multimodular output support.
+ - FIXED: `p_unit`: `linear/1` is not printed as a list of all linear terms but individually.
+ - FIXED: `p_unit`: Fixes in module unexpansions.
+ - FIXED: `p_unit`: Simplified predicate visibilify checks.
+ - FIXED: `p_unit`: Do not apply goal expansions in assertion heads.
+
+Engine:
+
+ - CHANGED: Do not complain about disabled dynlink in `wasm32`, until it
+   is supported.
+
+Ciao WASM backend:
+
+ - ADDED: Support for debugger.
+ - ADDED: Toplevel simulation code moved from playground.
+ - ADDED: Initial support for NodeJS (with a readline-based toplevel).
+   Local directory is mounted as `/local`.
+ - CHANGED: `ciao-async.js` renamed to `ciao-prolog.js` (this is the
+   main file to load and interface with the Ciao wasm version).
+ - CHANGED: `ciao-worker.js` stored as a Blob object (better CORS
+   behaviour), passed absolute URL.
+ - IMPROVED: Allow execution in both Web Workers and window (not
+   worker) contexts.
+ - IMPROVED: Initial support for binary-only bundle distributions.
+ - FIXED: Disable emscripten image/audio decoding (suppress warning).
+ - FIXED: `emcc` options to avoid nodejs showing whole code on exceptions
+
+Libraries and language extensions:
+
+ - ADDED: `fsyntax`: new syntax for hiord terms (`hiord(true)` flag).
+ - IMPROVED: `fsyntax`: allow `fun_eval` declaration in toplevel.
+ - IMPROVED: `fsyntax`: Using index notation in array example.
+ - IMPROVED: `library(opendoc)`: open native apps in WSL.
+ - CHANGED: `fsyntax`: Remove support for deprecated `function` decl.
+ - FIXED: `fsyntax`: do not rename arithmetic relations in non-goal positions.
+ - FIXED: `fsyntax`: handling of `@{@}`
+ - FIXED: Lazy primes example.
+ - FIXED: `library(emacs_batch)`: fixes for emacs 29.
+ - FIXED: Base case for `llist_to_disj/2` (false) `llist_to_conj/2` (true)
+ - FIXED: Allow copying symlinks in `library(source_tree)`.
+ - IMPROVED: Minor mostly aesthetic improvements in core/examples.
+ - FIXED: `library(json)`: escaping of <32 non-ascii chars in JSON encoding of strings.
+ - FIXED: Markdown parser do not treat `@@author@{...@}` as front cmd.
+
+Assertions, runtime checks, unit tests:
+
+ - ADDED: Warning when test success part contains existential variables.
+ - CHANGED: `fails/1` moved from `native_props` into `basic_props`
+ - CHANGED: Do not expand modes in test assertions.
+ - CHANGED: Support empty calls in calls assertions.
+ - FIXED: Fixing rtcheck implementation for several properties
+   (`clique/1`, `instance/2`, `mshare/2`, `constraint/1`, `fails/1`),
+ - FIXED: Program-point rtchecks for conjunction of properties.
+
+Documentation:
+
+ - IMPROVED: Pass over installation instructions.
+ - CHANGED: Enable markdown syntax in all manuals.
+
+Emacs mode:
+
+ - ADDED: Additions to flycheck-ciao instructions.
+ - ADDED: Syntax highlighting to flycheck-ciao messages.
+ - CHANGED: Do not highlight 'function' decl (it was deprecated).
+ - FIXED: coloring in lpdoc-genereated info nodes due to info changes.
+ - FIXED: Eliminated more compile warnings due to wrong single quotes.
+ - FIXED: Eliminated obsolete/noop calls to easy-menu-add.
+ - FIXED: Eliminated compile warnings due to wrong single quotes.
+ - FIXED: Improve coloring of CiaoPP inferior buffers in Emacs.
+ - FIXED: `comint-dynamic-complete` obsolete.
+
+Other environments:
+
+ - ADDED: Enable support for github Codespaces.
+ - ADDED: New VSCode extension.
+
+Website:
+
+ - IMPROVED: Installation section reproduces `INSTALLATION.md`.
+ - CHANGED: Enable syntax highlight in website generation.
  
 ## [1.22.0] - 2022-9-28 
 
