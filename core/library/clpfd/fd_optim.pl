@@ -61,7 +61,7 @@ fd_minimize(Goal, Var) :-
     del_cur_obj(J).
                             
 fd_minimize_(_Goal, _Var, I):-
-    set_cur_obj(I, 99999),
+    set_cur_obj(I, 99999), % TODO: 99999 arbitrary? take from limits?
     % set_cur_obj(I, ~(fd_range:max(~(fd_range:default)))),
     fail.
 :- if((defined(optim_comp), backend(js_backend))).
@@ -72,7 +72,7 @@ fd_minimize_(Goal, Var, I):-
     get_cur_obj(I, Obj),
     Obj_ is Obj - 1,
     ( 
-        fd_term:in(Var, 0..Obj_), call(Goal) -> 
+        fd_term:in(Var, 0..Obj_), call(Goal) ->
         fd_term:min(Var, Min),
         set_cur_obj(I, Min),
         fail
@@ -87,7 +87,7 @@ fd_minimize_(Goal, Var, I):-
     repeat,
     get_cur_obj(I, Obj),
     Obj_ is Obj - 1,
-    ( Var in  0..Obj_, call(Goal) -> 
+    ( Var in  0..Obj_, call(Goal) -> % TODO: 0.. arbitrary?
         fd_term:min(Var, Min),
         set_cur_obj(I, Min),
         fail
@@ -97,10 +97,8 @@ fd_minimize_(Goal, Var, I):-
     ).
 :- endif.
 
-
 :- pred fd_maximize(Goal, Var) # "This predicate is similar to
-@pred{fd_maximize(Goal, Var)} but @var{X} is maximized.".
-
+   @pred{fd_maximize(Goal, Var)} but @var{X} is maximized.".
 
 :- meta_predicate(fd_maximize(:, ?)).
 :- meta_predicate(fd_maximize_(:, ?, ?)).
@@ -116,7 +114,7 @@ fd_maximize(Goal, Var) :-
     del_cur_obj(J).
                             
 fd_maximize_(_Goal, _Var, I):-
-    set_cur_obj(I, -9999),
+    set_cur_obj(I, 0), % TODO: 0.. arbitrary? take from limits?
     % set_cur_obj(I, ~(fd_range:min(~(fd_range:default)))),
     fail.
 :- if((defined(optim_comp), backend(js_backend))).
@@ -125,8 +123,8 @@ fd_maximize_(_Goal, _Var, I):-
 fd_maximize_(Goal, Var, I):-
     repeat,
     get_cur_obj(I, Obj),
-    Obj_ is Obj - 1,
-    ( fd_term:in(Var,0..Obj_), call(Goal) -> 
+    Obj_ is Obj + 1,
+    ( fd_term:in(Var,Obj_..99999), call(Goal) -> % TODO: 99999 arbitrary?
         fd_term:max(Var, Min),
         set_cur_obj(I, Min),
         fail
@@ -139,10 +137,10 @@ fd_maximize_(Goal, Var, I):-
 fd_maximize_(Goal, Var, I):-
     repeat,
     get_cur_obj(I, Obj),
-    Obj_ is Obj - 1,
-    ( Var in  0..Obj_, call(Goal) -> 
-        fd_term:max(Var, Min),
-        set_cur_obj(I, Min),
+    Obj_ is Obj + 1,
+    ( Var in Obj_..99999, call(Goal) -> % TODO: 99999 arbitrary?
+        fd_term:max(Var, Max),
+        set_cur_obj(I, Max),
         fail
     ; !, % (cuts 'repeat')
       fd_constraints:'a=t'(Var, Obj),
