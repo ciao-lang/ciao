@@ -958,9 +958,12 @@ debug_call(Goal) :- '$shell_call'(Goal).
 % ---------------------------------------------------------------------------
 %! # Print options
 
-:- pred printopts(DefaultOption, Depth, Attribs, Vars).
+:- pred printopts(DefaultOption, Depth, Attrs, Vars).
+% Depth: printing depth
+% Attrs: print attributed variables
+% Vars: show source variable names
 :- data printopts/4.
-printopts(0'p, 10, true, true). % (initial options)
+printopts(0'p, 10, true, false). % (initial options)
 
 % Print depth
 :- export(printdepth/1).
@@ -986,11 +989,20 @@ set_defaultopt(O, A, V) :-
     retract_fact(printopts(_, D, _, _)),
     assertz_fact(printopts(O, D, A, V)).
 
-proc_extraopts("",   false, false).
-proc_extraopts("a",  true,  false).
-proc_extraopts("av", true,  true).
-proc_extraopts("v",  false, true).
-proc_extraopts("va", true,  true).
+proc_extraopts(Opts, Attrs, Vars) :-
+    proc_extraopts_(Opts, Attrs, Vars),
+    % set defaults
+    ( var(Attrs) -> Attrs = false ; true ),
+    ( var(Vars) -> Vars = false ; true ).
+
+proc_extraopts_([], _, _).
+proc_extraopts_([C|Cs], Attrs, Vars) :-
+    proc_extraopts__(C, Attrs, Vars),
+    proc_extraopts_(Cs, Attrs, Vars).
+
+proc_extraopts__(0'a, true, _).
+proc_extraopts__(0'v, _, true). % TODO: actual goals, src vars later, is it better?
+proc_extraopts__(0'o, _, orig). % TODO: src vars in goals, deprecate?
 
 % ---------------------------------------------------------------------------
 %! # Print goal and bindings during debugging
@@ -1064,20 +1076,35 @@ display_var(Name, Value0, Value, Op, WriteOpts) :-
         write_op(Op, Value, WriteOpts)
     ).
 
-write_goal2(Op, Goal0, d(_, _, ADict0), AtVars0) :-
+write_goal2(Op, Goal0, d(UDict0, CDict0, ADict0), AtVars0) :-
     current_fact(printopts(_, D, A, V)),
     sort(AtVars0, AtVars1),
     ( V == true ->
+        Goal = Goal0,
+        AtVars = AtVars1
+    ; V == orig ->
         apply_dict_with_cycles(t(ADict0,Goal0,AtVars1),ADict0,t(ADict,Goal,AtVars)),              
         foldl(sel_instantiated, ADict, AInst, [])
-    ; ADict = ADict0,
-      Goal = Goal0,
+    ; Goal = Goal0,
       AtVars = AtVars1
     ),
     get_write_options(A, AtVars, D, WriteOpts),
     write_op(Op, Goal, WriteOpts),
-    ( V == true -> maplist(display_nv(Op, WriteOpts), AInst) ; true ),
+    ( V == true ->
+        append(UDict0, CDict0, UCDict0),
+        filter(uninstantiated, UCDict0, DictUninst),
+        maplist(display_ov(Op, WriteOpts), DictUninst)
+    ; V == orig ->
+        maplist(display_nv(Op, WriteOpts), AInst)
+    ; true
+    ),
     ( A == true -> print_attributes(AtVars, Op, WriteOpts) ; true ).
+
+% ya lo teniamos !! p v ... meter un p V?
+% try this:
+%    3  3  Exit: debugvar:r(_1160,_1160),
+% 	   B:_1160,
+% 	   Y:_1160 ? 
 
 sel_instantiated(NameValue) --> {instantiated(NameValue)}, !, [NameValue].
 sel_instantiated(_) --> [].
@@ -1129,6 +1156,14 @@ display_nv(Op, WO, NameValue) :-
     display(','), nl,
     display_nv0(NameValue, Op, WO).
 
+display_ov0(Name=Value, Op, WO) :-
+    display_list(['\t   ', Name, ': ']),
+    write_op(Op, Value, WO).
+
+display_ov(Op, WO, NameValue) :-
+    nl,
+    display_ov0(NameValue, Op, WO).
+
 print_attributes(As, Op, WriteOpts) :-
     maplist(print_attribute(Op, WriteOpts), As).
 
@@ -1162,12 +1197,10 @@ print_srcdbg_info(Pport, Pred, Src, Ln0, Ln1, Number) :-
 % TODO: move/merge with prettysols.pl?
 % TODO: document
 
+:- use_module(library(cyclic_terms), [uncycle_term/2]). % TODO: slow, see attrdump.pl
 :- use_module(library(varnames/apply_dict)).
 :- use_module(library(varnames/complete_dict), [set_undefined_names/3]).
-:- use_module(library(cyclic_terms), [uncycle_term/2]). % TODO: slow, see attrdump.pl
-:- use_module(engine(term_basic), [cyclic_term/1]).
-:- use_module(engine(attributes)).
-:- use_module(engine(runtime_control), [current_prolog_flag/2]).
+:- use_module(engine(attributes), [get_attribute/2]).
 
 debug_dict(X, d(UDict, CDict), Dict) :-
     append(UDict, CDict, Dict0),
@@ -1249,4 +1282,5 @@ get_attributed_vars_args(N, X, At0, At2) :-
     get_attributed_vars_nc(A, At0, At1),
     N1 is N - 1,
     get_attributed_vars_args(N1, X, At1, At2).
+
 
