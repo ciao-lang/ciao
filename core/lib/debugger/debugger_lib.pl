@@ -1092,19 +1092,16 @@ write_goal2(Op, Goal0, d(UDict0, CDict0, ADict0), AtVars0) :-
     write_op(Op, Goal, WriteOpts),
     ( V == true ->
         append(UDict0, CDict0, UCDict0),
-        filter(uninstantiated, UCDict0, DictUninst),
-        maplist(display_ov(Op, WriteOpts), DictUninst)
+        % (only uninstantiated variables)
+%        filter(uninstantiated, UCDict0, DictUninst),
+%        maplist(display_ov(Op, WriteOpts), DictUninst)
+        % (all variables)
+        maplist(display_ov(Op, WriteOpts), UCDict0)
     ; V == orig ->
         maplist(display_nv(Op, WriteOpts), AInst)
     ; true
     ),
     ( A == true -> print_attributes(AtVars, Op, WriteOpts) ; true ).
-
-% ya lo teniamos !! p v ... meter un p V?
-% try this:
-%    3  3  Exit: debugvar:r(_1160,_1160),
-% 	   B:_1160,
-% 	   Y:_1160 ? 
 
 sel_instantiated(NameValue) --> {instantiated(NameValue)}, !, [NameValue].
 sel_instantiated(_) --> [].
