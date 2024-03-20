@@ -57,9 +57,8 @@
 
 term(_).
 
-:- doc(int/1, "The type of integers. The range of integers is
-    @tt{[-2^2147483616, 2^2147483616)}.  Thus for all practical
-    purposes, the range of integers can be considered infinite.").
+:- doc(int/1, "The type of integers. Integers are unbounded in Ciao
+   and limited by available memory.").
 
 :- trust prop int(T) + (regtype, native) # "@var{T} is an integer.".
 :- trust comp int(T) + sideff(free).
