@@ -26,6 +26,7 @@
 #define ENG_NOFILES 20
 
 #include <ciao/eng_registry.h>
+#include <ciao/eng_interrupt.h> /* control_c_normal */
 #include <ciao/rt_exp.h>
 #include <ciao/runtime_control.h>
 
@@ -777,5 +778,7 @@ CBOOL__PROTO(prolog_force_interactive)
   update_stream(stream_user_input,stream_user_input->streamfile);
   update_stream(stream_user_output,stream_user_output->streamfile);
   update_stream(stream_user_error,stream_user_error->streamfile);
+  /* This will (re)install SIGINT handler (since it is ignored for non interactive) */
+  CVOID__CALL(control_c_normal);
   return TRUE;
 }
