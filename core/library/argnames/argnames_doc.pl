@@ -112,6 +112,8 @@ zebra(Owns_zebra, Drinks_water, Street) :-
    at execution time.  
 ".
 
+:- doc(doinclude,'$~'/3).
+
 :- pred $~(Term, Replacement, NewTerm) # "@var{NewTerm} is as @var{Term}
    but with the arguments specified in @var{Replacement} changed (they
    need to be in argnames syntax). The predicate is in fact virtual,
