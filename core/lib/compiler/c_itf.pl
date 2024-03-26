@@ -1287,6 +1287,11 @@ read_sentence(Stream, Base, Sentence) :-
     ; Sentence = sentence(Data, VarNames, Singletons, Ln0, Ln1)
     ).
 
+handle_syntax_error(Base,L0,L1,Msg,ErrorLoc) :-
+    assertz_fact(syntax_error_in(Base)),
+    error_in_lns(L0, L1, error, ['syntax error: ',[](Msg),'\n'| ErrorLoc]),
+    fail.
+
 % ---------------------------------------------------------------------------
 :- doc(section, "Default package").
 
@@ -2503,7 +2508,6 @@ location_t(loc(File, L1, L2)) :- atm(File), int(L1), int(L2).
 location(Loc) :- (location(Src, Ln0, Ln1) -> Loc = loc(Src, Ln0, Ln1) ; true).
 
 :- data compiling_src/1.
-:- data last_error_in_src/1.
 
 :- data mexpand_error/0.
 set_mexpand_error :-
@@ -2568,29 +2572,6 @@ module_warning_mess(big_pred_abs(PA,N), error,
 module_warning_mess(short_pred_abs(PA,N), error,
     ['Predicate abstraction ',~~(PA),
      ' has too few arguments: should be ',N]).
-
-put_src_if_needed(Type, Src) :- message_type_visible(Type), !, % only if message is visible
-    put_src_if_needed_(Src).
-put_src_if_needed(_, _).
-
-put_src_if_needed_(Src) :-
-    current_fact(last_error_in_src(Src0), Ref), !,
-    ( Src = Src0 -> true
-    ; erase(Ref),
-      message(error0, '}'),
-      put_src_if_needed_(Src)
-    ).
-put_src_if_needed_(Src) :-
-    current_fact(compiling_src(Src)), !.
-put_src_if_needed_(Src) :-
-    message(error0, ['{In ',Src]),
-    asserta_fact(last_error_in_src(Src)).
-
-end_brace_if_needed :-
-    ( retract_fact(last_error_in_src(_)) ->
-        message(error0, '}')
-    ; true
-    ).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Instance of 'mexpand' for compiler_pass").
@@ -3242,51 +3223,16 @@ subst_basepred(_, R, R).
 % ---------------------------------------------------------------------------
 :- doc(section, "Error messages").
 
-:- data doing_what/1, doing_written/1.
+doing_verbose(VF) :-
+    current_prolog_flag(verbose_compilation, VF).
 
-now_doing(M) :-
-    current_prolog_flag(verbose_compilation, VF),
-    now_doing_(VF, M).
-
-now_doing_(on, M)  :- message(error0, ['{'| M]).
-now_doing_(off, M) :- asserta_fact(doing_what(M)).
-
-end_doing :-
-    current_prolog_flag(verbose_compilation, VF),
-    end_doing_(VF).
-
-end_doing_(on)  :- message(error0, '}').
-end_doing_(off) :-
-    retract_fact(doing_what(M)), !,
-    ( retract_fact(doing_written(M)) ->
-        message(error0, '}')
-    ; true
-    ).
-
-put_doing(Type) :- message_type_visible(Type), !, % only if message is visible
-    current_prolog_flag(verbose_compilation, VF),
-    put_doing_(VF).
-put_doing(_).
-
-put_doing_(on).
-put_doing_(off) :-
-    current_fact(doing_what(M)), !,
-    ( doing_written(M) -> true
-    ; asserta_fact(doing_written(M)),
-      message(error0, ['{'| M])
-    ).
-put_doing_(off).
+:- include(.(c_itf_messages)).
 
 error_in_lns(L0, L1, Type, Msg) :-
     put_doing(Type),
     ( var(L0) -> message(Type, Msg)
     ; message_lns(Type, L0, L1, Msg)
     ).
-
-handle_syntax_error(Base,L0,L1,Msg,ErrorLoc) :-
-    assertz_fact(syntax_error_in(Base)),
-    error_in_lns(L0, L1, error, ['syntax error: ',[](Msg),'\n'| ErrorLoc]),
-    fail.
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Dynamic predicates (without module expansion)").
