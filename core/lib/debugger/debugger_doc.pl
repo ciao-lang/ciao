@@ -441,20 +441,24 @@ The only option which really needs to be remembered is '@tt{h}'
 (followed by @key{RET}). This provides help in the form of the following
 list of available options.
 ```
-<cr>   creep            c      creep
- l     leap             s      skip
- r     retry            r <i>  retry i
- f     fail             f <i>  fail i
- d     display          p      print
- w     write            v <I>  variable(s)
- g     ancestors        g <n>  ancestors n
- n     nodebug          =      debugging
- +     spy this         -      nospy this
- a     abort            
- @     command          u      unify
- <     reset printdepth < <n>  set printdepth
- ^     reset subterm    ^ <n>  set subterm
- ?     help             h      help
+Debugging options:
+<cr>    creep            c      creep
+ l      leap             s      skip
+ r      retry            r <i>  retry i
+ f      fail             f <i>  fail i
+ d <av> display av       p <av> print av
+ w <av> write av         a      abort
+ v      variables        v <N>  variable N
+ g      ancestors        g <n>  ancestors n
+ n      nodebug          =      debugging
+ +      spy this         -      nospy this
+ @      command          u      unify
+ <      reset printdepth < <n>  set printdepth
+ ^      reset subterm    ^ <n>  set subterm
+ ?      help             h      help
+
+Note: In d, p and w options, you can add
+  <a> to show attributes and <v> to show variables.
 ```
 
 @begin{itemize}
@@ -530,20 +534,27 @@ does this by continuously failing until it reaches the right place.
 Unfortunately, as before, this process cannot be guaranteed.
 
 @item @tt{d}
-(@index{display})
+(@index{display} @index{attributes})
 
-displays the current goal using @tt{display/1}.  See @tt{w} below. 
+re-displays the current goal using @tt{display/1}.  See also @tt{w}
+and @tt{p} below.  If @tt{v} and/or @tt{a} are added after @tt{d} then
+also the values of variables and/or attributes are also printed, as in
+@tt{v} below. This is sticky, i.e., the values of variables and/or
+attributes continue to be printed at each step until the next @tt{d},
+@tt{p}, or @tt{w} command.
 
 @item @tt{p}
 (@index{print})
 
 re-prints the current goal using @tt{print/1}.  Nested structures will be
 printed to the specified @em{printdepth} (see below).
+@tt{v} and/or @tt{a} can be added as in @tt{d} above.
 
 @item @tt{w}
 (@index{write})
 
-writes the current goal on the terminal using @tt{write/1}. 
+re-writes the current goal on the terminal using @tt{write/1}.
+@tt{v} and/or @tt{a} can be added as in @tt{d} above.
 
 @item @tt{v}
 (@index{variables})
