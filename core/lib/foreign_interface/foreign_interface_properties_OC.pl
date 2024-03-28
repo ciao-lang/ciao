@@ -1,6 +1,6 @@
 :- module(foreign_interface_properties_OC, [], [assertions, regtypes]).
 
-:- doc(title, "Foreign Language interface properties").
+:- doc(title, "Foreign language interface properties").
 
 :- doc(module, "The C foreign language interface uses some
    properties to specify linking regimes, foreign files to be
@@ -13,7 +13,7 @@
    properties available and a brief explanation of their meaning.
    Some of them can depend on the operating system and architecture,
    and can be selected stating it with an atom which represents that.
-   See @ref{C Foreign Language Interface} for a longer explanation and
+   See @ref{C Foreign language interface} for a longer explanation and
    some examples.").
 
 :- doc(author,"Jose F. Morales").

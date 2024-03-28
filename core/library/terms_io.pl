@@ -25,7 +25,7 @@ file_to_terms(File, Terms) :-
 
 :- pred file_to_terms(File, Terms, Terms0) :
     sourcename(File)
-   # "Read all terms in @vaR{File} into the difference list
+   # "Read all terms in @var{File} into the difference list
      @var{Terms}-@var{Terms0}.".
 
 file_to_terms(File, Terms, Terms0) :-

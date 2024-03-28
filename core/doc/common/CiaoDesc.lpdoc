@@ -51,7 +51,7 @@ The Ciao language is intended to support several kinds of uses:
   scripts.
 
 @item @bf{Ciao} is also a very good platform for experimenting with
-  new language features, @comments{domain-specific} languages,
+  new language features, @comment{domain-specific} languages,
   analyses, and program transformations.
 
 @end{itemize}

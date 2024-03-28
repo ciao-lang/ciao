@@ -244,9 +244,9 @@ startup time @cite{ciaoc-entcs}:
   is not installed on that machine. To install (or distribute) such an
   executable, one only needs to copy the executable file itself and
   the appropriate engine for the target platform (See @ref{Installing
-  Ciao from the source distribution} or @ref{Installing Ciao from a
-  Win32 binary distribution} and @ref{Multiarchitecture installation}), and
-  to set things so that the executable can find the
+  Ciao})),
+  @comment{or Installing Ciao from a Win32 binary distribution and Multiarchitecture installation}
+  and to set things so that the executable can find the
   engine. @footnote{It is also possible to produce real standalone
   executables, i.e., executables that do not need to have an engine
   around. However, this is not automated yet, although it is planned

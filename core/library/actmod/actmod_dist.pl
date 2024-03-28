@@ -45,7 +45,7 @@
    @section{Distributed nodes}
    
    When using the @tt{dist_node} directive, the executable serves as a
-   @emph{node} for distributed active modules. It accepts following
+   @em{node} for distributed active modules. It accepts following
    command-line options:
 
 @begin{verbatim}

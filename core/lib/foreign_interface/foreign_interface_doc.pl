@@ -2,7 +2,7 @@
 :- doc(nodoc,assertions).
 :- doc(nodoc,assertions_basic).
 
-:- doc(title,"C Foreign Language interface").
+:- doc(title,"C Foreign language interface").
 
 :- doc(author, "Jose F. Morales").
 :- doc(author, "Manuel Carro").
@@ -62,8 +62,8 @@ the C gluecode file.
 @item @prop{extra_linker_opts/1} specifies the additional linker options. 
 @end{itemize}
 
-More details about these options can be found in @ref{Foreign Language
-Interface Properties}.
+More details about these options can be found in @ref{Foreign language
+interface properties}.
 
 The compilation of the foreign sources together with the glue code
 is decomposed into two phases:
@@ -175,8 +175,8 @@ collection of reserved Prolog types (@concept{ctype}s) that reflect C
 types.
 
 The names (and meaning) of the types known for performing that
-translation are to be found in @ref{Foreign Language Interface
-Properties}; they are also summarized below (Prolog types are listed
+translation are to be found in @ref{Foreign language interface
+properties}; they are also summarized below (Prolog types are listed
 first and the corresponding C types after them):
 
 @begin{itemize}
@@ -228,7 +228,7 @@ with zero length) are transformed into the empty list or the null atom
 (@tt{''}).
 
 Most of the work is performed by the predicates in the @ref{Foreign
-Language Interface Builder}, which can be called explicitly by the
+language interface builder}, which can be called explicitly by the
 user.  Doing that is not usually needed, since the Ciao
 Compiler takes care of building glue code files an of compiling and
 linking whatever is necessary.
@@ -294,7 +294,7 @@ the installation directory (the Ciao compiler knowns where it
 has been installed, and gives the C compiler the appropriate flags).
 This @em{non direct correspondence} mode is activated whenever a Ciao
 Prolog type unknown to the foreign interface (i.e., none of those in
-@ref{Foreign Language Interface Properties}) or the type @tt{any_term}
+@ref{Foreign language interface properties}) or the type @tt{any_term}
 (which is explicitly recognized by the foreign language interface) is
 found.  The latter is preferred, as it is much more informative, and
 external tools, such as the the @concept{CiaoPP} preprocessor, can 

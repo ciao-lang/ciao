@@ -2059,7 +2059,7 @@ restore_lib_regtypes(_).
 :- export(gen_libcache/1).
 :- pred gen_libcache(DataDir) # "Generate the preprocessed library
    cache (specified in the @tt{core/Manifest/core.libcache.pl} module.
-   @alert{It cleans the current state of @lib{p_unit}}.".
+   @bf{Warning:} @em{It cleans the current state of} @lib{p_unit}.".
 
 gen_libcache(DataDir) :-
     cleanup_punit,

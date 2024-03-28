@@ -31,7 +31,7 @@
    not implemented, since Ciao does not (yet) have a character
    conversion table.
 
-   However, as mentioned in @ref{ISO-Prolog compliance versus
+   However, as mentioned in @ref{ISO-Prolog compliance and
    extensibility} in the introduction, the intention of the Ciao
    developers is to progressively complete ISO standard support, as
    well as adapt to the corrigenda and reasonable extensions of the

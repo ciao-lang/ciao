@@ -20,7 +20,7 @@
 
 :- doc(module,"This module contains the set of basic control
    predicates, except the predicates dealing with exceptions, which are
-   in @ref{Exception and Signal handling}.").
+   in @ref{Exception and signal handling}.").
 
 :- doc(usage, "@include{InPrelude.lpdoc}").
 

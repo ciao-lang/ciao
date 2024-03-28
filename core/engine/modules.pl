@@ -104,7 +104,7 @@
    @decl{module/2} declarations, some rules for user files, etc., as
    described below. For example, for backward compatibility with
    traditional Prolog systems, if a @decl{module/2} declaration is
-   used, then the traditional predicates that are built in in most
+   used, then the traditional predicates that are built-in in most
    Prolog systems are imported in that module (see @ref{Classic
    Prolog}).
 
