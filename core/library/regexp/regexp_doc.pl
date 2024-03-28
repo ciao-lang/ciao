@@ -30,7 +30,7 @@
 
    @begin{itemize}
 
-   @item The flag @tt{@concept{case_insensitive}} controls whether to
+   @item The flag @tt{case_insensitive} controls whether to
    perform case-insensitive (@tt{on}) or case-sensitive (@tt{off})
    match. The default value is @tt{off}.
 
@@ -44,18 +44,18 @@
 
 is equivalent to
 
- @begin{verbatim}
+@begin{verbatim}
       pred (X,B) :- match_posix(\"ab*c\",X,R), ...
- @end{verbatim}
+@end{verbatim}
 
     Two additional flags control this matching. The first one is
-    @tt{@concept{format}}. Its values are @tt{shell}, @tt{posix},
+    @tt{format}. @cindex{format} Its values are @tt{shell}, @tt{posix},
     @tt{list} and @tt{pred}.  Their effect is as if changing in the
     example above the call to @pred{match_posix/3} by a call to,
     respectively, @tt{match_shell/2}, @tt{match_posix/3},
     @tt{match_struct/3}, and @tt{match_pred/3}.  The default value is
-    @tt{posix}.  The other prolog flag is @tt{@concept{exact}}. Its
-    values are @tt{on} and @tt{off}. The @tt{off} value means
+    @tt{posix}.  The other prolog flag is @tt{exact}. @cindex{exact}
+    Its values are @tt{on} and @tt{off}. The @tt{off} value means
     replacing in the example @tt{R} with @tt{[]}. If the value is
     @tt{on}, then @tt{R} is a variable. The default value is @tt{on}.
 

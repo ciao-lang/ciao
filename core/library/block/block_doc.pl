@@ -30,7 +30,7 @@ merge([H|X], [E|Y], [H|Z]) :- H @< E,  merge(X, [E|Y], Z).
 merge([H|X], [E|Y], [E|Z]) :- H @>= E, merge([H|X], Y, Z).
 ```
 
-   @bf{Simulating @tt{block} with @pred{when/2} predicate}: In the
+   @bf{Simulating} @tt{block} @bf{with} @pred{when/2} @bf{predicate}: In the
    predicate above, execution of @tt{merge(X,Y,Z)} is suspended while
    @tt{(var(X),var(Z);var(Y),var(Z))} holds. A similar effect can be
    obtained with @pred{when/2} using the negated condition
