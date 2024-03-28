@@ -48,7 +48,7 @@ filesystem.
 needed and it may produce inconsistent builds).
 @end{note}
 
-As mentioned in @ref{Full installation instructions}, setting up the
+As mentioned in @ref{Installing Ciao}, setting up the
 environment uses the @apl{ciao-env} tool, which updates the @tt{PATH}
 and other environment variables to make commands and documentation
 (@tt{man}, @tt{info}) accessible by default.

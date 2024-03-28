@@ -7,7 +7,7 @@
 
 :- doc(module, "
 
-This module defines engine specifications for @emph{engine}
+This module defines engine specifications for @em{engine}
 builds. Engines are defined using the @lib{emugen} package. Engine
 build specifications contains parameters that affects the compiled
 engine:

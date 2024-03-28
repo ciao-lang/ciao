@@ -5,7 +5,7 @@
 
 :- doc(module, "This module provides some very basic functionality to
    interface with the @href{https://cmake.org}{CMake} build automation
-   system from the Ciao @app{builder}").
+   system from the Ciao @apl{builder}").
 
 :- use_module(library(process), [process_call/3]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
