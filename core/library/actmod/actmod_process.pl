@@ -7,7 +7,7 @@
    instances. Note that each instance is associated with its own
    computational resources.
 
-   Active module instance run on their own @concept{fiber}s
+   Active module instances run on their own @concept{fiber}s
    (optionally in a new process) for an @var{DMod}.
    ").
 

@@ -72,7 +72,7 @@ of a predicate.
 @item (experimental) @em{answers with suspensions}: the callee may
   return a suspended computation and continue the execution on the
   caller site.  Currently predicates must be declared as
-  @tt{suspendable}. The main focus of the current funcrionality is the
+  @tt{suspendable}. The main focus of the current functionality is the
   implementation of @tt{REST}ful applications via the (experimental)
   HTTP interface.  @bf{Note}: support is limited, recommended only for
   deterministic computations.
@@ -150,6 +150,7 @@ The following command:
 ciaoc simple_server.pl
 @end{verbatim}
 
+@noindent
 compiles the simple server example that comes with the distribution
 (in the @tt{actmod/example} directory). The
 @tt{simple_client_with_main} example (in the same directory) can be

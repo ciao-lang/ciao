@@ -3,14 +3,14 @@
 :- doc(title, "Logged processes").
 :- doc(author, "Jose F. Morales").
 
-% TODO: MH: Optional: perhaps be able to (optionally) provide a
-%       pattern that describes how errors (or warnings, notes, etc.)
-%       are formatted by the external command so that it is not
-%       necessary to only rely on the status returned (at an
-%       efficiency price or course)?
+% TODO: MH: Optional: perhaps be able to provide a pattern that
+%       describes how errors (or warnings, notes, etc.)  are formatted
+%       by the external command so that it is not necessary to only
+%       rely on the status returned (at an efficiency price or
+%       course)?
 
 :- doc(module, "A wrapper on top of @pred{process_call/3} with some
-   logging facilities. It the process does not exit with error status
+   logging facilities. If the process does not exit with error status
    0, some special action is taken.
 
    When @tt{logbase(Base)} is specified, the standard output and error
@@ -40,9 +40,10 @@
     [process_call/3, process_cmd/1, process_arg/1, process_option/1]).
 
 :- export(logged_process_call/3).
-:- pred process_call(Cmd, Args, Opts) :
+:- pred logged_process_call(Cmd, Args, Opts) :
     ( process_cmd(Cmd), list(process_arg, Args), list(process_option, Opts) )
-   # "Like @pred{process_call/3}, but logs of standard input and output.".
+   # "Like @pred{process_call/3}, but saves logs of standard input and output, controlled
+      by additonal @var{Opts}.".
 
 logged_process_call(Cmd, Args, Opts) :-
     % Base for logs

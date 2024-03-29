@@ -82,7 +82,8 @@ answer_check_entail/3
 apply_answer/2
 @end{verbatim}
 
-   as an API for the tablingq engine. Some examples of TCLP interfaces
+@noindent
+   as an API for the tabling engine. Some examples of TCLP interfaces
    are @tt{different\_constraints}, @tt{t\_clpq}, and @tt{t\_clpr}
    libraries.  Some examples of the use of TCLP can be found at the
    end of this section (with some examples of the TCLP interface).
@@ -90,12 +91,15 @@ apply_answer/2
    @section{Some TCLP applications}
 
    The current implementation of Mod TCLP has been used to develop
-   more complex applications:
+   more complex applications such as for implementing an Abstract
+   Interpretation Algorithm @cite{arias19:ciaopp-tclp} or for
+   Incremental Evaluation of Lattice-Based Aggregates in Logic
+   Programming, described in @cite{atclp-padl2019}, and available as
+   the Ciao @tt{:- use_package(tclp_aggregates)} bundle.
 
-   @begin{itemize}
-
-   @item The Implementation of an Abstract Interpretation Algorithm
-     described in @cite{arias19:ciaopp-tclp}:
+@comment{
+   item  The Implementation of an Abstract Interpretation Algorithm
+     described in cite{arias19:ciaopp-tclp}:
 
      Abstract interpretation requires a fixpoint computation. PLAI is
      a fixpoint algorithm implemented by the abstract interpreter of
@@ -124,7 +128,7 @@ apply_answer/2
      evaluated by analysing several programs with different abstract
      domains.
 
-   @item Incremental Evaluation of Lattice-Based Aggregates in Logic
+   item Incremental Evaluation of Lattice-Based Aggregates in Logic
      Programming described in @cite{atclp-padl2019} and available as a
      bundle, @tt{:- use_package(tclp_aggregates)}, in the current
      distribution of Ciao:
@@ -150,8 +154,8 @@ apply_answer/2
      lattice may not hold. However, the flexibility provided by this
      possibility justifies its inclusion. We validate our design with
      several examples and we evaluate their performance.
-
-  @end{itemize}
+}
+  
 ").
 
 :- doc(usage, "The @tt{TABLED_EXECUTION} flag must be set to @tt{yes}

@@ -96,7 +96,7 @@
 
    While in Ciao there are no 'built-in' predicates (i.e., predicates
    whose load cannot be avoided or that that cannot be redefined --see
-   below) for convenience every module or @tt{user file} imports
+   below) for convenience every module or @tt{user} file imports
    implicitly a number of modules called @concept{builtin modules}
    (also referred to as @concept{default modules}). Which exact
    modules are imported by default is controlled by the third argument
@@ -105,8 +105,8 @@
    described below. For example, for backward compatibility with
    traditional Prolog systems, if a @decl{module/2} declaration is
    used, then the traditional predicates that are built-in in most
-   Prolog systems are imported in that module (see @ref{Classic
-   Prolog}).
+   Prolog systems are imported in that module (see package
+   @lib{classic}, @ref{Classic Prolog}).
 
    Predicates coming from builtin/default modules are imported before
    all other importations of the module. This allows the
@@ -131,31 +131,47 @@
 
     # "Declares a module of name @var{Name} which exports the
       predicates in @var{Exports}, and uses the packages in
-      @var{Packages}.  @var{Name} must match with the name of the
-      file where the module resides, without extension.  For each
-      source in @var{Packages}, a @concept{package file} is used.
-      If the source is specified with a @concept{path alias}, this
-      is the file included, if it is an atom, the library paths
-      are searched. See @decl{package/1} for a brief description
-      of package files.
+      @var{Packages}.  @var{Name} must match the name of the file
+      where the module resides, without extension.
 
-      This directive must appear the first in the file.
+      For each source in @var{Packages}, the corresponding file, which
+      must be a @concept{package} is used.  If the source is specified
+      with a @concept{path alias}, this is the file included; if it is
+      an atom, the library paths are searched. See @decl{package/1},
+      @ref{Packages and language extension} for a description of
+      package files. If @var{Packages} is @tt{[]} no packages are
+      loaded.
 
-      Also, if the compiler finds an unknown declaration as the
-      first term in a file, the name of the declaration is regarded
-      as a package library to be included, and the arguments of the
+      The @dec{module} directive must appear first in the file.
+
+      As a special case @var{Exports} can be @tt{_} which means that
+      all predicates in the module are exported.  Also, @var{Name} can
+      be @tt{_} which means that the name of the module is the name of
+      the file. Thus, the following declaration at the beginning of a
+      file:
+
+      @tt{:- module(_,_,[]).}
+
+      takes the module name from the file name, exports all predicates
+      defined, and does itself not load any packages.
+
+      Also, if the compiler finds an unknown declaration as the first
+      term in a file, the name of the declaration is considered as a
+      package library to be included, and the arguments of the
       declaration (if present) are interpreted like the arguments of
       @decl{module/3}.".
+
 :- impl_defined(module/3).
 
 :- doc(doinclude,module/2).
 :- decl module(Name, Exports) : modulename * list(predname)
 
-    # "Same as directive @decl{module/3}, with an implicit package
-      @tt{default}. This default package provides all the standard
-      features provided by most Prolog systems so that Prolog
-      programs with traditional @decl{module/2} declarations can
-      run without any change. See @ref{Classic Prolog}.".
+    # "Same as directive @decl{module/3}, but loads implicitly the
+      @tt{classic} package. This default package provides all the
+      standard features provided by most Prolog systems so that Prolog
+      programs with traditional @decl{module/2} declarations can run
+      without any change. See @ref{Classic Prolog}.".
+
 :- impl_defined(module/2).
 
 % ---------------------------------------------------------------------------
@@ -166,11 +182,16 @@
       third argument of @decl{module/3} for an explanation of
       @concept{package file}s.
 
-      This directive must appear the first in the file, or just
-      after a @decl{module/3} declaration.  A file with no module
-      declaration, in the absence of this directive, uses an
-      implicit package @tt{default} (see @ref{Other predicates and
-      features defined by default}).").
+      This directive must appear the first in the file, or just after
+      a @decl{module/3} declaration.
+
+      A file with no module declaration, and with no
+      @decl{use_package} directives, uses implicitly the @lib{classic}
+      package (see @ref{Classic Prolog}). However, if at least one
+      @decl{use_package} directive is present, then @lib{classic} is
+      not loaded. If needed, must be loaded via @decl{use_package},
+      together with any other packages required.").
+
 :- impl_defined(use_package/1).
 
 :- decl use_package(Package) : sourcename.
