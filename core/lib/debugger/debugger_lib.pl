@@ -133,13 +133,29 @@ current_debugged(Ms) :- findall(M, current_fact(debug_mod(M)), Ms).
 
 :- export(debug_module/1).
 :- pred debug_module(Module) : atm(Module)
-   # "The debugger will take into acount module @var{Module} (assuming
-   it is loaded in interpreted mode).  When issuing this command at
-   the toplevel shell, the compiler is instructed also to set to
-   @em{interpret} the loading mode of files defining that module and
-   also to mark it as 'modified' so that (re)loading this file or a
-   main file that uses this module will force it to be reloaded for
-   source-level debugging.".
+
+   # "To debug the predicates in a module that module needs to be
+   marked for debugging and re-loaded to be compiled in debug mode.
+   This predicate marks module @var{Module} for debugging. This has
+   two effects: The debugger will mark the module so that when
+   predicates in this module are called the debugger is entered. In
+   addition, the module is marked specially so that when (re)loaded it
+   will be (re)compiled in debug mode. It also marks the module as
+   'modified' so that (re)loading this file or a main file that uses
+   this module will force it to acrually be recompiled. Note that in
+   addition to marking it for debugging the module @em{needs to be
+   reloaded} after marking it, for all this to occur. In other words,
+   the proper sequence to debug module @tt{m} is:
+
+   @begin{itemize}
+   ?- debug_module(m).  % Mark module m for debugging.
+   ?- use_module(m).    % Load module m in debugging mode.
+   ?- trace.            % Turn debugger on in, e.g., tracing mode.
+   @end{itemize}
+
+   This allows selecting which parts of the program are being debugged
+   at the module level. It also allows having some modules loaded
+   compiled in debug mode and others in standard mode (faster).".
 
 debug_module(M) :- atom(M), !,
     ( current_fact(debug_mod(M)) ->
@@ -157,10 +173,13 @@ in_debug_module(G) :-
 
 :- export(nodebug_module/1).
 :- pred nodebug_module(Module) : atm(Module)
-   # "The debugger will not take into acount module @var{Module}.
-   When issuing this command at the toplevel shell, the compiler is
-   instructed also to set to @em{compile} the loading mode of files
-   defining that module.".
+
+   # "Unmark module @var{Module} for debugging.  The debugger will not
+   enter debug mode for module @var{Module}.  When issuing this
+   command at the toplevel shell, the compiler is instructed also to
+   set to @em{compile} the loading mode of the iles defining that
+   module, i.e., the module will be compiled in standard mode if
+   reloaded.".
 
 nodebug_module(M) :- % If M is a var, nodebug for all
     retractall_fact(debug_mod(M)).

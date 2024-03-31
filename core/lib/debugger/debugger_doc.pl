@@ -49,15 +49,18 @@ a wide choice of control and information options available during debugging
 interaction.
 
 @begin{note}
+
 @bf{Note}: While the debugger described herein can be used in a
 standalone way (i.e., from an operating system shell or terminal
-window) in the same way as other Prolog debuggers, the most convenient
-way of debugging Ciao programs is by using the programming environment
-(see @ref{Using Ciao inside GNU emacs}). This environment has many
-debugging-related facilities, including displaying the source code for
-the module(s) corresponding to the procedure being executed, and
-higlighting dynamically the code segments corresponding to the
-different execution steps.
+window) in the same way as classical Prolog debuggers, the most
+convenient way of debugging Ciao Prolog programs is within the
+programming environment(s) (e.g., @ref{Using Ciao inside GNU
+emacs}, the Playground, the Virtual Studio Code extension,
+etc.). These environments have many debugging-related facilities,
+including displaying the source code for the module(s) corresponding
+to the procedure being executed, and higlighting dynamically the code
+segments corresponding to the different execution steps.
+
 @end{note}
 
 @section{Marking modules and files for debugging in the top-level debugger}
@@ -92,11 +95,11 @@ command:
 @noindent which in addition instructs the debugger to keep track of
 the line numbers in the source file and to report them during
 debugging. This is most useful when running the top-level inside the
-@apl{emacs} editor since in that case the Ciao @concept{emacs mode}
-allows performing full @concept{source-level debugging} in each module
-marked as above, i.e., the source lines being executed will be
-highlighted dynamically during debugging in a window showing the
-source code of the module.
+IDEs (e.g., the @apl{emacs} editor, playground, VSC, etc.) since in
+that case the IDE allows performing full @concept{source-level
+debugging} in each module marked as above, i.e., the source lines
+being executed will be highlighted dynamically during debugging in a
+window showing the source code of the module.
 
 @cindex{user modules, debugging} Note that, since all files with no
 module declaration belong to the pseudo-module @tt{user}, the command
@@ -219,8 +222,9 @@ beginning of the execution of a program can be done easily however by
 simply using the @tt{trace} package.
 
 Note that there is a particularly interesting way of using the
-@concept{embedded debugger}: if an @em{application} is run in a shell
-buffer which has been set with Ciao inferior mode (@key{M-x}
+@concept{embedded debugger} in the @apl{emacs} editor:
+if an @em{application} is run in a @em{shell buffer} (a buffer running
+an OS shell) which has been pUt in Ciao inferior mode' (by typing @key{M-x} 
 @tt{ciao-inferior-mode}) and this application starts emitting output
 from the embedded debugger (i.e., which contains the embedded debugger
 and is debugging its code) then the Ciao emacs mode will be able to
@@ -273,11 +277,9 @@ about the program text.  This model provides a basis for the debugging
 mechanism in the interpreter, and enables the user to view the behaviour of
 the program in a consistent way. It also provides the basis for the
 visualization performed on the source level program when source level
-program when @concept{source-level debugging} is activated within
-@apl{emacs}.
+program when @concept{source-level debugging}. 
 
-
-Let us look at an example Prolog procedure:
+Consider the following Prolog procedure:
 
 @image{byrdbox}
 
@@ -364,8 +366,8 @@ This section explains the two formats of the message output by the debugger
 at a port. All trace messages are output to the terminal regardless of
 where the current output stream is directed (which allows tracing programs
 while they are performing file I/O). The basic format, which will be shown
-in traditional debug and in source-level debugging within Ciao @apl{emacs}
-mode, is as follows:
+in traditional debug and in source-level debugging within the
+Ciao @apl{emacs} mode and other environments, is as follows:
 
 @begin{verbatim}
 S  13  7  Call: T user:descendant(dani,_123) ?
@@ -402,9 +404,9 @@ The final @tt{?} is the prompt indicating that the debugger is waiting for
 user interaction. One of the option codes allowed (see below) can be input
 at this point.
 
-The second format, quite similar to the format explained above, is shown
-when using source-level debugging outside the Ciao @apl{emacs} mode, and it
-is as follows:
+The second format, quite similar to the format explained above, is
+shown when using source-level debugging outside the Ciao @apl{emacs}
+mode or other IDEs, and it is as follows:
 
 @begin{verbatim}
        In /home/mcarlos/ciao/foo.pl (5-9) descendant-1
@@ -418,7 +420,7 @@ name of the source file, the start and end lines where the literal can be
 found, the substring to search for between those lines and the number of
 substrings to locate. This information for locating the point on the source
 file is not shown when executing the source-level debugger from the Ciao
-@apl{emacs} mode.
+@apl{emacs} mode or other IDEs.
 
 Ports can be ``unleashed'' by calling the @pred{leash/1} predicate omiting
 that port in the argument. This means that the debugger will stop but user
