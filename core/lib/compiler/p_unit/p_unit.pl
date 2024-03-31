@@ -866,9 +866,9 @@ comment_original_pred_assertions([A|As]) :-
 comment_original_pred_assertions([_|As]) :-
     comment_original_pred_assertions(As).
 
-% include all from user
+% Include all from user.
 has_to_be_asserted(user(_), _Head, _Body, _Source) :- !.
-% by default we include everything from our own module
+% By default we include everything from our own module.
 has_to_be_asserted(Module, Head, Body, Source) :-
     get_module_from_path(Source, Module),
     !,
@@ -883,8 +883,8 @@ has_to_be_asserted(Module, Head, Body, Source) :-
         ; fail
         )
     ).
-%% a directive has to be keep iff it belongs to a package which
-%% is not syntax one
+% A directive has to be kept iff it belongs to a package which is not
+% a syntax one.
 has_to_be_asserted(_, Head, Body, Source) :- !,
     get_module_from_path(Source, Module),
     ( is_syntax_package(Module) ->
