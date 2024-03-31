@@ -142,7 +142,7 @@
       package files. If @var{Packages} is @tt{[]} no packages are
       loaded.
 
-      The @dec{module} directive must appear first in the file.
+      The @decl{module} directive must appear first in the file.
 
       As a special case @var{Exports} can be @tt{_} which means that
       all predicates in the module are exported.  Also, @var{Name} can
