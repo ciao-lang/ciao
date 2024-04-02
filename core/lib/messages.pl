@@ -141,7 +141,7 @@ show_message(Type, Loc, Message, A, Module) :-
 show_message__(Type, Loc, Message, A, Module) :-
     message_output_type(Type, SO),
     show_message_(Type, SO, Loc, Message, A, Module).
-    % flush_output(SO). % TODO: decide if we want this.
+    % flush_output(SO). % TODO: stderr is unbuffered; this should not be needed
 
 show_message_(optional, SO, _, Message, A, _) :- !,
     optional_message(SO, Message, A).
