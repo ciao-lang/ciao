@@ -748,7 +748,8 @@ read_doccomment(Style, MarkCh, DocToken, Cont) :-
     line_position(InStream, Col),
     get_doccomment_token(Style, Col, MarkCh, Chars, DocToken),
     getct(NextCh1, NextTyp1),
-    read_doccomment_(NextTyp1, NextCh1, Style, Chars, Cont).
+    read_doccomment_(NextTyp1, NextCh1, Style, Chars0, Cont),
+    string_bytes(Chars0, Chars).
 
 % In '%' comments, a space is added to the first line to help in
 % processing of layout-sensitive code.
