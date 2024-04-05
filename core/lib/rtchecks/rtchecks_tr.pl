@@ -278,7 +278,8 @@ get_check_ppassrt(Goal, PredName, Dict, Loc, RTCheck) :-
     get_relevant_variables(GoalList, RelevantVars),
     get_check_props(GoalList,ppassrt,RelevantVars,NewGoalList), % TODO: which variables should not be further instantiated?
     list_to_conj(NewGoalList, NewGoal),
-    RTCheck = rtcheck(NewGoal, PredName, Dict, Loc).
+    RTCheck = rtcheck(NewGoal, Goal, PredName, Dict, Loc). % TODO: storing the original goal here is too costly
+
 
 get_relevant_variables(GoalList, RelevantVars) :-
     ( select(clique(_Vars), GoalList, GoalList2) -> true % variables included in clique/1 are not considered

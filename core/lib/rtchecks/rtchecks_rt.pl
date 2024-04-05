@@ -5,7 +5,7 @@
             checkc/2,
             checkif/7,
             rtcheck/6,
-            rtcheck/4,
+            rtcheck/5,
             add_info_rtsignal/4,
             call_stack/2,
             rtc_inst/2,
@@ -222,18 +222,18 @@ rtcheck(ErrType, PredName, Dict, CheckProps, NProps, AsrLocs) :-
     ; true
     ).
 
-:- meta_predicate rtcheck(goal, ?, ?, ?).
-rtcheck(Check, PredName, Dict, Loc) :-
-    rtcheck_(Check, PredName, Dict, Loc),
+:- meta_predicate rtcheck(goal, ?, ?, ?, ?).
+rtcheck(Check, PropName, PredName, Dict, Loc) :-
+    rtcheck_(Check, PropName, PredName, Dict, Loc),
     fail.
-rtcheck(_, _, _, _).
+rtcheck(_, _, _, _, _).
 
-:- meta_predicate rtcheck_(goal, ?, ?, ?).
-rtcheck_(Check, _, _, _) :-
+:- meta_predicate rtcheck_(goal, ?, ?, ?, ?).
+rtcheck_(Check, _, _, _, _) :-
     call(Check),
     !.
-rtcheck_(Check, PredName, Dict, Loc) :-
-    send_rtcheck(pp_check, PredName, Dict, Check, [], [pploc(Loc)]).
+rtcheck_(_Check, PropName, PredName, Dict, Loc) :-
+    send_rtcheck(pp_check, PredName, Dict, PropName, [], [pploc(Loc)]).
 
 :- meta_predicate call_stack(goal, ?).
 call_stack(Goal, Pos) :-
