@@ -1,4 +1,4 @@
-:- module(_, [], [assertions, regtypes, isomodes, hiord]).
+:- module(_, [], [assertions, regtypes, isomodes, hiord, datafacts]).
 
 :- doc(title, "Call goals with reified IO and (exit) ports").
 :- doc(author, "Jose F. Morales").
@@ -62,6 +62,13 @@ close_std_redirect(Redirect) :-
     close_std_redirect_(Redirect).
 
 % ---------------------------------------------------------------------------
+% No redirection
+
+open_std_redirect_(none, _, no_redirect).
+
+close_std_redirect_(no_redirect).
+
+% ---------------------------------------------------------------------------
 % Stream redirections
 %
 % Setting stdout/stderr restores the OS file descriptors and also
@@ -72,7 +79,7 @@ close_std_redirect(Redirect) :-
 % TODO: Additionally stdout resets the current output (e.g.,
 % display(foo), display(user_output, foo)).
 
-open_std_redirect_(stream(NewS), stdout, out_redirect(OldCurrS, OldS, SavedFD)) :-
+open_std_redirect_(stream(NewS), stdout, out_redirect(OldCurrS, OldS, SavedFD)) :- !,
     % reset default current output and user_output
     % TODO: is there a simpler way to do it? (JF)
     stream_code(StdS, 1),
@@ -118,6 +125,14 @@ close_std_redirect_(string_redirect(String, File, Redirect)) :-
     del_file_nofail(File).
 
 % ---------------------------------------------------------------------------
+% Null redirections
+
+% TODO: is it portable with win32 / mingw?
+
+open_std_redirect_(null, Std, Redirect) :-
+    open_std_redirect_(file('/dev/null'), Std, Redirect).
+
+% ---------------------------------------------------------------------------
 % Stdout redirection (only for stderr)
 
 open_std_redirect_(stdout, stderr, stdout_redirect(Redirect)) :-
@@ -143,3 +158,48 @@ pop_fd(FD, SavedFD) :-
     fd_close(SavedFD).
 
 fd_flush(FD) :- stream_code(S, FD), flush_output(S).
+
+% ---------------------------------------------------------------------------
+
+:- export(call_with_std_redirect/3).
+:- meta_predicate call_with_std_redirect(goal, ?, ?).
+:- pred call_with_std_redirect(Goal, OutChn, ErrChn)
+   # "Executes (a possibly non-deterministic) @var{Goal} with stdout
+     and stderr redirection. If needed, redirections are reinstalled
+     on backtracking.".
+
+% TODO: pass redirect as option list?
+call_with_std_redirect(Goal, OutChn, ErrChn) :-
+    % begin redirect, disable on failure
+    ( redirect_begin(OutChn, ErrChn)
+    ; redirect_end, fail
+    ),
+    % call Goal, measure choice points
+    '$metachoice'(C0),
+    catch(call(Goal), E, St=e(E)),
+    '$metachoice'(C1),
+    % end redirect, reinstall on failure
+    ( redirect_end
+    ; redirect_begin(OutChn, ErrChn), fail
+    ),
+    % remove re-entry choice points if Goal had no choicepoints
+    ( C0 == C1 -> !
+    ; true
+    ),
+    % rethrow exception if needed
+    ( nonvar(St), St=e(E) -> throw(E) ; true ).
+
+:- data redirect/2.
+
+redirect_begin(OutChn, ErrChn) :-
+    open_std_redirect(stdout, OutChn, OutRedirect),
+    open_std_redirect(stderr, ErrChn, ErrRedirect),
+    assertz_fact(redirect(OutRedirect, ErrRedirect)).
+
+redirect_end :-
+    retract_fact(redirect(OutRedirect, ErrRedirect)), !,
+    retractall_fact(redirect(_,_)), % (just in case...)
+    close_std_redirect(ErrRedirect),
+    close_std_redirect(OutRedirect).
+redirect_end. % (it should not happen!)
+
