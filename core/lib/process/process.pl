@@ -141,7 +141,7 @@ process('$process'(_Joined, _OnReturn, _Pid,
    @begin{description}
    @item{@tt{status(ReturnCode)}} unifies return code with
      @var{ReturnCode} upon process completion (no exception is thrown,
-     may fail).
+     may fail). See @pred{system:wait/2}.
    @item{@tt{background(Process)}} execute asynchronously in
      background; most errors (including input/output) are delayed to
      @pred{process_join/1}.
@@ -377,7 +377,6 @@ process_join(Process) :-
     binding_port_call(ErrChannelB).
 
 do_wait(Pid, ReturnCode) :-
-    % TODO: delay exceptions and failure of wait/2
     wait(Pid, ReturnCode).
 
 treat_return_code(get_status(ReturnCode0), ReturnCode, _PCall) :- !,

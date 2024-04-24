@@ -2147,15 +2147,21 @@ CBOOL__PROTO(prolog_wait) {
   }
 
   waited_pid = c_waitpid(GetSmall(X(0)), &status);
-  
-  /* TODO: throw exceptions to capture more informative errors? */
-  /* Process did not terminated normally */
-  if (!WIFEXITED(status)) return FALSE;
-  /* Some error */
-  if (waited_pid == -1) return FALSE;
+  if (waited_pid == -1) { /* Not stopped nor terminated process */
+    //perror("waitpid() in prolog_wait/2: ");
+    return FALSE;
+  }
 
-  int retcode = WEXITSTATUS(status);
-  
+  int retcode;
+  /* Process did not terminated normally */
+  if (WIFSIGNALED(status)) { /* Process terminated due to signal */
+    retcode = -WTERMSIG(status); /* negative number for signals */
+  } else if (WIFEXITED(status)) { /* Process terminated normally */
+    retcode = WEXITSTATUS(status);
+  } else {
+    // TODO: only if WIFSTOPPED(status) (see man page)
+    return FALSE;
+  }
   CBOOL__LASTUNIFY(X(1), MakeSmall(retcode));
 }
 
@@ -3015,7 +3021,21 @@ CBOOL__PROTO(prolog_exec) {
    should force the process to finish as well.
 */
 
-static int spawn_shell(char *shellcmd) {
+CBOOL__PROTO(prolog_exec_shell) {
+  ERR__FUNCTOR("system:$exec_shell", 2);
+
+  DEREF(X(0), X(0));
+
+  /* check argument instantiation error */
+  if (IsVar(X(0)))
+    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+  /* check type argument*/
+  if (!TaggedIsATM(X(0)))
+    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+
+  char *shellcmd = GetString(X(0));
+  if (strcmp(shellcmd, "") == 0) shellcmd = NULL;
+
   /* Lookup shellname in PATH (if needed) and check existence */
   char *shellname = getenv(SHELL_ENV_NAME);
   if (shellname == NULL) {  // This means an error if no SHELL
@@ -3069,37 +3089,7 @@ static int spawn_shell(char *shellcmd) {
   if (pr.pid == -1) {
     SERIOUS_FAULT("Could not start process for new shell");
   }
-  
-  int status;
-  if (c_waitpid(pr.pid, &status) != pr.pid) return -1;
-  if (!WIFEXITED(status)) return -1;
-  return WEXITSTATUS(status);
-}
-
-CBOOL__PROTO(prolog_unix_shell0)
-{
-  // ERR__FUNCTOR("system:shell", 0);
-  int retcode = spawn_shell(NULL);
-  /* TODO: retcode == -1 on error, we should throw exception */
-  return (retcode == 0);
-}
-
-CBOOL__PROTO(prolog_unix_shell2)
-{
-  ERR__FUNCTOR("system:shell", 2);
-
-  DEREF(X(0), X(0));
-
-  /* check argument instantiation error */
-  if (IsVar(X(0)))
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
-  /* check type argument*/
-  if (!TaggedIsATM(X(0)))
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
-
-  int retcode = spawn_shell(GetString(X(0)));
-  /* TODO: retcode == -1 on error, we should throw exception */
-  CBOOL__LASTUNIFY(MakeSmall(retcode), X(1));
+  CBOOL__LASTUNIFY(MakeSmall(pr.pid), X(1));  
 }
 
 CBOOL__PROTO(prolog_fd_dup) {

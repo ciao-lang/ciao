@@ -786,13 +786,14 @@ dev_null('/dev/null').
 
 % ---------------------------------------------------------------------------
 :- export(wait/2).
-:- trust pred wait(+Pid, -ReturnCode) :
-     (int(Pid),var(ReturnCode))
-     =>  (int(ReturnCode))
-   # "@pred{wait/2} waits for the process numbered @var{Pid}. Fails
-      if the process does not terminate normally or in case of error
-      (see C @tt{waitpid()} for details). @var{RetCode} is the process
-      return code.".
+:- trust pred wait(+Pid, -RetCode) : (int(Pid),var(RetCode)) => (int(RetCode))
+   # "@pred{wait/2} waits for the process numbered @var{Pid}. Fails if
+      the process does not terminate normally or in case of error (see
+      C @tt{waitpid()} for details). @var{RetCode} is a positive
+      number indicating the process return code if the process
+      terminated normally, or a negative number if the process
+      terminated due to a signal.".
+
 :- if(defined(optim_comp)).
 :- '$props'(wait/2, [impnat=cbool(prolog_wait)]).
 :- else.
@@ -884,11 +885,7 @@ dev_null('/dev/null').
 :- trust pred shell # "Executes the OS-specific system shell. When the
    shell process terminates, control is returned to Prolog. See
    @pred{shell/2} for details.".
-:- if(defined(optim_comp)).
-:- '$props'(shell/0, [impnat=cbool(prolog_unix_shell0)]).
-:- else.
-:- impl_defined(shell/0).
-:- endif.
+shell :- shell('', 0).
 
 % ---------------------------------------------------------------------------
 :- export(shell/1).
@@ -902,7 +899,8 @@ shell(Path) :- shell(Path, 0).
 :- export(shell/2).
 :- doc(shell(Command, RetCode), "Executes @var{Command} using the
    OS-specific system shell and stores the exit code in
-   @var{RetCode}.
+   @var{RetCode}. If @var{Command} is the empty atom @tt{\'\'}, 
+   executes the OS-specific system shell.
 
    On POSIX-like systems the system shell is specified by the
    @tt{SHELL} environment variable (@tt{$SHELL -c \"command\"} for
@@ -915,10 +913,13 @@ shell(Path) :- shell(Path, 0).
    a more robust way to launch external processes.").
 
 :- trust pred shell(+atm, ?int).
+
+shell(Path, RetCode) :- '$exec_shell'(Path, Pid), wait(Pid, RetCode).
+
 :- if(defined(optim_comp)).
-:- '$props'(shell/2, [impnat=cbool(prolog_unix_shell2)]).
+:- '$props'('$exec_shell'/2, [impnat=cbool(prolog_exec_shell)]).
 :- else.
-:- impl_defined(shell/2).
+:- impl_defined('$exec_shell'/2).
 :- endif.
 
 % ---------------------------------------------------------------------------
