@@ -12,6 +12,7 @@
 #include <stdlib.h>  /* for atoi MCL */
 #include <string.h>
 #include <strings.h>
+#include <sys/select.h> /* select() */ 
 
 #include <ciao/eng.h>
 #include <ciao/eng_registry.h>
@@ -1757,6 +1758,55 @@ CBOOL__PROTO(raw_copy_stdout) {
     }
   }
   CBOOL__PROCEED;
+}
+
+/* --------------------------------------------------------------------------- */
+
+// NOTE: be careful! data may be lost if we do buffered reads before
+CBOOL__PROTO(prolog_set_unbuf) {
+  ERR__FUNCTOR("io_basic:$set_unbuf", 1);
+  int errcode;
+  stream_node_t *s = stream_to_ptr_check(X(0), 'r', &errcode);
+  if (!s) {
+    BUILTIN_ERROR(errcode,X(0),1);
+  }
+  setbuf(s->streamfile, NULL);
+  CBOOL__PROCEED;
+}
+
+CBOOL__PROTO(prolog_input_wait) {
+  ERR__FUNCTOR("io_basic:$input_wait", 3);
+  int errcode;
+  stream_node_t *s = stream_to_ptr_check(X(0), 'r', &errcode);
+  if (!s) {
+    BUILTIN_ERROR(errcode,X(0),1);
+  }
+
+  int fd = fileno(s->streamfile);
+
+  if (s->pending_rune != RUNE_VOID) { /* RUNE_EOF or valid rune */
+    return TRUE;
+  }
+
+  fd_set set;
+  struct timeval timeout;
+  int rv;
+        
+  DEREF(X(1), X(1));
+  timeout.tv_sec  = TaggedToIntmach(X(1));
+  DEREF(X(2), X(2));
+  timeout.tv_usec = TaggedToIntmach(X(2));
+    
+  FD_ZERO(&set); 
+  FD_SET(fd, &set); 
+    
+  rv = select(fd + 1, &set, NULL, NULL, &timeout);
+    
+  if (rv < 0) {
+    BUILTIN_ERROR(SYSTEM_ERROR, TaggedZero, 0);
+  }
+
+  CBOOL__LASTTEST(rv != 0);
 }
 
 /* --------------------------------------------------------------------------- */

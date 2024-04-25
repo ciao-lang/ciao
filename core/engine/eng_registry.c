@@ -1069,6 +1069,8 @@ CBOOL__PROTO(prolog_fast_write_in_c);
 CBOOL__PROTO(prolog_format_print_float);
 CBOOL__PROTO(prolog_format_print_integer);
 CBOOL__PROTO(raw_copy_stdout);
+CBOOL__PROTO(prolog_set_unbuf);
+CBOOL__PROTO(prolog_input_wait);
 /* arithmetic.c */
 CBOOL__PROTO(bu2_numeq, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_numge, tagged_t x0, tagged_t x1);
@@ -1639,6 +1641,8 @@ void init_once(void)
   define_c_mod_predicate("fastrw","fast_write",1,prolog_fast_write_in_c);
   define_c_mod_predicate("compressed_bytecode","copyLZ",1,raw_copy_stdout); /* TODO: remove on next bootstrap promotion */
   define_c_mod_predicate("io_basic","$raw_copy_stdout",1,raw_copy_stdout);
+  define_c_mod_predicate("io_basic","$set_unbuf",1,prolog_set_unbuf);
+  define_c_mod_predicate("io_basic","$input_wait",3,prolog_input_wait);
   
   define_c_mod_predicate("internals","$format_print_float",3,prolog_format_print_float);
   define_c_mod_predicate("internals","$format_print_integer",3,prolog_format_print_integer);
