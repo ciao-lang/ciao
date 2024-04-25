@@ -5,19 +5,15 @@
 #include <stdio.h>
 #include <sys/select.h>
 
-CBOOL__PROTO(input_set_unbuf__c) 
-{
+// TODO: be careful! data may be lost if we do buffered reads before
+CBOOL__PROTO(input_set_unbuf__c) {
   setbuf(Input_Stream_Ptr->streamfile, NULL);
-
   return TRUE;
 }
 
-CBOOL__PROTO(input_wait__c) 
-{
+CBOOL__PROTO(input_wait__c) {
   ERR__FUNCTOR("input_wait", 3);
   int fd = fileno(Input_Stream_Ptr->streamfile);
-  // printf(">%d<", ftell(Input_Stream_Ptr->streamfile));
-  setbuf(Input_Stream_Ptr->streamfile, NULL);
 
   if (Input_Stream_Ptr->pending_rune != RUNE_VOID) { /* RUNE_EOF or valid rune */
     return TRUE;
@@ -28,7 +24,6 @@ CBOOL__PROTO(input_wait__c)
         
     DEREF(X(0), X(0));
     timeout.tv_sec  = TaggedToIntmach(X(0));
-    
     DEREF(X(1), X(1));
     timeout.tv_usec = TaggedToIntmach(X(1));
     
@@ -41,12 +36,6 @@ CBOOL__PROTO(input_wait__c)
       BUILTIN_ERROR(SYSTEM_ERROR, TaggedZero, 0);
     }
     
-    /*    if (rv == 0) {
-      printf("%i - %i\n", ftell(Input_Stream_Ptr->streamfile),  lseek( fd, 0, SEEK_CUR ));
-      //    printf("%i\n", getchar());
-    }
-    */
-
     return (rv != 0);
   }
 }
