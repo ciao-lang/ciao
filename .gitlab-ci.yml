@@ -167,14 +167,12 @@ core.test.rtchecks:
   stage: test
   script:
     - builder/etc/gitlab-ci.sh core.test.rtchecks
-  allow_failure: true
   needs: [core]
 
 ciaodbg.test.unittest:
   stage: test
   script:
     - builder/etc/gitlab-ci.sh ciaodbg.test.unittest
-  allow_failure: true
   needs: [core]
 
 iso_tests.test:
