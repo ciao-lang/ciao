@@ -22,6 +22,18 @@ core:
       - build/
   needs: []
 
+core.test:
+  stage: min-bundles
+  script:
+    - builder/etc/gitlab-ci.sh core.test
+  needs: [core]
+
+core_OC.test:
+  stage: min-bundles
+  script:
+    - builder/etc/gitlab-ci.sh core_OC.test
+  needs: [core]
+
 ciaopp:
   stage: basic-bundles
   script:
@@ -150,30 +162,6 @@ website:
   script:
     - builder/etc/gitlab-ci.sh website
   needs: [wui]
-
-core.test:
-  stage: test
-  script:
-    - builder/etc/gitlab-ci.sh core.test
-  needs: [core]
-
-core_OC.test:
-  stage: test
-  script:
-    - builder/etc/gitlab-ci.sh core_OC.test
-  needs: [core]
-
-core.test.rtchecks:
-  stage: test
-  script:
-    - builder/etc/gitlab-ci.sh core.test.rtchecks
-  needs: [core]
-
-ciaodbg.test.unittest:
-  stage: test
-  script:
-    - builder/etc/gitlab-ci.sh ciaodbg.test.unittest
-  needs: [core]
 
 iso_tests.test:
   stage: test
