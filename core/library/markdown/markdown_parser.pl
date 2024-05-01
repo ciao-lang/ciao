@@ -459,7 +459,7 @@ parse_front1(Layout, _EmptyAbove, Envs) -->
     },
     sc_str(Fence),
     skip_blanks_nonl,
-    match_cmdname(LangStr0), % ('' if none)
+    match_lang_id(LangStr0), % ('' if none)
     skip_blanks_nonl,
     sc_nl,
     !,
@@ -678,6 +678,11 @@ parse_indented_term(Layout, Term) -->
         []
     ; { throw(could_not_parse_term(Block)) }
     ).
+
+% Match language identifier in fenced code block
+match_lang_id([C|Cs]) --> sc_char(C), { \+ is_blank_or_nl(C) }, !,
+    match_lang_id(Cs).
+match_lang_id([]) --> [].
 
 % ---------------------------------------------------------------------------
 % Match a valid identifier for LPdoc command names
