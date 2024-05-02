@@ -76,12 +76,6 @@ Copyright @copyright{} 1989-2002 The CLIP Group / UPM
 %    CLIP2/97.1)''. 
 }
 %
-@comment{
-%   You might also refer to the @lib{rtchecks} library documentation
-%   (available from the @tt{ciaodbg} @concept{bundle})
-%   for examples of uses of
-%   assertions in run-time checking, unit-testing and profiling.
-}
    The assertion language as implemented in this library essentially follows these
    documents, although, due to its evolution, it may differ in some
    details. The purpose of this manual is to document precisely what
@@ -478,8 +472,6 @@ Copyright @copyright{} 1989-2002 The CLIP Group / UPM
      defined by @var{PropertyConjunction} should hold in all the
      run-time stores corresponding to that program point.
      See also @ref{Run-time checking of assertions}.".
-% TODO: lpdoc cannot resolve the @ref above, as rtchecks
-%       documentation is now in the ciaodbg bundle --NS
 
 check(_).
 
