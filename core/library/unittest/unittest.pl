@@ -11,14 +11,8 @@
 :- doc(author, "Ignacio Casso").
 :- doc(author, "Jose Luis Bueno").
 
-:- doc(summary, "Ciao provides an integrated assertion-based
-   verification and debugging framework, which includes unit tests.
-   In this approach to unit tests, the assertion language is reused to
-   provide specifications of test cases for predicates. This library
-   contains predicates for running any such tests present in modules
-   and for gathering or pretty printing the results.").
-
-:- doc(module, "The Ciao assertion language (see @ref{The Ciao
+:- doc(module, "
+   The Ciao assertion language (see @ref{The Ciao
    assertion language}) allows writing @index{tests} (including
    @index{unit tests}) by means of @index{test assertions}. These
    assertions make it possible to write specific test cases at the
@@ -141,41 +135,23 @@ complex(c(A, B)) :-
     => (B = c(2, 3)) + (not_fails, is_det, example).
 @end{verbatim}
 
-@subsection{Running tests in a bundle}
+@subsection{Running unit tests}
 
-   To run all these tests in a given bundle (as well as the other
-   standard tests in the system) run the following (at the top level
-   of the source tree or a bundle @cindex{bundle}):
+There are several ways to run the unit tests @cindex{running unit tests}:
 
+@begin{itemize}
+@item Select @bf{CiaoDbg} menu within the development environment, e.g., 
+  select the @tt{Run tests in current module}.
+@item Run all tests in a given bundle @cindex{bundle} by running the
+  following command at the top level of the source tree or a bundle:
 @begin{verbatim}
 ciao test
 @end{verbatim}
-
-@subsection{Running the tests from the IDE}
-
-   A convenient way to run these tests is by selecting options in the
-   @bf{CiaoDbg} menu within the development environment. This menu
-   offers the following options: @cindex{running unit tests}
-
-@begin{cartouche}
-   @begin{enumerate}
-
-   @item @tt{Run tests in current module}: execute the tests
-     specified in the current module.
-
-   @item @tt{Show untested exported predicates}: show the
-     @em{exported} predicates that do not have any test assertions.
-
-   @end{enumerate}
-@end{cartouche}
-
-@subsection{Running the tests from the top level or programmatically}
-
-   The tests can also be run from the top level, loading this module
-   (@lib{unittest.pl}) and calling the appropiate predicates that it
-   exports (see the module @ref{Usage and interface} section
-   below). This can also be done from a program, provided it imports
-   this module.
+@item Run from the top level, loading this module (@lib{unittest.pl})
+  and calling the appropiate predicates (e.g., @pred{run_tests/3})
+  (see the module @ref{Usage and interface} section below). This can
+  also be done from a program, provided it imports this module.
+@end{itemize}
 
 @subsection{Combination with run-time tests}
 
