@@ -19,6 +19,10 @@
 #include <stddef.h> /* ptrdiff_t */
 #endif
 
+#if !defined(OPTIM_COMP) && defined(PROFILE) /* due to PredTrace() */
+#include <ciao/eng_profile.h>
+#endif
+
 #if defined(OPTIM_COMP)
 #define DYNAMIC BEHAVIOR(dynamic)
 #define CONC_OPEN BEHAVIOR(conc_open)

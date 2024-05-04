@@ -186,8 +186,7 @@
       "                      emulator\n"||
       "   paranoid-debug  -- Emulator with C level debugging info available\n"||
       "                      plus paranoid C compilation warnings."),
-    valid_values(['nodebug', 'debug', 'profile', 'profile-debug',
-    'paranoid-debug']),
+    valid_values(['nodebug', 'debug', 'profile', 'profile-debug', 'paranoid-debug']),
     %
     rule_default('nodebug'),
     %
