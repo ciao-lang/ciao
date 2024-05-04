@@ -1628,9 +1628,9 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
  
 #if defined(DEBUG) && defined(USE_THREADS)
   if (debug_threads)
-    printf("%d (%d) Goal %x (with starting point %x) entering wam()\n",
-           (int)Thread_Id, (int)GET_INC_COUNTER, 
-           (int)goal_desc, (int)X(0));
+    printf("%" PRIdm " (%" PRIdm ") Goal %p (with starting point 0x%" PRIxm ") entering wam()\n",
+           (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
+           goal_desc, (intmach_t)X(0));
 #endif
 
   wam(Arg, goal_desc);    /* segfault patch -- jf */
@@ -1639,9 +1639,9 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
 
 #if defined(DEBUG) && defined(USE_THREADS)
   if (debug_threads)
-    printf("%d (%d) Goal %x (with starting point %x) exiting wam()\n",
-           (int)Thread_Id, (int)GET_INC_COUNTER, 
-           (int)goal_desc, (int)X(0));
+    printf("%" PRIdm " (%" PRIdm ") Goal %p (with starting point 0x%" PRIxm ") exiting wam()\n",
+           (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
+           goal_desc, (intmach_t)X(0));
 #endif
 
   if (wam_result == WAM_ABORT) {
@@ -1650,8 +1650,8 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
   
 #if defined(DEBUG) && defined(USE_THREADS)
   if (debug_threads)
-    printf("%d (%d) Goal %x exited wam()\n", 
-           (int)Thread_Id, (int)GET_INC_COUNTER, (int)goal_desc);
+    printf("% " PRIdm " (%" PRIdm ") Goal %p exited wam()\n", 
+           (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, goal_desc);
 #endif
 #if 0
   flush_output(Arg);
@@ -1673,7 +1673,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
 
   if (goal_desc->action & NEEDS_FREEING){ /* Implies thread created */
 #if defined(DEBUG) && defined(USE_THREADS)
-    if (debug_threads) printf("Goal %x enqueuing itself\n", (int)goal_desc);
+    if (debug_threads) printf("Goal %p enqueuing itself\n", goal_desc);
 #endif
     enqueue_thread(goal_desc->thread_handle); /* Free, enqueue myself */
   } else   
@@ -1693,8 +1693,8 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
   Release_slock(goal_desc->goal_lock_l);
 
 #if defined(DEBUG) && defined(USE_THREADS)
-  if (debug_threads || debug_conc)  printf("*** %d(%d) Goal %x is EXITING\n", 
-           (int)Thread_Id, (int)GET_INC_COUNTER, (int)goal_desc);
+  if (debug_threads || debug_conc)
+    printf("*** %" PRIdm " (%" PRIdm ") Goal %p is EXITING\n", (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, goal_desc);
 #endif
   return (THREAD_RES_T)(uintptr_t)(result_state == PENDING_SOLS);
 }

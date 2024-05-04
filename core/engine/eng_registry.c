@@ -1944,9 +1944,9 @@ CVOID__PROTO(local_init_each_time) {
 
 #if defined(DEBUG)
   if (debug_threads)
-    printf("%d (%d) Initializing WAM %x: node = %x, trail = %x, frame = %x\n",
-           (int)Thread_Id, (int)GET_INC_COUNTER, (int)Arg,
-           (int)b, (int)w->trail_top, (int)w->frame);
+    fprintf(stderr, "*** %" PRIdm " (%" PRIdm ") Initializing WAM %p: node = %p, trail = %p, frame = %p\n",
+            (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, Arg,
+            b, w->trail_top, w->frame);
 #endif
   init_streams_each_time(Arg);       /* set misc. variables, handle signals */
   control_c_normal(Arg);                               /* For threads also? */

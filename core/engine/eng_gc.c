@@ -36,7 +36,9 @@
 
 #if !defined(OPTIM_COMP) && defined(USE_LOWRTCHECKS)
 /* TODO:[oc-merge] port */
-static CBOOL__PROTO(proofread, char *text, intmach_t arity, bool_t force) {}
+static CBOOL__PROTO(proofread, char *text, intmach_t arity, bool_t force) {
+  CBOOL__PROCEED;
+}
 #endif
 
 /* --------------------------------------------------------------------------- */
@@ -284,7 +286,7 @@ static inline bool_t rtcheck__is_M(tagged_t *t0) {
 /* must be inside the heap */
 #define ASSERT__INTORC0(X, EV) { \
   if (!OnHeap(X)) { \
-    TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: %p out of heap cannot be relocated into %p}\n", (long)debug_inscount, (long)__LINE__, (X), (EV)); \
+    TRACE_INSCOUNT(); TRACE_PRINTF("{assert[eng_gc:%ld]: %p out of heap cannot be relocated into %p}\n", (long)__LINE__, (X), (EV)); \
   } \
 }
 /* must be inside the heap and not marked */
@@ -292,22 +294,22 @@ static inline bool_t rtcheck__is_M(tagged_t *t0) {
   ASSERT__INTORC0((X), (EV)); \
   if (!rtcheck__is_M((X))) { \
     TG_Fetch(X); \
-    TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: should be marked 0x%lx (at %p)}\n", (long)debug_inscount, (long)__LINE__, (long)(TG_Val(X)), (X)); \
+    TRACE_INSCOUNT(); TRACE_PRINTF("{assert[eng_gc:%ld]: should be marked 0x%lx (at %p)}\n", (long)__LINE__, (long)(TG_Val(X)), (X)); \
   } \
   if (rtcheck__is_M((EV))) { \
     TG_Fetch(EV); \
-    TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: cannot relocate into marked 0x%lx (at %p)}\n", (long)debug_inscount, (long)__LINE__, (long)(TG_Val(EV)), (EV)); \
+    TRACE_INSCOUNT(); TRACE_PRINTF("{assert[eng_gc:%ld]: cannot relocate into marked 0x%lx (at %p)}\n", (long)__LINE__, (long)(TG_Val(EV)), (EV)); \
   } \
 })
 #define ASSERT__VALID_TAGGED(X) ({ \
   if (IsHeapPtr((X)) && !OnHeap(TaggedToPointer((X)))) { \
-    TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: out of heap cell 0x%lx wrote}\n", (long)debug_inscount, (long)__LINE__, (long)(X)); \
+    TRACE_INSCOUNT(); TRACE_PRINTF("{assert[eng_gc:%ld]: out of heap cell 0x%lx wrote}\n", (long)__LINE__, (long)(X)); \
   } \
 })
 #define ASSERT__NO_MARK(X) ({ \
   if (rtcheck__is_M((X))) { \
     TG_Fetch(X); \
-    TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: cell 0x%lx at %p is marked}\n", (long)debug_inscount, (long)__LINE__, (long)(TG_Val(X)), (X)); \
+    TRACE_INSCOUNT(); TRACE_PRINTF("{assert[eng_gc:%ld]: cell 0x%lx at %p is marked}\n", (long)__LINE__, (long)(TG_Val(X)), (X)); \
   } \
 })
 #else
@@ -1180,7 +1182,9 @@ static CVOID__PROTO(shunt_variables) {
         TG_Let(ptr, TaggedToPointer(TG_Val(pt)));
         TG_Fetch(ptr);
         if (shunt__isTrailed(ptr)) {
-          RTCHECK(TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: variable shunting detected that a variable at %p was trailed twice}\n", (long)debug_inscount, (long)__LINE__, ptr));
+          RTCHECK({
+              TRACE_INSCOUNT(); TRACE_PRINTF("{assert[eng_gc:%ld]: variable shunting detected that a variable at %p was trailed twice}\n", (long)__LINE__, ptr);
+          });
           goto ignore_trail_entry;
         } else {
           shunt__setTrailed(ptr);
@@ -1414,21 +1418,21 @@ static CVOID__PROTO(mark_root, tagged_t *start) {
   RTCHECK({
     TG_Let(pt, start);
     if (OnHeap(pt) && GC_HEAP_IN_SEGMENT(pt)) {
-      TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: marking a tagged inside the heap segment at %p}\n", (long)debug_inscount, (long)__LINE__, pt);
+      TRACE_INSCOUNT(); TRACE_PRINTF("{assert[eng_gc:%ld]: marking a tagged inside the heap segment at %p}\n", (long)__LINE__, pt);
     }
   });
   RTCHECK({
     TG_Let(pt, start);
     if (rtcheck__is_M(pt)) {
       TG_Fetch(pt);
-      TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: marking already marked var 0x%lx at %p}\n", (long)debug_inscount, (long)__LINE__, (long)(TG_Val(pt)), pt);
+      TRACE_INSCOUNT(); TRACE_PRINTF("{assert[eng_gc:%ld]: marking already marked var 0x%lx at %p}\n", (long)__LINE__, (long)(TG_Val(pt)), pt);
     }
   });
   RTCHECK({
     TG_Let(pt, start);
     TG_Fetch(pt);
     if (!IsHeapPtr(TG_Val(pt))) {
-      TRACE_PRINTF("[time = %ld] {assert[eng_gc:%ld]: marking a non heap term 0x%lx at %p}\n", (long)debug_inscount, (long)__LINE__, (long)(TG_Val(pt)), pt);
+      TRACE_INSCOUNT(); TRACE_PRINTF("{assert[eng_gc:%ld]: marking a non heap term 0x%lx at %p}\n", (long)__LINE__, (long)(TG_Val(pt)), pt);
     }
   });
 #endif
@@ -1809,8 +1813,19 @@ static CVOID__PROTO(mark_choicepoints) {
 } while(0)
 #endif
 
+#if defined(USE_LOWRTCHECKS)
+#define updateRelocationChain(CURR, DEST) CVOID__CALL(updateRelocationChain_, (CURR), (DEST))
+#else
+#define updateRelocationChain(CURR, DEST) updateRelocationChain_((CURR), (DEST))
+#endif
+
 /* R-bit is set in *curr */
-static void updateRelocationChain(tagged_t *curr, tagged_t *dest) {
+#if defined(USE_LOWRTCHECKS)
+static CVOID__PROTO(updateRelocationChain_, tagged_t *curr, tagged_t *dest)
+#else
+static void updateRelocationChain_(tagged_t *curr, tagged_t *dest)
+#endif
+{
   TG_Let(A, curr);
   TG_Fetch(A);
   TG_Let(j, TaggedToPointer(TG_Val(A)));

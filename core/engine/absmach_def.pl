@@ -1580,11 +1580,11 @@ trace_(retry_instance_debug_1) =>
                       ~tagged_to_root(x(tk('RootArg')))^.behavior_on_failure]))).
 trace_(retry_instance_debug_2) =>
     if(tk('debug_concchoicepoints'),
-       trace_print([tk_string("New topmost concurrent chpt = %x\n"), tk('TopConcChpt')])).
+       trace_print([tk_string("New topmost concurrent chpt = %p\n"), tk('TopConcChpt')])).
 trace_(retry_instance_debug_3) =>
     if(logical_and(tk('debug_conc'),
                    ~tagged_to_root(x(tk('RootArg')))^.behavior_on_failure \== tk('DYNAMIC')),
-       trace_print([(tk_string("*** "), ' ', tk('PRIdm'), ' ', tk_string("backtracking on a concurrent predicate.\n")),
+       trace_print([(tk_string("*** %"), ' ', tk('PRIdm'), ' ', tk_string(" (%"), ' ', tk('PRIdm'), ' ', tk_string(") backtracking on a concurrent predicate.\n")),
                     cast(intmach,tk('Thread_Id')),
                     cast(intmach,tk('GET_INC_COUNTER'))])),
     if(logical_and(tk('debug_concchoicepoints'),

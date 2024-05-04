@@ -220,7 +220,7 @@ CINSNP__PROTO(next_instance) {
 #define EXECIDX  (1<<1)
 #else /* TODO: backport? */
 /* NOTE: was 1<<0 and 1<<1; avoid reserved bits */
-#define BLOCKIDX ((intmach_t)1<<tagged__num_offset)
+//#define BLOCKIDX ((intmach_t)1<<tagged__num_offset)
 #define EXECIDX  ((intmach_t)1<<(tagged__num_offset+1))
 #endif
 
@@ -228,7 +228,9 @@ CINSNP__PROTO(next_instance) {
    on concurrent predicates. */
 #define SET_BLOCKING(arg) (arg) = ((arg) | BLOCKIDX)
 #define SET_NONBLOCKING(arg) (arg) = ((arg) & ~BLOCKIDX)
+#if defined(OPTIM_COMP)
 #define IS_BLOCKING(arg) ((arg) & BLOCKIDX)
+#endif
 #define IS_NONBLOCKING(arg) !((arg) & BLOCKIDX)
 
 #define SET_EXECUTING(arg) (arg) = ((arg) | EXECIDX)

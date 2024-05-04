@@ -22,14 +22,17 @@ extern bool_t stop_on_pred_calls;
 #define USE_DEBUG_INSCOUNT 1
 #endif
 
-#if defined(USE_DEBUG_INSCOUNT)
+#endif /* defined(OPTIM_COMP) */
+
+#if defined(USE_DEBUG_INSCOUNT) /* TODO: currently only OPTIM_COMP */
 extern intmach_t debug_inscount;
 bool_t dump_cond(void);
 void init_debug_inscount(void);
 #define INSCOUNT_NEXT() debug_inscount++
+#define TRACE_INSCOUNT() TRACE_PRINTF("[time = %" PRIdm "] ", debug_inscount)
+#else
+#define TRACE_INSCOUNT() {}
 #endif
-
-#endif /* defined(OPTIM_COMP) */
 
 /* ------------------------------------------------------------------------- */
 /* Low-level runtime checks (debugging) */

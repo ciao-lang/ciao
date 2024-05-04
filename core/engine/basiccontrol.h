@@ -88,12 +88,12 @@ CVOID__PROTO(wr_call, char *s, definition_t *func);
 #if defined(DEBUG)
 #define TRACE_CHPT_CLEANUP(TopCChpt, TopNode) \
  if(debug_concchoicepoints) \
-    fprintf(stderr, "cut: removing chains (%x to %x)\n", \
-                    (int)TopCChpt, (int)TopNode);
+    fprintf(stderr, "cut: removing chains (%p to %p)\n", \
+                    TopCChpt, TopNode);
 
 #define TRACE_CHPT_CUT(NewNode) \
  if (debug_choicepoints)  \
-   fprintf(stderr, "Cutting: new chpt = %x\n", (int)NewNode);
+   fprintf(stderr, "Cutting: new chpt = %p\n", NewNode);
 #else
 #define TRACE_CHPT_CUT(NewNode)
 #define TRACE_CHPT_CLEANUP(TopCChpt, TopNode)
@@ -121,9 +121,9 @@ CVOID__PROTO(wr_call, char *s, definition_t *func);
   choice_t *concchpt = TopConcChpt = RelocPtr(TopConcChpt, choice_reloc_factor); \
   while(concchpt != InitialChoice) { \
     DEBUG__TRACE(debug_concchoicepoints || debug_gc, \
-                 "*** %" PRIdm "(%" PRIdm ") Changing dynamic chpt@%x\n", \
+                 "*** %" PRIdm "(%" PRIdm ") Changing dynamic chpt@%p\n", \
                  (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, \
-                 (unsigned int)concchpt); \
+                 concchpt); \
     /* TODO: wrong if it is Zero (null)? (JFMC) */ \
     choice_t *prev = TermToPointerOrNull(choice_t, concchpt->x[PrevDynChpt]); \
     AssignRelocPtr(prev, choice_reloc_factor); \

@@ -80,28 +80,6 @@
 #define Xop(X)  (((X)+WToX0)*sizeof(tagged_t))
 #define Xinv(X) (((X)/sizeof(tagged_t))-WToX0)
 
-/* # X regs used for control in choicepoints for dynamic code */
-/*
-   X(0) -
-   X(1) -
-   X(2) - x2_next clause pointer / handle.
-   X(3) -
-   X(4) - clock (used even in conc. predicates, although ignored).
-   X(5) - x5_next clause pointer / handle.
-   ------ The next ones, only meaningful for concurrent predicates.
-   X(6) - predicate root (needed in case there are no clause pointers - MCL).
-   X(7) - blocking/non-blocking and exited/non exited (MCL).
-   X(8) - pointer to previous dynamic concurrent choicepoint.
-*/
-
-#define X2_CHN 2
-#define ClockSlot 4
-#define X5_CHN 5
-#define RootArg 6
-#define InvocationAttr 7
-#define PrevDynChpt 8
-#define DynamicPreserved 9
-
 /* initial choicepoint */
 #define InitialChoice ChoiceNext0(Choice_Start,1)
 
@@ -319,11 +297,6 @@
 #define Gc_Choice_Start  (w->misc->gc_choice_start)
 #define Gc_Heap_Start    (w->misc->gc_heap_start)
 #define Gc_Stack_Start   (w->misc->gc_stack_start)
-
-
-/* Topmost choicepoint for calls to concurrent facts. */
-
-#define TopConcChpt     w->misc->top_conc_chpt
 
 /* Global registers */
 
@@ -1025,7 +998,6 @@ typedef struct sw_on_key_ sw_on_key_t;
 #define TaggedToLock(X)        TermToPointer(LOCK, X)
 #define TaggedToSLock(X)       TermToPointer(SLOCK, X)
 #define TaggedToBool(X)        TermToPointer(bool_t, X)
-#define TaggedToRoot(X)        TermToPointer(int_info_t, X)
 #define TaggedToEmul(X)        TermToPointer(emul_info_t, X)
 #define TaggedToFunctor(X)     TermToPointer(definition_t, X)
 
@@ -1690,14 +1662,6 @@ struct marker_ {
 #define TG_MoveValue_UnsetR(c1,A) TG_Put(Deposit(c1,POINTERMASK|GC_FIRSTMASK,TG_Val(A)), A)
 #endif
 
-
-#if !defined(OPTIM_COMP)
-#define ASSERT__INTORC0(X, EV)
-#define ASSERT__INTORC(X, EV)
-#define ASSERT__VALID_TAGGED(X)
-#define ASSERT__NO_MARK(X)
-#endif
-
 /* ------------------------------------------------------------------------- */
 /* Alignment operations */
 
@@ -1862,8 +1826,6 @@ typedef short enter_instr_t;
 
 #define CACHE_INCREMENTAL_CLAUSE_INSERTION
 
-typedef unsigned short int instance_clock_t;
-
 /* p->count = (intmach_t *)((char *)p + objsize) - p->counters */
 
 #define NumberOfCounters(cl) \
@@ -1893,6 +1855,15 @@ struct emul_info_ {
   char emulcode[FLEXIBLE_SIZE];
 };
 
+/* --------------------------------------------------------------------------- */
+/* Dynamic/concurrent predicates */
+
+/* Topmost choicepoint for calls to concurrent facts. */
+
+#define TopConcChpt     w->misc->top_conc_chpt
+
+typedef unsigned short int instance_clock_t;
+
 /* TODO: (JFMC) give a better name to IS_CLAUSE_TAIL */
 
 /* CLAUSE_TAIL */
@@ -1903,19 +1874,6 @@ struct emul_info_ {
     EP->subdefs = NULL;                                                 \
     EP->objsize = 0;                                                    \
   }
-
-/* All invocations looking at an instance of an concurrent predicate will
-   actually have a pointer to a pointer to the instance.  Every clause has a
-   pointer to a queue of handles to itself.  Erasing a pointed to instance 
-   will change the pointer to the instance itself (Confused? OK, ask me, I
-   have a nice drawing on a napkin --- MCL) */
-
-struct instance_handle_ {
-  instance_t *inst_ptr;                    /* Pointer to the instance */
-  tagged_t head;                            /* Goal called; allows indexing. */
-  instance_handle_t *next_handle;             
-  instance_handle_t *previous_handle;             
-};
 
 /* Terms recorded under a key or clauses of an interpreted predicate
    are stored as a doubly linked list of records.  The forward link is
@@ -1945,11 +1903,29 @@ struct instance_ {
   char emulcode[FLEXIBLE_SIZE];
 };
 
+/* All invocations looking at an instance of an concurrent predicate will
+   actually have a pointer to a pointer to the instance.  Every clause has a
+   pointer to a queue of handles to itself.  Erasing a pointed to instance 
+   will change the pointer to the instance itself (Confused? OK, ask me, I
+   have a nice drawing on a napkin --- MCL) */
+
+struct instance_handle_ {
+  instance_t *inst_ptr;                    /* Pointer to the instance */
+  tagged_t head;                            /* Goal called; allows indexing. */
+  instance_handle_t *next_handle;             
+  instance_handle_t *previous_handle;             
+};
+
 /* Indexing information for dynamic predicates? First simple, common cases,
    then hash table indexing.  Includes information on openness/closeness of
    concurrent facts. (MCL) */
 
 typedef enum {DYNAMIC, CONC_OPEN, CONC_CLOSED} int_behavior_t;
+
+#if !defined(OPTIM_COMP) /* TODO: keep in dynamic_rt.c, fix retry_instance_debug_1 */
+#define BLOCKIDX ((intmach_t)1<<tagged__num_offset)
+#define IS_BLOCKING(arg) ((arg) & BLOCKIDX)
+#endif
 
 struct int_info_ {
   volatile int_behavior_t  behavior_on_failure;/* behavior if no clauses match. */
@@ -1969,6 +1945,32 @@ struct int_info_ {
   instance_t  *lstcase;
   sw_on_key_t *indexer;
 };
+
+/* # X regs used for control in choicepoints for dynamic code */
+/*
+   X(0) -
+   X(1) -
+   X(2) - x2_next clause pointer / handle.
+   X(3) -
+   X(4) - clock (used even in conc. predicates, although ignored).
+   X(5) - x5_next clause pointer / handle.
+   ------ The next ones, only meaningful for concurrent predicates.
+   X(6) - predicate root (needed in case there are no clause pointers - MCL).
+   X(7) - blocking/non-blocking and exited/non exited (MCL).
+   X(8) - pointer to previous dynamic concurrent choicepoint.
+*/
+
+#define X2_CHN 2
+#define ClockSlot 4
+#define X5_CHN 5
+#define RootArg 6
+#define InvocationAttr 7
+#define PrevDynChpt 8
+#define DynamicPreserved 9
+
+#define TaggedToRoot(X)        TermToPointer(int_info_t, X)
+
+/* --------------------------------------------------------------------------- */
 
 typedef struct und_info_ und_info_t;
 struct und_info_ {
