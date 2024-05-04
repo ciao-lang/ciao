@@ -15,6 +15,9 @@
 #endif
 #include <ciao/io_basic.h>
 
+/* TODO: some benchmarks report issues with this, debug */
+//#define PARANOID_GC_DEBUG 1
+
 /* TODO: move USE_* options to eng_definitions header */
 
 #if defined(OPTIM_COMP)
@@ -1182,9 +1185,11 @@ static CVOID__PROTO(shunt_variables) {
         TG_Let(ptr, TaggedToPointer(TG_Val(pt)));
         TG_Fetch(ptr);
         if (shunt__isTrailed(ptr)) {
+#if defined(PARANOID_GC_DEBUG)
           RTCHECK({
               TRACE_INSCOUNT(); TRACE_PRINTF("{assert[eng_gc:%ld]: variable shunting detected that a variable at %p was trailed twice}\n", (long)__LINE__, ptr);
           });
+#endif
           goto ignore_trail_entry;
         } else {
           shunt__setTrailed(ptr);
@@ -1359,7 +1364,9 @@ static CVOID__PROTO(shunt_variables) {
     limit = cp->trail_top;
     pt = prevcp->trail_top;
     while (TrailYounger(limit, pt)) {
+#if defined(PARANOID_GC_DEBUG)
       ASSERT__NO_MARK(pt);
+#endif
       pt++;
     }
     pt = prevcp->heap_top;
