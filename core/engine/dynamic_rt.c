@@ -488,7 +488,9 @@ CBOOL__PROTO(next_instance, instance_t **ipp)
   instance_t *x2_insp = TaggedToInstance(X(2));
   instance_t *x5_insp = TaggedToInstance(X(5));
   instance_clock_t clock = GetSmall(X(4));
+#if defined(USE_THREADS)
   int_info_t *root = TaggedToRoot(X(6));
+#endif
 
   Wait_Acquire_Cond_lock(root->clause_insertion_cond);
 
@@ -642,10 +644,10 @@ CVOID__PROTO(close_predicate, int_info_t *root)
 CBOOL__PROTO(close_predicate)
 #endif
 {
+#if defined(USE_THREADS)
 #if !defined(OPTIM_COMP)
   int_info_t *root = TaggedToRoot(X(0));
 #endif
-#if defined(USE_THREADS)
   Cond_Begin(root->clause_insertion_cond);
   if (root->behavior_on_failure == CONC_OPEN) 
     root->behavior_on_failure = CONC_CLOSED;
@@ -661,10 +663,10 @@ CVOID__PROTO(open_predicate, int_info_t *root)
 CBOOL__PROTO(open_predicate)
 #endif
 {
+#if defined(USE_THREADS)
 #if !defined(OPTIM_COMP)
   int_info_t *root = TaggedToRoot(X(0));
 #endif
-#if defined(USE_THREADS)
   Cond_Begin(root->clause_insertion_cond);
   if (root->behavior_on_failure == CONC_CLOSED) 
     root->behavior_on_failure = CONC_OPEN;
