@@ -197,38 +197,32 @@ ciao_sysconf_sh := ~bundle_path(builder, 'sh_src/config-sysdep/ciao_sysconf').
     % Runtests_dir fails after executing all tests in a directory,
     % whenever one of the tests is detected to fail.
     % This allows '$builder_hook'(test) to fail, and exit `ciao test core` with a non-zero errcode.
-    runtests_dir(core, 'lib'),
-    runtests_dir(core, 'library'),
+    Dirs = [~bundle_path(core, 'lib')|Dirs1], runtests_dir(core, 'lib'),
+    Dirs1 = [~bundle_path(core, 'library')|Dirs0], runtests_dir(core, 'library'),
     % TODO: allow failure (e.g. using status in ciaosh call) to catch failing tests in CI jobs
-    runtests_ciaotests_hook, % integration tests
-    show_test_stats(~bundle_path(core, '.')). % TODO: pass a selection of directories instead!
+    CoreTestsDir = ~bundle_path(core, 'tests'),
+    ( exists_and_compilable(CoreTestsDir) -> do_ciaotests(CoreTestsDir), Dirs0 = [CoreTestsDir] ; Dirs0 = [] ),
+    show_test_stats(Dirs).
 
 :- use_module(library(system), [working_directory/2]).
 :- use_module(ciaobld(ciaoc_aux), [
     exists_and_compilable/1,
     invoke_ciaosh_batch/1]).
 
-% Run Ciao integration tests
-runtests_ciaotests_hook :-
-    ( exists_and_compilable(~bundle_path(core, 'tests')) ->
-        do_ciaotests
-    ; true
-    ).
-
-do_ciaotests :-
+do_ciaotests(CoreTestsDir) :-
     % TODO: missing cleaning code! (see below)
-    working_directory(ThisDir, ~bundle_path(core, 'tests')),
+    working_directory(ThisDir, CoreTestsDir),
     invoke_ciaosh_batch([
       use_module(core_tests(run_tests), [run_tests/0]),
       run_tests:run_tests
     ]),
     working_directory(_, ThisDir).
 
-show_test_stats(Dir) :-
+show_test_stats(Target) :-
     normal_message("summary of tests", []),
     invoke_ciaosh_batch([
       use_module(library(unittest), [run_tests/3]),
-      run_tests(Dir, [dir_rec, onlystats], [show_results])
+      run_tests(Target, [dir_rec, onlystats], [show_results])
     ]).
 
 % TODO: Missing cleaning code! (incomplete)
