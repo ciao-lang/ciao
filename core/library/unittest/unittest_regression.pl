@@ -105,6 +105,7 @@ compare_tests(Module, Mode) :-
 get_saved_db(Module) :-
     cleanup_test_db,
     load_test_input(Module, saved),
+    cleanup_test_results,
     load_test_output(Module, saved),
     cleanup_saved_test_results,
     test_results_db_to_saved_test_results_db.
@@ -112,6 +113,7 @@ get_saved_db(Module) :-
 get_new_db(Module) :-
     cleanup_test_db,
     load_test_input(Module, new),
+    cleanup_test_results,
     load_test_output(Module, new).
 
 difference(brief,_) :- fail.

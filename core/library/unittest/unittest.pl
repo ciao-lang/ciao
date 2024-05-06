@@ -177,7 +177,7 @@ ciao test
 :- use_module(engine(messages_basic), [message/2, messages/1]).
 :- use_module(library(sort), [sort/2]).
 :- use_module(library(aggregates), [findall/3]).
-:- use_module(library(system), [file_exists/1]).
+:- use_module(library(system), [file_exists/1, file_property/2]).
 :- use_module(library(lists), [member/2, last/2]).
 :- use_module(library(hiordlib), [maplist/2, maplist/3]).
 :- use_module(library(pathnames), [pathname/1]).
@@ -304,9 +304,15 @@ show_test_output(Alias, Format) :-
 % ---------------------------------------------------------------------------
 %! ## Main run_tests
 
+% TODO: document Target (Alias):
+%  - a list of targets
+%  - a module
+%  - a directory (requires dir_rec)
+%  - a bundle? (add this one)
+
 :- export(run_tests/3).
 :- pred run_tests(Target, Opts, Actions)
-   : (sourcename(Target), list(test_option,Opts), list(test_action, Actions))
+   : (term(Target), list(test_option,Opts), list(test_action, Actions))
 # "Perform the test action @var{Actions} on the test target
   @var{Target} with options @var{Opts}.".
 
@@ -319,12 +325,21 @@ run_tests(Target, Opts0, Actions) :-
     ),
     decide_modules_to_test(Target, Opts, Modules),
     %
-    run_tests_all_mods(Modules, Filter, Opts, Actions, SelVers),
-    %
-    ( requires_summary(Actions, Opts) ->
-        do_summary(Modules, Filter, Actions, SelVers)
-    ; true
+    ( member(check, Actions) -> DoCheck = yes ; DoCheck = no ),
+    ( \+ get_opt(onlystats, Opts), member(show_results, Actions) ->
+        ShowRes = yes
+    ; ShowRes = no
     ),
+    ( requires_summary(Actions, Opts) -> DoSummary = yes
+    ; DoSummary = no
+    ),
+    %
+    cleanup_test_results,
+    cleanup_test_db,
+    ( DoCheck = no, ShowRes = no, DoSummary = no -> true % do nothing?
+    ; maplist(run_tests_one_mod(Filter, Opts, DoCheck, ShowRes, DoSummary, SelVers), Modules)
+    ),
+    ( DoSummary = yes -> do_summary(Modules, Filter, Actions, Opts) ; true ),
     % (actions for regression tests)
     regr_action(Modules, Actions),
     % (free memory)
@@ -332,27 +347,10 @@ run_tests(Target, Opts0, Actions) :-
     cleanup_test_db,
     cleanup_test_results.
 
-run_tests_all_mods([], _, _, _, _).
-run_tests_all_mods([Module|Modules], Filter, Opts, Actions, SelVers) :-
-    run_tests_one_mod(Module, Filter, Opts, Actions, SelVers),
-    run_tests_all_mods(Modules, Filter, Opts, Actions, SelVers).
-
-run_tests_one_mod(Module, Filter, Opts, Actions, SelVers) :-
-    ( member(check, Actions) -> DoCheck = yes ; DoCheck = no ),
-    ( \+ get_opt(onlystats, Opts), member(show_results, Actions) ->
-        ShowRes = yes
-    ; ShowRes = no
-    ),
-    % Load code or test db (as required)
-    ( DoCheck = yes ->
-        load_tests(Module) % (fails if the module had errors)
-    ; ShowRes = yes ->
-        check_restore_test_input(Module, SelVers)
-    ; fail % nothing to do
-    ),
+% Load and run the tests. Keep (or restore) tests results (for summaries). Show results if required.
+run_tests_one_mod(Filter, Opts, DoCheck, ShowRes, DoSummary, SelVers, Module) :-
+    load_tests_one_mod(DoCheck, SelVers, Module),
     !,
-    % run the tests and show results
-    begin_messages,
     ( DoCheck = yes ->
         ( Filter = [] -> SaveRes = yes
         ; % TODO: show warning only if ShowRes=no?
@@ -360,25 +358,44 @@ run_tests_one_mod(Module, Filter, Opts, Actions, SelVers) :-
           message(warning, ['running tests with filters will not save results'])
         ),
         check_tests_one_mod(Module, Filter, Opts, SaveRes, ShowRes)
-    ; ShowRes = yes ->
+    ; ShowRes = yes -> % no check, show results
         load_results(Module, SelVers),
         show_results_one_mod(Module, Filter, Opts)
+    ; DoSummary = yes -> % no results, only summary
+        load_results(Module, SelVers)
     ; throw(bug) % (this should not happen)
     ),
-    end_messages,
-    % Cleanup code if needed (no longer needed)
-    ( DoCheck = yes -> cleanup_code_and_related_assertions ; true ).
-run_tests_one_mod(_Module, _Filter, _Opts, _Actions, _SelVers).
+    % Cleanups
+    ( DoCheck = yes -> cleanup_code_and_related_assertions ; true ), % (if loaded)
+    ( DoSummary = no -> cleanup_test_results ; true ). % (no needed)
+run_tests_one_mod(_Filter, _Opts, _DoCheck, _ShowRes, _DoSummary, _SelVers, _Module).
+
+% Load code or test db (as required)
+load_tests_one_mod(DoCheck, SelVers, Module) :-
+    ( DoCheck = yes -> load_tests(Module) % (fails if the module had errors)
+    ; % no check, just load test db
+      file_test_input(Module, SelVers, TestInFile),
+      ( file_exists(TestInFile) -> true
+      ; % TODO: make message optional (currently there is not way to
+        %   distinguish between a module without tests and a module whose
+        %   tests has not run)
+        % message(warning, ['No test results for ', Module]),
+        fail  % (fails if no test input)
+      ),
+      load_test_input(Module, SelVers)
+    ).
 
 % Show the results (directly from test_output_db/2)
 show_results_one_mod(Module, Filter, Opts) :-
+    begin_messages,
     ( % (failure-driven loop)
       get_test_in(Module, Filter, TestId, TestIn),
       test_output_db(TestId, TRes),
         show_test_res(TestIn, TRes, Opts),
         fail
     ; true
-    ).
+    ),
+    end_messages.
 
 % Check run_tests options
 check_opts([]).
@@ -421,6 +438,7 @@ check_actions([Action|Actions]) :-
 % TODO: keep it simple, use ciaopp for advanced stuff?
 
 decide_modules_to_test(Target, Opts, Modules) :-
+    cleanup_modules_under_test,
     assert_modules_to_test(Target, Opts),
     findall(Path-Module,
             (module_base_path_db(Module,_,Path)),
@@ -431,28 +449,46 @@ decide_modules_to_test(Target, Opts, Modules) :-
 unzip([],[],[]).
 unzip([A-B|L],[A|As], [B|Bs]) :- unzip(L,As,Bs).
 
+% TODO: share with p_unit (and ciaopp)
+
 % asserts in module_base_path/3 facts the modules that are required
 % to be tested
+assert_modules_to_test(Target, Opts) :- Target = [_|_], !,
+    assert_modules_to_test_list(Target, Opts).
 assert_modules_to_test(Target, Opts) :-
-    cleanup_modules_under_test,
-    ( get_opt(dir_rec, Opts) ->
-        (  % (failure-driven loop)
-          current_file_find(testable_module, Target, Path),
-            assert_module_under_test(Path),
-            fail
-        ; true
-        )
-    ; assert_module_under_test(Target)
-    ).
-
-assert_module_under_test(Alias) :- % arg is a module
     ( % arg is an alias path
       current_fact(opt_suff(Suff)),
-      absolute_file_name(Alias, Suff, '.pl', '.', AbsFileName, Base, _AbsDir) ->
-        module_from_base(Base, Module)
-    ; fail
-    ),
-    assertz_fact(module_base_path_db(Module, Base, AbsFileName)).
+      absolute_file_name(Target, Suff, '.pl', '.', AbsFileName, Base, _AbsDir),
+      % (check that it exists, otherwise it may be a directory)
+      file_exists(AbsFileName) ->
+        assert_module_under_test(AbsFileName, Base)
+    ; file_exists(Target), file_property(Target, type(directory)) ->
+        ( get_opt(dir_rec, Opts) ->
+            assert_modules_to_test_rec(Target, Opts)
+        ; message(warning, ['target ', Target, ' is a directory, ignored (use dir_rec option)'])
+        )
+    ; message(warning, ['target ', Target, ' not found'])
+    ).
+
+assert_modules_to_test_list([], _) :- !.
+assert_modules_to_test_list([T|Ts], Opts) :- !,
+    assert_modules_to_test(T, Opts),
+    assert_modules_to_test_list(Ts, Opts).
+
+assert_modules_to_test_rec(Target, Opts) :-
+    ( % (failure-driven loop)
+      current_file_find(testable_module, Target, Path),
+        assert_modules_to_test(Path, Opts), % TODO: quicker way? we know it is a module now
+        fail
+    ; true
+    ).
+
+assert_module_under_test(AbsFileName, Base) :- % arg is a module
+    module_from_base(Base, Module),
+    ( module_base_path_db(Module, _, AbsFileName0) ->
+        message(warning, ['module ', Module, ' (', AbsFileName, ') already loaded from ', AbsFileName0])
+    ; assertz_fact(module_base_path_db(Module, Base, AbsFileName))
+    ).
 % TODO: check FileName exists, just in case?
 
 % ---------------------------------------------------------------------------
@@ -476,7 +512,6 @@ assert_module_under_test(Alias) :- % arg is a module
 % Keep the program loaded in memory (it will be required for checking assertions later).
 % Save test_db/8 in .testin file (required to show the test results).
 load_tests(Module) :-
-    cleanup_test_db,
     module_base_path_db(Module,Base,Path),
     cleanup_code_and_related_assertions, % TODO: check if last get_code_and_related_assertion read this module
     retractall_fact(compilation_error),
@@ -597,22 +632,6 @@ make_test_id(Module,LB,LE,TestId) :-
 unittest_type(test).
 unittest_type(texec).
 
-check_restore_test_input(Module, SelVers) :-
-    file_test_input(Module, SelVers, TestInFile),
-    ( file_exists(TestInFile) -> true
-    ; % TODO: make message optional (currently there is not way to
-      %   distinguish between a module without tests and a module whose
-      %   tests has not run)
-      % message(warning, ['No test results for ', Module]),
-      fail  % (fails if no test input)
-    ),
-    restore_test_input(Module, SelVers).
-
-% Restore test_db from saved file
-restore_test_input(Module, Vers) :-
-    cleanup_test_db,
-    load_test_input(Module, Vers).
-
 % ---------------------------------------------------------------------------
 %! # Show test results
 
@@ -640,8 +659,11 @@ requires_summary(Actions, Opts) :-
     ),
     !.
 
-do_summary(Modules, Filter, Actions, SelVers) :-
-    get_all_test_outputs(Modules, Filter, SelVers, ModResults),
+% (it requires filled test results)
+do_summary(Modules, Filter, Actions, Opts) :-
+    findall(TInRes,
+            (member(Module, Modules), get_test_results(Module, Filter, _, TInRes)),
+            ModResults),
     ( member(status(TestStatus), Actions) -> get_summary_status(ModResults, TestStatus)
     ; true
     ),
@@ -651,32 +673,14 @@ do_summary(Modules, Filter, Actions, SelVers) :-
     ( member(summaries(ModResults2), Actions) -> ModResults = ModResults2
     ; true
     ),
-    ( member(show_results, Actions) -> statistical_summary(ModResults)
+    ( \+ member(nostats, Opts), member(show_results, Actions) -> statistical_summary(ModResults)
     ; true
     ).
 
-% (only for modules with testin files)
-get_all_test_outputs([], _, _, []).
-get_all_test_outputs([Module|Modules], Filter, Vers, ModResults) :-
-    file_test_input(Module,Vers,TestInFile),
-    ( file_exists(TestInFile) ->
-        ModResults = [ModResult|ModResults0],
-        get_module_output(Module, Filter, Vers, ModResult)
-    ; ModResults = ModResults0 % no testin, probably the module had errors
-    ),
-    get_all_test_outputs(Modules, Filter, Vers, ModResults0).
-
-% Load test db and test output (for consulting test results without redoing the tests)
+% Load and ammend test output (for consulting test results without redoing the tests)
 load_results(Module, Vers) :-
-    restore_test_input(Module, Vers),
     load_test_output(Module, Vers),
     mark_missing_as_aborted(Module).
-
-get_module_output(Module, Filter, Vers, ModResult) :-
-    load_results(Module, Vers),
-    findall(TInRes,
-            get_test_results(Module, Filter, _, TInRes),
-            ModResult).
 
 get_test_results(Module, Filter, TestId, TestIn-TestResults) :-
     get_test_in(Module, Filter, TestId, TestIn),
@@ -739,22 +743,22 @@ regr_action(Modules, Actions) :-
 % requires: test_db and get_code_and_related_assertions
 
 check_tests_one_mod(Module, Filter, Opts, SaveRes, ShowRes) :-
-    cleanup_test_results,
-    %
     ( SaveRes = no -> OutS = none
     ; file_test_output(Module,new,OutFile),
       open(OutFile, write, OutS)
     ),
     %
-    ( filtered_test_db(Filter, _, _, _, _, _, _, _, _) ->
+    ( filtered_test_db(Filter, _, Module, _, _, _, _, _, _) ->
+        begin_messages,
         get_test_tmp_dir(TestRunDir),
         cleanup_runner_filedata(TestRunDir),
         mkpath(TestRunDir),
-        store_runtest_input(TestRunDir, Filter),
+        store_runtest_input(TestRunDir, Module, Filter),
         ( get_opt(rtc_entry, Opts) -> RtcEntry = yes ; RtcEntry = no ),
         create_wrapper_mod(Module, Filter, TestRunDir, RtcEntry, WrapperMod),
         runner_opts(TestRunDir, WrapperMod, Opts, RunnerOpts),
-        unittest_runner(RunnerOpts, treat_test_result(Module, Opts, OutS, ShowRes))
+        unittest_runner(RunnerOpts, treat_test_result(Module, Opts, OutS, ShowRes)),
+        end_messages
     ; true
     ),
     ( OutS = none -> true ; close(OutS) ).

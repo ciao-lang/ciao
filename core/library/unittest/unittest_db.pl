@@ -87,13 +87,13 @@ cleanup_test_db :-
     retractall_fact(test_db(_, _, _, _, _, _, _, _)).
 
 %:- export(assert_test_db/1).
-assert_test_db(test_db(A, B, C, D, E, F, G, H)) :-
-    assertz_fact(test_db(A, B, C, D, E, F, G, H)).
+assert_test_db(test_db(TestId, Module, C, D, E, F, G, H)) :-
+    assertz_fact(test_db(TestId, Module, C, D, E, F, G, H)).
 
 :- export(filtered_test_db/9).
-filtered_test_db(Filter, A, B, C, D, E, F, G, H) :-
-    test_db(A, B, C, D, E, F, G, H),
-    run_filter(Filter, test_db(A, B, C, D, E, F, G, H)).
+filtered_test_db(Filter, TestId, Module, C, D, E, F, G, H) :-
+    test_db(TestId, Module, C, D, E, F, G, H),
+    run_filter(Filter, test_db(TestId, Module, C, D, E, F, G, H)).
 
 :- multifile test_filter/2.
 :- use_module(library(unittest/unittest_filters), []). % to import multifile test_filter/2
@@ -160,7 +160,6 @@ file_test_output(Module, Vers, File) :-
 
 :- export(load_test_output/2).
 load_test_output(Module,Vers) :-
-    cleanup_test_results,
     file_test_output(Module,Vers,File),
     assert_from_file(File, assert_test_output).
 
@@ -182,17 +181,17 @@ load_runtest_input(TestRunDir) :-
     assert_from_file(File, assert_runtest_db).
 
 % (assert into runtest_db/4)
-assert_runtest_db(test_db(A, B, _, _, _, F, G, _)) :-
-    assertz_fact(runtest_db(A, B, F, G)).
+assert_runtest_db(test_db(TestId, Module, _, _, _, F, G, _)) :-
+    assertz_fact(runtest_db(TestId, Module, F, G)).
 
-:- export(store_runtest_input/2).
+:- export(store_runtest_input/3).
 % save only filtered entries
-store_runtest_input(TestRunDir, Filter) :-
+store_runtest_input(TestRunDir, Module, Filter) :-
     file_runtest_input(TestRunDir, File),
     open(File, write, Stream),
     ( % (failure-driven loop)
-      Term = test_db(A, B, C, D, E, F, G, H),
-      filtered_test_db(Filter, A, B, C, D, E, F, G, H),
+      Term = test_db(TestId, Module, C, D, E, F, G, H),
+      filtered_test_db(Filter, TestId, Module, C, D, E, F, G, H),
         write_data(Stream, Term),
         fail
     ; true
