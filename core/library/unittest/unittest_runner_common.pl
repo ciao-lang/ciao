@@ -205,14 +205,21 @@ get_active_test(TestId, Mod, Options, Body) :-
 :- meta_predicate run_one_test(?, ?, ?, goal, goal, ?, pred(1)).
 run_one_test(TestId, TestRunDir, GOpts, Precond, Pred, Options, SendData) :-
     get_option(timeout,Options,Timeout),
+    get_option(generate_from_calls_n,Options,NCases),
+    get_option(try_sols,Options,NSols),
+    set(maxcase, NCases),
+    set(maxsol, NSols),
+    set(ncase, 0),
+    set(nsol, 0), % (reset just in case of timeouts in generation)
+    %
     SendData(runner_begin_test(TestId,Timeout)),
-    call_with_timeout(Timeout, run_one_test_(TestId, TestRunDir, GOpts, Precond, Pred, Options, SendData)),
+    call_with_timeout(Timeout, run_one_test_(TestId, TestRunDir, GOpts, Precond, Pred, SendData)),
     SendData(runner_end_test(TestId)).
 
-:- meta_predicate run_one_test_(?, ?, ?, goal, goal, ?, pred(1)).
-run_one_test_(TestId, TestRunDir, GOpts, Precond, Pred, Options, SendData) :-
+:- meta_predicate run_one_test_(?, ?, ?, goal, goal, pred(1)).
+run_one_test_(TestId, TestRunDir, GOpts, Precond, Pred, SendData) :-
     ( % (failure-driven loop)
-      run_one_test__(TestId, TestRunDir, GOpts, Precond, Pred, Options, TRes),
+      run_one_test__(TestId, TestRunDir, GOpts, Precond, Pred, TRes),
         SendData(runner_output(TestId, TRes)),
         ( timed_out -> ! % (end loop)
         ; fail % (loop)
@@ -220,13 +227,12 @@ run_one_test_(TestId, TestRunDir, GOpts, Precond, Pred, Options, SendData) :-
     ; true
     ).
 
-:- meta_predicate run_one_test__(?, ?, ?, goal, goal, ?, ?).
-run_one_test__(TestId, TestRunDir, GOpts, Precond, Pred, Options, TRes) :-
+:- meta_predicate run_one_test__(?, ?, ?, goal, goal, ?).
+run_one_test__(TestId, TestRunDir, GOpts, Precond, Pred, TRes) :-
     retractall_fact(rtcheck_db(_)),
     retractall_fact(signals_db(_)),
-    reset_result_id, % (so that result_id/1 always succeeds even if we timeout early)
     intercept(
-        gen_test_case_and_run(TestRunDir, GOpts, Precond, Pred, Options, Result0, Stdout, Stderr),
+        gen_test_case_and_run(TestRunDir, GOpts, Precond, Pred, Result0, Stdout, Stderr),
         E,
         handle_signal(E)
     ),
@@ -282,30 +288,30 @@ exception_comp(exception(_)).
 exception_comp(exception(_,_)).
 exception_comp(possible_exceptions(_,_)).
 
-% (Handle test cases and stdout/stderr redirection for each test) 
-:- meta_predicate gen_test_case_and_run(?, ?, goal, goal, ?, ?, ?, ?).
-gen_test_case_and_run(TestRunDir,GOpts,Precond,Pred,Options,Result,Stdout,Stderr) :-
-    get_option(generate_from_calls_n,Options,NCases),
-    get_option(try_sols,Options,NSols),
-    gen_test_case(NCases,Precond,Result),
+% (Handle test cases and stdout/stderr redirection for each test) (nondet)
+:- meta_predicate gen_test_case_and_run(?, ?, goal, goal, ?, ?, ?).
+gen_test_case_and_run(TestRunDir,GOpts,Precond,Pred,Result,Stdout,Stderr) :-
     test_redirect_chns(TestRunDir, GOpts, OutChn, ErrChn),
+    cnt(maxcase, NCases),
+    cnt(maxsol, NSols),
+    gen_test_case(NCases,Precond,Result),
+    inc(ncase),
+    set(nsol, 0),
     ( nonvar(Result) -> Stdout=[], Stderr=[] % some error in generation, returned as Result
     ; call_with_std_redirect(run_test(NSols,Pred,Result), OutChn, ErrChn),
       test_redirect_contents(OutChn, ErrChn, Stdout, Stderr)
-    ).
+    ),
+    inc(nsol).
 
 % TODO: output and statistics for generate_from_calls_n(N)?
-% TODO: deprecate? assertion-based testing (not based on test assertions) makes much more sense here
+% TODO: deprecate for users, reuse for better integration with assertion-based testing?
 :- meta_predicate gen_test_case(?,goal,?).
 gen_test_case(NCases,Precond,Result) :-
-    set(maxcase, NCases),
-    set(ncase, 0),
     catch(
         backtrack_n_times(Precond,NCases,not_n_cases_reached(Result)),
         PrecEx,
         gen_test_case_exception(PrecEx, Result)
-    ),
-    inc(ncase).
+    ).
 
 not_n_cases_reached(Result,0) :- !, Result = fail(precondition).
 
@@ -315,14 +321,11 @@ gen_test_case_exception(PrecEx, exception(precondition, PrecEx)).
 % (Handle number of solutions)
 :- meta_predicate run_test(?,goal,?).
 run_test(NSols,Pred,Result) :-
-    set(maxsol, NSols),
-    set(nsol, 0),
     catch(
         backtrack_n_times((Pred, Result=true),NSols,not_n_sols_reached(Result)),
         Ex,
         run_test_exception(Ex,Result)
-    ),
-    inc(nsol).
+    ).
 % TODO: coverage warnings when there are more than NSols solutions?
 
 not_n_sols_reached(Result, 0) :- !, Result = fail(predicate).
@@ -398,12 +401,6 @@ call_with_timeout(_, G) :- call(G).
 % Test result counters
 
 :- data cnt/2.
-
-reset_result_id :-
-    set(ncase,0),
-    set(maxcase,0),
-    set(nsol,0),
-    set(maxsol,0).
 
 result_id(result_id(Case,MaxCase,Sol,MaxSol)) :-
     cnt(ncase,Case),
