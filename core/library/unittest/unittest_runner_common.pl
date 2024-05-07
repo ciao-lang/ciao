@@ -224,12 +224,13 @@ run_one_test_(TestId, TestRunDir, GOpts, Precond, Pred, Options, SendData) :-
 run_one_test__(TestId, TestRunDir, GOpts, Precond, Pred, Options, TRes) :-
     retractall_fact(rtcheck_db(_)),
     retractall_fact(signals_db(_)),
+    reset_result_id, % (so that result_id/1 always succeeds even if we timeout early)
     intercept(
         gen_test_case_and_run(TestRunDir, GOpts, Precond, Pred, Options, Result0, Stdout, Stderr),
         E,
         handle_signal(E)
     ),
-    findall(E, retract_fact(signals_db(E)), Signals),
+    findall(E0, retract_fact(signals_db(E0)), Signals),
     findall(RTCError, retract_fact(rtcheck_db(RTCError)), RTCErrors),
     result_id(ResultId),
     test_result(Result0, TestId, Result),
@@ -397,6 +398,12 @@ call_with_timeout(_, G) :- call(G).
 % Test result counters
 
 :- data cnt/2.
+
+reset_result_id :-
+    set(ncase,0),
+    set(maxcase,0),
+    set(nsol,0),
+    set(maxsol,0).
 
 result_id(result_id(Case,MaxCase,Sol,MaxSol)) :-
     cnt(ncase,Case),
