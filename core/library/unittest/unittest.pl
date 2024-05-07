@@ -357,18 +357,23 @@ run_tests_one_mod(Filter, Opts, DoCheck, ShowRes, DoSummary, SelVers, Module) :-
           SaveRes = no,
           message(warning, ['running tests with filters will not save results'])
         ),
-        check_tests_one_mod(Module, Filter, Opts, SaveRes, ShowRes)
-    ; ShowRes = yes -> % no check, show results
-        load_results(Module, SelVers),
-        show_results_one_mod(Module, Filter, Opts)
-    ; DoSummary = yes -> % no results, only summary
-        load_results(Module, SelVers)
-    ; throw(bug) % (this should not happen)
+        check_tests_one_mod(Module, Filter, Opts, SaveRes, ShowRes),
+        mark_missing_as_aborted(Module) % TODO: really needed in this case?
+    ; load_test_output(Module, SelVers),
+      mark_missing_as_aborted(Module),
+      ( ShowRes = yes -> % no check, show results
+          show_results_one_mod(Module, Filter, Opts)
+      ; DoSummary = yes -> % do not show results, only summary
+          true
+      ; throw(bug) % (this should not happen)
+      )
     ),
     % Cleanups
     ( DoCheck = yes -> cleanup_code_and_related_assertions ; true ), % (if loaded)
     ( DoSummary = no -> cleanup_test_results ; true ). % (no needed)
-run_tests_one_mod(_Filter, _Opts, _DoCheck, _ShowRes, _DoSummary, _SelVers, _Module).
+run_tests_one_mod(_Filter, _Opts, _DoCheck, _ShowRes, _DoSummary, _SelVers, Module) :-
+    % (e.g., loading retreived some test assertions but it still failed)
+    mark_missing_as_aborted(Module).
 
 % Load code or test db (as required)
 load_tests_one_mod(DoCheck, SelVers, Module) :-
@@ -676,11 +681,6 @@ do_summary(Modules, Filter, Actions, Opts) :-
     ( \+ member(nostats, Opts), member(show_results, Actions) -> statistical_summary(ModResults)
     ; true
     ).
-
-% Load and ammend test output (for consulting test results without redoing the tests)
-load_results(Module, Vers) :-
-    load_test_output(Module, Vers),
-    mark_missing_as_aborted(Module).
 
 get_test_results(Module, Filter, TestId, TestIn-TestResults) :-
     get_test_in(Module, Filter, TestId, TestIn),
