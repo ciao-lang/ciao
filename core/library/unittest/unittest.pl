@@ -458,6 +458,8 @@ unzip([A-B|L],[A|As], [B|Bs]) :- unzip(L,As,Bs).
 
 % asserts in module_base_path/3 facts the modules that are required
 % to be tested
+assert_modules_to_test(Target, _Opts) :- var(Target), !,
+    message(warning, ['ignored unbound target (free variable)']).
 assert_modules_to_test(Target, Opts) :- Target = [_|_], !,
     assert_modules_to_test_list(Target, Opts).
 assert_modules_to_test(Target, Opts) :-
