@@ -253,6 +253,8 @@ normalize_args(N, T0, Mod, Arith, T1) :-
 
 % ---------------------------------------------------------------------------
 
+:- use_module(library(terms_vars), [varset/2]). % (for def_shvs)
+
 % Is it a predicate (or function) abstraction? (gives arity in N)
 is_predabs(B) :-
     split_shvs(B, _, A),
@@ -282,33 +284,37 @@ split_shvs(F, MaybeShVs, F0) :-
     ; MaybeShVs = no, F0 = F
     ).
 
-:- use_module(library(terms_vars), [varset/2]). % (for add_shvs)
-
 % mark closure (non)shared vars (if needed)
 add_shvs(yes(ShVs), (H :- B), (ShVs -> H :- B)).
-% add_shvs(no, HB, HB). % use share-nothing by default
-% add_shvs(no, (H :- B), (-[] -> H :- B)). % use share-parent by default
-add_shvs(no, (H :- B), (-HeadVars -> H :- B)) :-
-    % use share-parent by default, excluding variables in the head
-    varset(H, HeadVars).
+add_shvs(no, HB, HB).
 
 % Defunc for predicate (or function) abstractions
 defunc_predabs(F, NF, Mod) :-
-    split_shvs(F, MaybeShVs, F0),
+    split_shvs(F, MaybeShVs0, F0),
     defunc_pred(F0, NF0, Mod),
+    def_shvs(MaybeShVs0, NF0, MaybeShVs),
     add_shvs(MaybeShVs, NF0, NF).
+
+% set default (non)shared vars (if needed)
+def_shvs(no, (H :- _), MaybeShVs) :- !,
+    % head variables "shadow" parent variables (share-parent excluding
+    % variables in the head)
+    varset(H, HeadVars),
+    MaybeShVs = yes(-HeadVars). % Note: yes(-[]) for share parent
+def_shvs(MaybeShVs, _, MaybeShVs).
 
 % Merge multiple clauses into a single one
 % TODO: This is a temporary solution until multiple clauses are
 % supported in PA
 norm_curly_block(Sents0, Mod, NrF) :-
-    split_shvs_block(Sents0, MaybeShVs, Sents1),
+    split_shvs_block(Sents0, MaybeShVs0, Sents1),
     defunc_pred_sents(Sents1, Mod, Cls),
     ( check_heads(Cls, HeadN, HeadF) -> true
     ; fail % TODO: emit an error instead
     ),
     functor(Head, HeadN, HeadF),
     merge_cls(Cls, Head, Mod, Body),
+    def_shvs_block(MaybeShVs0, Cls, MaybeShVs),
     add_shvs(MaybeShVs, (Head :- Body), NrF).
 
 % (shvs only in first clause)
@@ -343,6 +349,17 @@ merge_cls([Cl|Cls], Head, Mod, (Body ; RestBody)) :-
 merge_cls_body(Cl, Head, _Mod, Body) :-
     cl_decomp(Cl, H, B),
     Body = (Head=H, B).
+
+% set default (non)shared vars for blocks (if needed)
+def_shvs_block(no, Cls, MaybeShVs) :- !,
+    % head variables (from any clause) "shadow" parent variables
+    get_heads(Cls, Heads),
+    varset(Heads, HeadVars),
+    MaybeShVs = yes(-HeadVars). % Note: yes(-[]) for share parent
+def_shvs_block(MaybeShVs, _, MaybeShVs).
+
+get_heads([], []).
+get_heads([Cl|Cls], [H|Hs]) :- cl_decomp(Cl, H, _), get_heads(Cls, Hs).
 
 % ---------------------------------------------------------------------------
 
