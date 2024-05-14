@@ -1,5 +1,9 @@
 :- module(unittest_filters, [], []).
 
+:- use_module(library(lists), [append/3]).
+:- use_module(library(regexp/regexp_code), [match_posix/2]).
+:- use_module(library(assertions/assrt_lib), [assertion_body/7]).
+
 % This module implements some test filters for testing only a subset
 % of the tests in a module. Each test corresponds to a test structure
 % test_db(TestId, Module, F, A, Dict, Comment, Body, Loc),
@@ -29,7 +33,14 @@ test_filter(location_filter(Src,LB,LE), test_db(_,_,_,_,_,_,_,loc(Src,LB,LE))).
 %
 test_filter(buffer_point_filter(Src,L), test_db(_,_,_,_,_,_,_,loc(Src,LB,LE))) :-
     LB =< L, L =< LE.
-%
-% TODO: regular expressions
-%
-% TODO: tags in test assertion comments
+
+% Regular expressions filter
+test_filter(regexp(Regexp), test_db(_,_,_,_,_,_,Body,_)) :-
+    assertion_body(_,_,_,_,_,Comment,Body),
+    match_posix(Regexp, Comment).
+
+% Filter for tags (E.g., "[ISO]") in test assertion comments
+test_filter(label(Label), T) :-
+    append("\\[",  Label, Regexp0),
+    append(Regexp0, "\\].*", Regexp),
+    test_filter(regexp(Regexp), T).
