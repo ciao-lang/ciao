@@ -288,7 +288,7 @@ exception_comp(exception(_)).
 exception_comp(exception(_,_)).
 exception_comp(possible_exceptions(_,_)).
 
-% (Handle test cases, setup, and call the actual test with stdout/stderr redirection) (nondet)
+% (Handle test cases and stdout/stderr redirection) (nondet)
 :- meta_predicate gen_test_case_and_run(?, ?, ?, goal, goal, ?, ?, ?, ?).
 gen_test_case_and_run(TestId, TestRunDir,GOpts,Precond,Pred,Options,Result,Stdout,Stderr) :-
     test_redirect_chns(TestRunDir, GOpts, OutChn, ErrChn),
@@ -298,17 +298,8 @@ gen_test_case_and_run(TestId, TestRunDir,GOpts,Precond,Pred,Options,Result,Stdou
     inc(ncase),
     set(nsol, 0),
     ( nonvar(Result) -> Stdout=[], Stderr=[] % some error in generation, returned as Result
-    ; run_test_custom(setup,TestId,Options,Result),
-      ( nonvar(Result) -> Stdout=[], Stderr=[] % some error in setup
-      ; call_with_std_redirect(run_test(NSols,Pred,Result), OutChn, ErrChn),
-        test_redirect_contents(OutChn, ErrChn, Stdout, Stderr)
-      ),
-      run_test_custom(cleanup,TestId,Options,ResultCleanup), % TODO: must be done once, outside
-      ( nonvar(Result) -> true % some error in run_test
-      ; ( nonvar(ResultCleanup) -> Result = ResultCleanup % some error cleanup
-        ; Result = true % OK!
-        )
-      )
+    ; call_with_std_redirect(run_setup_test_and_cleanup(TestId,Options,NSols,Pred,Result), OutChn, ErrChn),
+      test_redirect_contents(OutChn, ErrChn, Stdout, Stderr)
     ),
     inc(nsol).
 
@@ -327,16 +318,47 @@ not_n_cases_reached(Result,0) :- !, Result = fail(precondition).
 % gen_test_case_exception(time_limit_exceeded, timeout).
 gen_test_case_exception(PrecEx, exception(precondition, PrecEx)).
 
-% (Handle number of solutions)
-:- meta_predicate run_test(?,goal,?).
-run_test(NSols,Pred,Result) :-
+% TODO: setup/1 and cleanup/1 execution is still a bit mixed with
+%   actual tested predicate:
+%    - stdout/stderr
+%    - timeouts
+%   To fix it, report execution Result for those actions individually,
+%   e.g., as new kind of result_id/3.
+
+% Call setup, then the test, then cleanup
+:- meta_predicate run_setup_test_and_cleanup(?,?,?,goal,?).
+run_setup_test_and_cleanup(TestId,Options,NSols,Pred,Result) :-
+    run_test_custom(setup,TestId,Options,Result),
+    ( nonvar(Result) -> true % some error in setup
+    ; run_test_and_cleanup(TestId,Options,NSols,Pred,Result)
+    ).
+
+:- meta_predicate run_test_and_cleanup(?,?,?,goal,?).
+run_test_and_cleanup(TestId,Options,NSols,Pred,Result) :-
+    '$metachoice'(C0),
     catch(
         backtrack_n_times(Pred,NSols,not_n_sols_reached(Result)),
         Ex,
         run_test_exception(Ex,Result)
+    ),
+    '$metachoice'(C),
+    % Call cleanup if needed. Cleanup must be executed only once,
+    % once there are no more choicepoints (C0==C), in that case:
+    %  - Result=fail(_) if there were no more solutions (but we still
+    %    had to check a choicepoint
+    %  - otherwise, computation just became deterministic
+    ( C0 == C -> % last case (or Result=fail(_) from not_n_sols_reached/1)
+        run_test_custom(cleanup,TestId,Options,RCleanup) % TODO: must be done once, outside
+    ; true % still not in last case, do not call cleanup yet, leave RCleanup unbound
+    ),
+    % Compose final result
+    ( nonvar(Result) -> true % error due to run_test_exception/2
+    ; ( nonvar(RCleanup) -> Result = RCleanup % error in cleanup
+      ; Result = true % everything is fine
+      )
     ).
-% TODO: coverage warnings when there are more than NSols solutions?
 
+% TODO: coverage warnings when there are more than NSols solutions?
 not_n_sols_reached(Result, 0) :- !, Result = fail(predicate).
 
 % rtchecks/1 exceptions, thrown by rtcheck/6 signal handler
