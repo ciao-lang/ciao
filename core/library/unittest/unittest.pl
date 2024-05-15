@@ -9,10 +9,9 @@
 :- doc(author, "Alvaro Sevilla San Mateo").
 :- doc(author, "Nataliia Stulova").
 :- doc(author, "Ignacio Casso").
-:- doc(author, "Jose Luis Bueno").
+:- doc(author, "Jos@'{e} Luis Bueno").
 
-:- doc(module, "
-   The Ciao assertion language (see @ref{The Ciao
+:- doc(module, "The Ciao assertion language (see @ref{The Ciao
    assertion language}) allows writing @index{tests} (including
    @index{unit tests}) by means of @index{test assertions}. These
    assertions make it possible to write specific test cases at the
@@ -122,6 +121,38 @@ complex(c(A, B)) :-
    the property @code{try_sols(N)}, a timeout to a test can be set
    with the property @code{timeout(N)}, etc.
 
+   The test @index{setup} and @index{cleanup} can be done with the
+   @code{setup(SetupPred)} and @code{cleanup(CleanupPred)} properties,
+   where @var{SetupPred} and @var{CleanupPred} refers to the predicate
+   that will perform the setup and cleanup respectively, etc.
+
+   The following is an example of setup and cleanup:
+
+@begin{verbatim}
+:- dynamic animal/2.
+
+:- test animals_test1 + (setup(setup_db), cleanup(cleanup_db)).
+
+animals_test1 :-
+    findall((Name, Type), animal(Name, Type), AnimalList),
+    print_animals(AnimalList).
+
+setup_db :-
+    add_animal(parakeet, bird),
+    add_animal(dolphin, mammal).
+
+cleanup_db :-
+    retractall(animal(_, _)).
+
+add_animal(Name, Type) :-
+    assertz(animal(Name, Type)).
+
+print_animals([]).
+print_animals([(Name, Type) | Rest]) :-
+    format('Animal: ~w, Type: ~w~n', [Name, Type]),
+    print_animals(Rest).
+@end{verbatim}
+   
 @subsection{Unit tests as examples}
 
    The special property @tt{example} can be used to mark the unit test
@@ -567,10 +598,11 @@ split_comp_props([Comp|Comps0], [Comp|TestOpts], Comps) :- is_texec_comp_prop(Co
 split_comp_props([Comp|Comps0], TestOpts, [Comp|Comps]) :-
     split_comp_props(Comps0, TestOpts, Comps).
 
-% TODO: introduce prepare, cleanup, treat in unittest_runner:testing/5 (around run_test/3)
 is_texec_comp_prop(try_sols(_, _)).
 is_texec_comp_prop(generate_from_calls_n(_,_)).
 is_texec_comp_prop(timeout(_,_)).
+is_texec_comp_prop(setup(_, _)).
+is_texec_comp_prop(cleanup(_, _)).
 
 :- pred texec_warning(AType, GPProps, Pred, AsrLoc)
     : (atm(AType), list(GPProps), term(Pred), struct(AsrLoc))

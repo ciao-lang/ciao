@@ -213,13 +213,13 @@ run_one_test(TestId, TestRunDir, GOpts, Precond, Pred, Options, SendData) :-
     set(nsol, 0), % (reset just in case of timeouts in generation)
     %
     SendData(runner_begin_test(TestId,Timeout)),
-    call_with_timeout(Timeout, run_one_test_(TestId, TestRunDir, GOpts, Precond, Pred, SendData)),
+    call_with_timeout(Timeout, run_one_test_(TestId, TestRunDir, GOpts, Precond, Pred, Options, SendData)),
     SendData(runner_end_test(TestId)).
 
-:- meta_predicate run_one_test_(?, ?, ?, goal, goal, pred(1)).
-run_one_test_(TestId, TestRunDir, GOpts, Precond, Pred, SendData) :-
+:- meta_predicate run_one_test_(?, ?, ?, goal, goal, ?, pred(1)).
+run_one_test_(TestId, TestRunDir, GOpts, Precond, Pred, Options, SendData) :-
     ( % (failure-driven loop)
-      run_one_test__(TestId, TestRunDir, GOpts, Precond, Pred, TRes),
+      run_one_test__(TestId, TestRunDir, GOpts, Precond, Pred, Options, TRes),
         SendData(runner_output(TestId, TRes)),
         ( timed_out -> ! % (end loop)
         ; fail % (loop)
@@ -227,12 +227,12 @@ run_one_test_(TestId, TestRunDir, GOpts, Precond, Pred, SendData) :-
     ; true
     ).
 
-:- meta_predicate run_one_test__(?, ?, ?, goal, goal, ?).
-run_one_test__(TestId, TestRunDir, GOpts, Precond, Pred, TRes) :-
+:- meta_predicate run_one_test__(?, ?, ?, goal, goal, ?, ?).
+run_one_test__(TestId, TestRunDir, GOpts, Precond, Pred, Options, TRes) :-
     retractall_fact(rtcheck_db(_)),
     retractall_fact(signals_db(_)),
     intercept(
-        gen_test_case_and_run(TestRunDir, GOpts, Precond, Pred, Result0, Stdout, Stderr),
+        gen_test_case_and_run(TestId, TestRunDir, GOpts, Precond, Pred, Options, Result0, Stdout, Stderr),
         E,
         handle_signal(E)
     ),
@@ -288,9 +288,9 @@ exception_comp(exception(_)).
 exception_comp(exception(_,_)).
 exception_comp(possible_exceptions(_,_)).
 
-% (Handle test cases and stdout/stderr redirection for each test) (nondet)
-:- meta_predicate gen_test_case_and_run(?, ?, goal, goal, ?, ?, ?).
-gen_test_case_and_run(TestRunDir,GOpts,Precond,Pred,Result,Stdout,Stderr) :-
+% (Handle test cases, setup, and call the actual test with stdout/stderr redirection) (nondet)
+:- meta_predicate gen_test_case_and_run(?, ?, ?, goal, goal, ?, ?, ?, ?).
+gen_test_case_and_run(TestId, TestRunDir,GOpts,Precond,Pred,Options,Result,Stdout,Stderr) :-
     test_redirect_chns(TestRunDir, GOpts, OutChn, ErrChn),
     cnt(maxcase, NCases),
     cnt(maxsol, NSols),
@@ -298,8 +298,17 @@ gen_test_case_and_run(TestRunDir,GOpts,Precond,Pred,Result,Stdout,Stderr) :-
     inc(ncase),
     set(nsol, 0),
     ( nonvar(Result) -> Stdout=[], Stderr=[] % some error in generation, returned as Result
-    ; call_with_std_redirect(run_test(NSols,Pred,Result), OutChn, ErrChn),
-      test_redirect_contents(OutChn, ErrChn, Stdout, Stderr)
+    ; run_test_custom(setup,TestId,Options,Result),
+      ( nonvar(Result) -> Stdout=[], Stderr=[] % some error in setup
+      ; call_with_std_redirect(run_test(NSols,Pred,Result), OutChn, ErrChn),
+        test_redirect_contents(OutChn, ErrChn, Stdout, Stderr)
+      ),
+      run_test_custom(cleanup,TestId,Options,ResultCleanup), % TODO: must be done once, outside
+      ( nonvar(Result) -> true % some error in run_test
+      ; ( nonvar(ResultCleanup) -> Result = ResultCleanup % some error cleanup
+        ; Result = true % OK!
+        )
+      )
     ),
     inc(nsol).
 
@@ -322,7 +331,7 @@ gen_test_case_exception(PrecEx, exception(precondition, PrecEx)).
 :- meta_predicate run_test(?,goal,?).
 run_test(NSols,Pred,Result) :-
     catch(
-        backtrack_n_times((Pred, Result=true),NSols,not_n_sols_reached(Result)),
+        backtrack_n_times(Pred,NSols,not_n_sols_reached(Result)),
         Ex,
         run_test_exception(Ex,Result)
     ).
@@ -342,6 +351,17 @@ run_test_exception(Ex,exception(predicate,Ex)).
 % TODO: do we really need that much to distinguish between an
 % exception in the postcondition and a normal exception?
 
+run_test_custom(What, TestId, Options, Result):-
+    get_option(What, Options, G),
+    ( G = true -> true
+    ; runtest_db(TestId, Mod, _, _),
+      qualify_goal(Mod, G, MG),
+      catch(call(MG), E, exception_custom(What, E, Result)) -> true
+    ; Result = fail(What)
+    ).
+
+exception_custom(What, E, exception(What, E)).
+
 :- use_module(engine(system_info), [get_arch/1]).
 
 get_option(Opt,Options,Value) :-
@@ -355,6 +375,9 @@ get_option(timeout,_,Timeout) :- get_arch(wasm32), !, % TODO: fix timeout for th
 get_option(timeout,_,Timeout) :-
     default_timeout(Timeout).
 get_option(generate_from_calls_n,_,1).
+%
+get_option(setup, _, true). % (default)
+get_option(cleanup, _, true). % (default)
 
 % ---------------------------------------------------------------------------
 %! ## Auxiliary
@@ -396,6 +419,14 @@ call_with_timeout(T, G) :-
 :- else.
 call_with_timeout(_, G) :- call(G).
 :- endif.
+
+:- use_module(engine(internals), [module_concat/3]).
+% TODO: this should not be needed once unittest handles module-resolved assertions 
+qualify_goal(Mod, Goal, MGoal) :-
+    Goal =.. [N|As],
+    module_concat(Mod, N, ModN),
+    MGoal0 =.. [ModN|As],
+    MGoal = '$:'(MGoal0).
 
 % ---------------------------------------------------------------------------
 % Test result counters

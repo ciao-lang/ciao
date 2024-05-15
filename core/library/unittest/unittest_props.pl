@@ -1,5 +1,7 @@
 :- module(unittest_props, [
     try_sols/2,
+    setup/2,
+    cleanup/2,
     generate_from_calls_n/2,
     timeout/2,
     near/3,
@@ -50,6 +52,22 @@ test_command(Goal) :- call(Goal).
     timeout".
 :- meta_predicate timeout(goal, ?).
 :- impl_defined(timeout/2).
+
+:- trust prop setup(G, SetupGoal) + test_command # "For this test of
+   @var{G}, execute the necessary setup procedures specified in
+   @var{SetupGoal}.".
+
+:- meta_predicate setup(goal, goal).
+
+:- impl_defined(setup/2).
+
+:- trust prop cleanup(G,CleanupGoal) + test_command # "For this test
+   of @var{G}, execute the necessary cleanup procedures specified in
+   @var{CleanupGoal}.".
+
+:- meta_predicate cleanup(goal, goal).
+
+:- impl_defined(cleanup/2).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following properties are not implemented yet, but are here as a reminder

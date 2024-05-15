@@ -116,8 +116,12 @@ result_id(result_id(Case,MaxCase,Sol,MaxSol)) :-
 
 result(true).
 result(fail(predicate)).
-result(exception(predicate,_)).
+result(fail(setup)).
+result(fail(cleanup)).
 result(fail(precondition)).
+result(exception(predicate,_)).
+result(exception(setup,_)).
+result(exception(cleanup,_)).
 result(exception(precondition,_)).
 result(exception(postcondition,_)).
 result(timeout).
@@ -177,6 +181,12 @@ result_msg(rtcheck_error, failed, []).
 result_msg(exception(predicate, _), warning, [' There were exceptions, but test does not specify exceptions behavior.']).
 % TODO: do not print this if the test did specify failure behaviour. Include that information in TestIn
 result_msg(fail(predicate), warning, [' Goal tested failed, but test does not specify failure behavior.']).
+%
+result_msg(exception(setup, _), aborted, [' Exceptions occurred in test setup.']).
+result_msg(fail(setup), aborted, [' Nothing tested because test setup failed.']).
+result_msg(exception(cleanup, _), warning, [' Exceptions occurred in test cleanup.']).
+result_msg(fail(cleanup), warning, [' Tested cleanup failed.']).
+%
 result_msg(true, passed, []).
 
 % TODO: useful?

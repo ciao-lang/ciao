@@ -14,6 +14,7 @@
 
 :- doc(title,  "Testing statistics").
 :- doc(author, "Alvaro Sevilla San Mateo").
+:- doc(author, "Jos@'{e} Luis Bueno").
 
 :- doc(stability,beta).
 
@@ -78,6 +79,15 @@ update_summary(Summ, Stats0, Stats) :- contains_status(timeout, Summ), !,
 update_summary(Summ, Stats0, Stats) :- count_rtc_errors(Summ,N), N > 0, !,
     inc_stat(failed,Stats0,Stats1),
     inc_stat_n(rtchecks,Stats1,N,Stats).
+% setup/cleanup
+update_summary(Summ, Stats0, Stats) :- contains_status(exception(setup,_), Summ), !,
+    inc_stat(aborted,Stats0,Stats).
+update_summary(Summ, Stats0, Stats) :- contains_status(fail(setup), Summ), !,
+    inc_stat(aborted,Stats0,Stats).
+update_summary(Summ, Stats0, Stats) :- contains_status(exception(cleanup,_), Summ), !,
+    inc_stat(aborted,Stats0,Stats).
+update_summary(Summ, Stats0, Stats) :- contains_status(fail(cleanup), Summ), !,
+    inc_stat(aborted,Stats0,Stats).
 % Anything else is a success
 update_summary(_, Stats0, Stats) :-
     inc_stat(success,Stats0,Stats).
