@@ -388,11 +388,12 @@ CBOOL__PROTO(prolog_open)
 CBOOL__PROTO(prolog_close)
 {
   ERR__FUNCTOR("stream_basic:close", 1);
+  int errcode;
   stream_node_t *stream;
 
-  stream = stream_to_ptr(X(0), 'x');
+  stream = stream_to_ptr_check(X(0), 'x', &errcode);
   if (stream==NULL) {
-    BUILTIN_ERROR(DOMAIN_ERROR(STREAM_OR_ALIAS), X(0), 1);
+    BUILTIN_ERROR(errcode,X(0),1);
   } else if (stream==Input_Stream_Ptr) {
     Input_Stream_Ptr = stream_user_input;
   } else if (stream==Output_Stream_Ptr) {
@@ -525,7 +526,6 @@ CBOOL__PROTO(prolog_set_output)
   DEREF(X(0),X(0));
   stream = stream_to_ptr_check(X(0), 'w', &errcode);
   if (stream==NULL) {
-    printf(" Returned null, errcode is %d\n", errcode);
     BUILTIN_ERROR(errcode, X(0), 1);
   }
   Output_Stream_Ptr = stream;
