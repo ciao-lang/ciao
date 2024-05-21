@@ -950,22 +950,22 @@ gen_test_entry(Module, Filter, RtcEntry, Src, Clauses) :-
 
 :- use_module(library(write), [printq/1]).
 
-% TODO: this code should define portray by default!
-:- doc(hide,portray/1).
-:- multifile portray/1.
-portray('$stream'(Int1, Int2)) :-
-    integer(Int1),
-    integer(Int2),
-    !,
-    printq('$stream'(int, int)).
-portray(attach_attribute(X, float(V))) :-
-    !,
-    printq(X), printq('.=.'), printq(V).
-portray(rat(A, B)) :- % TODO: for clpq,clpr, should it be here?
-    integer(A),
-    integer(B),
-    !,
-    printq(A/B).
+% % TODO: this code should define portray by default!
+% :- doc(hide,portray/1).
+% :- multifile portray/1.
+% portray('$stream'(Int1, Int2)) :-
+%     integer(Int1),
+%     integer(Int2),
+%     !,
+%     printq('$stream'(int, int)).
+% portray(attach_attribute(X, float(V))) :-
+%     !,
+%     printq(X), printq('.=.'), printq(V).
+% portray(rat(A, B)) :- % TODO: for clpq,clpr, should it be here?
+%     integer(A),
+%     integer(B),
+%     !,
+%     printq(A/B).
 
 :- use_module(library(varnames/apply_dict), [apply_dict/3]).
 :- use_module(library(write), [write/1, writeq/1]).
