@@ -324,6 +324,8 @@ gen_test_case_exception(PrecEx, exception(precondition, PrecEx)).
 %    - timeouts
 %   To fix it, report execution Result for those actions individually,
 %   e.g., as new kind of result_id/3.
+% TODO: stdout/stderr of cleanup if lost for final_fail! fix it
+%   with the TODO above.
 
 % Call setup, then the test, then cleanup
 :- meta_predicate run_setup_test_and_cleanup(?,?,?,goal,?).
@@ -337,7 +339,7 @@ run_setup_test_and_cleanup(TestId,Options,NSols,Pred,Result) :-
 run_test_and_cleanup(TestId,Options,NSols,Pred,Result) :-
     '$metachoice'(C0),
     catch(
-        backtrack_n_times(Pred,NSols,not_n_sols_reached(Result)),
+        backtrack_n_times(Pred,NSols,not_n_sols_reached(FinalNSols)),
         Ex,
         run_test_exception(Ex,Result)
     ),
@@ -351,15 +353,20 @@ run_test_and_cleanup(TestId,Options,NSols,Pred,Result) :-
         run_test_custom(cleanup,TestId,Options,RCleanup) % TODO: must be done once, outside
     ; true % still not in last case, do not call cleanup yet, leave RCleanup unbound
     ),
-    % Compose final result
+    % TODO: coverage warnings when there are more than NSols solutions?
+    ( var(FinalNSols) -> true % not final
+    ; FinalNSols = 0 -> Result = fail(predicate) % failed without solutions
+    ; Result = final_fail % fake, just to keep RCleanup if needed
+    ),
+    % Compose solution result
     ( nonvar(Result) -> true % error due to run_test_exception/2
     ; ( nonvar(RCleanup) -> Result = RCleanup % error in cleanup
       ; Result = true % everything is fine
       )
-    ).
+    ),
+    \+ Result = final_fail. % Note: just ignore this
 
-% TODO: coverage warnings when there are more than NSols solutions?
-not_n_sols_reached(Result, 0) :- !, Result = fail(predicate).
+not_n_sols_reached(NSols, NSols).
 
 % rtchecks/1 exceptions, thrown by rtcheck/6 signal handler
 run_test_exception(rtcheck(_RtcError), rtcheck_error) :- !. % _RtcError saved elsewhere
