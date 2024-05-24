@@ -621,7 +621,7 @@ texec_warning(texec, GPProps, Pred, asrloc(loc(_Src, ALB, ALE))) :-
     functor(Pred, F, A),
     maplist(comp_prop_to_name, GPProps, GPNames),
     message(warning, ['(lns ', ALB,'-',ALE, ')', 
-        'texec assertion for ', F, '/', A,
+        ' texec assertion for ', F, '/', A,
         ' can have only unit test commands, ',
         'not comp properties: \n', ''(GPNames),
         '\nProcessing it as a test assertion']).
