@@ -8,8 +8,10 @@
 :- use_package(hiord). % TODO: refine, not all are ISO (required for call/N)
 :- use_module(engine(basic_props), [callable/1]). % TODO: move to engine(term_typing)
 
-:- use_package(runtime_ops).
-:- use_module(library(operators)).
+%:- use_package(runtime_ops). % TODO: avoid loading operators:op/3
+:- load_compilation_module(library(runtime_ops/runtime_ops_tr)).
+:- add_sentence_trans(runtime_ops_tr:runtime_op/2, 210).
+
 
 :- use_module(engine(runtime_control)). % TODO: refine, not all are ISO
 
@@ -32,40 +34,28 @@
 :- use_module(library(iso_incomplete)).
 :- use_module(engine(stream_basic), [
     open/3,
-    current_input/1,
-    current_output/1,
     % TODO: ISO?
     character_count/2, line_count/2, line_position/2,
-    flush_output/1, flush_output/0,
+    flush_output/0,
     current_stream/3
 ]).
 :- use_module(engine(io_basic), [
     % TODO: refine, not all are ISO
-    get_code/1,
-    peek_code/1,
     put_code/1,
     nl/0,
-    tab/1,
-    get_byte/1,
-    peek_byte/1,
-    put_byte/1, 
+    tab/1, 
     at_end_of_stream/0,
     display/1,
     displayq/1
 ]).
 :- use_module(library(iso_char), [
-    char_code/2, atom_chars/2, number_chars/2,char_codes/2,
-    get_char/1,
-    peek_char/1,
-    put_char/1
+    char_code/2,
+    atom_chars/2,
+    number_chars/2,char_codes/2
 ]).
-:- use_module(library(read), [
-    read/1,
-    read_term/2
-]).
+
 :- use_module(library(write), [
-    write_term/2,
-    write/1, writeq/1,
+    writeq/1,
     write_canonical/1,
     print/1, printq/1,
     portray_clause/1,
