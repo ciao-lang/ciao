@@ -573,7 +573,6 @@ load_tests(Module) :-
         assertion_body(Pred,Compat,Calls,Succ,Comp0,Comment,Body0),
         split_comp_props(Comp0, TestOptions0, Comp),
         texec_warning(Type, Comp, Pred, asrloc(loc(Src,LB,LE))),
-        check_noexvar(Pred, Calls, Succ, asrloc(loc(Src,LB,LE))),
         assertion_body(Pred,Compat,Calls,Succ,Comp,Comment,Body),
         functor(Pred, F, A),
         get_test_options(TestOptions0,Base,TestOptions),
@@ -628,27 +627,6 @@ texec_warning(texec, GPProps, Pred, asrloc(loc(_Src, ALB, ALE))) :-
 texec_warning(_, _, _, _).
 
 comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
-
-:- use_module(library(sets), [ord_intersection/3, ord_subset/2]).
-:- use_module(library(terms_vars), [varset/2]).
-
-:- pred check_noexvar(Head, Calls, Succ, AsrLoc)
-   : (list(Head), list(Calls), list(Succ), struct(AsrLoc))
-   # "There cannot be shared (existential) variables between the calls
-     (@var{Calls}) and the success (@var{Succ}) part of a test, that
-     are not found in the head (@var{Head}).  The user is notified by
-     means of a warning.".
-
-check_noexvar(Head, Calls, Succ, _) :-
-    varset(Head, HeadVars),
-    varset(Calls, CallsVars),
-    varset(Succ, SuccVars),
-    ord_intersection(CallsVars, SuccVars, CommonVars),
-    ord_subset(CommonVars, HeadVars),
-    !.
-check_noexvar(Head, _, _, asrloc(loc(_Src, ALB, ALE))) :-
-    functor(Head, PredName, Arity),
-    message(warning, ['(lns ', ALB,'-',ALE, ')', ' unexpected existential variables (shared in the calls and success parts and not appearing in the head) in test assertion for ', PredName, '/', Arity]).
 
 :- pred get_test(Module, TestId, Type, Pred, Body, Dict, Src, LB, LE)
     :  atm(Module)
@@ -921,7 +899,8 @@ current_test_module(Src, (:- use_package(TestModule))) :-
 gen_test_entry(Module, Filter, RtcEntry, Src, Clauses) :-
     % get current test assertion
     filtered_test_db(Filter, TestId, Module, _, _, ADict, _, ABody, loc(ASource, ALB, ALE)),
-    assertion_body(Pred,_,Calls,_,_,_,ABody),
+    assertion_body(Pred,_,Calls,Succ,_,_,ABody),
+    get_exvars(Pred, Calls, Succ, ExVars),
     TestInfo = testinfo(Pred, ABody, ADict, ASource, ALB, ALE),
     % Collect assertions for runtime checking during unit tests:
     %  - none if RtcEntry = no
@@ -944,9 +923,25 @@ gen_test_entry(Module, Filter, RtcEntry, Src, Clauses) :-
     % translation of the rtchecks package
     TestBody = '$check_pred_body'(TestInfo, Assertions, PLoc),
     Clauses = [
-        clause(test_check_pred(Module, TestId, Pred), TestBody, ADict),
-        clause(test_entry(Module,TestId,Pred), ~list_to_conj(Calls), ADict)
+        clause(test_check_pred(Module,TestId,Pred,ExVars), TestBody, ADict),
+        clause(test_entry(Module,TestId,Pred,ExVars), ~list_to_conj(Calls), ADict)
     ].
+
+:- use_module(library(sets), [ord_intersection/3, ord_subtract/3]).
+:- use_module(library(terms_vars), [varset/2]).
+
+:- pred get_exvars(Head, Calls, Succ, ExVars)
+   : (list(Head), list(Calls), list(Succ))
+   # "Obtain shared (existential) variables between the calls
+     (@var{Calls}) and the success (@var{Succ}) part of a test, that
+     are not found in the head (@var{Head}).".
+
+get_exvars(Head, Calls, Succ, ExVars) :-
+    varset(Head, HeadVars),
+    varset(Calls, CallsVars),
+    varset(Succ, SuccVars),
+    ord_intersection(CallsVars, SuccVars, CommonVars),
+    ord_subtract(CommonVars, HeadVars, ExVars).
 
 % ---------------------------------------------------------------------------
 %! ## Generate modules from terms

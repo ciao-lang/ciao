@@ -128,15 +128,15 @@ import_modules([M|Ms]) :-
     OutChn = null, % (redirect, imports may run initialization code) % TODO: show later?
     ErrChn = none,
     intercept(
-        call_with_std_redirect(use_module(M,[]), OutChn, ErrChn), % we only care about multifiles test_check_pred/3 and test_entry/3
+        call_with_std_redirect(use_module(M,[]), OutChn, ErrChn), % we only care about multifiles test_check_pred/4 and test_entry/4
         compilation_error,
         assertz_fact(compilation_error)
     ),
     import_modules(Ms).
 
 % TODO: multifile or bypass the module system?
-:- multifile test_entry/3.
-:- multifile test_check_pred/3.
+:- multifile test_entry/4.
+:- multifile test_check_pred/4.
 
 :- meta_predicate runtests(?, ?, pred(1)).
 runtests(TestRunDir, GOpts, SendData) :-
@@ -144,8 +144,8 @@ runtests(TestRunDir, GOpts, SendData) :-
       get_active_test(TestId, Module, Options, Body),
       assertion_body(Pred,_,_,_,_,_,Body),
         run_one_test(TestId, TestRunDir, GOpts,
-                     test_entry(Module,TestId,Pred), % calls field of Pred
-                     test_check_pred(Module,TestId,Pred), % rtcheck version of Pred
+                     test_entry(Module,TestId,Pred,ExVars), % calls field of Pred
+                     test_check_pred(Module,TestId,Pred,ExVars), % rtcheck version of Pred
                      Options, SendData),
         ( timed_out -> !, % (end loop)
             SendData(resume_after(TestId))
