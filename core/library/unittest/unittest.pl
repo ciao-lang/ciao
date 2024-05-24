@@ -573,7 +573,7 @@ load_tests(Module) :-
         assertion_body(Pred,Compat,Calls,Succ,Comp0,Comment,Body0),
         split_comp_props(Comp0, TestOptions0, Comp),
         texec_warning(Type, Comp, Pred, asrloc(loc(Src,LB,LE))),
-        check_noexvar_succ(Pred, Succ, asrloc(loc(Src,LB,LE))),
+        check_noexvar(Pred, Calls, Succ, asrloc(loc(Src,LB,LE))),
         assertion_body(Pred,Compat,Calls,Succ,Comp,Comment,Body),
         functor(Pred, F, A),
         get_test_options(TestOptions0,Base,TestOptions),
@@ -629,23 +629,26 @@ texec_warning(_, _, _, _).
 
 comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
 
-:- use_module(library(sets), [ord_subset/2]).
+:- use_module(library(sets), [ord_intersection/3, ord_subset/2]).
 :- use_module(library(terms_vars), [varset/2]).
 
-:- pred check_noexvar_succ(Head, Succ, AsrLoc)
-   : (list(Head), list(Succ), struct(AsrLoc))
-   # "The success part of a test, @var{Succ}, cannot contain existential
-     variables that are not found in the head, @var{Head}.
-     The user is notified by means of a warning.".
+:- pred check_noexvar(Head, Calls, Succ, AsrLoc)
+   : (list(Head), list(Calls), list(Succ), struct(AsrLoc))
+   # "There cannot be shared (existential) variables between the calls
+     (@var{Calls}) and the success (@var{Succ}) part of a test, that
+     are not found in the head (@var{Head}).  The user is notified by
+     means of a warning.".
 
-check_noexvar_succ(Head, Succ,_) :-
+check_noexvar(Head, Calls, Succ, _) :-
     varset(Head, HeadVars),
+    varset(Calls, CallsVars),
     varset(Succ, SuccVars),
-    ord_subset(SuccVars, HeadVars),
+    ord_intersection(CallsVars, SuccVars, CommonVars),
+    ord_subset(CommonVars, HeadVars),
     !.
-check_noexvar_succ(Head, _, asrloc(loc(_Src, ALB, ALE))) :-
+check_noexvar(Head, _, _, asrloc(loc(_Src, ALB, ALE))) :-
     functor(Head, PredName, Arity),
-    message(warning, ['(lns ', ALB,'-',ALE, ')', ' unexpected existential variables in the success part of ', PredName, '/', Arity]).
+    message(warning, ['(lns ', ALB,'-',ALE, ')', ' unexpected existential variables (shared in the calls and success parts and not appearing in the head) in test assertion for ', PredName, '/', Arity]).
 
 :- pred get_test(Module, TestId, Type, Pred, Body, Dict, Src, LB, LE)
     :  atm(Module)
