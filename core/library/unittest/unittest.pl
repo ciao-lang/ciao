@@ -205,7 +205,7 @@ ciao test
 
 :- use_module(engine(stream_basic)).
 :- use_module(library(streams), [nl/0, nl/1]).
-:- use_module(engine(messages_basic), [message/2, messages/1]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(sort), [sort/2]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(system), [file_exists/1, file_property/2]).
@@ -616,15 +616,15 @@ is_texec_comp_prop(cleanup(_, _)).
     from the test assertion and @var{AsrLoc} is the locator of the
     test assertion.".
 
-texec_warning(texec, GPProps, Pred, asrloc(loc(ASource, ALB, ALE))) :-
+texec_warning(texec, GPProps, Pred, asrloc(loc(_Src, ALB, ALE))) :-
     \+ GPProps == [], !,
     functor(Pred, F, A),
     maplist(comp_prop_to_name, GPProps, GPNames),
-    messages([message_lns(ASource, ALB, ALE, warning, [
+    message(warning, ['(lns ', ALB,'-',ALE, ')', 
         'texec assertion for ', F, '/', A,
         ' can have only unit test commands, ',
         'not comp properties: \n', ''(GPNames),
-        '\nProcessing it as a test assertion'])]). % TODO: use message/2?
+        '\nProcessing it as a test assertion']).
 texec_warning(_, _, _, _).
 
 comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
