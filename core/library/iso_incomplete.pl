@@ -237,7 +237,10 @@ close(S) :-
 
 :- pred close(@stream_or_alias,@close_options). 
 close(S, Opts) :-
-    get_close_opts(Opts, false, _Force), % TODO: _Force option is ignored! (JF)
+    get_close_opts(Opts, false, Force),
+    ( Force == false -> true
+    ; throw(bug(force_not_implemented)) % TODO: Force option is ignored! (JF)
+    ),
     chk_resolve_stream_alias(S, S2, close/2),
     remove_stream_data(S2),
     stream_basic:close(S2).
