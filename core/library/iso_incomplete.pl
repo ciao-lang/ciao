@@ -1,61 +1,4 @@
-:- module(iso_incomplete, [
-    absolute_file_name/2,
-    open/4,
-    close/1,
-    close/2,
-    close_options/1,
-    close_option/1,
-    stream_property/2,
-    stream_property/1,
-    set_stream_position/2,
-    %
-    set_input/1, 
-    set_output/1,
-    flush_output/1,
-    current_input/1,
-    current_output/1,
-    %
-    at_end_of_stream/1,
-    get_code/1,
-    get_code/2,
-    peek_code/1,
-    peek_code/2, 
-    put_code/2, 
-    nl/1, 
-    tab/2,
-    get_byte/1,
-    get_byte/2,
-    peek_byte/1,
-    peek_byte/2,
-    put_byte/1,
-    put_byte/2, 
-    display/2, 
-    displayq/2, 
-    %
-    get_char/1,
-    get_char/2,
-    peek_char/1,
-    peek_char/2, 
-    put_char/2,
-    put_char/1,
-    %
-    read/1,
-    read/2,
-    read_term/2,
-    read_term/3,
-    %
-    write_term/2,
-    write_term/3,
-    write/1,
-    write/2, 
-    writeq/2, 
-    write_canonical/2, 
-    print/2, 
-    printq/2, 
-    portray_clause/2,
-    current_op/3,
-    op/3
-], [assertions,isomodes,datafacts,hiord]).
+:- module(iso_incomplete, [], [assertions,isomodes,datafacts,hiord]).
 
 :- doc(title, "ISO Prolog compatibility layer").
 
@@ -81,6 +24,7 @@
 
 % ---------------------------------------------------------------------------
 
+:- export(absolute_file_name/2).
 absolute_file_name(Path, ExpandedPath) :-
     fixed_absolute_file_name(Path, '.', ExpandedPath).
 
@@ -151,6 +95,8 @@ remove_stream_data(S) :-
 
 % ---------------------------------------------------------------------------
 % TODO: argument order changed!
+
+:- export(open/4).
 :- pred open(+sourcename, +io_mode, ?stream, +open_option_list).
 
 open(File, Mode, Stream, Opts) :-
@@ -230,11 +176,13 @@ eof_action_t(error).
 stream_or_alias(X) :- atom(X). % TODO: complete
 stream_or_alias(X) :- stream(X). % TODO: complete
 
+:- export(close/1).
 :- pred close(@stream_or_alias). 
 close(S) :-
     chk_nonvar(S, close/1),
     iso_incomplete:close(S, []).
 
+:- export(close/2).
 :- pred close(@stream_or_alias,@close_options). 
 close(S, Opts) :-
     get_close_opts(Opts, false, Force),
@@ -245,6 +193,7 @@ close(S, Opts) :-
     remove_stream_data(S2),
     stream_basic:close(S2).
     
+:- export(close_options/1).
 :- prop close_options(L) + regtype
    # "@var{L} is a list of @prop{close_option/1}.".
 
@@ -253,6 +202,7 @@ close_options([O|Os]):-
     close_option(O),
     close_options(Os).
 
+:- export(close_option/1).
 :- prop close_option(O) + regtype 
    # "@var{O} is an option for close/2: @includedef{close_option/1}.".
 
@@ -275,6 +225,7 @@ get_close_opts(Opts0, _Force0, Force) :-
 
 % ---------------------------------------------------------------------------
 
+:- export(stream_property/2).
 :- pred stream_property(?stream, ?stream_property).
 
 :- doc(bug, "stream_property/2 not complete w.r.t. iso standard.").
@@ -350,6 +301,7 @@ stream_state(Stream, EOS) :-
     ; EOS = not
     ).
 
+:- export(stream_property/1).
 :- prop stream_property(P) + regtype
    # "@var{P} is a valid stream property: @includedef{stream_property/1}".  
 
@@ -383,6 +335,7 @@ end_of_stream_t(not).
 %     rune_count
 %     and use fseek
 
+:- export(set_stream_position/2).
 set_stream_position(Stream, Pos) :-
     chk_resolve_stream_alias(Stream, _S2, set_stream_position/2),
     chk_nonvar(Pos, set_stream_position/2),
@@ -395,18 +348,21 @@ set_stream_position(Stream, Pos) :-
 %      )
 %    ).
 
+:- export(set_input/1). 
 set_input(S) :-
     chk_resolve_stream_alias(S, S2, set_input/1),
     fix_err(stream_basic:set_input(S2), set_input_err).
 
 set_input_err(permission_error(access, stream, S), permission_error(input, stream, S)).
 
+:- export(set_output/1).
 set_output(S) :-
     chk_resolve_stream_alias(S, S2, set_output/1),
     fix_err(stream_basic:set_output(S2), set_output_err).
 
 set_output_err(permission_error(modify, stream, S), permission_error(output, stream, S)).
 
+:- export(flush_output/1).
 flush_output(S) :-
     chk_resolve_stream_alias(S, S2, flush_output/1),
     fix_err(stream_basic:flush_output(S2), flush_output_err).
@@ -415,6 +371,7 @@ flush_output_err(permission_error(modify, stream, S), permission_error(output, s
 % TODO: check, must be raised when stream is an input stream (JF)
 flush_output_err(domain_error(stream_or_alias, S), permission_error(output, stream, S)).
 
+:- export(current_input/1).
 current_input(S) :-
     chk_domain_if_nonvar(stream, S, current_input/1),
     stream_basic:current_input(S0),
@@ -427,6 +384,7 @@ unif_stream(S, S1) :-
     ; S=S1
     ).
 
+:- export(current_output/1).
 current_output(S) :-
     chk_domain_if_nonvar(stream, S, current_output/1),
     stream_basic:current_output(S0),
@@ -436,32 +394,38 @@ current_output(S) :-
 ensure_no_alias(S0, S) :-
     ( atom(S0) -> get_stream(S0, S) ; S = S0 ).
 
+:- export(at_end_of_stream/1).
 at_end_of_stream(S) :-
     chk_resolve_stream_alias(S, S2, at_end_of_stream/1),
     io_basic:at_end_of_stream(S2).
 
+:- export(get_code/1).
 get_code(A) :-
     chk_domain_if_nonvar(in_character_code, A, get_code/1),
     iso_incomplete:current_input(S),
     iso_incomplete:get_code(S, A).
 
+:- export(get_code/2).
 get_code(S,A) :-
     chk_domain_if_nonvar(in_character_code, A, get_code/2),
     chk_resolve_stream_alias_type(input, S, S2, text, get_code/2),
     fix_eof(S2, -1, io_basic:get_code, A),
     postchk_character_code(A, get_code/2).
  
+:- export(peek_code/1).
 peek_code(A) :-
     chk_domain_if_nonvar(in_character_code, A, peek_code/1),
     iso_incomplete:current_input(S),
     iso_incomplete:peek_code(S, A).
 
+:- export(peek_code/2). 
 peek_code(S,A) :-
     chk_domain_if_nonvar(in_character_code, A, peek_code/2),
     chk_resolve_stream_alias_type(input, S, S2, text, peek_code/2),
     fix_eof(S2, -1, io_basic:peek_code, A),
     postchk_character_code(A, peek_code/2).
 
+:- export(put_code/2). 
 put_code(S,A) :-
     chk_resolve_stream_alias_type(output, S, S2, text, put_code/2),
     fix_err(io_basic:put_code(S2,A), out_err_fix).
@@ -469,92 +433,112 @@ put_code(S,A) :-
 % TODO: permission_error(modify, stream, S) is valid for set_stream_type/2, set_stream_eof_action/2
 out_err_fix(permission_error(modify, stream, S), permission_error(output, stream, S)).
 
+:- export(nl/1). 
 nl(S) :-
     chk_resolve_stream_alias(S, S2, nl/1),
     fix_err(io_basic:nl(S2), out_err_fix).
 
+:- export(tab/2).
 tab(S,A) :-
     chk_resolve_stream_alias(S, S2, tab/2),
     io_basic:tab(S2,A).
 
+:- export(get_byte/1).
 get_byte(A) :-
     chk_domain_if_nonvar(in_byte, A, get_byte/1),
     iso_incomplete:current_input(S),
     iso_incomplete:get_byte(S, A).
 
+:- export(get_byte/2).
 get_byte(S,A) :-
     chk_domain_if_nonvar(in_byte, A, get_byte/2),
     chk_resolve_stream_alias(S, S2, get_byte/2),
     fix_eof(S2, -1, io_basic:get_byte, A).
 
+:- export(peek_byte/1).
 peek_byte(A) :-
     chk_domain_if_nonvar(in_byte, A, peek_byte/1),
     iso_incomplete:current_input(S), iso_incomplete:peek_byte(S, A).
 
+:- export(peek_byte/2).
 peek_byte(S,A) :-
     chk_domain_if_nonvar(in_byte, A, peek_byte/2),
     chk_resolve_stream_alias(S, S2, peek_byte/2),
     fix_eof(S2, -1, io_basic:peek_byte, A).
 
+:- export(put_byte/1).
 put_byte(A) :-
     iso_incomplete:current_output(S),
     iso_incomplete:put_byte(S, A).
 
+:- export(put_byte/2). 
 put_byte(S,A) :-
     chk_nonvar(A, put_byte/2),
     chk_domain_if_nonvar(byte, A, put_byte/2),
     chk_resolve_stream_alias_type(output, S, S2, binary, put_byte/2),
     fix_err(io_basic:put_byte(S2,A), out_err_fix).
 
+:- export(display/2). 
 display(S,A) :-
     chk_resolve_stream_alias(S, S2, display/2),
     io_basic:display(S2,A).
 
+:- export(displayq/2). 
 displayq(S,A) :-
     chk_resolve_stream_alias(S, S2, displayq/2),
     io_basic:displayq(S2,A).
 
+:- export(get_char/1).
 get_char(A) :-
     chk_domain_if_nonvar(in_character, A, get_char/1),
     iso_incomplete:current_input(S),
     iso_incomplete:get_char(S, A).
 
+:- export(get_char/2).
 get_char(S,A) :-
     chk_domain_if_nonvar(in_character, A, get_char/2),
     chk_resolve_stream_alias(S, S2, get_char/2),
     fix_eof(S2, end_of_file, iso_char:get_char, A),
     postchk_character(A, get_char/2).
 
+:- export(peek_char/1).
 peek_char(A) :-
     chk_domain_if_nonvar(in_character, A, peek_char/1),
     iso_incomplete:current_input(S),
     iso_incomplete:peek_char(S, A).
 
+:- export(peek_char/2). 
 peek_char(S,A) :-
     chk_domain_if_nonvar(in_character, A, peek_char/2),
     chk_resolve_stream_alias(S, S2, peek_char/2),
     fix_eof(S2, end_of_file, iso_char:peek_char, A),
     postchk_character(A, peek_char/2).
     
+:- export(put_char/1).
 put_char(A) :-
     iso_incomplete:current_output(S),
     iso_incomplete:put_char(S, A).
 
+:- export(put_char/2).
 put_char(S,A) :-
     chk_domain_nonvar(character, A, put_char/2),
     chk_resolve_stream_alias_type(output, S, S2, text, put_char/2),
     fix_err(iso_char:put_char(S2,A), out_err_fix).
 
+:- export(read/1).
 read(A) :-
     iso_incomplete:current_input(S), iso_incomplete:read_term(S, A, []).
 
+:- export(read/2).
 read(S,A) :-
     chk_resolve_stream_alias(S, S2, read/2),
     read:read(S2,A).
 
+:- export(read_term/2).
 read_term(A, B) :-
     iso_incomplete:current_input(S), iso_incomplete:read_term(S, A, B).
 
+:- export(read_term/3).
 read_term(S,A,B) :-
     chk_resolve_stream_alias_type(input, S, S2, text, read_term/3),
     fix_err(read:read_term(S2,A,B), read_term_fix(S2)).
@@ -568,47 +552,58 @@ read_term_fix(_, permission_error(access, stream, S), permission_error(input, st
 fix_nil_stream(ActualS, [], S) :- !, S = ActualS.
 fix_nil_stream(_, S, S).
 
+:- export(write_term/2).
 write_term(A, B) :-
     iso_incomplete:current_output(S), iso_incomplete:write_term(S, A, B).
 
 % TODO: type_error should report the whole list, or just the tail
+:- export(write_term/3).
 write_term(S,A,B) :-
     chk_resolve_stream_alias_type(output, S, S2, text, write_term/3),
     write:write_term(S2,A,B).
 
+:- export(write/1).
 write(A) :-
     iso_incomplete:current_output(S), iso_incomplete:write_term(S, A, [numbervars(true)]).
 
+:- export(write/2). 
 write(S,A) :-
     chk_resolve_stream_alias(S, S2, write/2),
     fix_err(write:write(S2,A), out_err_fix).
 
+:- export(writeq/2). 
 writeq(S,A) :-
     chk_resolve_stream_alias(S, S2, writeq/2),
     write:writeq(S2,A).
 
+:- export(write_canonical/2). 
 write_canonical(S,A) :-
     chk_resolve_stream_alias(S, S2, write_canonical/2),
     write:write_canonical(S2,A).
 
+:- export(print/2). 
 print(S,A) :-
     chk_resolve_stream_alias(S, S2, print/2),
     write:print(S2,A).
 
+:- export(printq/2). 
 printq(S,A) :-
     chk_resolve_stream_alias(S, S2, printq/2),
     write:printq(S2,A).
 
+:- export(portray_clause/2).
 portray_clause(S,A) :-
     chk_resolve_stream_alias(S, S2, portray_clause/2),
     write:portray_clause(S2,A).
 
+:- export(current_op/3).
 current_op(S,A,B) :- 
     chk_domain_if_nonvar(atom, B, current_op/3),
     chk_domain_if_nonvar(operator_specifier, A, current_op/3),
     chk_domain_if_nonvar(operator_priority, S, current_op/3),
     operators:current_op(S,A,B).
 
+:- export(op/3).
 op(S,A,B) :-
     chk_domain_nonvar(operator_priority, S, op/3),
     chk_ops(B),

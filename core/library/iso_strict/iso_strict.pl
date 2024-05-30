@@ -2,10 +2,10 @@
 
 :- use_package(dcg).
 %:- use_package('dcg/dcg_phrase').
-:- use_package(dynamic). % TODO: refine, not all are ISO (and includes datafacts)
+:- use_package(dynamic). % TODO: refine imports to ISO subset (and includes datafacts)
 
 %:- use_module(engine(hiord_rt), [call/1]).
-:- use_package(hiord). % TODO: refine, not all are ISO (required for call/N)
+:- use_package(hiord). % TODO: refine imports to ISO subset (required for call/N)
 :- use_module(engine(basic_props), [callable/1]). % TODO: move to engine(term_typing)
 
 %:- use_package(runtime_ops). % TODO: avoid loading operators:op/3
@@ -13,7 +13,7 @@
 :- add_sentence_trans(runtime_ops_tr:runtime_op/2, 210).
 
 
-:- use_module(engine(runtime_control)). % TODO: refine, not all are ISO
+:- use_module(engine(runtime_control)). % TODO: refine imports to ISO subset
 
 :- use_module(library(aggregates)).
 :- use_module(library(sort), [sort/2, keysort/2]).
@@ -26,12 +26,13 @@
 
 :- if(defined(optim_comp)).
 :- else.
-:- use_module(library(compiler)). % TODO: refine, not all are ISO
+:- use_module(library(compiler)). % TODO: refine imports to ISO subset
 :- endif.
-:- use_module(library(system)). % TODO: refine, not all are ISO
+:- use_module(library(system)). % TODO: refine imports to ISO subset
+
+:- use_module(library(iso_incomplete)).
 
 % IO predicates
-:- use_module(library(iso_incomplete)).
 :- use_module(engine(stream_basic), [
     open/3,
     % TODO: ISO?
@@ -40,7 +41,7 @@
     current_stream/3
 ]).
 :- use_module(engine(io_basic), [
-    % TODO: refine, not all are ISO
+    % TODO: refine imports to ISO subset
     put_code/1,
     nl/0,
     tab/1, 
@@ -51,7 +52,8 @@
 :- use_module(library(iso_char), [
     char_code/2,
     atom_chars/2,
-    number_chars/2,char_codes/2
+    number_chars/2,
+    char_codes/2
 ]).
 
 :- use_module(library(write), [
