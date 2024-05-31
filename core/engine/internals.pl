@@ -1203,14 +1203,14 @@ in_range(Type, Code, WhichWithinType):-
     Code < Start + Range,
     WhichWithinType is Code - Start.
 
-error_term( 1, _, instantiation_error) :- !.
-error_term( 2, Culprit, uninstantiation_error(Culprit)) :- !.
-error_term(Code, _, system_error) :-   in_range(system, Code, _), !.
-error_term(Code, _, syntax_error) :-   in_range(syntax, Code, _), !.
+error_term(1, _, instantiation_error) :- !.
+error_term(2, Culprit, uninstantiation_error(Culprit)) :- !.
+error_term(Code, _, system_error) :- in_range(system, Code, _), !.
+error_term(Code, _, syntax_error) :- in_range(syntax, Code, _), !.
 error_term(N, _, resource_error(Res)) :- 
     in_range(res, N, Code), !, 
     resource_code(Code, Res).
-error_term(Code, _, user_error) :-     in_range(user,   Code, _), !.
+error_term(Code, _, user_error) :- in_range(user,   Code, _), !.
 error_term(N, _Culprit, evaluation_error(Type)) :-
     in_range(eval, N, Code), !,
     evaluation_code(Code, Type).
@@ -1218,20 +1218,19 @@ error_term(N, _Culprit, representation_error(Type)) :-
     in_range(repres, N, Code), !,
     representation_code(Code, Type).
 error_term(N, Culprit, type_error(Type, Culprit)) :-
-    in_range(type, N, Code),
+    in_range(type, N, Code), !,
     type_code(Code, Type).
 error_term(N, Culprit, domain_error(Type, Culprit)) :-
-    in_range(dom, N, Code),
+    in_range(dom, N, Code), !,
     domain_code(Code, Type).
 error_term(N, Culprit, existence_error(Type, Culprit)) :-
-    in_range(exist, N, Code),
+    in_range(exist, N, Code), !,
     existence_code(Code, Type).
 error_term(N, Culprit, permission_error(Permission, Object, Culprit)) :-
-    in_range(perm, N, Code),
+    in_range(perm, N, Code), !,
     get_obj_perm(Code,Obj,Per),
     permission_type_code(Per, Permission),
     permission_object_code(Obj, Object).
-
 
 %% Check error type and return get Code for every class of error.  This should
 %% be made more modularly (i.e., with an C interface - but is it worth?)
