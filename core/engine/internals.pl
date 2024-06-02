@@ -1251,7 +1251,6 @@ get_obj_perm(Code, Obj, Perm) :-
     Obj is Code mod 10,
     Perm is Code // 10.
          
-
  %% culprit_stream([], S) :- !, current_input(S).
  %% culprit_stream(S,S).
 
