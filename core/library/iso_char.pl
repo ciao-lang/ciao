@@ -40,6 +40,9 @@ char_code(Ch, C) :-
    successive characters of the name of atom @var{Atom}").
 
 atom_chars(Atom, Chars) :-
+    var(Atom), var(Chars), !,
+    throw(error(instantiation_error, atom_chars/2)).
+atom_chars(Atom, Chars) :-
     atom(Atom), !,
     atom_codes(Atom, S),
     char_codes(Chars, S).
