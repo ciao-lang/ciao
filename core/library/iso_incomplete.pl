@@ -338,7 +338,7 @@ end_of_stream_t(not).
 :- export(set_stream_position/2).
 set_stream_position(Stream, Pos) :-
     chk_resolve_stream_alias(Stream, _S2, set_stream_position/2),
-    chk_nonvar(Pos, set_stream_position/2),
+    chk_domain_nonvar(stream_position, Pos, set_stream_position/2),
     throw(not_implemented).
 %    ( iso_incomplete:current_input(Stream), var(Pos) ->
 %        throw(error(instantiation_error, not_implemented)) % TODO: check (JF)
@@ -716,6 +716,7 @@ chk_domain(Ty, X, Where) :-
 % types representing domains
 is_dom(stream, true).
 is_dom(stream_property, true).
+is_dom(stream_position, true).
 is_dom(operator_specifier, atom).
 is_dom(operator_priority, integer).
 
@@ -737,6 +738,7 @@ check_ty(in_character_code, X) :- is_in_character_code(X).
 check_ty(operator_specifier, X) :- nonvar(X), is_operator_specifier(X).
 check_ty(operator_priority, X) :- is_operator_priority(X).
 check_ty(stream_property, X) :- nonvar(X), stream_property(X).
+check_ty(stream_position, X) :- nonvar(X), X = '$pos'(_). % TODO: implement
 
 % Common types:
 %
