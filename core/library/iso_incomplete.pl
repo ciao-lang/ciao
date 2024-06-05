@@ -313,6 +313,14 @@ stream_property(type(Type)) :- atm(Type).
 stream_property(alias(Alias)) :- atm(Alias).
 stream_property(end_of_stream(EOS)) :- end_of_stream_t(EOS).
 
+is_stream_property(input).
+is_stream_property(output).
+is_stream_property(file_name(_)).
+is_stream_property(mode(_)).
+is_stream_property(type(_)).
+is_stream_property(alias(_)).
+is_stream_property(end_of_stream(_)).
+
 :- prop end_of_stream_t(Type) + regtype
    # "@var{Type} depends on the current position of the stream in the file:
       @begin{itemize}
@@ -463,6 +471,7 @@ peek_byte(A) :-
 :- export(peek_byte/2).
 peek_byte(S,A) :-
     chk_domain_if_nonvar(in_byte, A, peek_byte/2),
+    % TODO: use chk_resolve_stream_alias_type!
     chk_resolve_stream_alias(S, S2, peek_byte/2),
     fix_eof(S2, -1, io_basic:peek_byte, A).
 
@@ -737,7 +746,7 @@ check_ty(character_code, X) :- is_character_code(X).
 check_ty(in_character_code, X) :- is_in_character_code(X).
 check_ty(operator_specifier, X) :- nonvar(X), is_operator_specifier(X).
 check_ty(operator_priority, X) :- is_operator_priority(X).
-check_ty(stream_property, X) :- nonvar(X), stream_property(X).
+check_ty(stream_property, X) :- nonvar(X), is_stream_property(X).
 check_ty(stream_position, X) :- nonvar(X), X = '$pos'(_). % TODO: implement
 
 % Common types:
@@ -793,14 +802,6 @@ is_operator_specifier(X) :-
       X = xfx ;
       X = yf ;
       X = xf ).
-
-is_stream_property(input).
-is_stream_property(output).
-is_stream_property(file_name(_)).
-is_stream_property(mode(_)).
-is_stream_property(type(_)).
-is_stream_property(alias(_)).
-is_stream_property(end_of_stream(_)).
 
 % Fix errors
 :- meta_predicate fix_err(goal, pred(2)).
