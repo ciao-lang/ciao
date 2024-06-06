@@ -443,12 +443,12 @@ out_err_fix(permission_error(modify, stream, S), permission_error(output, stream
 
 :- export(nl/1). 
 nl(S) :-
-    chk_resolve_stream_alias(S, S2, nl/1),
+    chk_resolve_stream_alias_type(output, S, S2, text, nl/1),
     fix_err(io_basic:nl(S2), out_err_fix).
 
 :- export(tab/2).
 tab(S,A) :-
-    chk_resolve_stream_alias(S, S2, tab/2),
+    chk_resolve_stream_alias_type(output, S, S2, text, tab/2),
     io_basic:tab(S2,A).
 
 :- export(get_byte/1).
@@ -460,7 +460,7 @@ get_byte(A) :-
 :- export(get_byte/2).
 get_byte(S,A) :-
     chk_domain_if_nonvar(in_byte, A, get_byte/2),
-    chk_resolve_stream_alias(S, S2, get_byte/2),
+    chk_resolve_stream_alias_type(input, S, S2, binary, get_byte/2),
     fix_eof(S2, -1, io_basic:get_byte, A).
 
 :- export(peek_byte/1).
@@ -471,8 +471,7 @@ peek_byte(A) :-
 :- export(peek_byte/2).
 peek_byte(S,A) :-
     chk_domain_if_nonvar(in_byte, A, peek_byte/2),
-    % TODO: use chk_resolve_stream_alias_type!
-    chk_resolve_stream_alias(S, S2, peek_byte/2),
+    chk_resolve_stream_alias_type(input, S, S2, binary, peek_byte/2),
     fix_eof(S2, -1, io_basic:peek_byte, A).
 
 :- export(put_byte/1).
@@ -489,12 +488,12 @@ put_byte(S,A) :-
 
 :- export(display/2). 
 display(S,A) :-
-    chk_resolve_stream_alias(S, S2, display/2),
+    chk_resolve_stream_alias_type(output, S, S2, text, display/2),
     io_basic:display(S2,A).
 
 :- export(displayq/2). 
 displayq(S,A) :-
-    chk_resolve_stream_alias(S, S2, displayq/2),
+    chk_resolve_stream_alias_type(output, S, S2, text, displayq/2),
     io_basic:displayq(S2,A).
 
 :- export(get_char/1).
@@ -506,7 +505,7 @@ get_char(A) :-
 :- export(get_char/2).
 get_char(S,A) :-
     chk_domain_if_nonvar(in_character, A, get_char/2),
-    chk_resolve_stream_alias(S, S2, get_char/2),
+    chk_resolve_stream_alias_type(input, S, S2, text, get_char/2),
     fix_eof(S2, end_of_file, iso_char:get_char, A),
     postchk_character(A, get_char/2).
 
@@ -519,7 +518,7 @@ peek_char(A) :-
 :- export(peek_char/2). 
 peek_char(S,A) :-
     chk_domain_if_nonvar(in_character, A, peek_char/2),
-    chk_resolve_stream_alias(S, S2, peek_char/2),
+    chk_resolve_stream_alias_type(input, S, S2, text, peek_char/2),
     fix_eof(S2, end_of_file, iso_char:peek_char, A),
     postchk_character(A, peek_char/2).
     
@@ -540,7 +539,7 @@ read(A) :-
 
 :- export(read/2).
 read(S,A) :-
-    chk_resolve_stream_alias(S, S2, read/2),
+    chk_resolve_stream_alias_type(input, S, S2, text, read/2),
     read:read(S2,A).
 
 :- export(read_term/2).
@@ -577,32 +576,32 @@ write(A) :-
 
 :- export(write/2). 
 write(S,A) :-
-    chk_resolve_stream_alias(S, S2, write/2),
+    chk_resolve_stream_alias_type(output, S, S2, text, write/2),
     fix_err(write:write(S2,A), out_err_fix).
 
 :- export(writeq/2). 
 writeq(S,A) :-
-    chk_resolve_stream_alias(S, S2, writeq/2),
+    chk_resolve_stream_alias_type(output, S, S2, text, writeq/2),
     write:writeq(S2,A).
 
 :- export(write_canonical/2). 
 write_canonical(S,A) :-
-    chk_resolve_stream_alias(S, S2, write_canonical/2),
+    chk_resolve_stream_alias_type(output, S, S2, text, write_canonical/2),
     write:write_canonical(S2,A).
 
 :- export(print/2). 
 print(S,A) :-
-    chk_resolve_stream_alias(S, S2, print/2),
+    chk_resolve_stream_alias_type(output, S, S2, text, print/2),
     write:print(S2,A).
 
 :- export(printq/2). 
 printq(S,A) :-
-    chk_resolve_stream_alias(S, S2, printq/2),
+    chk_resolve_stream_alias_type(output, S, S2, text, printq/2),
     write:printq(S2,A).
 
 :- export(portray_clause/2).
 portray_clause(S,A) :-
-    chk_resolve_stream_alias(S, S2, portray_clause/2),
+    chk_resolve_stream_alias_type(output, S, S2, text, portray_clause/2),
     write:portray_clause(S2,A).
 
 :- export(current_op/3).
@@ -682,7 +681,9 @@ handle_fix_eof(Action, Eof, Pred, Stream, ImplDef, Code) :-
     ).
 
 postchk_character_code(Code, Where) :-
-    ( Code = 0 -> throw(error(representation_error(character_code), Where))
+    % NOTE: the ISO standard says that the repr error here is
+    %   'character' instead of 'character_code' (JF)
+    ( Code = 0 -> throw(error(representation_error(character), Where))
     ; true
     ).
 
