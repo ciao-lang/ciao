@@ -34,7 +34,6 @@
 
 % IO predicates
 :- use_module(engine(stream_basic), [
-    open/3,
     % TODO: ISO?
     character_count/2, line_count/2, line_position/2,
     flush_output/0,

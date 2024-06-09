@@ -94,6 +94,15 @@ remove_stream_data(S) :-
     retractall_fact('$stream_reposition'(S,_)).
 
 % ---------------------------------------------------------------------------
+
+:- export(open/3).
+:- pred open(+sourcename, +io_mode, ?stream).
+
+open(File, Mode, Stream) :-
+    chk_domain_nonvar(io_mode, Mode, open/3),
+    stream_basic:open(File, Mode, Stream).
+
+% ---------------------------------------------------------------------------
 % TODO: argument order changed!
 
 :- export(open/4).
@@ -101,7 +110,7 @@ remove_stream_data(S) :-
 
 open(File, Mode, Stream, Opts) :-
     chk_nonvar(File, open/4),
-    chk_nonvar(Mode, open/4),
+    chk_domain_nonvar(io_mode, Mode, open/4),
     get_open_opts(Opts, OtherOpts, text, Type, Aliases, error, EofAction, true, Reposition),
     stream_basic:open(File, Mode, Stream, OtherOpts),
     set_stream_type(Stream, Type),
@@ -729,6 +738,7 @@ is_dom(stream_property, true).
 is_dom(stream_position, true).
 is_dom(operator_specifier, atom).
 is_dom(operator_priority, integer).
+is_dom(io_mode, atom).
 
 % representation checks
 is_rep(character_code, integer).
@@ -749,6 +759,7 @@ check_ty(operator_specifier, X) :- nonvar(X), is_operator_specifier(X).
 check_ty(operator_priority, X) :- is_operator_priority(X).
 check_ty(stream_property, X) :- nonvar(X), is_stream_property(X).
 check_ty(stream_position, X) :- nonvar(X), X = '$pos'(_). % TODO: implement
+check_ty(io_mode, X) :- nonvar(X), io_mode(X).
 
 % Common types:
 %
