@@ -26,12 +26,14 @@
 :- primitive_meta_predicate(call(goal)).
 :- impl_defined(call/1).
 
-:- doc(call(Pred,Arg1), "There exists a set of builtin predicates
-   of the form @pred{call/N} with @tt{N > 1} which execute predicate
-   @var{Pred} given arguments @var{Arg1} ... @var{ArgX}. If @var{Pred}
-   has already arguments @var{Arg1} is added to the start, the rest to
-   the end. This predicate, when @var{Pred} is a variable, can be
-   written using the special Ciao syntax @tt{Pred(Arg1,...,ArgX)}.").
+:- doc(call(Pred,Arg1), "The family of builtin predicates of the form
+   @pred{call/N} with @tt{N > 1} execute the predicate @var{Pred}
+   applying arguments @var{Arg1} ... @var{ArgN}. If @var{Pred} has
+   already @tt{M} arguments, @var{Arg1} ... @var{ArgN} are added to
+   the end resulting in a call to a predicate of arity @tt{M+N}. When
+   using the @lib{hiord} package, the @tt{Pred(Arg1,...,ArgN)} syntax
+   (with @var{Pred} a variable) is accepted as equivalent to
+   @tt{call(Pred, Arg1, ..., ArgN)}.").
 
 
 % Won't get checked due to throw/1 in the first clause of calln/2.
