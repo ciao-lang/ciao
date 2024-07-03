@@ -2,7 +2,10 @@
 
 :- use_package(dcg).
 %:- use_package('dcg/dcg_phrase').
-:- use_package(dynamic). % TODO: refine imports to ISO subset (and includes datafacts)
+%:- use_package(dynamic). % TODO: refine imports to ISO subset (and includes datafacts)
+:- use_package(datafacts). % TODO: refine imports to ISO subset
+:- op(1150, fx, [(dynamic)]). % TODO: dynamic.pl conflicts with dynamic_rt, fix
+:- use_package(dynamic_clauses). % TODO: refine imports to ISO subset (and includes datafacts)
 
 %:- use_module(engine(hiord_rt), [call/1]).
 :- use_package(hiord). % TODO: refine imports to ISO subset (required for call/N)
