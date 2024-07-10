@@ -91,6 +91,8 @@
 %:- '$native_include_c_header'('eng_debug.h').
 :- '$native_include_c_source'('eng_debug.c').
 
+:- '$native_include_c_source'('eng_profile.c').
+
 :- '$native_include_c_source'('eng_interrupt.c').
 
 :- '$native_include_c_source'('gauge.c').
