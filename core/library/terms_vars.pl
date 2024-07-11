@@ -21,6 +21,7 @@
    duplicates).".
 
 % TODO: check that second argument is partial list or list.
+% TODO: poor performance (JF)
 
 term_variables(Term, Vars) :- 
     term_variables(Term, Vars, []).
