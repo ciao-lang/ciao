@@ -191,7 +191,7 @@ void engine_set_opts(const char **optv, int optc, const char **boot_path) {
     */
     else
 #if defined(PROFILE)
-      if (strcmp(optv[i], "--profile") == 0)        /* Simple profile */
+      if (strcmp(optv[i], "--profile-ncalls") == 0)        /* Simple profile */
         profile_eng = TRUE;
       else if (strcmp(optv[i], "--profile-time") == 0)         /* Include time */
         profile_eng = TRUE;

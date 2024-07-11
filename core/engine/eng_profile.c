@@ -137,13 +137,16 @@ static intmach_t compare_times(const void *arg1, const void *arg2) {
   }
 }
 
+/* (done for each option) */
 bool_t profile__get_opt(const char *arg) {
-  if (strcmp(arg, "-prof") == 0)        /* Simple profile */
+  if (strcmp(arg, "--profile-ncalls") == 0) { /* Simple profile */
     profile = TRUE;
-  else if (strcmp(arg, "-proft") == 0)         /* Include time */
-    { profile = TRUE; prof_include_time = TRUE; }
-  else
+  } else if (strcmp(arg, "--profile-time") == 0) { /* Include time */
+    profile = TRUE;
+    prof_include_time = TRUE;
+  } else {
     return FALSE;
+  }
   return TRUE;
 }
 
