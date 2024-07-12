@@ -373,19 +373,13 @@ void init_some_bytecode(void) {
 extern bool_t profile;       /* profile execution -- Shared */
 #endif
 
-CBOOL__PROTO(set_trace_calls)
-{
+/* TODO: not used */
+CBOOL__PROTO(set_trace_calls) {
   tagged_t x;
   DEREF(x,X(0));
-  if (!TaggedIsSmall(x))
-    return FALSE;
+  if (!TaggedIsSmall(x)) return FALSE;
   trace_calls = (bool_t)GetSmall(x);
-#if defined(PROFILE)
-  if (profile||trace_calls) stop_on_pred_calls = TRUE;
-#else
-  if (trace_calls) stop_on_pred_calls = TRUE;
-#endif
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
 /* run_determ_c(goal) runs the goal and returns TRUE if goal is

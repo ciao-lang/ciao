@@ -89,7 +89,6 @@ void *builtintab[64];                                           /* Shared */
 sw_on_key_t *switch_on_function;
 
 /* GLOBAL DATA STRUCTURES */
-bool_t stop_on_pred_calls     = FALSE;        /* profile or trace -- Shared */
 bool_t trace_calls            = FALSE;   /* trace predicate calls -- Shared */
 #if defined(DEBUG)
 bool_t trace_instr            = FALSE;      /* trace instructions -- Shared */

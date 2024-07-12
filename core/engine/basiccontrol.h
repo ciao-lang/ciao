@@ -42,10 +42,9 @@ CBOOL__PROTO(run_determ_c, tagged_t goal);
 /* ------------------------------------------------------------------------- */
 
 #if defined(DEBUG_NODE)
-# define AssignNodeFunctor(F, Y) \
-  {F = Y;}
+#define AssignNodeFunctor(Y) { w->choice->functor = Y; }
 #else
-# define AssignNodeFunctor(F, Y)
+#define AssignNodeFunctor(Y)
 #endif
 
 #if defined(DEBUG)
@@ -53,37 +52,25 @@ void wr_functor(char *s, definition_t *func);
 CVOID__PROTO(wr_call, char *s, definition_t *func);
 #endif
 
+/* Predicate tracer */
 #if defined(DEBUG)
-   /* stop_on_pred_calls = trace_calls | profile */
-# if defined(PROFILE)
-#  define PredTrace(X,Y) \
-{ \
-  AssignNodeFunctor(w->choice->functor, Y); \
-  if (stop_on_pred_calls) \
-  { \
-    if (trace_calls) wr_functor(X,Y); \
-    else { \
-      PROFILE__HOOK_CALL(Y); \
-    } \
-  } \
-}
-
-# else /* DEBUG & !PROFILE */
-#  define PredTrace(X,Y) \
-{ \
-  AssignNodeFunctor(w->choice->functor, Y); \
-  if (trace_calls) \
-    wr_call(Arg,X,Y); \
-}
-# endif
+#define PRED_TRACE(X,Y) if (trace_calls) { wr_functor(X,Y); }
 #else
-# if defined(DEBUG_NODE)
-#  define PredTrace(X,Y) \
-  AssignNodeFunctor(w->choice->functor, Y)
-# else
-#  define PredTrace(X,Y)
-# endif
+#define PRED_TRACE(X,Y)
 #endif
+
+/* Predicate profiler */
+#if defined(PROFILE)
+#define PRED_PROFILE(X,Y) if (profile) { PROFILE__HOOK_CALL(Y); }
+#else
+#define PRED_PROFILE(X,Y)
+#endif
+
+#define PRED_HOOK(X,Y) { \
+  AssignNodeFunctor(Y); \
+  PRED_TRACE(X,Y); \
+  PRED_PROFILE(X,Y); \
+}
 
 #if defined(DEBUG)
 #define TRACE_CHPT_CLEANUP(TopCChpt, TopNode) \

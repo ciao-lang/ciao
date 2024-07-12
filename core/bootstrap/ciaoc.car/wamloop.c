@@ -242,7 +242,7 @@ case ENTER_FASTCODE:
 goto enter_undefined;
 case ENTER_UNDEFINED:
 enter_undefined:
-PredTrace("U",Func);
+PRED_HOOK("U",Func);
 ptemp = (bcp_t)address_undefined_goal;
 goto escape_to_p;
 case ENTER_INTERPRETED:
@@ -250,7 +250,7 @@ ptemp = (bcp_t)address_interpret_c_goal;
 goto escape_to_p2;
 case ENTER_C:
 {
-PredTrace("C",Func);
+PRED_HOOK("C",Func);
 w->heap_top = H;
 intmach_t vr12 = ((cbool0_t)Func->code.proc)(w);
 if (Expanded_Worker!=NULL) {
@@ -277,13 +277,13 @@ goto fail;
 
     }
 case BUILTIN_TRUE:
-PredTrace("B",Func);
+PRED_HOOK("B",Func);
 goto w_op64;
 case BUILTIN_FAIL:
-PredTrace("B",Func);
+PRED_HOOK("B",Func);
 goto fail;
 case BUILTIN_CURRENT_INSTANCE:
-PredTrace("B",Func);
+PRED_HOOK("B",Func);
 w->heap_top = H;
 w->misc->ins = CFUN__EVAL(current_instance0);
 if (w->misc->ins==NULL) {
@@ -294,7 +294,7 @@ P = (bcp_t)w->misc->ins->emulcode;
 goto r_dispatch;
 case BUILTIN_COMPILE_TERM:
 {
-PredTrace("B",Func);
+PRED_HOOK("B",Func);
 w->heap_top = H;
 {worker_t * vr13;
 if (!compile_term(w,&vr13)) {
@@ -318,14 +318,14 @@ fprintf(stderr,"Reallocation of wrb detected in wam()\n");
 }goto r_op64;
     }
 case BUILTIN_INSTANCE:
-PredTrace("B",Func);
+PRED_HOOK("B",Func);
 LoadHVA(X(3),H);
 w->misc->ins = TaggedToInstance(X(2));
 P = (bcp_t)w->misc->ins->emulcode;
 goto w_dispatch;
 case BUILTIN_GELER:
 {
-PredTrace("B",Func);
+PRED_HOOK("B",Func);
 tagged_t vr14 = X(0);
 DerefSwitch0(vr14,{
 ;    }
@@ -343,7 +343,7 @@ goto w_op64;
     }
 case BUILTIN_NODEBUGCALL:
 {
-PredTrace("B",Func);
+PRED_HOOK("B",Func);
 tagged_t vr16 = X(0);
 DerefSwitch(vr16,X(0),{
 ;    }
@@ -358,7 +358,7 @@ goto call4;
     }
 case BUILTIN_SYSCALL:
 {
-PredTrace("B",Func);
+PRED_HOOK("B",Func);
 tagged_t vr17 = X(0);
 DerefSwitch(vr17,X(0),{
 ;    }
@@ -381,7 +381,7 @@ Setfunc(address_interpret_goal);
 goto switch_on_pred;
 case BUILTIN_DIF:
 {
-PredTrace("B",Func);
+PRED_HOOK("B",Func);
 tagged_t * vr18 = w->structure;
 tagged_t vr19;
 RefHeapNext(vr19,vr18);
@@ -437,7 +437,7 @@ goto switch_on_pred_sub;
     }
 case BUILTIN_CALL:
 {
-PredTrace("B",Func);
+PRED_HOOK("B",Func);
 tagged_t vr27 = X(0);
 DerefSwitch(vr27,X(0),{
 ;    }
@@ -460,7 +460,7 @@ case BUILTIN_DIF:
 {
 dif0:
 {
-PredTrace("B",Func);
+PRED_HOOK("B",Func);
 tagged_t vr28 = X(0);
 DerefSwitch0(vr28,{
 ;    }
@@ -491,7 +491,7 @@ goto r_op64;
     }
 case BUILTIN_ABORT:
 {
-PredTrace("B",Func);
+PRED_HOOK("B",Func);
 tagged_t vr30 = X(0);
 DerefSwitch0(vr30,{
 ;    }
@@ -578,7 +578,7 @@ case ENTER_COMPACTCODE_INDEXED:
 {
 enter_compactcode_indexed:
 {
-PredTrace("E",Func);
+PRED_HOOK("E",Func);
 tagged_t vr36 = X(0);
 DerefSwitch(vr36,X(0),{
 alts = Func->code.incoreinfo->varcase;
@@ -628,7 +628,7 @@ case ENTER_PROFILEDCODE:
 goto enter_compactcode;
 case ENTER_COMPACTCODE:
 enter_compactcode:
-PredTrace("E",Func);
+PRED_HOOK("E",Func);
 alts = Func->code.incoreinfo->varcase;
 goto w_tryeach;
   }

@@ -1,6 +1,8 @@
 #include <ciao/eng.h>
 
-#if defined(OPTIM_COMP)
+#if !defined(OPTIM_COMP)
+
+#else /* defined(OPTIM_COMP) */
 
 #if defined(ABSMACH_OPT__profile_calls)
 #include <string.h>

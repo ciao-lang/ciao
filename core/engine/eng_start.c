@@ -261,11 +261,6 @@ void engine_set_opts(const char **optv, int optc, const char **boot_path) {
       fprintf(stderr,"Warning: %s ignored\n",optv[i]);
     }
   }
-#if defined(PROFILE)
-  if (profile||trace_calls) stop_on_pred_calls = TRUE;
-#else
-  if (trace_calls) stop_on_pred_calls = TRUE;
-#endif
 }
 
 void set_ciaoroot_directory(const char *boot_path, const char *exec_path);

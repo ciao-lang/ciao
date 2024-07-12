@@ -19,7 +19,7 @@
 #include <stddef.h> /* ptrdiff_t */
 #endif
 
-#if !defined(OPTIM_COMP) && defined(PROFILE) /* due to PredTrace() */
+#if !defined(OPTIM_COMP) && defined(PROFILE) /* due to PRED_HOOK() */
 #include <ciao/eng_profile.h>
 #endif
 
@@ -275,7 +275,7 @@ CFUN__PROTO(current_instance0, instance_t *) {
   tagged_t *junk;
   w->choice->functor=find_definition(predicates_location,X(0),&junk,FALSE);
 #endif
-  PredTrace("I",w->choice->functor);
+  PRED_HOOK("I",w->choice->functor);
   root = TaggedToRoot(X(2));
   if (root->behavior_on_failure == DYNAMIC) {
     return CFUN__EVAL(current_instance_noconc);

@@ -9,10 +9,6 @@
 #ifndef _CIAO_ENG_DEBUG_H
 #define _CIAO_ENG_DEBUG_H
 
-#if !defined(OPTIM_COMP)
-extern bool_t stop_on_pred_calls;
-#endif
-
 /* ------------------------------------------------------------------------- */
 /* INSCOUNT (instruction-level profiler) */
 

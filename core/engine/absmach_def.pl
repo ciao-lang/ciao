@@ -463,7 +463,7 @@ conc_chpt_cleanup(A,B) => callstmt('ConcChptCleanUp', [A,B]).
 cond_var_wait(A,B) => callstmt('Cond_Var_Wait', [A,B]).
 incr_counter(Counter) => callstmt('INCR_COUNTER', [Counter]).
 neck_retry_patch(B) => callstmt('NECK_RETRY_PATCH', [B]).
-pred_trace0(Kind, Func) => callstmt('PredTrace', [Kind, Func]).
+pred_hook0(Kind, Func) => callstmt('PRED_HOOK', [Kind, Func]).
 release_lock(A) => callstmt('Release_lock', [A]).
 reset_wake_count => callstmt('ResetWakeCount', []).
 serious_fault(A) => callstmt('SERIOUS_FAULT', [A]).
@@ -1531,8 +1531,8 @@ restart_point =>
 % ---------------------------------------------------------------------------
 %! # WAM execution tracing
 
-:- rkind(pred_trace/1, []).
-pred_trace(Kind) => pred_trace0(Kind, ~func).
+:- rkind(pred_hook/1, []).
+pred_hook(Kind) => pred_hook0(Kind, ~func).
 
 :- rkind(trace/1, []).
 trace(X) => callstmt('ON_DEBUG', [blk(trace_(X))]).
@@ -2129,19 +2129,19 @@ switch_on_pred =>
 
 pred_enter_undefined =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("U")),
+    pred_hook(tk_string("U")),
     tk('ptemp') <- cast(bcp,tk('address_undefined_goal')), % (arity 1)
     goto('escape_to_p').
 
 pred_enter_interpreted =>
     [[ update(mode(w)) ]],
-    % pred_trace(tk_string("I")),
+    % pred_hook(tk_string("I")),
     tk('ptemp') <- cast(bcp,tk('address_interpret_c_goal')), % (arity 2)
     goto('escape_to_p2').
 
 pred_enter_c =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("C")),
+    pred_hook(tk_string("C")),
     setmode(r),
     % Changed by DCG to handle errors in Prolog
     localv(intmach, I, call_fC(cbool0,(~func)^.code.proc,[])),
@@ -2159,17 +2159,17 @@ pred_enter_c =>
 
 pred_enter_builtin_true =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("B")),
+    pred_hook(tk_string("B")),
     goto_ins(proceed).
 
 pred_enter_builtin_fail =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("B")),
+    pred_hook(tk_string("B")),
     jump_fail.
 
 pred_enter_builtin_current_instance =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("B")),
+    pred_hook(tk_string("B")),
     setmode(r),
     (~w)^.misc^.ins <- '$fcall'('CFUN__EVAL', [tk('current_instance0')]),
     if(is_null((~w)^.misc^.ins), jump_fail),
@@ -2178,7 +2178,7 @@ pred_enter_builtin_current_instance =>
 
 pred_enter_builtin_compile_term =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("B")),
+    pred_hook(tk_string("B")),
     setmode(r),
     '{',
     localv(ptr(worker), NewWorker), % Temp - for changes in regbanksize
@@ -2197,7 +2197,7 @@ pred_enter_builtin_compile_term =>
 pred_enter_builtin_instance =>
     [[ update(mode(w)) ]],
     % ASSERT: X(2) is a dereferenced integer
-    pred_trace(tk_string("B")),
+    pred_hook(tk_string("B")),
     load(hva, x(3)),
     (~w)^.misc^.ins <- ~tagged_to_instance(x(2)),
     (~p) <- cast(bcp, (~w)^.misc^.ins^.emulcode),
@@ -2205,7 +2205,7 @@ pred_enter_builtin_instance =>
 
 pred_enter_builtin_geler =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("B")),
+    pred_hook(tk_string("B")),
     localv(tagged, T1, x(0)),
     deref_sw0(T1,';'),
     localv(tagged, T3),
@@ -2222,7 +2222,7 @@ pred_enter_builtin_geler =>
 % Like pred_enter_builtin_syscall/0, but fails on undefined
 pred_enter_builtin_nodebugcall =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("B")),
+    pred_hook(tk_string("B")),
     localv(tagged, T0, x(0)),
     deref_sw(T0,x(0),';'),
     do_builtin_call(nodebugcall, T0).
@@ -2230,14 +2230,14 @@ pred_enter_builtin_nodebugcall =>
 % Like pred_enter_builtin_call/0, but ignores Current_Debugger_Mode
 pred_enter_builtin_syscall =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("B")),
+    pred_hook(tk_string("B")),
     localv(tagged, T0, x(0)), 
     deref_sw(T0,x(0),';'),
     do_builtin_call(syscall, T0).
 
 pred_enter_builtin_call =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("B")),
+    pred_hook(tk_string("B")),
     localv(tagged, T0, x(0)),
     deref_sw(T0,x(0),';'),
     do_builtin_call(call, T0).
@@ -2279,14 +2279,14 @@ code_call4 =>
 
 pred_call_interpreted =>
     [[ update(mode(w)) ]],
-    % pred_trace(tk_string("I")),
+    % pred_hook(tk_string("I")),
     x(1) <- ~pointer_to_term((~func)^.code.intinfo),
     set_func(tk('address_interpret_goal')),
     goto('switch_on_pred').
 
 pred_call_builtin_dif =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("B")),
+    pred_hook(tk_string("B")),
     localv(ptr(tagged), Pt1, (~w)^.structure),
     localv(tagged, T0), ref_heap_next0(T0,Pt1), x(0) <- T0,
     localv(tagged, T1), ref_heap_next0(T1,Pt1), x(1) <- T1,
@@ -2334,7 +2334,7 @@ pred_call_default =>
 % NOTE: see prolog_dif
 pred_enter_builtin_dif =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("B")),
+    pred_hook(tk_string("B")),
     localv(tagged, T0, x(0)), deref_sw0(T0,';'),
     localv(tagged, T1, x(1)), deref_sw0(T1,';'),
     (~w)^.structure <- ~null,
@@ -2358,7 +2358,7 @@ pred_enter_builtin_dif =>
 pred_enter_builtin_abort =>
     [[ update(mode(w)) ]],
     % cut all the way and fail, leaving wam with a return code
-    pred_trace(tk_string("B")),
+    pred_hook(tk_string("B")),
     localv(tagged, T0, x(0)), deref_sw0(T0,';'),
     (~w)^.misc^.exit_code <- ~get_small(T0),
     (~w)^.previous_choice <- tk('InitialChoice'),
@@ -2398,7 +2398,7 @@ pred_enter_breakpoint =>
 
 pred_enter_compactcode_indexed =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("E")),
+    pred_hook(tk_string("E")),
     localv(tagged, T0, x(0)),
     deref_sw(T0,x(0), jump_tryeach((~func)^.code.incoreinfo^.varcase)),
     localv(tagged, T1),
@@ -2434,7 +2434,7 @@ pred_enter_compactcode_indexed =>
 
 pred_enter_compactcode =>
     [[ update(mode(w)) ]],
-    pred_trace(tk_string("E")),
+    pred_hook(tk_string("E")),
     jump_tryeach((~func)^.code.incoreinfo^.varcase).
 
 jump_switch_on_pred_sub(Enter), [[ Enter = tk('ei') ]] => goto('switch_on_pred_sub').
