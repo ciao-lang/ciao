@@ -243,7 +243,7 @@ checkmod() {
     # TODO: do not touch, clean the user cache!
     touch ${prg}.pl && \
         echo "Compiling module ${prg}" && \
-#       CIAORTOPTS="--profile-time" "$bin_dir"/ciao oc:comp --do compile ${prg} && \
+#       CIAORTOPTS="--profile-roughtime" "$bin_dir"/ciao oc:comp --do compile ${prg} && \
         "$bin_dir"/ciao oc:comp --comp-stats --do compile ${prg} && \
         echo "Generating native code (if required) for module ${prg}" && \
         "$bin_dir"/ciao oc:comp --do archcompile ${prg} || return 1    

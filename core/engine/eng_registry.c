@@ -951,8 +951,8 @@ void init_locks(void){
 #endif
 }
 
+void init_profile(void) {
 #if defined(PROFILE)
-void init_profiler(void) {
   if (profile_eng) {
     void (*profile_init)(void) =
       (void (*)(void))dlsym(RTLD_DEFAULT, "profile_init");
@@ -962,17 +962,19 @@ void init_profiler(void) {
     if (profile_init) profile_init();
     if (profile_enter_call_) profile_enter_call_();
   }
+#endif
 }
 
-void end_profiler(void) {
+CVOID__PROTO(finish_profile) {
+#if defined(PROFILE)
   if (profile_eng) {
     void (*profile__stop_exit_)(void) = (void (*)(void))dlsym(RTLD_DEFAULT, "profile__stop_exit");
     void (*profile_dump_)(FILE *) = (void (*)(FILE *))dlsym(RTLD_DEFAULT, "profile_dump");
     if (profile__stop_exit_) profile__stop_exit_();
     if (profile_dump_) profile_dump_(stdout);
   }
-}
 #endif
+}
 
 extern char *ciaoroot_directory;
 extern char *c_headers_directory;
@@ -1840,12 +1842,6 @@ void init_once(void)
 #if defined(MARKERS)
   init_markercode();
 #endif
-  
-#if defined(PROFILE)
-  init_profiler();
-#endif
-
-  /*init_worker_entry_table();*/
 }
 
 void compute_cwd(void);

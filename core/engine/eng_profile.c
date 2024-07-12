@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-bool_t profile       = FALSE;        /* profile program execution -- Shared */
-bool_t prof_include_time = FALSE;      /* include time in profile -- Shared */
+bool_t profile = FALSE; /* profile program execution -- Shared */
+bool_t profile__roughtime = FALSE; /* include (rough) time in profile -- Shared */
 
 static intmach_t compare_times(const void *arg1, const void *arg2);
 
@@ -32,7 +32,7 @@ void add_to_profiling(definition_t *functor) {
 
   functor->number_of_calls++;
 
-  if (prof_include_time) {
+  if (profile__roughtime) {
     time_now = usertime();
     if (last_called_predicate) {
       last_called_predicate->time_spent += (uintmach_t)((time_now - time_last_addition)*1e6);
@@ -141,9 +141,9 @@ static intmach_t compare_times(const void *arg1, const void *arg2) {
 bool_t profile__get_opt(const char *arg) {
   if (strcmp(arg, "--profile-ncalls") == 0) { /* Simple profile */
     profile = TRUE;
-  } else if (strcmp(arg, "--profile-time") == 0) { /* Include time */
+  } else if (strcmp(arg, "--profile-roughtime") == 0) { /* Include time */
     profile = TRUE;
-    prof_include_time = TRUE;
+    profile__roughtime = TRUE;
   } else {
     return FALSE;
   }

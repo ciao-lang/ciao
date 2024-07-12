@@ -11,7 +11,7 @@
 
 #if defined(OPTIM_COMP) && defined(ABSMACH_OPT__profile_calls)
 extern bool_t profile;
-extern bool_t prof_include_time;
+extern bool_t profile__roughtime;
 
 void dump_profile(void);
 void add_to_profiling(definition_t *functor);

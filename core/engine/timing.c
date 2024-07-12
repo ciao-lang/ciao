@@ -153,7 +153,7 @@ int gettimeofday(struct timeval *tv, void *tz)
   the last call to walltime/1 . The first call returns walltime since the
   start of the execution.  */
 
-/* Shared but locked?  Initialized in init_once() */
+/* Shared but locked?  Initialized in engine_init() */
 
 inttime_t walltick(void) {
   struct timeval tp;
