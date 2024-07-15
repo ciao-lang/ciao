@@ -5,11 +5,6 @@
 
 /* TODO: refine */
 
-extern bool_t trace_calls;
-#if defined(DEBUG)
-extern bool_t trace_instr;
-#endif
-
 extern sw_on_key_t *switch_on_function;
 
 intmach_t lookup_atom_idx(char *str);

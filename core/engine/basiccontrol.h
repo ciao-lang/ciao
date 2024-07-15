@@ -47,14 +47,14 @@ CBOOL__PROTO(run_determ_c, tagged_t goal);
 #define AssignNodeFunctor(Y)
 #endif
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 void wr_functor(char *s, definition_t *func);
 CVOID__PROTO(wr_call, char *s, definition_t *func);
 #endif
 
 /* Predicate tracer */
-#if defined(DEBUG)
-#define PRED_TRACE(X,Y) if (trace_calls) { wr_functor(X,Y); }
+#if defined(DEBUG_TRACE)
+#define PRED_TRACE(X,Y) if (debug_predtrace) { wr_functor(X,Y); }
 #else
 #define PRED_TRACE(X,Y)
 #endif
@@ -72,7 +72,7 @@ CVOID__PROTO(wr_call, char *s, definition_t *func);
   PRED_PROFILE(X,Y); \
 }
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 #define TRACE_CHPT_CLEANUP(TopCChpt, TopNode) \
  if(debug_concchoicepoints) \
     fprintf(stderr, "cut: removing chains (%p to %p)\n", \
@@ -165,13 +165,13 @@ static C_AINLINE FTYPE_ctype(f_o) fetch_opcode(bcp_t *p) {
 })
 #endif
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 #define TRACE_INSTR 1
 #endif
 
 #if defined(TRACE_INSTR)
 CVOID__PROTO(dump_instr, bcp_t p);
-#define BcFetchOPCODE() (({ if (trace_instr) { dump_instr(Arg, P); } }), BcFetchOPCODE_())
+#define BcFetchOPCODE() (({ if (debug_instrace) { dump_instr(Arg, P); } }), BcFetchOPCODE_())
 #else
 #define BcFetchOPCODE() BcFetchOPCODE_()
 #endif

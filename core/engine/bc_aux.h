@@ -378,7 +378,9 @@ CBOOL__PROTO(set_trace_calls) {
   tagged_t x;
   DEREF(x,X(0));
   if (!TaggedIsSmall(x)) return FALSE;
-  trace_calls = (bool_t)GetSmall(x);
+#if defined(DEBUG_TRACE)
+  debug_predtrace = (bool_t)GetSmall(x);
+#endif
   CBOOL__PROCEED;
 }
 

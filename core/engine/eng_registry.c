@@ -88,18 +88,6 @@ void *builtintab[64];                                           /* Shared */
                 /* Shared -- related with the hashing of arith. functions */
 sw_on_key_t *switch_on_function;
 
-/* GLOBAL DATA STRUCTURES */
-bool_t trace_calls            = FALSE;   /* trace predicate calls -- Shared */
-#if defined(DEBUG)
-bool_t trace_instr            = FALSE;      /* trace instructions -- Shared */
-bool_t debug_gc               = FALSE;/* debug garbage collection -- Shared */
-bool_t debug_threads          = FALSE;   /* debug thread creation -- Shared */
-bool_t debug_choicepoints     = FALSE;/* debug choicepoints state -- Shared */
-bool_t debug_concchoicepoints = FALSE; /* debug conc. chpt. state -- Shared */
-bool_t debug_mem              = FALSE; /* debug memory manegement -- Shared */
-bool_t debug_conc             = FALSE;       /* debug concurrency -- Shared */
-bool_t debug_dynlink          = FALSE;    /* debugging C linking  -- Shared */
-#endif
 bool_t profile                = FALSE;       /* profile execution -- Shared */
 bool_t profile_eng            = FALSE;
 bool_t profile_rcc            = FALSE;

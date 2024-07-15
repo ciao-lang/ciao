@@ -75,8 +75,6 @@ CVOID__PROTO(dump_call, char *s, definition_t *func);
 #define DEBUG__TRACE(COND, ...)
 #endif
 
-#if defined(OPTIM_COMP)
-
 #if defined(DEBUG_TRACE)
 /* debug_trace options */
 extern bool_t debug_predtrace;
@@ -87,24 +85,14 @@ extern bool_t debug_choicepoints;
 extern bool_t debug_concchoicepoints;
 extern bool_t debug_mem;
 extern bool_t debug_conc;
+#if defined(OPTIM_COMP)
 extern bool_t debug_setarg;
 extern bool_t debug_atomgc;
+#else
+extern bool_t debug_instrace;
+#endif
 //
 bool_t debug_trace__get_opt(const char *arg);
-#endif
-
-#else /* !defined(OPTIM_COMP) */
-
-#if defined(DEBUG_TRACE)
-extern bool_t debug_dynlink;
-extern bool_t debug_gc;
-extern bool_t debug_threads;
-extern bool_t debug_choicepoints;
-extern bool_t debug_concchoicepoints;
-extern bool_t debug_mem;
-extern bool_t debug_conc;
-#endif
-
-#endif /* !defined(OPTIM_COMP) */
+#endif /* !defined(DEBUG_TRACE) */
 
 #endif /* _CIAO_ENG_DEBUG_H */

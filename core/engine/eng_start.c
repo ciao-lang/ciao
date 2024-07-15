@@ -208,6 +208,24 @@ static void guess_win32_env(const char *boot_path,
                             const char *emulator);
 #endif
 
+#if defined(PROFILE)
+/* (done for each option) */
+bool_t profile__get_opt(const char *arg) {
+  if (strcmp(arg, "--profile-ncalls") == 0) { /* Simple profile */
+    profile_eng = TRUE;
+    //profile = TRUE;
+  } else if (strcmp(arg, "--profile-roughtime") == 0) { /* Include time */
+    profile_eng = TRUE;
+    /* profile_eng = TRUE; profile__roughtime = TRUE; */
+    //profile = TRUE;
+    //profile__roughtime = TRUE;
+  } else {
+    return FALSE;
+  }
+  return TRUE;
+}
+#endif
+
 /* Process engine options after "-C" argument */
 void engine_set_opts(const char **optv, int optc, const char **boot_path) {
   int i;
@@ -221,41 +239,11 @@ void engine_set_opts(const char **optv, int optc, const char **boot_path) {
       quiet_flag_bool = TRUE;
     } else if (strcmp(optv[i],"-v") == 0) { /* To make verbose */
       quiet_flag_bool = FALSE;
-    /*
-    } else if (strcmp(optv[i],"-L") == 0) {
-      #if defined(Win32)
-      ciaoroot_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
-      expand_file_name(optv[++i],TRUE,ciaoroot_directory);
-      #else
-      ciaoroot_directory = optv[++i];
-      #endif
-    */
 #if defined(PROFILE)
-    } else if (strcmp(optv[i], "--profile-ncalls") == 0) { /* Simple profile */
-      profile_eng = TRUE;
-    } else if (strcmp(optv[i], "--profile-roughtime") == 0) { /* Include time */
-      profile_eng = TRUE;
-      /* profile_eng = TRUE; profile__roughtime = TRUE; */
+    } else if (profile__get_opt(optv[i])) { /* Profile option */
 #endif
-    } else if (strcmp(optv[i], "--trace-calls") == 0) { /* Trace predicate calls */
-      trace_calls = TRUE;
 #if defined(DEBUG)
-    } else if (strcmp(optv[i], "--trace-instr") == 0) { /* Trace instructions */
-      trace_instr = TRUE;
-    } else if (strcmp(optv[i], "--debug-chpt") == 0) { /*debug regular choicepoints*/
-      debug_choicepoints = TRUE;
-    } else if (strcmp(optv[i], "--debug-conc-chpt") == 0) { /*conc. choicepoints*/
-      debug_concchoicepoints = TRUE;
-    } else if (strcmp(optv[i], "--debug-threads") == 0) { /* debug threads */
-      debug_threads = TRUE;
-    } else if (strcmp(optv[i], "--debug-gc") == 0) { /* debug garb. coll. */
-      debug_gc = TRUE;
-    } else if (strcmp(optv[i], "--debug-mem") == 0) { /* debug mem. man. */
-      debug_mem = TRUE;
-    } else if (strcmp(optv[i], "--debug-conc") == 0) { /* debug concurrency */
-      debug_conc = TRUE;
-    } else if (strcmp(optv[i],"--debug-dynlink") == 0) {
-      debug_dynlink = TRUE;
+    } else if (debug_trace__get_opt(optv[i])) { /* Debug trace option */
 #endif
     } else if (strcmp(optv[i], "-C") != 0) { /* Ignore other "-C" */
       fprintf(stderr,"Warning: %s ignored\n",optv[i]);

@@ -60,7 +60,7 @@ car_run_exec_boot() { # cardir [opts]
     local engexec="$bld_objdir/$eng_name""$EXECSUFFIX"
     # TODO: allow debug, i.e.,
     #   engdbg="lldb -o run -o quit --"
-    #   engopts="--trace-calls --trace-instr --debug-gc"
+    #   engopts="--debug-trace-calls --debug-trace-instr --debug-gc"
     # TODO: simplify?
     # Select paths for ciao_builder compilation and execution
     # ('crossp' added from "$sh_boot_dir/autoboot.sh")
