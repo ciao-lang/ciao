@@ -261,9 +261,9 @@ build_eng_exec_header(Eng) :-
     display('#!/bin/sh\n'),
     display_list([
         'r=${CIAOROOT:-\"', FinalCiaoRoot, '\"}\n',
-        'e=\"$r/build/eng/', EngMainMod, '/objs/', EngMainMod, '\"${CIAOOS:+${CIAOARCH:+".$CIAOOS$CIAOARCH"}}\n',
+        'e=\"$r/build/eng/', EngMainMod, '/objs/', EngMainMod, '\"${CIAOOS:+${CIAOARCH:+".$CIAOOS$CIAOARCH"}}${CIAODBG:+-${CIAODBG}}\n',
         'e=${CIAOENGINE:-$e}\n',
-        'exec "$e" "$@" -C -b "$0"\n'
+        'exec "$e" "$@" -C ${CIAORTOPTS} -b "$0"\n'
     ]),
     put_code(0xC), % ^L control character
     display('\n'),
