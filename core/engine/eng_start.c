@@ -227,6 +227,7 @@ bool_t profile__get_opt(const char *arg) {
 #endif
 
 /* Process engine options after "-C" argument */
+/* TODO: locate -C backwards */
 void engine_set_opts(const char **optv, int optc, const char **boot_path) {
   int i;
   quiet_flag_bool = FALSE;
