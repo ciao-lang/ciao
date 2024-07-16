@@ -11,6 +11,29 @@ modules:
   - `ciaoengine.pl`: The main engine
   - `ciaoengine_doc.pl`: Documentation for `ciaoengine.pl`
 
+# Debugging the engine and enabling profiling
+
+The `debug_level` option enables building engines instrumented for
+profiling and internal debugging. This instrumentation is disabled in
+the default engine for performance reasons.
+
+Use `etc/build-eng-debug.sh` to build several engine versions with
+different `debug_level` options.
+
+You can select different engine versions and control their runtime
+options in the following way:
+
+ - Export `DBGENG=<debug_level>` (where `<level>` is one of `debug`,
+   `profile-debug`, or `profile`)
+ - Use the `CIAORTOPTS` environment variable to pass engine options.
+   See `eng_debug.c` and `eng_profile.c` for different debugging and
+   profiling.
+
+Alternatively, you can execute the engine directly on with your compiled program:
+```
+$ <CIAOROOT>/build/eng/ciaoengine/objs/ciaoengine-<level> Args -C EngineOpts ... -b Exec
+```
+
 # Benchmarking
 
 Some engine performance benchmarks can be run (use the pipe for a
