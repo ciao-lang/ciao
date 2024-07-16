@@ -1,6 +1,55 @@
 #include <ciao/eng.h>
+#if !defined(OPTIM_COMP) && defined(PROFILE)
+#define __USE_GNU
+# include <dlfcn.h>
+#endif
 
 #if !defined(OPTIM_COMP)
+
+bool_t profile                = FALSE;       /* profile execution -- Shared */
+bool_t profile_eng            = FALSE;
+bool_t profile_rcc            = FALSE;
+
+#if defined(PROFILE)
+CVOID__PROTO(profile__hook_nop) {};
+CVOID__PROTO(profile__hook_call_nop, definition_t *f) {};
+#endif
+
+#if defined(PROFILE)
+/* TODO: add macro to define typedefs from prototypes, use ## */
+CVOID__PROTO((*profile__hook_fail)) = profile__hook_nop;
+CVOID__PROTO((*profile__hook_redo)) = profile__hook_nop;
+CVOID__PROTO((*profile__hook_cut)) = profile__hook_nop;
+CVOID__PROTO((*profile__hook_call), definition_t *f) = profile__hook_call_nop;
+#if defined(PROFILE__TRACER)
+CVOID__PROTO((*profile__hook_proceed)) = profile__hook_nop;
+#endif
+#endif
+
+void init_profile(void) {
+#if defined(PROFILE)
+  if (profile_eng) {
+    void (*profile_init)(void) =
+      (void (*)(void))dlsym(RTLD_DEFAULT, "profile_init");
+    void (*profile_enter_call_)(void) =
+      (void (*)(void))dlsym(RTLD_DEFAULT, "profile_enter_call_");
+    profile_rcc = TRUE;
+    if (profile_init) profile_init();
+    if (profile_enter_call_) profile_enter_call_();
+  }
+#endif
+}
+
+CVOID__PROTO(finish_profile) {
+#if defined(PROFILE)
+  if (profile_eng) {
+    void (*profile__stop_exit_)(void) = (void (*)(void))dlsym(RTLD_DEFAULT, "profile__stop_exit");
+    void (*profile_dump_)(FILE *) = (void (*)(FILE *))dlsym(RTLD_DEFAULT, "profile_dump");
+    if (profile__stop_exit_) profile__stop_exit_();
+    if (profile_dump_) profile_dump_(stdout);
+  }
+#endif
+}
 
 #else /* defined(OPTIM_COMP) */
 
