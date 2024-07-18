@@ -9,26 +9,30 @@
 #ifndef _CIAO_ENG_PROFILE_H
 #define _CIAO_ENG_PROFILE_H
 
-#if defined(OPTIM_COMP) && defined(ABSMACH_OPT__profile_calls)
-extern bool_t profile;
-extern bool_t profile__roughtime;
+#if defined(ABSMACH_OPT__profilecc) || defined(ABSMACH_OPT__profile_calls)
 
-void dump_profile(void);
-void add_to_profiling(definition_t *functor);
+extern bool_t profile;
+#if defined(ABSMACH_OPT__profile_calls)
+extern bool_t profile__roughtime;
+#endif
 
 bool_t profile__get_opt(const char *arg);
+
+#endif
+
+#if defined(ABSMACH_OPT__profile_calls)
+void dump_profile(void);
+void add_to_profiling(definition_t *functor);
 #endif
 
 #if !defined(OPTIM_COMP)
 
-extern bool_t profile;
-extern bool_t profile_eng;
-extern bool_t profile_rcc;
-
 /* Uncomment this line to use the profiler as a tracer */
 /* #define PROFILE__TRACER 1 */
 
-#if defined(PROFILE)
+#if defined(ABSMACH_OPT__profilecc)
+extern bool_t profile_eng;
+extern bool_t profile_rcc;
 
 CVOID__PROTO(profile__hook_nop);
 CVOID__PROTO(profile__hook_call_nop, definition_t *f);

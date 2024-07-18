@@ -208,24 +208,6 @@ static void guess_win32_env(const char *boot_path,
                             const char *emulator);
 #endif
 
-#if defined(PROFILE)
-/* (done for each option) */
-bool_t profile__get_opt(const char *arg) {
-  if (strcmp(arg, "--profile-ncalls") == 0) { /* Simple profile */
-    profile_eng = TRUE;
-    //profile = TRUE;
-  } else if (strcmp(arg, "--profile-roughtime") == 0) { /* Include time */
-    profile_eng = TRUE;
-    /* profile_eng = TRUE; profile__roughtime = TRUE; */
-    //profile = TRUE;
-    //profile__roughtime = TRUE;
-  } else {
-    return FALSE;
-  }
-  return TRUE;
-}
-#endif
-
 /* Process engine options after "-C" argument */
 /* TODO: locate -C backwards */
 void engine_set_opts(const char **optv, int optc, const char **boot_path) {
@@ -240,7 +222,7 @@ void engine_set_opts(const char **optv, int optc, const char **boot_path) {
       quiet_flag_bool = TRUE;
     } else if (strcmp(optv[i],"-v") == 0) { /* To make verbose */
       quiet_flag_bool = FALSE;
-#if defined(PROFILE)
+#if defined(ABSMACH_OPT__profilecc) || defined(ABSMACH_OPT__profile_calls)
     } else if (profile__get_opt(optv[i])) { /* Profile option */
 #endif
 #if defined(DEBUG_TRACE)

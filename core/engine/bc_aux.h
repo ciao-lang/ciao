@@ -369,7 +369,7 @@ void init_some_bytecode(void) {
 }
 
 /* --------------------------------------------------------------------------- */
-#if defined(PROFILE)
+#if defined(ABSMACH_OPT__profilecc)
 extern bool_t profile;       /* profile execution -- Shared */
 #endif
 
@@ -421,6 +421,23 @@ CBOOL__PROTO(run_determ_c, tagged_t goal)
     }
   }
   return FALSE;
+}
+
+#if defined(ABSMACH_OPT__profilecc)
+void init_profilecc(void);
+CVOID__PROTO(finish_profilecc);
+#endif
+
+void init_profile(void) {
+#if defined(ABSMACH_OPT__profilecc)
+  init_profilecc();
+#endif
+}
+
+CVOID__PROTO(finish_profile) {
+#if defined(ABSMACH_OPT__profilecc)
+  CVOID__CALL(finish_profilecc);
+#endif
 }
 
 /* --------------------------------------------------------------------------- */

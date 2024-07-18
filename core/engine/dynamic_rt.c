@@ -19,7 +19,7 @@
 #include <stddef.h> /* ptrdiff_t */
 #endif
 
-#if !defined(OPTIM_COMP) && defined(PROFILE) /* due to PRED_HOOK() */
+#if !defined(OPTIM_COMP) /* due to PRED_HOOK() */
 #include <ciao/eng_profile.h>
 #endif
 
@@ -271,7 +271,7 @@ CINSNP__PROTO(current_instance, int_info_t *root, BlockingType block) {
 CFUN__PROTO(current_instance0, instance_t *) {
   int_info_t *root;
   BlockingType block;
-#if defined(PROFILE)
+#if defined(ABSMACH_OPT__profilecc) || defined(ABSMACH_OPT__profile_calls)
   tagged_t *junk;
   w->choice->functor=find_definition(predicates_location,X(0),&junk,FALSE);
 #endif

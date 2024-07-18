@@ -683,7 +683,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 /* ------------------------------------------------------------------------- */
 /*** tagged_t DATATYPES --------------------------------***/
 
-#if defined(DEBUG_TRACE) || defined(PROFILE)
+#if defined(DEBUG_TRACE) || defined(ABSMACH_OPT__profilecc)
 # define DEBUG_NODE /* Adds functor information in choicepoints
                         to facilitate debugging */
 #endif

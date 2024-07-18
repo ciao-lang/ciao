@@ -1,21 +1,46 @@
 #include <ciao/eng.h>
-#if !defined(OPTIM_COMP) && defined(PROFILE)
+#if !defined(OPTIM_COMP) && defined(ABSMACH_OPT__profilecc)
 #define __USE_GNU
 # include <dlfcn.h>
 #endif
 
-#if !defined(OPTIM_COMP)
+/* --------------------------------------------------------------------------- */
+/* Get profiling options */
 
-bool_t profile                = FALSE;       /* profile execution -- Shared */
+#if defined(ABSMACH_OPT__profilecc) || defined(ABSMACH_OPT__profile_calls)
+#include <string.h>
+
+bool_t profile = FALSE; /* enable profiler hooks in wamloop -- Shared */
+#if defined(ABSMACH_OPT__profile_calls)
+bool_t profile__roughtime = FALSE; /* include (rough) time in profile -- Shared */
+#endif
+
+/* (done for each option) */
+bool_t profile__get_opt(const char *arg) {
+  if (strcmp(arg, "--profile-ncalls") == 0) { /* Simple profile */
+    profile = TRUE;
+    return TRUE;
+  } else if (strcmp(arg, "--profile-roughtime") == 0) { /* Include time */
+    profile = TRUE;
+#if defined(ABSMACH_OPT__profile_calls)
+    profile__roughtime = TRUE;
+#endif
+    return TRUE;
+  }
+  return FALSE;
+}
+#endif
+
+/* --------------------------------------------------------------------------- */
+/* profilecc */
+
+#if defined(ABSMACH_OPT__profilecc)
 bool_t profile_eng            = FALSE;
 bool_t profile_rcc            = FALSE;
 
-#if defined(PROFILE)
 CVOID__PROTO(profile__hook_nop) {};
 CVOID__PROTO(profile__hook_call_nop, definition_t *f) {};
-#endif
 
-#if defined(PROFILE)
 /* TODO: add macro to define typedefs from prototypes, use ## */
 CVOID__PROTO((*profile__hook_fail)) = profile__hook_nop;
 CVOID__PROTO((*profile__hook_redo)) = profile__hook_nop;
@@ -24,46 +49,34 @@ CVOID__PROTO((*profile__hook_call), definition_t *f) = profile__hook_call_nop;
 #if defined(PROFILE__TRACER)
 CVOID__PROTO((*profile__hook_proceed)) = profile__hook_nop;
 #endif
-#endif
 
-void init_profile(void) {
-#if defined(PROFILE)
-  if (profile_eng) {
-    void (*profile_init)(void) =
-      (void (*)(void))dlsym(RTLD_DEFAULT, "profile_init");
-    void (*profile_enter_call_)(void) =
-      (void (*)(void))dlsym(RTLD_DEFAULT, "profile_enter_call_");
+void init_profilecc(void) {
+  if (profile) { /* simulate with PROFILECC */
+    profile_eng = TRUE; /* annotate it */
+    profile = FALSE; /* disable profiling hooks, enabled later */
+    void (*profile_init)(void) = (void (*)(void))dlsym(RTLD_DEFAULT, "profile_init");
+    void (*profile_enter_call_)(void) = (void (*)(void))dlsym(RTLD_DEFAULT, "profile_enter_call_");
     profile_rcc = TRUE;
     if (profile_init) profile_init();
     if (profile_enter_call_) profile_enter_call_();
   }
-#endif
 }
 
-CVOID__PROTO(finish_profile) {
-#if defined(PROFILE)
+CVOID__PROTO(finish_profilecc) {
   if (profile_eng) {
     void (*profile__stop_exit_)(void) = (void (*)(void))dlsym(RTLD_DEFAULT, "profile__stop_exit");
     void (*profile_dump_)(FILE *) = (void (*)(FILE *))dlsym(RTLD_DEFAULT, "profile_dump");
     if (profile__stop_exit_) profile__stop_exit_();
     if (profile_dump_) profile_dump_(stdout);
   }
-#endif
 }
+#endif
 
-#else /* defined(OPTIM_COMP) */
+/* --------------------------------------------------------------------------- */
 
-#if defined(ABSMACH_OPT__profile_calls)
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-
-bool_t profile = FALSE; /* profile program execution -- Shared */
-bool_t profile__roughtime = FALSE; /* include (rough) time in profile -- Shared */
-
-static intmach_t compare_times(const void *arg1, const void *arg2);
-
-static char *predicate_type(intmach_t t) {
+#if defined(ABSMACH_OPT__profilecc) || defined(ABSMACH_OPT__profile_calls)
+#if defined(OPTIM_COMP)
+const char *predicate_type(int t) {
   switch (t) {
   case ENTER_COMPACTCODE: return "Emul  " ;
   case ENTER_UNDEFINED: return "Undef " ;
@@ -74,6 +87,46 @@ static char *predicate_type(intmach_t t) {
   default: return "Other " ;
   }
 }
+#else
+const char *predicate_type(int t) {
+  switch (t) {
+  case ENTER_COMPACTCODE:          return "compac";
+  case ENTER_COMPACTCODE_INDEXED:  return "compid";
+  case ENTER_PROFILEDCODE:         return "emul";
+  case ENTER_PROFILEDCODE_INDEXED: return "emulid";
+  case ENTER_FASTCODE:             return "fast";
+  case ENTER_FASTCODE_INDEXED:     return "fastid";
+  case ENTER_UNDEFINED:            return "undef";
+  case ENTER_C:                    return "c";
+  case ENTER_INTERPRETED:          return "interp";
+  case BUILTIN_ABORT:              return "buabor";
+  case BUILTIN_APPLY:              return "butapp";
+  case BUILTIN_CALL:               return "bucall";
+  case BUILTIN_SYSCALL:            return "buscll";
+  case BUILTIN_NODEBUGCALL:        return "bundcl";
+  case BUILTIN_TRUE:               return "butrue";
+  case BUILTIN_FAIL:               return "bufail";
+  case BUILTIN_CURRENT_INSTANCE:   return "bucins";
+  case BUILTIN_RESTORE:            return "burest";
+  case BUILTIN_COMPILE_TERM:       return "bucomp";
+  case BUILTIN_GELER:              return "bugele";
+  case BUILTIN_INSTANCE:           return "buinst";
+  case BUILTIN_DIF:                return "builtd";
+  default:                         return "other";
+  }
+}
+#endif
+#endif
+
+/* --------------------------------------------------------------------------- */
+/* naive profile_calls */
+
+#if defined(ABSMACH_OPT__profile_calls)
+
+#include <stdlib.h>
+#include <math.h>
+
+static intmach_t compare_times(const void *arg1, const void *arg2);
 
 flt64_t time_last_addition;
 definition_t *last_called_predicate = NULL;
@@ -187,20 +240,5 @@ static intmach_t compare_times(const void *arg1, const void *arg2) {
     return 0;
   }
 }
-
-/* (done for each option) */
-bool_t profile__get_opt(const char *arg) {
-  if (strcmp(arg, "--profile-ncalls") == 0) { /* Simple profile */
-    profile = TRUE;
-  } else if (strcmp(arg, "--profile-roughtime") == 0) { /* Include time */
-    profile = TRUE;
-    profile__roughtime = TRUE;
-  } else {
-    return FALSE;
-  }
-  return TRUE;
-}
-
-#endif
 
 #endif
