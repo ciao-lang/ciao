@@ -408,7 +408,7 @@
 #define ON_ANDPARALLEL(X)
 #endif
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 #define ON_DEBUG(X) X
 #else
 #define ON_DEBUG(X)
@@ -683,7 +683,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 /* ------------------------------------------------------------------------- */
 /*** tagged_t DATATYPES --------------------------------***/
 
-#if defined(DEBUG) || defined(PROFILE)
+#if defined(DEBUG_TRACE) || defined(PROFILE)
 # define DEBUG_NODE /* Adds functor information in choicepoints
                         to facilitate debugging */
 #endif
@@ -2267,7 +2267,7 @@ extern bool_t gen_event_file;
 extern float time_at_event_start;
 #endif
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 extern SLOCK    ops_counter_l;
 #endif
 

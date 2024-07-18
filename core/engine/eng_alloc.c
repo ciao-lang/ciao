@@ -163,7 +163,7 @@ tagged_t *tryalloc(intmach_t size)
 #if defined(USE_TINY_BLOCKS)
   }
 #endif
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_mem) printf("tryalloc returned %p, %" PRIdm " chars\n", p, size);
 #endif
   Release_slock(mem_mng_l);
@@ -190,7 +190,7 @@ void checkdealloc(tagged_t *ptr, intmach_t decr)
 #if defined(USE_TINY_BLOCKS)
   }
 #endif
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_mem) printf("checkdealloc freed %p, %" PRIdm " chars\n", ptr, decr);
 #endif
   Release_slock(mem_mng_l);
@@ -249,7 +249,7 @@ tagged_t *tryrealloc(tagged_t *ptr, intmach_t decr, intmach_t size)
     }
   }
 #endif
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_mem) printf("tryrealloc returned %p, %" PRIdm " chars\n", p, size);
 #endif
   Release_slock(mem_mng_l);

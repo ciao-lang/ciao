@@ -95,7 +95,7 @@ CBOOL__PROTO(prolog_dynlink)
   }
   lib_name = (char *)GetString(X(0));
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_dynlink) fprintf(stderr, "Linking %s\n", lib_name);
 #endif
 
@@ -184,7 +184,7 @@ CBOOL__PROTO(prolog_dynunlink)
     USAGE_FAULT("dynunlink/1: first argument must be an atom");
   module_name = (char *)GetString(X(0));
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_dynlink) fprintf(stderr, "Unlinking %s\n", module_name);
 #endif
 
@@ -204,7 +204,7 @@ void unload_if_present(char *module_name)
   lobj_t *to_remove = NULL;
   bool_t found = FALSE;
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_dynlink) fprintf(stderr, "Unloading %s\n",module_name);
 #endif
 
@@ -226,7 +226,7 @@ void unload_if_present(char *module_name)
     }
 
     if (to_remove) {
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
       if (debug_dynlink) fprintf(stderr, "Closing handle for %s\n",module_name);
 #endif
       (*to_remove->end_func)(to_remove->module_name);     /* JFMC / MCL */
@@ -240,7 +240,7 @@ void unload_if_present(char *module_name)
       checkdealloc_TYPE(lobj_t, to_remove);
     }
   }
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_dynlink) fprintf(stderr, "all_loaded_objects = 0x%p\n", all_loaded_objects);
 #endif
 }
@@ -254,7 +254,7 @@ void add_to_loaded_objects(char *module_name,
 {
   lobj_t *new_object = checkalloc_TYPE(lobj_t);
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_dynlink) fprintf(stderr, "Adding %s\n",module_name);
 #endif
   new_object->module_name = checkalloc_ARRAY(char, strlen(module_name)+1);
@@ -264,7 +264,7 @@ void add_to_loaded_objects(char *module_name,
                                       dlclose */
   new_object->next = (lobj_t *)all_loaded_objects;
   all_loaded_objects = new_object;
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_dynlink) fprintf(stderr, "all_loaded_objects = 0x%p\n", all_loaded_objects);
 #endif
 }

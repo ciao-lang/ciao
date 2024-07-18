@@ -203,7 +203,7 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
 #define ENSURE_LIVEINFO \
   RTCHECK({if (w->liveinfo == NULL) { PANIC_FAULT("null liveinfo"); }})
 #else
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 #define ENSURE_LIVEINFO ({ \
   if (w->liveinfo == NULL) { PANIC_FAULT("null liveinfo"); } \
 })

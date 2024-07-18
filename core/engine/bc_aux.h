@@ -895,7 +895,7 @@ CBOOL__PROTO(compile_term,
   RefCdr(body,X(0));
 
   /*
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   display_term(Arg, head, Output_Stream_Ptr, FALSE);
   putchar('\n');
 #endif
@@ -984,7 +984,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
                             size0,
                             reg_bank_size,
                             Arg);
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
     fprintf(stderr, "Reallocing WRB from %p to %p\n", Arg, *new_worker);
 #endif
     Arg = *new_worker;

@@ -1626,7 +1626,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
   SetDeep();  /* Force backtracking after alts. exahusted */
   w->choice->x[0] = X(0);    /* Will be the arg. of a call/1 */
  
-#if defined(DEBUG) && defined(USE_THREADS)
+#if defined(DEBUG_TRACE) && defined(USE_THREADS)
   if (debug_threads)
     printf("%" PRIdm " (%" PRIdm ") Goal %p (with starting point 0x%" PRIxm ") entering wam()\n",
            (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
@@ -1637,7 +1637,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
   w = goal_desc->worker_registers;
   wam_result = w->misc->exit_code;
 
-#if defined(DEBUG) && defined(USE_THREADS)
+#if defined(DEBUG_TRACE) && defined(USE_THREADS)
   if (debug_threads)
     printf("%" PRIdm " (%" PRIdm ") Goal %p (with starting point 0x%" PRIxm ") exiting wam()\n",
            (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, 
@@ -1648,7 +1648,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
     MAJOR_FAULT("Wam aborted!");
   }
   
-#if defined(DEBUG) && defined(USE_THREADS)
+#if defined(DEBUG_TRACE) && defined(USE_THREADS)
   if (debug_threads)
     printf("% " PRIdm " (%" PRIdm ") Goal %p exited wam()\n", 
            (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, goal_desc);
@@ -1672,7 +1672,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
    thread will go to sleep instead of dying. */
 
   if (goal_desc->action & NEEDS_FREEING){ /* Implies thread created */
-#if defined(DEBUG) && defined(USE_THREADS)
+#if defined(DEBUG_TRACE) && defined(USE_THREADS)
     if (debug_threads) printf("Goal %p enqueuing itself\n", goal_desc);
 #endif
     enqueue_thread(goal_desc->thread_handle); /* Free, enqueue myself */
@@ -1692,7 +1692,7 @@ THREAD_RES_T startgoal(THREAD_ARG wo)
 
   Release_slock(goal_desc->goal_lock_l);
 
-#if defined(DEBUG) && defined(USE_THREADS)
+#if defined(DEBUG_TRACE) && defined(USE_THREADS)
   if (debug_threads || debug_conc)
     printf("*** %" PRIdm " (%" PRIdm ") Goal %p is EXITING\n", (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, goal_desc);
 #endif
@@ -2105,7 +2105,7 @@ CBOOL__PROTO(prolog_interpreted_clause)
     
     new_worker = NULL;
     object = compile_term_aux(Arg, Head, Body, &new_worker);
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
       if (new_worker)
         fprintf(stderr, "wrb reallocation in prolog_interpreted_clause()\n");
 #endif
@@ -2140,7 +2140,7 @@ CBOOL__PROTO(prolog_erase_atom)
   DEREF(X(0), X(0));
   index = IndexPart(X(0));
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   /*  printf("erasing atom %s at %ld\n", atmtab[index]->value.atomp->name, index);*/
 #endif
 

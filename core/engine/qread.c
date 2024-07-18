@@ -71,7 +71,7 @@ static char workstring[WORKSTRINGLEN];
 /* read into ws (assume enough space) */
 static inline void getstring_ws(FILE *f, char *ws) {
   while ((*ws++ = GETC(f))) {
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
     if ((ws - workstring) > WORKSTRINGLEN) {
       SERIOUS_FAULT("workstring length exceeded");
     }
@@ -125,7 +125,7 @@ static CFUN__PROTO(qr_string, char *, FILE *f) {
  * bytecode.
  */
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 #define DUMP_INSTR 1
 #endif
 

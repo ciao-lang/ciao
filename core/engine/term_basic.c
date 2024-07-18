@@ -282,7 +282,7 @@ CFUN__PROTO(cross_copy_term, tagged_t, tagged_t remote_term)
 {
   X(0) = remote_term;
   LoadHVA(X(1), w->heap_top);
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (!prolog_copy_term(Arg))
     fprintf(stderr, "Could not copy term in cross_copy_term!!!!\n");
 #else

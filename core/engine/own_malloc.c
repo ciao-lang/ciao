@@ -30,7 +30,7 @@
 #endif
 #endif
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 #include <stdio.h>
 #endif
 
@@ -117,7 +117,7 @@ static mem_block_t *locate_block(intmach_t tagged_w);
 static mem_block_t *locate_block(intmach_t requested_tagged_w) {
   mem_block_t *running;
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_mem) printf("locate_block was requested a block of %" PRIdm " words\n", requested_tagged_w);
   if (requested_tagged_w < 1) printf("Uh? locate_block was requested a block of %" PRIdm " words!\n", requested_tagged_w);
 #endif
@@ -126,7 +126,7 @@ static mem_block_t *locate_block(intmach_t requested_tagged_w) {
     while(running && running->size < requested_tagged_w) 
       running = running->next_free;
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_mem) {
     if (!running) printf("locate_block did not find a block of %" PRIdm " words\n", requested_tagged_w);
   }
@@ -161,7 +161,7 @@ static void insert_free_block(mem_block_t *block)
   if (free_block_list)
     free_block_list->prev_free = block;
   free_block_list = block;    
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_mem) printf("*Put back block of %" PRIdm " words\n", block->size);
 #endif
 }
@@ -197,7 +197,7 @@ static block_tree_t *create_new_node(mem_block_t *block, block_tree_t *parent);
 static void remove_block_from_node(block_tree_t *node, mem_block_t  *block);
 static void add_block_to_node(block_tree_t *node, mem_block_t  *block);
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 static void test_tree(void);
 static void test(block_tree_t *tree);
 #endif
@@ -219,7 +219,7 @@ static block_tree_t *search_free_block(intmach_t requested_tagged_w)
 {
   block_tree_t *running;
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_mem) printf("search_free_block was requested a block of %" PRIdm " words\n", requested_tagged_w);
   if (requested_tagged_w < 1) printf("Uh? search_free_block was requested a block of %" PRIdm " words!\n", requested_tagged_w);
 #endif
@@ -236,7 +236,7 @@ static block_tree_t *search_free_block(intmach_t requested_tagged_w)
       running = NULL;
   }
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_mem) {
     if (!running) printf("search_free_block did not find a block of %" PRIdm " words\n", requested_tagged_w);
     test_tree();
@@ -286,7 +286,7 @@ static void insert_free_block(mem_block_t *block)
       }
     }
   }
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_mem) printf("*Put back block of %" PRIdm " words\n", block->size);
 #endif
 }
@@ -397,7 +397,7 @@ static void remove_free_block(mem_block_t *block)
   }
 }
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 static void test_tree(void) {
   if (free_blocks_tree) {
     test(free_blocks_tree);
@@ -501,7 +501,7 @@ static void insert_block(mem_block_t *block,
   if (next != NULL) next->bck = block;
 }
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 void dump_blocks(void)
 {
   mem_block_t *running = block_list;
@@ -566,7 +566,7 @@ static mem_block_t *create_new_block(intmach_t size_in_tagged_w) {
 
   mem = (tagged_t *)malloc(TW_TO_CHARS(MEM_BLOCK_SIZE(size_in_tagged_w)));
   if (!mem) {
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
     printf("malloc: could not allocate %" PRIdm " words of memory\n", 
            MEM_BLOCK_SIZE(size_in_tagged_w));
 #endif
@@ -581,7 +581,7 @@ static mem_block_t *create_new_block(intmach_t size_in_tagged_w) {
    return pointer to memory area and split the block into two if needed. */
 
 static tagged_t *reserve_block(intmach_t req_tagged, mem_block_t *block) {
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (block->size < req_tagged){
     printf("**** Fatal error: reserve_block received a block smaller than needed\n");
     return NULL;
@@ -632,7 +632,7 @@ tagged_t *own_malloc(intmach_t size)
   tagged_t *pointer_returned;
   intmach_t size_to_reserve;
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (size <= 0) {
     printf("own_malloc received a request of %" PRIdm " chars... what should I do?\n", size);
     return NULL;
@@ -647,7 +647,7 @@ tagged_t *own_malloc(intmach_t size)
     if (block == NULL) {
       /* malloc could not stand it! */
 #endif
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
       printf("own_malloc: could not reserve %" PRIdm " chars\n", size);
 #endif
       return NULL;
@@ -656,7 +656,7 @@ tagged_t *own_malloc(intmach_t size)
 #endif
   }
   pointer_returned = reserve_block(size_to_reserve, block);
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_mem)
     printf("own_malloc returned %p, %" PRIdm " chars\n", pointer_returned, size);
 #endif
@@ -740,7 +740,7 @@ tagged_t *own_realloc(tagged_t *ptr, intmach_t size) {
       new_block = create_new_block(ADJUST_BLOCK(size_in_tagged_w));
       if (new_block == NULL) {
 #endif
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
         printf("own_realloc: could not reserve %" PRIdm " chars!\n", size);
 #endif
         return NULL;
@@ -756,7 +756,7 @@ tagged_t *own_realloc(tagged_t *ptr, intmach_t size) {
                  MEM_BLOCK_PTR(old_block),
                  TW_TO_CHARS(size_to_copy));
     own_free(ptr);
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
     if (debug_mem) printf("own_realloc returned %p, %" PRIdm " chars\n", new_mem_area, size);
 #endif    
 

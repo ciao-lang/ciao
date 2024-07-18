@@ -243,7 +243,7 @@ void engine_set_opts(const char **optv, int optc, const char **boot_path) {
 #if defined(PROFILE)
     } else if (profile__get_opt(optv[i])) { /* Profile option */
 #endif
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
     } else if (debug_trace__get_opt(optv[i])) { /* Debug trace option */
 #endif
     } else if (strcmp(optv[i], "-C") != 0) { /* Ignore other "-C" */
@@ -275,7 +275,7 @@ void engine_init(const char *boot_path, const char *exec_path) {
 
   init_timing();
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   RESET_COUNTER;
 #endif
 

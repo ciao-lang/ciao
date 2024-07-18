@@ -5,12 +5,6 @@
  *  Copyright (C) 2020 The Ciao Development Team
  */
 
-#if defined(DEBUG)
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>                                    /* For getpid() */
-#endif
-
 #include <string.h>
 
 #include <ciao/eng.h>

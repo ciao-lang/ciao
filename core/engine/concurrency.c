@@ -60,7 +60,7 @@
 //   if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_Dlock)) {
 //     DerefArg(x1,t,1);
 //     *l = TaggedToLock(x1);
-// #if defined(DEBUG)
+// #if defined(DEBUG_TRACE)
 //     tagged_t x2 = (tagged_t)NULL;
 //     DerefArg(x2,t,2);
 //     if (TaggedToIntmach(x2) != POSIX)
@@ -79,7 +79,7 @@
 //   if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_Dlock)) {
 //     DerefArg(x1,t,1);
 //     *s = TaggedToSLock(x1);
-// #if defined(DEBUG)
+// #if defined(DEBUG_TRACE)
 //     tagged_t x2 = (tagged_t)NULL;
 //     DerefArg(x2,t,2);
 //     if (TaggedToIntmach(x2) != SPIN)
@@ -321,7 +321,7 @@ CBOOL__PROTO(prolog_eng_call) {
   CVOID__WITH_WORKER(gd->worker_registers, {
     DEREF(X(0), CFUN__EVAL(cross_copy_term, gd->goal));
   });
-// #if defined(DEBUG) && defined(USE_THREADS)
+// #if defined(DEBUG_TRACE) && defined(USE_THREADS)
 //   if (debug_threads) 
 //     printf("Cross-copied starting goal from %x to %x\n", 
 //             (int)gd->goal, (int)X(0));

@@ -99,7 +99,7 @@ void checkdealloc(tagged_t *ptr, intmach_t decr);
 extern intmach_t total_mem_count;
 extern intmach_t mem_prog_count;
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
 #define INC_MEM_PROG(SIZE) {                                     \
   if (debug_mem) {                                               \
     fprintf(stderr, "Program memory increased by %" PRIdm " bytes\n",    \

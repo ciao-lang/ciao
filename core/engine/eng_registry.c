@@ -415,7 +415,7 @@ intmach_t lookup_atom_idx(char *str) {
     intmach_t i;
     sw_on_key_node_t *h1, *h2;
 
-#if defined(ATOMGC) && defined(DEBUG)
+#if defined(ATOMGC) && defined(DEBUG_TRACE)
     /*printf("Reallocing atom table (count = %d)\n", count);*/
 #endif
 
@@ -885,7 +885,7 @@ void init_locks(void){
 #if defined(USE_THREADS)
   Init_slock(prolog_predicates_l);
   Init_slock(prolog_modules_l);
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   Init_slock(ops_counter_l);
 #endif
 
@@ -1875,7 +1875,7 @@ CVOID__PROTO(local_init_each_time) {
 
   w->liveinfo = NULL;
 
-#if defined(DEBUG)
+#if defined(DEBUG_TRACE)
   if (debug_threads)
     fprintf(stderr, "*** %" PRIdm " (%" PRIdm ") Initializing WAM %p: node = %p, trail = %p, frame = %p\n",
             (intmach_t)Thread_Id, (intmach_t)GET_INC_COUNTER, Arg,
