@@ -936,6 +936,11 @@ static CVOID__PROTO(make_undefined, definition_t *f) {
     CVOID__CALL(erase_interpreted, f);
   }
 
+#if defined(ABSMACH_OPT__profile_calls)
+  f->number_of_calls = 0;
+  f->time_spent = 0;
+#endif
+
   /*f->properties.public = 0;*/
   f->properties.wait = 0;
   f->properties.multifile = 0;
@@ -2216,8 +2221,7 @@ CBOOL__PROTO(start_node)
 }
 
 #if defined(DEBUG_NODE)
-void display_functor(definition_t *functor)
-{
+void display_functor(definition_t *functor) {
   if (functor) {
     if (IsString((functor)->printname)) {
       fprintf(stderr, "'%s'/", GetString((functor)->printname));
@@ -2229,9 +2233,9 @@ void display_functor(definition_t *functor)
     fprintf(stderr, "_F");
   }
 }
-# define DisplayCPFunctor(cp) display_functor(cp->functor)
+#define DisplayCPFunctor(cp) display_functor(cp->functor)
 #else
-# define DisplayCPFunctor(cp) fprintf(stderr, "_N")
+#define DisplayCPFunctor(cp) fprintf(stderr, "_N")
 #endif
 
 CVOID__PROTO(show_nodes, choice_t *cp_younger, choice_t *cp_older) {

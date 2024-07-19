@@ -684,10 +684,9 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 /*** tagged_t DATATYPES --------------------------------***/
 
 #if defined(DEBUG_TRACE) || defined(ABSMACH_OPT__profilecc)
-# define DEBUG_NODE /* Adds functor information in choicepoints
-                        to facilitate debugging */
+/* Adds functor information in choicepoints (for debugging or profiling) */
+#define DEBUG_NODE 1
 #endif
-/* # define DEBUG_NODE   */
 
 #define tagged__num_offset SMALLPTR_LOWERBITS 
 #define tagged__atm_offset SMALLPTR_LOWERBITS 
@@ -896,6 +895,11 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define IsNumber(X)     (TaggedIsSmall(X) || TaggedIsLarge(X))
 /* TODO:[oc-merge] remove IsString */
 #define IsString(X)     TaggedIsATM(X)
+
+/* TODO:[oc-merge] merge */
+#define FuncName(Func) (SetArity((Func)->printname, 0))
+//#define FuncArity(Func) (Arity((Func)->printname))
+#define FuncArity(Func) ((Func)->arity)
 
 #if BC_SCALE==2
 /* SmiVal for BC32 (for BC_SCALE==2) */
@@ -2020,6 +2024,16 @@ struct try_node_ {
 #define SwitchSize(X) (((X)->mask / sizeof(sw_on_key_node_t))+1) 
 #define SizeToMask(X) (((X)-1) * sizeof(sw_on_key_node_t))
 
+#if !defined(OPTIM_COMP)
+/* TODO: merge */
+#define hashtab_t sw_on_key_t
+#define hashtab_key_t tagged_t
+#define hashtab_node_t sw_on_key_node_t
+#define hashtab_get incore_gethash
+#define hashtab_lookup dyn_puthash
+#define HASHTAB_SIZE(SW) SwitchSize((SW))
+#endif
+
 typedef struct sw_on_key_node_ sw_on_key_node_t;
 struct sw_on_key_node_ {
   /* NOTE: Make sure that the size of this structure is a power of 2
@@ -2101,6 +2115,10 @@ struct definition_ {
   short arity; /*  */
   tagged_t printname;                           /* or sibling pointer | 1 */
                                                 /* or parent pointer | 3 */
+#if defined(ABSMACH_OPT__profile_calls)
+  intmach_t number_of_calls;
+  intmach_t time_spent;
+#endif
   struct {
     unsigned int spy:1;
     unsigned int breakp:1;

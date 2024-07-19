@@ -35,9 +35,9 @@
 #endif
 
 #if !defined(OPTIM_COMP) && defined(PROFILE)
-/* TODO: rename PROFILE flag? */
-#define ABSMACH_OPT__profilecc 1 // enable profilecc hooks
-//#define ABSMACH_OPT__profile_calls 1 // enable naive profiler
+/* Default profiler enabled when PROFILE is activated */
+//#define ABSMACH_OPT__profilecc 1 // enable profilecc (requires separate lib)
+#define ABSMACH_OPT__profile_calls 1 // enable builtin naive profiler
 #endif
 
 /* ------------------------------------------------------------------------- */

@@ -19,9 +19,9 @@
 #include <stddef.h> /* ptrdiff_t */
 #endif
 
-#if !defined(OPTIM_COMP) /* due to PRED_HOOK() */
-#include <ciao/eng_profile.h>
-#endif
+// #if !defined(OPTIM_COMP) /* due to PRED_HOOK() */
+// #include <ciao/eng_profile.h>
+// #endif
 
 #if defined(OPTIM_COMP)
 #define DYNAMIC BEHAVIOR(dynamic)
@@ -271,11 +271,21 @@ CINSNP__PROTO(current_instance, int_info_t *root, BlockingType block) {
 CFUN__PROTO(current_instance0, instance_t *) {
   int_info_t *root;
   BlockingType block;
-#if defined(ABSMACH_OPT__profilecc) || defined(ABSMACH_OPT__profile_calls)
-  tagged_t *junk;
-  w->choice->functor=find_definition(predicates_location,X(0),&junk,FALSE);
-#endif
-  PRED_HOOK("I",w->choice->functor);
+  /* TODO:[JF] func is sometimes NULL; PRED_HOOK should not be used
+     here, since we are not really interpreting any code at this point;
+     profiling of current_fact/1, may need special code?
+   */
+//#if defined(DEBUG_NODE) || defined(ABSMACH_OPT__profile_calls) || defined(ABSMACH_OPT__profilecc)
+//  tagged_t *junk;
+//  definition_t *func=find_definition(predicates_location,X(0),&junk,FALSE);
+//#endif
+//#if defined(ABSMACH_OPT__profile_calls) || defined(ABSMACH_OPT__profilecc)
+//  if (func == NULL) {
+//    fprintf(stderr, "func=%p\n", func); DerefDisplayTerm(X(0), Error_Stream_Ptr, TRUE); fprintf(stderr, "\n");
+//  }
+//#endif
+//  ON_DEBUG_NODE({ w->choice->functor=func; });
+//  PRED_HOOK("I", func);
   root = TaggedToRoot(X(2));
   if (root->behavior_on_failure == DYNAMIC) {
     return CFUN__EVAL(current_instance_noconc);
@@ -295,15 +305,6 @@ CFUN__PROTO(current_instance0, instance_t *) {
 
 #if defined(OPTIM_COMP)
 #define DerefSwitch0(X, OnVar) DerefSw_HVAorCVAorSVA_Other(X, { OnVar; }, {});
-#endif
-
-#if !defined(OPTIM_COMP)
-#define hashtab_t sw_on_key_t
-#define hashtab_key_t tagged_t
-#define hashtab_node_t sw_on_key_node_t
-#define hashtab_get incore_gethash
-#define hashtab_lookup dyn_puthash
-#define HASHTAB_SIZE(SW) SwitchSize((SW))
 #endif
 
 // TODO: always update (Head) = head? before OnVar too?

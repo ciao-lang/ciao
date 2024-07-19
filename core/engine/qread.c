@@ -137,10 +137,6 @@ static CFUN__PROTO(qr_string, char *, FILE *f) {
 #define PTRdigits "8"
 #endif
 
-#define FuncName(Func) (SetArity((Func)->printname, 0))
-//#define FuncArity(Func) (Arity((Func)->printname))
-#define FuncArity(Func) ((Func)->arity)
-
 /* (for debugging) */
 #define TRACE_REWRITE(_)
 //#define TRACE_REWRITE(X) X

@@ -3,6 +3,9 @@
 #define __USE_GNU
 # include <dlfcn.h>
 #endif
+#if !defined(OPTIM_COMP) && defined(ABSMACH_OPT__profile_calls)
+#include <ciao/timing.h>
+#endif
 
 /* --------------------------------------------------------------------------- */
 /* Get profiling options */
@@ -126,7 +129,7 @@ const char *predicate_type(int t) {
 #include <stdlib.h>
 #include <math.h>
 
-static intmach_t compare_times(const void *arg1, const void *arg2);
+static int compare_times(const void *arg1, const void *arg2);
 
 flt64_t time_last_addition;
 definition_t *last_called_predicate = NULL;
@@ -165,11 +168,15 @@ void dump_profile(void) {
 
   fprintf(out, "\n\nProfile information:\n");
 
+#if defined(OPTIM_COMP)
   table = predicates_location;
+#else
+  table = *predicates_location; // TODO: merge
+#endif
   
   realsize = 0;
   tot_reductions = 0;
-  j = HASHTAB_SIZE(predicates_location);
+  j = HASHTAB_SIZE(table);
   for (--j; j>=0; --j) {           /* Find how many preds. we have called */
     keyval = &table->node[j];
     d = (definition_t *)keyval->value.as_ptr;
@@ -182,7 +189,7 @@ void dump_profile(void) {
     }
   }
 
-  fprintf(out, "%d predicates called, %d calls made, %.2f secs. accumulated time\n", 
+  fprintf(out, "%" PRIdm " predicates called, %" PRIdm " calls made, %.2f secs. accumulated time\n", 
           realsize, 
           tot_reductions,
           (flt64_t)total_time/1e6);
@@ -190,7 +197,7 @@ void dump_profile(void) {
   pred_table = checkalloc_ARRAY(definition_t *, realsize);
 
   realsize = 0;
-  j = HASHTAB_SIZE(predicates_location);
+  j = HASHTAB_SIZE(table);
   for (--j; j>=0; --j) {
     keyval = &table->node[j];
     d = (definition_t *)keyval->value.as_ptr;
@@ -226,7 +233,7 @@ void dump_profile(void) {
   TRACE_PRINTF("{profile: dump saved in %s}\n", out_filename);
 }
 
-static intmach_t compare_times(const void *arg1, const void *arg2) {
+static int compare_times(const void *arg1, const void *arg2) {
   definition_t *pred1, *pred2;
   
   pred1 = *(definition_t **)arg1;
