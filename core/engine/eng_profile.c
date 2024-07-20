@@ -78,47 +78,42 @@ CVOID__PROTO(finish_profilecc) {
 /* --------------------------------------------------------------------------- */
 
 #if defined(ABSMACH_OPT__profilecc) || defined(ABSMACH_OPT__profile_calls)
-#if defined(OPTIM_COMP)
 const char *predicate_type(int t) {
   switch (t) {
+#if defined(OPTIM_COMP)
   case ENTER_COMPACTCODE: return "Emul  " ;
   case ENTER_UNDEFINED: return "Undef " ;
   case ENTER_CBOOL: return "Cbool " ;
   case ENTER_CINSNP: return "Cinsnp" ;
   case ENTER_CVOID: return "Cvoid" ;
   case ENTER_INTERPRETED: return "Interp" ;
-  default: return "Other " ;
-  }
-}
 #else
-const char *predicate_type(int t) {
-  switch (t) {
-  case ENTER_COMPACTCODE:          return "compac";
-  case ENTER_COMPACTCODE_INDEXED:  return "compid";
-  case ENTER_PROFILEDCODE:         return "emul";
-  case ENTER_PROFILEDCODE_INDEXED: return "emulid";
-  case ENTER_FASTCODE:             return "fast";
-  case ENTER_FASTCODE_INDEXED:     return "fastid";
-  case ENTER_UNDEFINED:            return "undef";
-  case ENTER_C:                    return "c";
-  case ENTER_INTERPRETED:          return "interp";
-  case BUILTIN_ABORT:              return "buabor";
-  case BUILTIN_APPLY:              return "butapp";
-  case BUILTIN_CALL:               return "bucall";
-  case BUILTIN_SYSCALL:            return "buscll";
-  case BUILTIN_NODEBUGCALL:        return "bundcl";
-  case BUILTIN_TRUE:               return "butrue";
-  case BUILTIN_FAIL:               return "bufail";
-  case BUILTIN_CURRENT_INSTANCE:   return "bucins";
-  case BUILTIN_RESTORE:            return "burest";
-  case BUILTIN_COMPILE_TERM:       return "bucomp";
-  case BUILTIN_GELER:              return "bugele";
-  case BUILTIN_INSTANCE:           return "buinst";
-  case BUILTIN_DIF:                return "builtd";
-  default:                         return "other";
+  case ENTER_COMPACTCODE:
+  case ENTER_COMPACTCODE_INDEXED:
+  case ENTER_PROFILEDCODE:
+  case ENTER_PROFILEDCODE_INDEXED: return "Emul  ";
+  case ENTER_FASTCODE:
+  case ENTER_FASTCODE_INDEXED: return "Fast  ";
+  case ENTER_UNDEFINED: return "Undef ";
+  case ENTER_C: return "C     ";
+  case ENTER_INTERPRETED: return "Interp";
+  case BUILTIN_ABORT:
+  case BUILTIN_APPLY:
+  case BUILTIN_CALL:
+  case BUILTIN_SYSCALL:
+  case BUILTIN_NODEBUGCALL:
+  case BUILTIN_TRUE:
+  case BUILTIN_FAIL:
+  case BUILTIN_CURRENT_INSTANCE:
+  case BUILTIN_RESTORE:
+  case BUILTIN_COMPILE_TERM:
+  case BUILTIN_GELER:
+  case BUILTIN_INSTANCE:
+  case BUILTIN_DIF: return "Built ";
+#endif
+  default: return "Other ";
   }
 }
-#endif
 #endif
 
 /* --------------------------------------------------------------------------- */
