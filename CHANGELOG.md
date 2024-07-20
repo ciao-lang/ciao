@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.0] - 2024-7-20
+
+@begin{alert}
+The release of 1.24 is in progress. The highlights in this list are in
+a draft state.
+@end{alert}
+
 ## [1.23.0] - 2024-3-04
 
 Build system:
