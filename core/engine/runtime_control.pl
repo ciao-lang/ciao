@@ -380,6 +380,7 @@ time(G) :-
     Ts is T/1000.0,
     display('% '), display(Ts), display(' seconds\n').
 
+% TODO: use once/1 (and document) or fix statistics for measuring time to get next solution
 :- meta_predicate time_(goal,?).
 time_(G, T) :-
     statistics(runtime, [T0|_]),
