@@ -243,4 +243,65 @@ static int compare_times(const void *arg1, const void *arg2) {
   }
 }
 
+void reset_profile(void) {
+  hashtab_t *table;
+  hashtab_node_t *keyval;
+  intmach_t j;
+  definition_t *d;
+
+#if defined(OPTIM_COMP)
+  table = predicates_location;
+#else
+  table = *predicates_location; // TODO: merge
 #endif
+  
+  j = HASHTAB_SIZE(table);
+  for (--j; j>=0; --j) {
+    keyval = &table->node[j];
+    d = (definition_t *)keyval->value.as_ptr;
+    if (d != NULL &&
+        d -> predtyp != ENTER_UNDEFINED &&
+        d->number_of_calls) {
+      d->number_of_calls = 0;
+      d->time_spent = 0;
+    }
+  }
+}
+
+#endif
+
+/* --------------------------------------------------------------------------- */
+
+CBOOL__PROTO(prolog_profile_set) {
+  tagged_t x;
+  DEREF(x,X(0));
+  if (!TaggedIsSmall(x)) return FALSE;
+#if defined(ABSMACH_OPT__profile_calls)
+  profile = (bool_t)GetSmall(x);
+#endif
+  CBOOL__PROCEED;
+}
+
+CBOOL__PROTO(prolog_profile_get) {
+  tagged_t x;
+#if defined(ABSMACH_OPT__profile_calls)
+  x = MakeSmall(profile);
+#else
+  x = MakeSmall(0);
+#endif
+  CBOOL__LASTUNIFY(x, X(0));
+}
+
+CBOOL__PROTO(prolog_profile_dump) {
+#if defined(ABSMACH_OPT__profile_calls)
+  dump_profile();
+#endif
+  CBOOL__PROCEED;
+}
+
+CBOOL__PROTO(prolog_profile_reset) {
+#if defined(ABSMACH_OPT__profile_calls)
+  reset_profile();
+#endif
+  CBOOL__PROCEED;
+}

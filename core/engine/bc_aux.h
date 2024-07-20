@@ -369,20 +369,6 @@ void init_some_bytecode(void) {
 }
 
 /* --------------------------------------------------------------------------- */
-#if defined(ABSMACH_OPT__profilecc)
-extern bool_t profile;       /* profile execution -- Shared */
-#endif
-
-/* TODO: not used */
-CBOOL__PROTO(set_trace_calls) {
-  tagged_t x;
-  DEREF(x,X(0));
-  if (!TaggedIsSmall(x)) return FALSE;
-#if defined(DEBUG_TRACE)
-  debug_predtrace = (bool_t)GetSmall(x);
-#endif
-  CBOOL__PROCEED;
-}
 
 /* run_determ_c(goal) runs the goal and returns TRUE if goal is
    defined as a c predicate, even if that predicate fails.  Otherwise

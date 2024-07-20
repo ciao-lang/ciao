@@ -87,6 +87,19 @@ bool_t debug_trace__get_opt(const char *arg) {
 #endif
 
 /* ------------------------------------------------------------------------- */
+
+/* TODO: not used */
+CBOOL__PROTO(set_trace_calls) {
+  tagged_t x;
+  DEREF(x,X(0));
+  if (!TaggedIsSmall(x)) return FALSE;
+#if defined(DEBUG_TRACE)
+  debug_predtrace = (bool_t)GetSmall(x);
+#endif
+  CBOOL__PROCEED;
+}
+
+/* ------------------------------------------------------------------------- */
 /* Condition for tracing (intervals) */
 
 #if defined(OPTIM_COMP) && defined(USE_DEBUG_INSCOUNT)

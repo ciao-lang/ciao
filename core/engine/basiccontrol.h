@@ -36,7 +36,6 @@ void init_some_bytecode(void);
 int p2_offset(uintmach_t insn);
 try_node_t *def_retry_c(cbool0_t proc, int arity);
 
-CBOOL__PROTO(set_trace_calls);
 CBOOL__PROTO(run_determ_c, tagged_t goal);
 
 /* ------------------------------------------------------------------------- */

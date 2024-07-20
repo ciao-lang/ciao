@@ -93,6 +93,9 @@ extern bool_t debug_instrace;
 #endif
 //
 bool_t debug_trace__get_opt(const char *arg);
+
 #endif /* !defined(DEBUG_TRACE) */
+
+CBOOL__PROTO(set_trace_calls);
 
 #endif /* _CIAO_ENG_DEBUG_H */

@@ -68,6 +68,11 @@ extern CVOID__PROTO((*profile__hook_neck_proceed));
 
 #endif /* PROFILE */
 
+CBOOL__PROTO(prolog_profile_set);
+CBOOL__PROTO(prolog_profile_get);
+CBOOL__PROTO(prolog_profile_dump);
+CBOOL__PROTO(prolog_profile_reset);
+
 #endif /* !defined(OPTIM_COMP) */
 
 #endif /* _CIAO_ENG_PROFILE_H */

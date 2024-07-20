@@ -156,6 +156,20 @@ pred_property(wait).
 :- trust pred '$ddt'(T) : int(T). %jcf% Check that int is the right type!. Not used in Prolog code.
 :- impl_defined('$ddt'/1).
 
+:- export('$profile_set'/1).
+:- trust pred '$profile_set'(T) : int(T).
+:- impl_defined('$profile_set'/1).
+
+:- export('$profile_get'/1).
+:- trust pred '$profile_get'(T) => int(T).
+:- impl_defined('$profile_get'/1).
+
+:- export('$profile_dump'/0).
+:- impl_defined('$profile_dump'/0).
+
+:- export('$profile_reset'/0).
+:- impl_defined('$profile_reset'/0).
+
 % ---------------------------------------------------------------------------
 :- doc(section, "QL bytecode loader").
 

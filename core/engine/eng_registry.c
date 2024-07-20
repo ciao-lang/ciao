@@ -24,6 +24,7 @@
 #include <ciao/stream_basic.h>
 
 #include <ciao/eng_registry.h>
+#include <ciao/eng_profile.h>
 
 /* (only for registering) */
 #include <ciao/rune.h>
@@ -1590,7 +1591,17 @@ void init_once(void)
   
   define_c_mod_predicate("basiccontrol","$metachoice",1,metachoice);
   define_c_mod_predicate("basiccontrol","$metacut",1,metacut);
+
+                                /* eng_debug.h */
+  
   define_c_mod_predicate("internals","$ddt",1,set_trace_calls);
+
+                                /* eng_profile.h */
+  
+  define_c_mod_predicate("internals","$profile_get",1,prolog_profile_get);
+  define_c_mod_predicate("internals","$profile_set",1,prolog_profile_set);
+  define_c_mod_predicate("internals","$profile_dump",0,prolog_profile_dump);
+  define_c_mod_predicate("internals","$profile_reset",0,prolog_profile_reset);
 
                                 /* qread.c */
 
