@@ -85,7 +85,7 @@ src/*.c
 % ===========================================================================
 
 :- export(eng_cfg/2).
-% Identifier for this build (platform + debug)
+% Identifier for this build (platform + debug_level)
 eng_cfg(Eng) := EngCfg :-
     EngOpts = ~eng_opts(Eng),
     ( member(boot, EngOpts) ->
@@ -100,6 +100,18 @@ eng_cfg(Eng) := EngCfg :-
       DebugLevel = ~debug_level,
       ( DebugLevel = 'nodebug' -> EngCfg = OSArch
       ; EngCfg = ~atom_concat([OSArch, '-', DebugLevel])
+      )
+    ).
+
+:- export(eng_dbg/2).
+% Suffix for debug_level
+eng_dbg(Eng) := EngDbg :-
+    EngOpts = ~eng_opts(Eng),
+    ( member(boot, EngOpts) ->
+        EngDbg = '' % (special case, see 'boot_eng_cfg' in builder_boot.sh)
+    ; DebugLevel = ~debug_level,
+      ( DebugLevel = 'nodebug' -> EngDbg = ''
+      ; EngDbg = ~atom_concat('-', DebugLevel)
       )
     ).
 
@@ -257,8 +269,10 @@ active_eng_name(D, Eng) := Name :-
     EngMainMod = ~eng_mainmod(Eng),
     ( D = exec ->         % E.g., ciaoengine.<OSARCH>
         Name0 = ~atom_concat([EngMainMod, '.', ~eng_cfg(Eng)])
-    ; D = exec_anyarch -> % E.g., ciaoengine
-        Name0 = EngMainMod
+    ; D = exec_anyarch -> % E.g., ciaoengine[-debug_level]
+        % Name0 = EngMainMod
+        % Note: add debug_level so that there can coexists several builds
+        Name0 = ~atom_concat(EngMainMod, ~eng_dbg(Eng))
     ; fail
     ),
     EngExt = ~eng_ext(Eng),

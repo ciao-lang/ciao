@@ -34,6 +34,11 @@ Alternatively, you can execute the engine directly on with your compiled program
 $ <CIAOROOT>/build/eng/ciaoengine/objs/ciaoengine-<level> Args -C EngineOpts ... -b Exec
 ```
 
+Example: execute `ciaopp` with profiling:
+```
+CIAODBG=profile CIAORTOPTS="--profile-ncalls --profile-roughtime" ciaopp -A guardians.pl
+```
+
 # Benchmarking
 
 Some engine performance benchmarks can be run (use the pipe for a
