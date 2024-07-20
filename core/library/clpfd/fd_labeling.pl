@@ -110,8 +110,8 @@ choice_order_variable(bisect, Order, Var, _, Vars0, Selection, Consistency) :-
     fd_term:bounds(Var, I, S), I \= S, !,
     Mid0 is (I + S) // 2,
     (   Mid0 = S -> Mid is Mid0 - 1 ; Mid = Mid0 ),
-    (   Order == up ->   ( fd_constraints:'a=<t'(Var, Mid) ; fd_constraints:'a<t'(Mid, Var) )
-    ;   Order == down -> ( fd_constraints:'a<t'(Mid, Var) ; fd_constraints:'a=<t'(Var, Mid) )
+    (   Order == up ->   ( fd_constraints:'a=<t'(Var, Mid) ; fd_constraints:'t<b'(Mid, Var) )
+    ;   Order == down -> ( fd_constraints:'t<b'(Mid, Var) ; fd_constraints:'a=<t'(Var, Mid) )
     ;   clpfd_error(domain_error(bisect_up_or_down, Order), fd_labeling:labeling/2)
     ),
     label__(Vars0, Selection, Order, bisect, Consistency).

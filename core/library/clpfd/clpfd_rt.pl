@@ -240,7 +240,7 @@ its domain is selected first. Its values are then enumerated from the
 smallest to the greatest.
 
 @item @var{[step]}: the variable with the smallest number of elements
-in its domain is selected first. The minimal value of the domainis
+in its domain is selected first. The minimal value of the domain is
 assigned, on bactracking the value is pruned form the domain and a new
 variable is selected.
 
