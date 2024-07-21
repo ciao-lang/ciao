@@ -111,7 +111,8 @@ Calls 		 Time (rough) 		 Type    Spec
   @tt{CIAORTOPTS} environment variable to pass engine options such as
   @tt{--profile-calls} and @tt{--profile-roughtime}. This example
   executes @apl{ciaopp} performing analysis on file @tt{guardians.pl}
-  with call and time profiling:
+  with call and time profiling, printing the profiling results at the
+  end:
 
 @begin{verbatim}
 $ cd core/examples/general
