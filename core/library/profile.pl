@@ -6,12 +6,119 @@
 
 % NOTE: This module provides a user interface to interact with the
 %   profiler and it *should* never be part minimal builds, nor an
-%   engine moudule.
+%   engine module.
 
 :- doc(stability, devel).
 
-:- doc(module, "This module provides a Prolog interface for the
-   builtin profiler. See @tt{engine/README.md} for details.").
+:- doc(module, "@cindex{profiling} @cindex{profiler} @cindex{built-in profiler}
+
+   This module provides a simple Prolog-level interface for the
+   built-in profiler. This is a basic, relatively low overhead
+   profiler, which can be used to determine call counts, times,
+   etc. per predicate when executing a goal or an executable.  There
+   exist bundles with other, more complex profilers, but which may
+   have higher overhead.
+
+   @section{Enabling profiling}
+
+   The profiling instrumentation is disabled in the default engine to
+   avoid overhead when not needed.  Thus, in order to be able to use
+   the profiler the engine must be recompiled with the
+   @tt{debug_level} option set to @tt{profile}. For example, after
+   having built and installed Ciao normally (which builds the standard
+   engine) you can do:
+
+@begin{verbatim}
+./ciao-boot.sh configure --interactive
+@end{verbatim}
+
+   And choose the following flags: 
+
+@begin{verbatim}
+...
+Please select the configuration mode:
+
+    basic    --  Configure just a minimum set of options.
+    advanced --  Configure an extended set of options.
+
+configuration_mode=[advanced] (default: basic) ? advanced
+@end{verbatim}
+
+@begin{verbatim}
+...
+Level of debugging built into the engine (for developers):
+
+   nodebug         -- Do not include debug information or messages
+   debug           -- Emulator with C level debugging info available
+                      plus extended C compilation warnings
+   profile         -- Include profiling options for the emulator
+   profile-debug   -- Include profiling and debug options for the
+                      emulator
+   paranoid-debug  -- Emulator with C level debugging info available
+                      plus paranoid C compilation warnings.
+
+debug_level=[nodebug] ? 
+@end{verbatim}
+
+  A more direct alternative is to run the
+  @tt{builder/etc/build-eng-debug.sh} script which will build build
+  several engine versions with different @tt{debug_level} options. The
+  different engine versions can co-exist and are selected as shown
+  below.
+
+  @section{Profiling calls or executions}
+
+  Once the standard and profiling engines are compiled you can select
+  between these engine versions by setting the @tt{CIAODBG}
+  environment variable before starting the top level or compiled
+  application.  E.g., for bash-style shells: 
+
+@begin{verbatim}
+$ cd core/examples/general
+$ CIAODBG=profile ciaosh
+Ciao 1.23-v1.21-1252-ga1a95f7310 (2024-07-21 11:08:37 +0200) [DARWINx86_64] [profile]
+?- use_module(library(profile)).
+
+yes
+?- use_module(nqueens).
+
+yes
+?- profile(queens(15,Q),[calls,roughtime]).
+
+Q = [8,5,9,1,10,7,3,12,2,4,6,14,11,13,15] ? 
+
+yes
+?- print_profile.
+{profile: dump saved in /tmp/ciao__profile.txt}
+
+Profile information:
+25 predicates called, 55596 calls made, 0.02 secs. accumulated time
+Calls 		 Time (rough) 		 Type    Spec
+===== 		 ============ 		 ====    ====
+38644 (69.51%) 	 0.015135 (70.18%) 	 Emul    nqueens:no_attack_2/3
+8442 (15.18%) 	 0.003347 (15.52%) 	 Emul    nqueens:sel/3
+7098 (12.77%) 	 0.002481 (11.50%) 	 Emul    nqueens:no_attack/2
+1360 (2.45%) 	 0.000547 (2.54%) 	 Emul    nqueens:queens_2/3
+16 (0.03%) 	 0.000014 (0.06%) 	 Emul    nqueens:queens_list/2
+4 (0.01%) 	 0.000007 (0.03%) 	 Built   hiord_rt:call/1
+3 (0.01%) 	 0.000004 (0.02%) 	 Emul    internals:rt_module_exp/6/0$$33/4
+3 (0.01%) 	 0.000003 (0.01%) 	 C       internals:$global_vars_get_root/1
+...
+1 (0.00%) 	 0.000001 (0.00%) 	 Emul    nqueens:queens/2
+@end{verbatim}
+
+  You can also profile a whole compiled program. You can use the
+  @tt{CIAORTOPTS} environment variable to pass engine options such as
+  @tt{--profile-calls} and @tt{--profile-roughtime}. This example
+  executes @apl{ciaopp} performing analysis on file @tt{guardians.pl}
+  with call and time profiling:
+
+@begin{verbatim}
+$ cd core/examples/general
+$ CIAODBG=profile CIAORTOPTS=\"--profile-calls --profile-roughtime\" ciaopp -A guardians.pl
+@end{verbatim}
+
+").
 
 :- use_module(engine(internals), [
     '$profile_flags_set'/1,
@@ -24,14 +131,15 @@
 % ---------------------------------------------------------------------------
 
 :- export(profile_opt/1).
-:- regtype profile_opt(X) 
-   # "@var{X} is the a profiler option:
+:- doc(profile_opt/1,"@var{X} is a profiler option:
 @begin{itemize}
 @item @tt{calls}: count number of calls per predicate
 @item @tt{roughtime}: rough approximation of execution time (since the
   predicate is called until the next one is called)
 @end{itemize}
-".
+").
+:- regtype profile_opt(X) 
+   # "@var{X} is a profiler option.". 
 
 profile_opt(calls).
 profile_opt(roughtime).
@@ -82,6 +190,11 @@ profile(G) :- profile(G, [calls]).
 
 % TODO: improve this interface
 :- export(print_profile/0).
+:- pred print_profile 
+   # "Outputs an ascii printout of the profiling results through
+     @tt{standard_user}, and also leaves the result in a file in a
+     temporary directory (reporting the name and location of the dump
+     file).".
 print_profile :-
     '$profile_dump',
     % TODO: hardwired
