@@ -11,10 +11,13 @@
 
 #if defined(ABSMACH_OPT__profilecc) || defined(ABSMACH_OPT__profile_calls)
 
-extern bool_t profile;
-#if defined(ABSMACH_OPT__profile_calls)
-extern bool_t profile__roughtime;
-#endif
+#define PROFILE_FLAGS_NONE      0 /* no profile */
+
+/* Note: keep in synk with table in profile.pl */
+#define PROFILE_FLAG_CALLS    0x1 /* count calls */
+#define PROFILE_FLAG_ROUGHTIME 0x2 /* measure rough time */
+
+extern intmach_t profile_flags;
 
 bool_t profile__get_opt(const char *arg);
 
@@ -68,8 +71,8 @@ extern CVOID__PROTO((*profile__hook_neck_proceed));
 
 #endif /* PROFILE */
 
-CBOOL__PROTO(prolog_profile_set);
-CBOOL__PROTO(prolog_profile_get);
+CBOOL__PROTO(prolog_profile_flags_set);
+CBOOL__PROTO(prolog_profile_flags_get);
 CBOOL__PROTO(prolog_profile_dump);
 CBOOL__PROTO(prolog_profile_reset);
 

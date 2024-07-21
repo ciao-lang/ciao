@@ -36,7 +36,7 @@ $ <CIAOROOT>/build/eng/ciaoengine/objs/ciaoengine-<level> Args -C EngineOpts ...
 
 Example: execute `ciaopp` with profiling:
 ```
-CIAODBG=profile CIAORTOPTS="--profile-ncalls --profile-roughtime" ciaopp -A guardians.pl
+CIAODBG=profile CIAORTOPTS="--profile-calls --profile-roughtime" ciaopp -A guardians.pl
 ```
 
 # Benchmarking

@@ -1598,8 +1598,8 @@ void init_once(void)
 
                                 /* eng_profile.h */
   
-  define_c_mod_predicate("internals","$profile_get",1,prolog_profile_get);
-  define_c_mod_predicate("internals","$profile_set",1,prolog_profile_set);
+  define_c_mod_predicate("internals","$profile_flags_get",1,prolog_profile_flags_get);
+  define_c_mod_predicate("internals","$profile_flags_set",1,prolog_profile_flags_set);
   define_c_mod_predicate("internals","$profile_dump",0,prolog_profile_dump);
   define_c_mod_predicate("internals","$profile_reset",0,prolog_profile_reset);
 

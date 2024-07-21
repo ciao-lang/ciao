@@ -422,7 +422,7 @@ void init_profile(void) {
 
 CVOID__PROTO(finish_profile) {
 #if defined(ABSMACH_OPT__profile_calls)
-  if (profile) dump_profile();
+  if (profile_flags != PROFILE_FLAGS_NONE) dump_profile();
 #endif
 #if defined(ABSMACH_OPT__profilecc)
   CVOID__CALL(finish_profilecc);

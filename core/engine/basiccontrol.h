@@ -60,9 +60,9 @@ CVOID__PROTO(wr_call, char *s, definition_t *func);
 
 /* Predicate profiler */
 #if defined(ABSMACH_OPT__profile_calls)
-#define PRED_PROFILE(X,Y) if (profile) add_to_profiling(Y);
+#define PRED_PROFILE(X,Y) if (profile_flags != 0) add_to_profiling(Y);
 #elif defined(ABSMACH_OPT__profilecc)
-#define PRED_PROFILE(X,Y) if (profile) { PROFILE__HOOK_CALL(Y); }
+#define PRED_PROFILE(X,Y) if (profile_flags != 0) { PROFILE__HOOK_CALL(Y); }
 #else
 #define PRED_PROFILE(X,Y)
 #endif

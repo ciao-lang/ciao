@@ -465,7 +465,7 @@ enable_lowrtchecks() {
 # TODO: add option to enable --profile-insfreq=yes
 enable_profile() {
     export CIAOOPTS="--profile=yes $CIAOOPTS"
-    export CIAORTOPTS="--profile-ncalls --profile-roughtime $CIAORTOPTS"
+    export CIAORTOPTS="--profile-calls --profile-roughtime $CIAORTOPTS"
 }
 
 enable_verbose() {

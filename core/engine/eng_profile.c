@@ -7,27 +7,23 @@
 #include <ciao/timing.h>
 #endif
 
+#include <ciao/eng_profile.h>
+
 /* --------------------------------------------------------------------------- */
 /* Get profiling options */
 
 #if defined(ABSMACH_OPT__profilecc) || defined(ABSMACH_OPT__profile_calls)
 #include <string.h>
 
-bool_t profile = FALSE; /* enable profiler hooks in wamloop -- Shared */
-#if defined(ABSMACH_OPT__profile_calls)
-bool_t profile__roughtime = FALSE; /* include (rough) time in profile -- Shared */
-#endif
+intmach_t profile_flags = PROFILE_FLAGS_NONE; /* profiler flags -- Shared */
 
 /* (done for each option) */
 bool_t profile__get_opt(const char *arg) {
-  if (strcmp(arg, "--profile-ncalls") == 0) { /* Simple profile */
-    profile = TRUE;
+  if (strcmp(arg, "--profile-calls") == 0) { /* Simple profile */
+    profile_flags |= PROFILE_FLAG_CALLS;
     return TRUE;
   } else if (strcmp(arg, "--profile-roughtime") == 0) { /* Include time */
-    profile = TRUE;
-#if defined(ABSMACH_OPT__profile_calls)
-    profile__roughtime = TRUE;
-#endif
+    profile_flags |= PROFILE_FLAG_CALLS | PROFILE_FLAG_ROUGHTIME;
     return TRUE;
   }
   return FALSE;
@@ -54,9 +50,9 @@ CVOID__PROTO((*profile__hook_proceed)) = profile__hook_nop;
 #endif
 
 void init_profilecc(void) {
-  if (profile) { /* simulate with PROFILECC */
+  if (profile_flags != PROFILE_FLAGS_NONE) { /* simulate with PROFILECC */
     profile_eng = TRUE; /* annotate it */
-    profile = FALSE; /* disable profiling hooks, enabled later */
+    profile_flags = PROFILE_FLAGS_NONE; /* disable profiling hooks, enabled later */
     void (*profile_init)(void) = (void (*)(void))dlsym(RTLD_DEFAULT, "profile_init");
     void (*profile_enter_call_)(void) = (void (*)(void))dlsym(RTLD_DEFAULT, "profile_enter_call_");
     profile_rcc = TRUE;
@@ -134,7 +130,7 @@ void add_to_profiling(definition_t *functor) {
 
   functor->number_of_calls++;
 
-  if (profile__roughtime) {
+  if ((profile_flags & PROFILE_FLAG_ROUGHTIME) != 0) {
     time_now = usertime();
     if (last_called_predicate) {
       last_called_predicate->time_spent += (uintmach_t)((time_now - time_last_addition)*1e6);
@@ -272,20 +268,20 @@ void reset_profile(void) {
 
 /* --------------------------------------------------------------------------- */
 
-CBOOL__PROTO(prolog_profile_set) {
+CBOOL__PROTO(prolog_profile_flags_set) {
   tagged_t x;
   DEREF(x,X(0));
   if (!TaggedIsSmall(x)) return FALSE;
 #if defined(ABSMACH_OPT__profile_calls)
-  profile = (bool_t)GetSmall(x);
+  profile_flags = GetSmall(x);
 #endif
   CBOOL__PROCEED;
 }
 
-CBOOL__PROTO(prolog_profile_get) {
+CBOOL__PROTO(prolog_profile_flags_get) {
   tagged_t x;
 #if defined(ABSMACH_OPT__profile_calls)
-  x = MakeSmall(profile);
+  x = MakeSmall(profile_flags);
 #else
   x = MakeSmall(0);
 #endif
