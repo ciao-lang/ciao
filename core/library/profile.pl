@@ -24,10 +24,23 @@
    The profiling instrumentation is disabled in the default engine to
    avoid overhead when not needed.  Thus, in order to be able to use
    the profiler the engine must be recompiled with the
-   @tt{debug_level} option set to @tt{profile}. For example, after
-   having built and installed Ciao normally (which builds the standard
-   engine) you can do:
+   @tt{debug_level} option set to @tt{profile}.
 
+   For example, after having built and installed Ciao normally (which
+   builds the standard engine) you can do:
+
+@begin{verbatim}
+./ciao-boot.sh configure --set-flag core:debug_level=profile
+./ciao-boot.sh build core.engine
+./ciao-boot.sh configure --set-flag core:debug_level=nodebug 
+@end{verbatim}
+
+   This will build the engine with profiling and leave the
+   configuration back to normal, now with both the standard and the
+   profiling engines compiled.
+
+@comment{
+%%%%%%%%%%%%%%% BEGIN COMNENTED OUT %%%%%%%%%%%%%%%%%%%%%%%%
 @begin{verbatim}
 ./ciao-boot.sh configure --interactive
 @end{verbatim}
@@ -65,6 +78,9 @@ debug_level=[nodebug] ?
   several engine versions with different @tt{debug_level} options. The
   different engine versions can co-exist and are selected as shown
   below.
+%%%%%%%%%%%%%%% END COMMENTED OUT %%%%%%%%%%%%%%%%%%%%%%%%
+}
+
 
   @section{Profiling calls or executions}
 
@@ -74,13 +90,16 @@ debug_level=[nodebug] ?
   application.  E.g., for bash-style shells: 
 
 @begin{verbatim}
-$ cd core/examples/general
 $ CIAODBG=profile ciaosh
 Ciao 1.23-v1.21-1252-ga1a95f7310 (2024-07-21 11:08:37 +0200) [DARWINx86_64] [profile]
-?- use_module(library(profile)).
+?-
+@end{verbatim}
 
+   You can then load this module and issue the commands it provides:
+@begin{verbatim}
+?- use_module(library(profile)).
 yes
-?- use_module(nqueens).
+?- use_module('core/examples/general/nqueens').
 
 yes
 ?- profile(queens(15,Q),[calls,roughtime]).
