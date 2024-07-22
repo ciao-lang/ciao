@@ -130,6 +130,8 @@ static void open_exec_skip_stub(const char *file, FILE **stream) {
   engine_exit(1);
 }
 
+extern char *ciao_suffix;
+
 CBOOL__PROTO(load_boot, const char *boot_path, const char *exec_path) {
   FILE *qfile = NULL;
   
@@ -146,7 +148,7 @@ CBOOL__PROTO(load_boot, const char *boot_path, const char *exec_path) {
   } else {
     expand_file_name(boot_path,TRUE,source_path);
 #if defined(Win32)
-    i = strlen(source_path)-4;
+    int i = strlen(source_path)-4;
     if (i > 0 && strcmp(source_path+i,".bat") == 0){
       int j;
       for (j = 1; ciao_suffix[j] && (i+j < MAXPATHLEN); j++) {
@@ -194,8 +196,6 @@ void init_winsock2(void) {
 /* ------------------------------------------------------------------------- */
 
 extern char cwd[];
-
-extern char *ciao_suffix;
 
 void ciao_initcode(void); /* initialize foreign interface definitions */
 
