@@ -91,7 +91,7 @@ debug_level=[nodebug] ?
 
 @begin{verbatim}
 $ CIAODBG=profile ciaosh
-Ciao 1.23-v1.21-1252-ga1a95f7310 (2024-07-21 11:08:37 +0200) [DARWINx86_64] [profile]
+Ciao 1.23 (2024-07-21 11:08:37 +0200) [DARWINx86_64] [profile]
 ?-
 @end{verbatim}
 
