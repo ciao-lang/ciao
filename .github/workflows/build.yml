@@ -42,7 +42,7 @@ jobs:
       - uses: msys2/setup-msys2@v2
         if: (matrix.sys.os == 'windows-2019')
         with:
-          msystem: ${{ fromJSON('["MINGW32", "MINGW64"]')[matrix.sys.arch != 'i686'] }}
+          msystem: ${{ fromJSON('["mingw32", "mingw64"]')[matrix.sys.arch != 'i686'] }}
           update: true
           install: git base-devel
       - run: |

@@ -12,7 +12,10 @@
 #include <stdlib.h>  /* for atoi MCL */
 #include <string.h>
 #include <strings.h>
+#if defined(_WIN32) || defined(_WIN64) /* MinGW */
+#else
 #include <sys/select.h> /* select() */ 
+#endif
 
 #include <ciao/eng.h>
 #include <ciao/eng_registry.h>
@@ -1776,6 +1779,10 @@ CBOOL__PROTO(prolog_set_unbuf) {
 
 CBOOL__PROTO(prolog_input_wait) {
   ERR__FUNCTOR("io_basic:$input_wait", 3);
+#if defined(_WIN32) || defined(_WIN64) /* MinGW */
+#warning "io_basic:$input_wait is not supported in the Win32 build" /* TODO:[JF] fixme */
+  CBOOL__PROCEED; 
+#else
   int errcode;
   stream_node_t *s = stream_to_ptr_check(X(0), 'r', &errcode);
   if (!s) {
@@ -1785,7 +1792,7 @@ CBOOL__PROTO(prolog_input_wait) {
   int fd = fileno(s->streamfile);
 
   if (s->pending_rune != RUNE_VOID) { /* RUNE_EOF or valid rune */
-    return TRUE;
+    CBOOL__PROCEED;
   }
 
   fd_set set;
@@ -1807,6 +1814,7 @@ CBOOL__PROTO(prolog_input_wait) {
   }
 
   CBOOL__LASTTEST(rv != 0);
+#endif
 }
 
 /* --------------------------------------------------------------------------- */
