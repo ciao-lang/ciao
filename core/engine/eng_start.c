@@ -279,26 +279,31 @@ void engine_init(const char *boot_path, const char *exec_path) {
   glb_init_each_time();
 }
 
-/* Get executable path (when argv[0] is not reliable) */
-char *get_execpath(void) {
-  char buffer[MAXPATHLEN+1];
-  size_t size = MAXPATHLEN+1;
+static bool_t get_execpath_(char *buffer, size_t size) {
 #if defined(LINUX)/*||defined(EMSCRIPTEN)*/
   ssize_t len;
-  if ((len = readlink("/proc/self/exe", buffer, size)) == -1) return NULL;
+  len = readlink("/proc/self/exe", buffer, size);
+  return (len != -1);
 #elif defined(DARWIN)
   uint32_t len = size;
-  if (_NSGetExecutablePath(buffer, &len) == -1) return NULL;
+  return (_NSGetExecutablePath(buffer, &len) != -1);
 #elif defined(_WIN32) || defined(_WIN64) /* MinGW */
-  if (GetModuleFileName(NULL, buffer, size) == 0) return NULL;
+  return (GetModuleFileName(NULL, buffer, size) != 0);
 #else
-  return NULL;
+  return FALSE;
   /* TODO: Missing support for other OS:
       - Solaris: getexecname()
       - FreeBSD: sysctl CTL_KERN KERN_PROC KERN_PROC_PATHNAME -1
       - BSD with procfs: readlink /proc/curproc/file
   */
 #endif
+}
+
+/* Get executable path (when argv[0] is not reliable) */
+char *get_execpath(void) {
+  char buffer[MAXPATHLEN+1];
+  size_t size = MAXPATHLEN+1;
+  if (!get_execpath_(buffer, size)) return NULL;
   return strdup(buffer);
 }
 
