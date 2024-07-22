@@ -67,7 +67,7 @@ case "$core__DEBUG_LEVEL" in
         core__OPTIM_LEVEL=normal # TODO: why?
         ;;
     profile)
-        core__OPTIM_LEVEL=debug # TODO: why?
+        core__OPTIM_LEVEL=optimized # TODO: it was 'debug', why?
         ;;
     profile-debug)
         core__OPTIM_LEVEL=debug # TODO: why?
@@ -234,14 +234,15 @@ case "$core__DEBUG_LEVEL" in
         ;;
     *) ;;
 esac
-# Instrument for gprof profiling
-case "$core__DEBUG_LEVEL" in
-    profile|profile-debug)
-        DEBUG_FLAGS="$DEBUG_FLAGS -pg"
-        PROFILE_LD_FLAGS="-pg"
-        ;;
-    *) ;;
-esac
+# # TODO: only for C engine profiling; enable with a different flag
+# # Instrument for gprof profiling
+# case "$core__DEBUG_LEVEL" in
+#     profile|profile-debug)
+#         DEBUG_FLAGS="$DEBUG_FLAGS -pg"
+#         PROFILE_LD_FLAGS="-pg"
+#         ;;
+#     *) ;;
+# esac
 
 # C optimization flags
 
