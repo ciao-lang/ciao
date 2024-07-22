@@ -1780,7 +1780,7 @@ CBOOL__PROTO(prolog_set_unbuf) {
 CBOOL__PROTO(prolog_input_wait) {
   ERR__FUNCTOR("io_basic:$input_wait", 3);
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
-#warning "io_basic:$input_wait is not supported in the Win32 build" /* TODO:[JF] fixme */
+#warning "TODO(MinGW): we need select() in io_basic:$input_wait"
   CBOOL__PROCEED; 
 #else
   int errcode;

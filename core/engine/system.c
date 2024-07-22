@@ -2153,6 +2153,14 @@ CBOOL__PROTO(prolog_wait) {
   }
 
   int retcode;
+#if defined(_WIN32) || defined(_WIN64)
+  // Windows-specific process termination handling
+  if (status & 0xC0000000) { /* error */
+    retcode = -(status & 0xC0000000); /* negative number for signals */
+  } else {
+    retcode = status; /* Process terminated normally */
+  }
+#else
   /* Process did not terminated normally */
   if (WIFSIGNALED(status)) { /* Process terminated due to signal */
     retcode = -WTERMSIG(status); /* negative number for signals */
@@ -2162,6 +2170,7 @@ CBOOL__PROTO(prolog_wait) {
     // TODO: only if WIFSTOPPED(status) (see man page)
     return FALSE;
   }
+#endif
   CBOOL__LASTUNIFY(X(1), MakeSmall(retcode));
 }
 
