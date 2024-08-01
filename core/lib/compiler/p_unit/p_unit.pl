@@ -1798,7 +1798,7 @@ one_type_clause(Head,Body):-
 prop_to_native(Prop,_NProp):-
     var(Prop), !, throw(error(instantiation_error(Prop), prop_to_native/2)).
 prop_to_native(Prop,NProp2):-
-    current_fact(pgm_regtype(Prop,NProp0)), !,
+    prop_regtype(Prop,NProp0), !,
     NProp2=regtype(NProp),
     ( prop_to_native_(Prop,NProp) -> true % TODO: why?
     ; NProp=NProp0
@@ -1808,7 +1808,7 @@ prop_to_native(Prop,NProp):-
 
 % TODO: Creates choicepoints. Intended?
 prop_to_native_(Prop,NProp):-
-    current_fact(pgm_native(Prop,NProp)).
+    prop_native(Prop,NProp).
 prop_to_native_(Prop,NProp):-
     native_property(Prop,NProp). % builtin tables
 
@@ -1821,9 +1821,9 @@ prop_to_native_(Prop,NProp):-
 native_to_prop(NProp2,Prop) :-
     ( NProp2 = regtype(NProp) -> RegType=yes ; NProp=NProp2, RegType=no ),
     %
-    ( current_fact(pgm_native(Prop0,NProp)) -> Prop=Prop0 % TODO: bad indexing
+    ( prop_native(Prop0,NProp) -> Prop=Prop0 % TODO: bad indexing
     ; native_property(Prop0,NProp) -> Prop=Prop0 % builtin tables % TODO: bad indexing
-    ; RegType=yes, current_fact(pgm_regtype(Prop0,NProp)) -> Prop=Prop0 % TODO: bad indexing
+    ; RegType=yes, prop_regtype(Prop0,NProp) -> Prop=Prop0 % TODO: bad indexing
     ; fail
     ).
 

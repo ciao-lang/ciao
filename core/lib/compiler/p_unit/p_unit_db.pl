@@ -15,6 +15,8 @@
     removeall_assertion_read/9,
     ref_assertion_read/10,
     assertion_of/9, % TODO: DO NOT EXPORT! erase after normalization
+    prop_regtype/2,
+    prop_native/2,
     % ------
     % (clause_db)
     clause_read/7, 
@@ -163,7 +165,10 @@ cleanup_lib_p_unit_db :-
     %
     retractall_fact(lib_assertion_read(_,_,_,_,_,_,_,_,_)),
     %
-    retractall_fact(lib_prop_clause_read(_,_,_,_,_,_,_)).
+    retractall_fact(lib_prop_clause_read(_,_,_,_,_,_,_)),
+    %
+    retractall_fact(lib_native(_,_)),
+    retractall_fact(lib_regtype(_,_)).
 
 % ===========================================================================
 %! # Module interface (itf)
@@ -481,6 +486,16 @@ ref_assertion_read(Goal,M,Status,Type,Body,Dict,Source,LB,LE,Ref):-
 assertion_type(assertion_read(_,_,_,Type,_,_,_,_,_),Type).
 assertion_type(pgm_assertion_read(_,_,_,Type,_,_,_,_,_),Type).
 
+prop_native(Goal,Prop) :-
+    pgm_native(Goal,Prop).
+prop_native(Goal,Prop) :-
+    lib_native(Goal,Prop).
+
+prop_regtype(Goal,Prop) :-
+    pgm_regtype(Goal,Prop).
+prop_regtype(Goal,Prop) :-
+    lib_regtype(Goal,Prop).
+
 % ===========================================================================
 %! # Clauses (and other directives)
 
@@ -574,6 +589,9 @@ dump_lib_data(lib_assertion_read(PD,M,Status,Type,Body1,Dict,S,LB,LE)) :-
 %
 dump_lib_data(lib_prop_clause_read(M, Head, Body, VarNames, Source, LB, LE)) :-
     prop_clause_read(M, Head, Body, VarNames, Source, LB, LE).
+%
+dump_lib_data(lib_regtype(Goal,Prop)) :- prop_regtype(Goal,Prop), get_module_from_sg(Goal,M), \+ fake_module_name(M). % TODO: \+ fake needed here?
+dump_lib_data(lib_native(Goal,Prop)) :- prop_native(Goal,Prop), get_module_from_sg(Goal,M), \+ fake_module_name(M). % TODO: \+ fake needed here?
 
 % Adding data (for restoring)
 add_lib_data(lib_defines_module(A,B)) :- !,
