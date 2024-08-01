@@ -66,6 +66,8 @@
 :- export(impl_defines/2).
 :- export(pgm_assertion_read/9).
 :- export(pgm_prop_clause_read/7). % (for abolish_related_info/1)
+:- export(pgm_native/2).
+:- export(pgm_regtype/2).
 
 :- data curr_module/1.
 :- data curr_file/2.
@@ -84,6 +86,8 @@
 :- data pgm_prop_clause_read/7.
 :- data source_clause/3.
 :- data locator/2.
+:- data pgm_native/2.
+:- data pgm_regtype/2.
 
 % (libcache)
 :- data lib_defines_module/2.
@@ -97,6 +101,8 @@
 :- data lib_impl_defines/2.
 :- data lib_assertion_read/9.
 :- data lib_prop_clause_read/7.
+:- data lib_native/2.
+:- data lib_regtype/2.
 
 % ---------------------------------------------------------------------------
 
@@ -129,7 +135,10 @@ cleanup_itf_db :-
 :- doc(cleanup_assrt_db, "Cleanups the assrt database.").
 cleanup_assrt_db :-
     retractall_fact(pgm_assertion_read(_,_,_,_,_,_,_,_,_)),
-    retractall_fact(assertion_of(_,_,_,_,_,_,_,_,_)).
+    retractall_fact(assertion_of(_,_,_,_,_,_,_,_,_)),
+    % (extracted from assertions)
+    retractall_fact(pgm_native(_,_)),
+    retractall_fact(pgm_regtype(_,_)).
 
 :- export(cleanup_clause_db/0). % TODO: needed for some clause rewrites
 :- doc(cleanup_clause_db,"Cleans up the clause_db database.").
