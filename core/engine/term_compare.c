@@ -90,8 +90,8 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2) {
 
  in:
   u=x1, v=x2;
-  DerefSwitch0(u,goto var_x;);
-  DerefSwitch0(v,return 1;);
+  DerefSw_HVAorCVAorSVA_Other(u,goto var_x;,{});
+  DerefSw_HVAorCVAorSVA_Other(v,return 1;,{});
   if (u==v) return 0;
   if (TaggedIsSmall(u) && TaggedIsSmall(v))
     goto var_var;
@@ -203,7 +203,7 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2) {
   }
 
  var_x:
-  DerefSwitch0(v,goto var_var;);
+  DerefSw_HVAorCVAorSVA_Other(v,goto var_var;,{});
   return -1;
  var_var:
   return (u<v ? -1 : u>v ? 1 : 0);
@@ -227,8 +227,8 @@ static CFUN__PROTO(compare_args_aux, int,
     t1 = *pt1;
     t2 = *pt2;
     if (t1 != t2) {
-      DerefSwitch0(t1,goto noforward;);
-      DerefSwitch0(t2,goto noforward;);
+      DerefSw_HVAorCVAorSVA_Other(t1,goto noforward;,{});
+      DerefSw_HVAorCVAorSVA_Other(t2,goto noforward;,{});
       if (t1!=t2 && IsComplex(t1&t2)) {
         /* replace smaller value by larger value,
            using choice stack as value trail */

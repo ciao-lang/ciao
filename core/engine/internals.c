@@ -1825,9 +1825,9 @@ CBOOL__PROTO(setarg)
   DEREF(X(3),X(3));
   
   if (X(3) != atom_off) {
-    DerefSwitch0(number,{goto barf1;});
-    DerefSwitch0(complex,{goto barf2;});
-    DerefSwitch0(newarg,{goto unsafe_value;});
+    DerefSw_HVAorCVAorSVA_Other(number,{goto barf1;},{});
+    DerefSw_HVAorCVAorSVA_Other(complex,{goto barf2;},{});
+    DerefSw_HVAorCVAorSVA_Other(newarg,{goto unsafe_value;},{});
   } else {
   unsafe_value:
     if (TaggedIsSVA(newarg)){
@@ -1904,7 +1904,7 @@ CBOOL__PROTO(undo)
   tagged_t goal;
   
   goal = X(0);
-  DerefSwitch0(goal,{MINOR_FAULT("$undo/1: invalid argument");});
+  DerefSw_HVAorCVAorSVA_Other(goal,{MINOR_FAULT("$undo/1: invalid argument");},{});
   TrailPush(w->trail_top,goal);
   if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
     choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE);

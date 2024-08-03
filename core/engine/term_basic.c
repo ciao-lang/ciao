@@ -598,8 +598,8 @@ static CBOOL__PROTO(cunifyOC_args_aux,
     t1 = *pt1;
     t2 = *pt2;
     if (t1 != t2) {
-      DerefSwitch0(t1,{ goto noforward; });
-      DerefSwitch0(t2,{ goto noforward; });
+      DerefSw_HVAorCVAorSVA_Other(t1,{ goto noforward; },{});
+      DerefSw_HVAorCVAorSVA_Other(t2,{ goto noforward; },{});
       if (t1!=t2 && IsComplex(t1&t2)) {
         /* NOTE: do forward args from pt2 to pt1 */ 
       noforward:
@@ -766,8 +766,8 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
   ERR__FUNCTOR("term_basic:arg", 3);
   intmach_t i;
 
-  DerefSwitch0(number, BUILTIN_ERROR(INSTANTIATION_ERROR, number, 1););
-  DerefSwitch0(complex, BUILTIN_ERROR(INSTANTIATION_ERROR, complex, 2););
+  DerefSw_HVAorCVAorSVA_Other(number, BUILTIN_ERROR(INSTANTIATION_ERROR, number, 1);,{});
+  DerefSw_HVAorCVAorSVA_Other(complex, BUILTIN_ERROR(INSTANTIATION_ERROR, complex, 2);,{});
 
   if (TaggedIsSmall(number)) {
     i = GetSmall(number);
@@ -807,8 +807,8 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
     }
   }
 #else
-  DerefSwitch0(number,{goto barf1;});
-  DerefSwitch0(complex,{goto barf2;});
+  DerefSw_HVAorCVAorSVA_Other(number,{goto barf1;},{});
+  DerefSw_HVAorCVAorSVA_Other(complex,{goto barf2;},{});
 
   if (TaggedIsSTR(complex)) {
     intmach_t i = GetSmall(number);
@@ -850,7 +850,7 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
 #if defined(USE_BU3_FUNCTOR_EXCEPTIONS)
   ERR__FUNCTOR("term_basic:functor", 3);
 
-  DerefSwitch0(term,{goto construct;});
+  DerefSw_HVAorCVAorSVA_Other(term,{goto construct;},{});
   {
     tagged_t tagarity;
     if (TermIsAtomic(term)) {
@@ -868,8 +868,8 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
   }
  construct:
   {
-    DerefSwitch0(name, BUILTIN_ERROR(INSTANTIATION_ERROR, name, 2););
-    DerefSwitch0(arity, BUILTIN_ERROR(INSTANTIATION_ERROR, arity, 3););
+    DerefSw_HVAorCVAorSVA_Other(name, BUILTIN_ERROR(INSTANTIATION_ERROR, name, 2);,{});
+    DerefSw_HVAorCVAorSVA_Other(arity, BUILTIN_ERROR(INSTANTIATION_ERROR, arity, 3);,{});
 
     if (TermIsAtomic(name)) {
       if (arity == TaggedZero) {
@@ -896,7 +896,7 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
     }
   }
 #else
-  DerefSwitch0(term,{goto construct;});
+  DerefSw_HVAorCVAorSVA_Other(term,{goto construct;},{});
   {
     tagged_t tagarity;
     if (TermIsAtomic(term)) {
@@ -914,8 +914,8 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
   }
   construct:
   {
-    DerefSwitch0(name,;);
-    DerefSwitch0(arity,;);
+    DerefSw_HVAorCVAorSVA_Other(name,;,{});
+    DerefSw_HVAorCVAorSVA_Other(arity,;,{});
     if (TermIsAtomic(name) && (arity==TaggedZero)) {
       CBOOL__LASTUNIFY(name,term);
     } else if (TaggedIsATM(name) && (arity>TaggedZero) && (arity<MakeSmall(ARITYLIMIT))) {
@@ -943,7 +943,7 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
   int arity;
   tagged_t f;
 
-  DerefSwitch0(term,{goto construct;});
+  DerefSw_HVAorCVAorSVA_Other(term,{goto construct;},{});
   cdr = atom_nil;
   if (TermIsAtomic(term)) {
     MakeLST(cdr,term,cdr);
@@ -970,9 +970,9 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
  construct:
   cdr = list;
 #if defined(USE_BU2_UNIV_EXCEPTIONS)
-  DerefSwitch0(cdr, BUILTIN_ERROR(INSTANTIATION_ERROR, list, 2););
+  DerefSw_HVAorCVAorSVA_Other(cdr, BUILTIN_ERROR(INSTANTIATION_ERROR, list, 2);,{});
 #else
-  DerefSwitch0(cdr,;);
+  DerefSw_HVAorCVAorSVA_Other(cdr,;,{});
 #endif
   arity = 0;
 

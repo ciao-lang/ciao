@@ -327,12 +327,14 @@ case BUILTIN_GELER:
 {
 PRED_HOOK("B",Func);
 tagged_t vr14 = X(0);
-DerefSwitch0(vr14,{
+DerefSw_HVAorCVAorSVA_Other(vr14,{
+;    },{
 ;    }
 );
 tagged_t vr15;
 vr15 = X(1);
-DerefSwitch0(vr15,{
+DerefSw_HVAorCVAorSVA_Other(vr15,{
+;    },{
 ;    }
 );
 Setfunc(find_definition(predicates_location,vr15,&w->structure,TRUE));
@@ -462,11 +464,13 @@ dif0:
 {
 PRED_HOOK("B",Func);
 tagged_t vr28 = X(0);
-DerefSwitch0(vr28,{
+DerefSw_HVAorCVAorSVA_Other(vr28,{
+;    },{
 ;    }
 );
 tagged_t vr29 = X(1);
-DerefSwitch0(vr29,{
+DerefSw_HVAorCVAorSVA_Other(vr29,{
+;    },{
 ;    }
 );
 w->structure = NULL;
@@ -493,7 +497,8 @@ case BUILTIN_ABORT:
 {
 PRED_HOOK("B",Func);
 tagged_t vr30 = X(0);
-DerefSwitch0(vr30,{
+DerefSw_HVAorCVAorSVA_Other(vr30,{
+;    },{
 ;    }
 );
 w->misc->exit_code = GetSmall(vr30);

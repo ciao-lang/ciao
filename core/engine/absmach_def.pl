@@ -550,7 +550,7 @@ sw_on_var(Reg, HVACode, CVACode, SVACode, NVACode) =>
 :- rkind(deref_sw/3, []).
 deref_sw(Reg, Aux, VarCode) => callstmt('DerefSwitch', [Reg, Aux, blk(VarCode)]).
 :- rkind(deref_sw0/2, []).
-deref_sw0(Reg, VarCode) => callstmt('DerefSwitch0', [Reg, blk(VarCode)]).
+deref_sw0(Reg, VarCode) => callstmt('DerefSw_HVAorCVAorSVA_Other', [Reg, blk(VarCode), blk(';')]).
 
 unify_heap_atom(U,V) =>
     localv(tagged, T1, V),

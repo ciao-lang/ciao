@@ -11,37 +11,37 @@
 #include <ciao/eng_bignum.h>
 
 CBOOL__PROTO(bu1_atom, tagged_t x0) {
-  DerefSwitch0(x0,{CBOOL__FAIL;});
+  DerefSw_HVAorCVAorSVA_Other(x0,{CBOOL__FAIL;},{});
   CBOOL__LASTTEST(IsNonvarAtom(x0));
 }
 
 CBOOL__PROTO(bu1_atomic, tagged_t x0) {
-  DerefSwitch0(x0,{CBOOL__FAIL;});
+  DerefSw_HVAorCVAorSVA_Other(x0,{CBOOL__FAIL;},{});
   CBOOL__LASTTEST(IsNonvarAtomic(x0));
 }
 
 CBOOL__PROTO(bu1_float, tagged_t x0) {
-  DerefSwitch0(x0,{CBOOL__FAIL;});
+  DerefSw_HVAorCVAorSVA_Other(x0,{CBOOL__FAIL;},{});
   CBOOL__LASTTEST(IsFloat(x0));
 }
 
 CBOOL__PROTO(bu1_integer, tagged_t x0) {
-  DerefSwitch0(x0,{CBOOL__FAIL;});
+  DerefSw_HVAorCVAorSVA_Other(x0,{CBOOL__FAIL;},{});
   CBOOL__LASTTEST(IsInteger(x0));
 }
 
 CBOOL__PROTO(bu1_number, tagged_t x0) {
-  DerefSwitch0(x0,{CBOOL__FAIL;});
+  DerefSw_HVAorCVAorSVA_Other(x0,{CBOOL__FAIL;},{});
   CBOOL__LASTTEST(IsNumber(x0));
 }
 
 CBOOL__PROTO(bu1_var, tagged_t x0) {
-  DerefSwitch0(x0,{CBOOL__PROCEED;});
+  DerefSw_HVAorCVAorSVA_Other(x0,{CBOOL__PROCEED;},{});
   CBOOL__FAIL;
 }
 
 CBOOL__PROTO(bu1_nonvar, tagged_t x0) {
-  DerefSwitch0(x0,{CBOOL__FAIL;});
+  DerefSw_HVAorCVAorSVA_Other(x0,{CBOOL__FAIL;},{});
   CBOOL__PROCEED;
 }
 

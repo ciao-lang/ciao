@@ -2467,7 +2467,7 @@ module_t *define_c_static_mod(char *module_name);
 { \
   tagged_t m_i; \
   RefHeap(m_i,Ptr); \
-  DerefSwitch0(m_i,{break;}) \
+  DerefSw_HVAorCVAorSVA_Other(m_i,{break;},{}); \
   Xderef = m_i; \
 }
 
@@ -2475,7 +2475,7 @@ module_t *define_c_static_mod(char *module_name);
 { \
   tagged_t m_i; \
   RefCar(m_i,Ptr); \
-  DerefSwitch0(m_i,{break;}) \
+  DerefSw_HVAorCVAorSVA_Other(m_i,{break;},{}); \
   Xderef = m_i; \
 }
 
@@ -2483,7 +2483,7 @@ module_t *define_c_static_mod(char *module_name);
 { \
   tagged_t m_i; \
   RefCdr(m_i,Ptr); \
-  DerefSwitch0(m_i,{break;}) \
+  DerefSw_HVAorCVAorSVA_Other(m_i,{break;},{}); \
   Xderef = m_i; \
 }
 
@@ -2491,7 +2491,7 @@ module_t *define_c_static_mod(char *module_name);
 { \
   tagged_t m_i; \
   m_i = *TaggedToArg(Ptr,I); \
-  DerefSwitch0(m_i,{break;}) \
+  DerefSw_HVAorCVAorSVA_Other(m_i,{break;},{}); \
   Xderef = m_i; \
 }
 
@@ -2499,7 +2499,7 @@ module_t *define_c_static_mod(char *module_name);
 { \
   tagged_t m_i; \
   RefHeapNext(m_i,Ptr); \
-  DerefSwitch0(m_i,{break;}) \
+  DerefSw_HVAorCVAorSVA_Other(m_i,{break;},{}); \
   Xderef = m_i; \
 }
 
@@ -2508,7 +2508,7 @@ module_t *define_c_static_mod(char *module_name);
 { \
   tagged_t m_i; \
   m_i = X; \
-  DerefSwitch0(m_i,;) \
+  DerefSw_HVAorCVAorSVA_Other(m_i,;,{}); \
   Xderef = m_i; \
 }
 
@@ -2534,7 +2534,7 @@ labelend: {} \
   __label__ derefsw_cva; \
   __label__ derefsw_other; \
   __label__ derefsw_end; \
-  DerefSwitch0((X),{ if (VarIsCVA((X))) goto derefsw_cva; }); \
+  DerefSw_HVAorCVAorSVA_Other((X),{ if (VarIsCVA((X))) goto derefsw_cva; },{}); \
   goto derefsw_other; \
  derefsw_cva: \
   CODE_CVA; \
@@ -2616,7 +2616,6 @@ labelend: {} \
     } while (IsVar(Reg=Aux)); \
   } \
 } while(0);
-#define DerefSwitch0(X, OnVar) DerefSw_HVAorCVAorSVA_Other(X, { OnVar; }, {});
 
 #define SwEval(V, HeadFunctor, NUMCode, LSTCode, BlobCode, STRCode, OtherCode) ({ \
   switch (TagOf((V))) { \

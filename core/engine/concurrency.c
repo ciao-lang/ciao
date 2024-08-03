@@ -55,7 +55,7 @@
 // {
 //   tagged_t x1 = (tagged_t)NULL;
 // 
-//   DerefSwitch0(t,;);
+//   DerefSw_HVAorCVAorSVA_Other(t,;,{});
 // 
 //   if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_Dlock)) {
 //     DerefArg(x1,t,1);
@@ -74,7 +74,7 @@
 // {
 //   tagged_t x1 = (tagged_t)NULL;
 // 
-//   DerefSwitch0(t,;);
+//   DerefSw_HVAorCVAorSVA_Other(t,;,{});
 // 
 //   if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_Dlock)) {
 //     DerefArg(x1,t,1);
