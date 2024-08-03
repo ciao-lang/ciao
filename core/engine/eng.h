@@ -2616,19 +2616,7 @@ labelend: {} \
     } while (IsVar(Reg=Aux)); \
   } \
 } while(0);
-#define DerefSwitch0(Reg,VarCode) do { \
-  tagged_t Aux; \
-  if (IsVar(Reg)) { \
-    for(;;) { \
-      Aux = *TaggedToPointer(Reg); \
-      if (Reg == Aux) { \
-        VarCode; \
-        break; \
-      } \
-      if (!IsVar(Reg=Aux)) break; \
-    } \
-  } \
-} while(0);
+#define DerefSwitch0(X, OnVar) DerefSw_HVAorCVAorSVA_Other(X, { OnVar; }, {});
 
 #define SwEval(V, HeadFunctor, NUMCode, LSTCode, BlobCode, STRCode, OtherCode) ({ \
   switch (TagOf((V))) { \
