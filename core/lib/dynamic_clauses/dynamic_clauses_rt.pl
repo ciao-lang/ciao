@@ -165,8 +165,9 @@ erase(Ref) :- datafacts_rt:erase(Ref).
 clause_head_and_body((H :- B),_T, H, B) :- !.
 clause_head_and_body(H, True, H, True).
 
+% TODO:[JF] not reachable due to "atom_expansion_add_goals(V, _, _, _, _, _, _) :- var(V), !, fail." in mexpand, fixme?
 % check_head(V, _, Spec, _) :- var(V), !,
-%         throw(error(instantiation_error, Spec)).
+%     throw(error(instantiation_error, Spec)).
 check_head(N, _, Spec, _) :- number(N), !,
     throw(error(type_error(callable, N), Spec)),
     fail.
@@ -174,7 +175,7 @@ check_head(H, _, Spec, _) :-
     '$predicate_property'(H, _, Prop),
     Prop/\2 =:= 0, !,  % not dynamic, xref rt_exp.c
     functor(H, F, A),
-    throw(error(permision_error(modify, static_procedure, F/A), Spec)),
+    throw(error(permission_error(modify, static_procedure, F/A), Spec)),
     fail.
 check_head(H, M, Spec, ClData) :-
     functor(H, F, A),
@@ -184,7 +185,7 @@ check_head(H, M, Spec, ClData) :-
       module_split(F, MN, _) ->
         module_concat(MN, '\3\clause', ClFun),
         functor(ClData, ClFun, 2)
-    ; throw(error(permision_error(modify, nonlocal_procedure, F/A),Spec)),
+    ; throw(error(permission_error(modify, nonlocal_procedure, F/A),Spec)),
       fail
     ).
 
