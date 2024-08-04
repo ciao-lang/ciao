@@ -546,11 +546,8 @@ sw_on_var(Reg, HVACode, CVACode, SVACode, NVACode) =>
     localv(tagged, Aux),
     callstmt('SwitchOnVar', [Reg, Aux, blk(HVACode), blk(CVACode), blk(SVACode), blk(NVACode)]).
 
-% TODO: deprecate
-:- rkind(deref_sw/3, []).
-deref_sw(Reg, Aux, VarCode) => callstmt('DerefSwitch', [Reg, Aux, blk(VarCode)]).
-:- rkind(deref_sw0/2, []).
-deref_sw0(Reg, VarCode) => callstmt('DerefSw_HVAorCVAorSVA_Other', [Reg, blk(VarCode), blk(';')]).
+:- rkind(deref_sw/2, []).
+deref_sw(Reg, VarCode) => callstmt('DerefSw_HVAorCVAorSVA_Other', [Reg, blk(VarCode), blk(';')]).
 
 unify_heap_atom(U,V) =>
     localv(tagged, T1, V),
@@ -2206,11 +2203,8 @@ pred_enter_builtin_instance =>
 pred_enter_builtin_geler =>
     [[ update(mode(w)) ]],
     pred_hook(tk_string("B")),
-    localv(tagged, T1, x(0)),
-    deref_sw0(T1,';'),
-    localv(tagged, T3),
-    T3 <- x(1),
-    deref_sw0(T3,';'),
+    localv(tagged, T1, x(0)), deref_sw(T1,';'),
+    localv(tagged, T3, x(1)), deref_sw(T3,';'),
     set_func(~find_definition(tk('predicates_location'),T3,addr((~w)^.structure),~true)),
     % suspend the goal  t3  on  t1.  Func, must be live.
     [[ mode(M) ]],
@@ -2223,23 +2217,23 @@ pred_enter_builtin_geler =>
 pred_enter_builtin_nodebugcall =>
     [[ update(mode(w)) ]],
     pred_hook(tk_string("B")),
+    deref_sw(x(0),';'),
     localv(tagged, T0, x(0)),
-    deref_sw(T0,x(0),';'),
     do_builtin_call(nodebugcall, T0).
 
 % Like pred_enter_builtin_call/0, but ignores Current_Debugger_Mode
 pred_enter_builtin_syscall =>
     [[ update(mode(w)) ]],
     pred_hook(tk_string("B")),
-    localv(tagged, T0, x(0)), 
-    deref_sw(T0,x(0),';'),
+    deref_sw(x(0),';'),
+    localv(tagged, T0, x(0)),
     do_builtin_call(syscall, T0).
 
 pred_enter_builtin_call =>
     [[ update(mode(w)) ]],
     pred_hook(tk_string("B")),
+    deref_sw(x(0),';'),
     localv(tagged, T0, x(0)),
-    deref_sw(T0,x(0),';'),
     do_builtin_call(call, T0).
 
 do_builtin_call(CallMode, T0) =>
@@ -2300,10 +2294,9 @@ pred_call_spypoint =>
 
 pred_call_waitpoint =>
     [[ update(mode(w)) ]],
-    localv(tagged, T0),
     localv(tagged, T1),
-    ref_heap(T0,(~w)^.structure),
-    deref_sw(T0,T1, (
+    ref_heap(T1,(~w)^.structure),
+    deref_sw(T1, (
        localv(tagged, T3),
        T3 <- x(0),
        % suspend the goal  t3  on  t1.  Func, must be live.
@@ -2335,8 +2328,8 @@ pred_call_default =>
 pred_enter_builtin_dif =>
     [[ update(mode(w)) ]],
     pred_hook(tk_string("B")),
-    localv(tagged, T0, x(0)), deref_sw0(T0,';'),
-    localv(tagged, T1, x(1)), deref_sw0(T1,';'),
+    localv(tagged, T0, x(0)), deref_sw(T0,';'),
+    localv(tagged, T1, x(1)), deref_sw(T1,';'),
     (~w)^.structure <- ~null,
     %goto('dif1'),
     % check fast cases first
@@ -2359,7 +2352,7 @@ pred_enter_builtin_abort =>
     [[ update(mode(w)) ]],
     % cut all the way and fail, leaving wam with a return code
     pred_hook(tk_string("B")),
-    localv(tagged, T0, x(0)), deref_sw0(T0,';'),
+    localv(tagged, T0, x(0)), deref_sw(T0,';'),
     (~w)^.misc^.exit_code <- ~get_small(T0),
     (~w)^.previous_choice <- tk('InitialChoice'),
     do_cut,
@@ -2375,9 +2368,9 @@ pred_enter_spypoint =>
 
 pred_enter_waitpoint =>
     [[ update(mode(w)) ]],
-    localv(tagged, T1, x(0)),
-    deref_sw(T1,x(0),(
+    deref_sw(x(0),(
       localv(tagged, T3),
+      localv(tagged, T1),
       emul_to_goal(T3), % (stores: t3)
       T1 <- x(0),
       if(~tagged_is(sva,T1), % t1 may have been globalised
@@ -2399,8 +2392,8 @@ pred_enter_breakpoint =>
 pred_enter_compactcode_indexed =>
     [[ update(mode(w)) ]],
     pred_hook(tk_string("E")),
+    deref_sw(x(0), jump_tryeach((~func)^.code.incoreinfo^.varcase)),
     localv(tagged, T0, x(0)),
-    deref_sw(T0,x(0), jump_tryeach((~func)^.code.incoreinfo^.varcase)),
     localv(tagged, T1),
     setmode(r),
     % non variable

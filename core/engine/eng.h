@@ -2605,18 +2605,6 @@ labelend: {} \
   } \
 } while(0);
 
-#define DerefSwitch(Reg,Aux,VarCode) do { \
-  if (IsVar(Reg)) { \
-    do { \
-      Aux = *TaggedToPointer(Reg); \
-      if (Reg == Aux) { \
-        VarCode; \
-        break; \
-      } \
-    } while (IsVar(Reg=Aux)); \
-  } \
-} while(0);
-
 #define SwEval(V, HeadFunctor, NUMCode, LSTCode, BlobCode, STRCode, OtherCode) ({ \
   switch (TagOf((V))) { \
   case NUM: NUMCode; break; \
