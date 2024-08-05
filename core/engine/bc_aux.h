@@ -1262,19 +1262,19 @@ CBOOL__PROTO(cunify, tagged_t x1, tagged_t x2) {
 
 static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
 {
-  tagged_t u, v, t1;
+  tagged_t u, v;
 
  in:
   u=x1, v=x2;
 
-  SwitchOnVar(u,t1,
+  DerefSw_HVA_CVA_SVA_Other(u,
               {goto u_is_hva;},
               {goto u_is_cva;},
               {goto u_is_sva;},
               ;);
 
                                 /* one non variable */
-  SwitchOnVar(v,t1,
+  DerefSw_HVA_CVA_SVA_Other(v,
               { BindHVA(v,u); goto win; },
               { BindCVA(v,u); goto win; },
               { BindSVA(v,u); goto win; },
@@ -1297,6 +1297,7 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
     }
   else                          /* structure. */
     {
+      tagged_t t1;
       v ^= u;                   /* restore v */
       if (TaggedToHeadfunctor(u) != (t1=TaggedToHeadfunctor(v)))
         goto lose;
@@ -1315,7 +1316,7 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
     }
 
  u_is_hva:
-  SwitchOnVar(v,t1,
+  DerefSw_HVA_CVA_SVA_Other(v,
               { if (u==v)
                   ;
                 else if (YoungerHeapVar(TagpPtr(HVA,v),TagpPtr(HVA,u)))
@@ -1328,7 +1329,7 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
   goto win;
 
  u_is_cva:
-  SwitchOnVar(v,t1,
+  DerefSw_HVA_CVA_SVA_Other(v,
               { BindHVA(v,u); },
               { if (u==v)
                   ;
@@ -1341,8 +1342,8 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
   goto win;
 
  u_is_sva:
-  for (; TaggedIsSVA(v); v = t1)
-    {
+  { tagged_t t1;
+    for (; TaggedIsSVA(v); v = t1) {
       RefSVA(t1,v);
       if (v == t1)
         {
@@ -1355,6 +1356,7 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
           goto win;
         }
     }
+  }
   BindSVA(u,v);
 
  win:

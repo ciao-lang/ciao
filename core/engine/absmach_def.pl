@@ -543,8 +543,7 @@ sw_on_heap_var(Reg, HVACode, CVACode, NVACode) =>
 
 :- rkind(sw_on_var/5, []).
 sw_on_var(Reg, HVACode, CVACode, SVACode, NVACode) =>
-    localv(tagged, Aux),
-    callstmt('SwitchOnVar', [Reg, Aux, blk(HVACode), blk(CVACode), blk(SVACode), blk(NVACode)]).
+    callstmt('DerefSw_HVA_CVA_SVA_Other', [Reg, blk(HVACode), blk(CVACode), blk(SVACode), blk(NVACode)]).
 
 :- rkind(deref_sw/2, []).
 deref_sw(Reg, VarCode) => callstmt('DerefSw_HVAorCVAorSVA_Other', [Reg, blk(VarCode), blk(';')]).

@@ -100,20 +100,20 @@ static CBOOL__PROTO(cinstance_aux,
                     tagged_t x2,
                     intmach_t *n)
 {
-  tagged_t u, v, t1, nt;
+  tagged_t u, v, nt;
 
  in:
   u=x1, v=x2;
 
   nt = MakeSmall(*n);
-  SwitchOnVar(u,t1,
+  DerefSw_HVA_CVA_SVA_Other(u,
               { goto u_is_hva; },
               { goto lose; }, /* CVAs are not supported */
               { goto u_is_sva; },
               { goto one_non_var; });
   /* note that if deref(u) == deref(v), the following code must do nothing */
  u_is_hva:
-  SwitchOnVar(v,t1,
+  DerefSw_HVA_CVA_SVA_Other(v,
               { BindHVA(v, nt); },
               { goto lose; }, /* CVAs are not supported */
               { BindSVA(v, nt); },
@@ -122,7 +122,7 @@ static CBOOL__PROTO(cinstance_aux,
   goto var_win;
 
  u_is_sva:
-  SwitchOnVar(v,t1,
+  DerefSw_HVA_CVA_SVA_Other(v,
               { BindHVA(v, nt); },
               { goto lose; }, /* CVAs are not supported */
               { BindSVA(v, nt); },
@@ -136,7 +136,7 @@ static CBOOL__PROTO(cinstance_aux,
 
  one_non_var:
                                 /* one non variable */
-  SwitchOnVar(v,t1,
+  DerefSw_HVA_CVA_SVA_Other(v,
               { BindHVA(v,u); goto win; },
               { BindCVA(v,u); goto win; },
               { BindSVA(v,u); goto win; },
@@ -159,6 +159,7 @@ static CBOOL__PROTO(cinstance_aux,
     }
   else                          /* structure. */
     {
+      tagged_t t1;
       v ^= u;                   /* restore v */
       if (TaggedToHeadfunctor(u) != (t1=TaggedToHeadfunctor(v)))
         goto lose;

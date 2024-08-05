@@ -83,10 +83,10 @@ CVOID__PROTO(push_frame, int arity) {
  * and unify copy with New.
  */
 CBOOL__PROTO(prolog_copy_term) {
-  tagged_t t1, t2, *pt1, *pt2;
+  tagged_t t1, *pt1, *pt2;
 
   t1 = X(0);
-  SwitchOnVar(t1,t2,
+  DerefSw_HVA_CVA_SVA_Other(t1,
               { return TRUE; },
               {},
               { return TRUE; },
@@ -178,10 +178,10 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
 /* Do not copy attributes */
 CBOOL__PROTO(prolog_copy_term_nat)
 {
-  tagged_t t1, t2, *pt1, *pt2;
+  tagged_t t1, *pt1, *pt2;
 
   t1 = X(0);
-  SwitchOnVar(t1,t2,
+  DerefSw_HVA_CVA_SVA_Other(t1,
               { return TRUE; },
               { return TRUE; },
               { return TRUE; },
@@ -522,12 +522,12 @@ static CBOOL__PROTO(var_occurs_args_aux,
 }
 
 static CBOOL__PROTO(var_occurs, tagged_t v, tagged_t x1) {
-  tagged_t u, t1;
+  tagged_t u;
 
  in:
   u=x1;
 
-  SwitchOnVar(u,t1,
+  DerefSw_HVA_CVA_SVA_Other(u,
               { goto var; },
               { goto var; },
               { goto var; },
@@ -542,6 +542,7 @@ static CBOOL__PROTO(var_occurs, tagged_t v, tagged_t x1) {
     else
       goto win;
   } else { /* structure. */
+    tagged_t t1;
     t1=TaggedToHeadfunctor(u);
     if (t1&QMask) { /* large number */
           goto lose;
@@ -646,19 +647,19 @@ CBOOL__PROTO(cunifyOC, tagged_t x1, tagged_t x2) {
   { if (CBOOL__SUCCEED(var_occurs, (U), (V))) { OCCUR; } }
 
 static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
-  tagged_t u, v, t1;
+  tagged_t u, v;
 
  in:
   u=x1, v=x2;
 
-  SwitchOnVar(u,t1,
+  DerefSw_HVA_CVA_SVA_Other(u,
               {goto u_is_hva;},
               {goto u_is_cva;},
               {goto u_is_sva;},
               {});
 
                                 /* one non variable */
-  SwitchOnVar(v,t1,
+  DerefSw_HVA_CVA_SVA_Other(v,
               { OccurCheck(v,u,{goto lose;}); BindHVA(v,u); goto win; },
               { OccurCheck(v,u,{goto lose;}); BindCVA(v,u); goto win; },
               { OccurCheck(v,u,{goto lose;}); BindSVA(v,u); goto win; },
@@ -679,6 +680,7 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
       goto lose;
     }
   } else {                              /* structure. */
+    tagged_t t1;
     v ^= u;                     /* restore v */
     if (TaggedToHeadfunctor(u) != (t1=TaggedToHeadfunctor(v))) {
       goto lose;
@@ -697,7 +699,7 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
   }
 
  u_is_hva:
-  SwitchOnVar(v,t1, {
+  DerefSw_HVA_CVA_SVA_Other(v, {
       if (u==v) {
       } else if (YoungerHeapVar(TagpPtr(HVA,v),TagpPtr(HVA,u))) {
         BindHVA(v,u);
@@ -714,7 +716,7 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
   goto win;
 
  u_is_cva:
-  SwitchOnVar(v,t1, {
+  DerefSw_HVA_CVA_SVA_Other(v, {
       BindHVA(v,u);
     }, { if (u==v) {
       } else if (YoungerHeapVar(TagpPtr(CVA,v),TagpPtr(CVA,u))) {
@@ -730,16 +732,18 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
   goto win;
 
  u_is_sva:
-  for (; TaggedIsSVA(v); v = t1) {
-    RefSVA(t1,v);
-    if (v == t1) {
-      if (u==v) {
-      } else if (YoungerStackVar(TagpPtr(SVA,v),TagpPtr(SVA,u))) {
-        BindSVA(v,u);
-      } else {
-        BindSVA(u,v);
+  { tagged_t t1;
+    for (; TaggedIsSVA(v); v = t1) {
+      RefSVA(t1,v);
+      if (v == t1) {
+        if (u==v) {
+        } else if (YoungerStackVar(TagpPtr(SVA,v),TagpPtr(SVA,u))) {
+          BindSVA(v,u);
+        } else {
+          BindSVA(u,v);
+        }
+        goto win;
       }
-      goto win;
     }
   }
   OccurCheck(u,v,{ goto lose; }); BindSVA(u,v);

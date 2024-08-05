@@ -2546,30 +2546,32 @@ labelend: {} \
 }
 
 //TODO:[merge-oc] DerefSw_HVA_CVA_SVA_Other?
-#define SwitchOnVar(Reg,Aux,HVACode,CVACode,SVACode,NVACode) \
-{ \
-    for (;;) \
-      { \
-          if (!IsVar(Reg)) \
-            NVACode \
-          else if (Reg & TagBitSVA) \
-            { RefSVA(Aux,Reg); \
-              if (Reg!=Aux) { Reg=Aux; continue; } \
-              else SVACode \
-            } \
-          else if (!(Reg & TagBitCVA)) \
-            { RefHVA(Aux,Reg); \
-              if (Reg!=Aux) { Reg=Aux; continue; } \
-              else HVACode \
-            } \
-          else \
-            { Aux = *TagpPtr(CVA,(Reg)); \
-              if (Reg!=Aux) { Reg=Aux; continue; } \
-              else CVACode \
-            } \
-          break; \
-        } \
-}
+#define DerefSw_HVA_CVA_SVA_Other(Reg,HVACode,CVACode,SVACode,OtherCode) do { \
+  __label__ derefsw_hva; \
+  __label__ derefsw_cva; \
+  __label__ derefsw_sva; \
+  __label__ derefsw_other; \
+  __label__ derefsw_end; \
+  for (;;) { \
+    Sw_HVA_CVA_SVA_Other(Reg, { \
+      tagged_t aux_ = *TagpPtr(HVA,Reg); \
+      if (Reg!=aux_) { Reg=aux_; } else { goto derefsw_hva; } \
+    },{ \
+      tagged_t aux_ = *TagpPtr(CVA,Reg); \
+      if (Reg!=aux_) { Reg=aux_; } else { goto derefsw_cva; } \
+    },{ \
+      tagged_t aux_ = *TagpPtr(SVA,Reg); \
+      if (Reg!=aux_) { Reg=aux_; } else { goto derefsw_sva; } \
+    },{ \
+      goto derefsw_other; \
+    }); \
+  } \
+derefsw_hva: HVACode; goto derefsw_end; \
+derefsw_cva: CVACode; goto derefsw_end; \
+derefsw_sva: SVACode; goto derefsw_end; \
+derefsw_other: OtherCode; goto derefsw_end; \
+derefsw_end: {} \
+} while(0)
 
 #define SwitchOnHeapVar(Reg,Aux,HVACode,CVACode,NVACode) \
 { \
@@ -3125,11 +3127,11 @@ void failc(char *mesg);
 }
 
 #define CBOOL__UnifyCons(U,V) \
-{ tagged_t m_t0, m_u=U, m_t1=V; \
-  SwitchOnVar(m_t1,m_t0,{BindHVA(m_t1,m_u);}, \
+{ tagged_t m_u=U, m_t1=V; \
+  DerefSw_HVA_CVA_SVA_Other(m_t1,{BindHVA(m_t1,m_u);}, \
                     {BindCVA(m_t1,m_u);}, \
                     {BindSVA(m_t1,m_u);}, \
-                    {if (m_t1!=m_u) return FALSE;}) \
+               {if (m_t1!=m_u) return FALSE;}); \
 }
 
 /* =========================================================================== */

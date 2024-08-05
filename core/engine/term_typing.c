@@ -104,11 +104,10 @@ CBOOL__PROTO(cground) {
 
 static CBOOL__PROTO(cground_aux, tagged_t x1) {
   tagged_t u;
-  tagged_t t1;
 
  in:
   u=x1;
-  SwitchOnVar(u,t1,
+  DerefSw_HVA_CVA_SVA_Other(u,
               { goto lose; },
               { goto lose; }, /* CVAs are not supported */
               { goto lose; },

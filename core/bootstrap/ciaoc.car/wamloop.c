@@ -332,8 +332,7 @@ DerefSw_HVAorCVAorSVA_Other(vr14,{
 ,{
 ;    }
 );
-tagged_t vr15;
-vr15 = X(1);
+tagged_t vr15 = X(1);
 DerefSw_HVAorCVAorSVA_Other(vr15,{
 ;    }
 ,{
@@ -1140,8 +1139,7 @@ case 97:
 r_op97:
 {
 tagged_t vr46 = Xb(BcP(f_x,0));
-tagged_t vr47;
-SwitchOnVar(vr46,vr47,{
+DerefSw_HVA_CVA_SVA_Other(vr46,{
 BindHVA(vr46,BcP(f_t,0+Fs(f_x)));
     }
 ,{
@@ -1168,20 +1166,19 @@ case 255:
 {
 r_op255:
 {
-{tagged_t vr48;
-vr48 = Xb(BcP(f_x,0));
-tagged_t vr49;
-SwitchOnVar(vr48,vr49,{
-BindHVA(vr48,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_x))));
+{tagged_t vr47;
+vr47 = Xb(BcP(f_x,0));
+DerefSw_HVA_CVA_SVA_Other(vr47,{
+BindHVA(vr47,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_x))));
     }
 ,{
-BindCVA(vr48,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_x))));
+BindCVA(vr47,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_x))));
     }
 ,{
-BindSVA(vr48,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_x))));
+BindSVA(vr47,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_x))));
     }
 ,{
-BC_EqBlob(vr48,&BcP(f_t,0+Fs(f_x)),{
+BC_EqBlob(vr47,&BcP(f_t,0+Fs(f_x)),{
 goto fail;
       }
 )    }
@@ -1197,35 +1194,34 @@ case 99:
 {
 r_op99:
 {
-tagged_t vr50 = Xb(BcP(f_x,0));
-tagged_t vr51;
-SwitchOnVar(vr50,vr51,{
+tagged_t vr48 = Xb(BcP(f_x,0));
+DerefSw_HVA_CVA_SVA_Other(vr48,{
 H = w->heap_top;
-BindHVA(vr50,Tagp(STR,H));
+BindHVA(vr48,Tagp(STR,H));
 HeapPush(H,BcP(f_f,0+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_f);
 goto w_dispatch;
     }
 ,{
 H = w->heap_top;
-BindCVA(vr50,Tagp(STR,H));
+BindCVA(vr48,Tagp(STR,H));
 HeapPush(H,BcP(f_f,0+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_f);
 goto w_dispatch;
     }
 ,{
 H = w->heap_top;
-BindSVA(vr50,Tagp(STR,H));
+BindSVA(vr48,Tagp(STR,H));
 HeapPush(H,BcP(f_f,0+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_f);
 goto w_dispatch;
     }
 ,{
-if (!TaggedIsSTR(vr50)||TaggedToHeadfunctor(vr50)!=BcP(f_f,0+Fs(f_x))) {
+if (!TaggedIsSTR(vr48)||TaggedToHeadfunctor(vr48)!=BcP(f_f,0+Fs(f_x))) {
 goto fail;
       }
 
-S = TaggedToArg(vr50,1);
+S = TaggedToArg(vr48,1);
 P+=Fs(f_x)+Fs(f_f);
 goto r_dispatch;
     }
@@ -1236,19 +1232,18 @@ case 100:
 {
 r_op100:
 {
-tagged_t vr52 = Xb(BcP(f_x,0));
-tagged_t vr53;
-SwitchOnVar(vr52,vr53,{
-BindHVA(vr52,atom_nil);
+tagged_t vr49 = Xb(BcP(f_x,0));
+DerefSw_HVA_CVA_SVA_Other(vr49,{
+BindHVA(vr49,atom_nil);
     }
 ,{
-BindCVA(vr52,atom_nil);
+BindCVA(vr49,atom_nil);
     }
 ,{
-BindSVA(vr52,atom_nil);
+BindSVA(vr49,atom_nil);
     }
 ,{
-if (vr52!=atom_nil) {
+if (vr49!=atom_nil) {
 goto fail;
       }
 
@@ -1262,32 +1257,31 @@ case 101:
 {
 r_op101:
 {
-{tagged_t vr54 = Xb(BcP(f_x,0));
-tagged_t vr55;
-SwitchOnVar(vr54,vr55,{
+{tagged_t vr50 = Xb(BcP(f_x,0));
+DerefSw_HVA_CVA_SVA_Other(vr50,{
 H = w->heap_top;
-BindHVA(vr54,Tagp(LST,H));
+BindHVA(vr50,Tagp(LST,H));
 P+=Fs(f_x);
 goto w_dispatch;
     }
 ,{
 H = w->heap_top;
-BindCVA(vr54,Tagp(LST,H));
+BindCVA(vr50,Tagp(LST,H));
 P+=Fs(f_x);
 goto w_dispatch;
     }
 ,{
 H = w->heap_top;
-BindSVA(vr54,Tagp(LST,H));
+BindSVA(vr50,Tagp(LST,H));
 P+=Fs(f_x);
 goto w_dispatch;
     }
 ,{
-if (!TermIsLST(vr54)) {
+if (!TermIsLST(vr50)) {
 goto fail;
       }
 
-S = TagpPtr(LST,vr54);
+S = TagpPtr(LST,vr50);
 P+=Fs(f_x);
 goto r_dispatch;
     }
@@ -1301,19 +1295,18 @@ case 112:
 {
 r_op112:
 {
-tagged_t vr56 = Xb(BcP(f_x,0));
-tagged_t vr57;
-SwitchOnVar(vr56,vr57,{
-BindHVA(vr56,BcP(f_t,0+Fs(f_x)));
+tagged_t vr51 = Xb(BcP(f_x,0));
+DerefSw_HVA_CVA_SVA_Other(vr51,{
+BindHVA(vr51,BcP(f_t,0+Fs(f_x)));
     }
 ,{
-BindCVA(vr56,BcP(f_t,0+Fs(f_x)));
+BindCVA(vr51,BcP(f_t,0+Fs(f_x)));
     }
 ,{
-BindSVA(vr56,BcP(f_t,0+Fs(f_x)));
+BindSVA(vr51,BcP(f_t,0+Fs(f_x)));
     }
 ,{
-if (vr56!=BcP(f_t,0+Fs(f_x))) {
+if (vr51!=BcP(f_t,0+Fs(f_x))) {
 goto fail;
       }
 
@@ -1327,19 +1320,18 @@ case 113:
 {
 r_op113:
 {
-tagged_t vr58 = Xb(BcP(f_x,0));
-tagged_t vr59;
-SwitchOnVar(vr58,vr59,{
-BindHVA(vr58,atom_nil);
+tagged_t vr52 = Xb(BcP(f_x,0));
+DerefSw_HVA_CVA_SVA_Other(vr52,{
+BindHVA(vr52,atom_nil);
     }
 ,{
-BindCVA(vr58,atom_nil);
+BindCVA(vr52,atom_nil);
     }
 ,{
-BindSVA(vr58,atom_nil);
+BindSVA(vr52,atom_nil);
     }
 ,{
-if (vr58!=atom_nil) {
+if (vr52!=atom_nil) {
 goto fail;
       }
 
@@ -1455,9 +1447,9 @@ case 218:
 {
 r_op218:
 {
-tagged_t vr60;
-vr60 = Yb(BcP(f_y,0));
-w->previous_choice = ChoiceFromTagged(vr60);
+tagged_t vr53;
+vr53 = Yb(BcP(f_y,0));
+w->previous_choice = ChoiceFromTagged(vr53);
 PROFILE__HOOK_CUT;
 B = w->previous_choice;
 SetChoice(B);
@@ -1518,8 +1510,8 @@ goto r_op64;
 case 104:
 {
 {
-tagged_t vr61 = X(0);
-S = TaggedToArg(vr61,1);
+tagged_t vr54 = X(0);
+S = TaggedToArg(vr54,1);
 P+=Fs(f_Q)+Fs(f_f);
 goto r_dispatch;
     }
@@ -1527,8 +1519,8 @@ goto r_dispatch;
 case 105:
 {
 {
-tagged_t vr62 = X(0);
-S = TaggedToArg(vr62,1);
+tagged_t vr55 = X(0);
+S = TaggedToArg(vr55,1);
 P+=Fs(f_f);
 goto r_dispatch;
     }
@@ -1536,21 +1528,20 @@ goto r_dispatch;
 case 256:
 {
 {
-tagged_t vr63 = X(0);
-{tagged_t vr64;
-vr64 = vr63;
-tagged_t vr65;
-SwitchOnVar(vr64,vr65,{
-BindHVA(vr64,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_Q))));
+tagged_t vr56 = X(0);
+{tagged_t vr57;
+vr57 = vr56;
+DerefSw_HVA_CVA_SVA_Other(vr57,{
+BindHVA(vr57,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_Q))));
     }
 ,{
-BindCVA(vr64,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_Q))));
+BindCVA(vr57,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_Q))));
     }
 ,{
-BindSVA(vr64,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_Q))));
+BindSVA(vr57,BC_MakeBlob(w,&BcP(f_t,0+Fs(f_Q))));
     }
 ,{
-BC_EqBlob(vr64,&BcP(f_t,0+Fs(f_Q)),{
+BC_EqBlob(vr57,&BcP(f_t,0+Fs(f_Q)),{
 goto fail;
       }
 )    }
@@ -1562,21 +1553,20 @@ goto r_dispatch;
 case 257:
 {
 {
-tagged_t vr66 = X(0);
-{tagged_t vr67;
-vr67 = vr66;
-tagged_t vr68;
-SwitchOnVar(vr67,vr68,{
-BindHVA(vr67,BC_MakeBlob(w,&BcP(f_t,0)));
+tagged_t vr58 = X(0);
+{tagged_t vr59;
+vr59 = vr58;
+DerefSw_HVA_CVA_SVA_Other(vr59,{
+BindHVA(vr59,BC_MakeBlob(w,&BcP(f_t,0)));
     }
 ,{
-BindCVA(vr67,BC_MakeBlob(w,&BcP(f_t,0)));
+BindCVA(vr59,BC_MakeBlob(w,&BcP(f_t,0)));
     }
 ,{
-BindSVA(vr67,BC_MakeBlob(w,&BcP(f_t,0)));
+BindSVA(vr59,BC_MakeBlob(w,&BcP(f_t,0)));
     }
 ,{
-BC_EqBlob(vr67,&BcP(f_t,0),{
+BC_EqBlob(vr59,&BcP(f_t,0),{
 goto fail;
       }
 )    }
@@ -1597,8 +1587,8 @@ goto r_dispatch;
 case 107:
 {
 {
-tagged_t vr69 = X(0);
-S = TagpPtr(LST,vr69);
+tagged_t vr60 = X(0);
+S = TagpPtr(LST,vr60);
 P+=0;
 goto r_dispatch;
     }
@@ -1637,9 +1627,9 @@ case 222:
 r_op222:
 {
 w->liveinfo = &BcP(f_l,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_C));
-tagged_t vr70 = (tagged_t)((ctagged1_t)BcP(f_C,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x))));
-Xb(BcP(f_x,0+Fs(f_Q))) = vr70;
-if (ERRORTAG==vr70) {
+tagged_t vr61 = (tagged_t)((ctagged1_t)BcP(f_C,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x))));
+Xb(BcP(f_x,0+Fs(f_Q))) = vr61;
+if (ERRORTAG==vr61) {
 goto fail;
     }
 
@@ -1652,9 +1642,9 @@ case 223:
 r_op223:
 {
 w->liveinfo = &BcP(f_l,0+Fs(f_x)+Fs(f_x)+Fs(f_C));
-tagged_t vr71 = (tagged_t)((ctagged1_t)BcP(f_C,0+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_x))));
-Xb(BcP(f_x,0)) = vr71;
-if (ERRORTAG==vr71) {
+tagged_t vr62 = (tagged_t)((ctagged1_t)BcP(f_C,0+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_x))));
+Xb(BcP(f_x,0)) = vr62;
+if (ERRORTAG==vr62) {
 goto fail;
     }
 
@@ -1667,9 +1657,9 @@ case 224:
 r_op224:
 {
 w->liveinfo = &BcP(f_l,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C));
-tagged_t vr72 = (tagged_t)((ctagged2_t)BcP(f_C,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x))),Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x)+Fs(f_x))));
-Xb(BcP(f_x,0+Fs(f_Q))) = vr72;
-if (ERRORTAG==vr72) {
+tagged_t vr63 = (tagged_t)((ctagged2_t)BcP(f_C,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x))),Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x)+Fs(f_x))));
+Xb(BcP(f_x,0+Fs(f_Q))) = vr63;
+if (ERRORTAG==vr63) {
 goto fail;
     }
 
@@ -1682,9 +1672,9 @@ case 225:
 r_op225:
 {
 w->liveinfo = &BcP(f_l,0+Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C));
-tagged_t vr73 = (tagged_t)((ctagged2_t)BcP(f_C,0+Fs(f_x)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_x))),Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x))));
-Xb(BcP(f_x,0)) = vr73;
-if (ERRORTAG==vr73) {
+tagged_t vr64 = (tagged_t)((ctagged2_t)BcP(f_C,0+Fs(f_x)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_x))),Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x))));
+Xb(BcP(f_x,0)) = vr64;
+if (ERRORTAG==vr64) {
 goto fail;
     }
 
@@ -1823,9 +1813,9 @@ case 121:
 {
 r_op121:
 {
-{tagged_t vr74;
-RefHeapNext(vr74,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr74)) {
+{tagged_t vr65;
+RefHeapNext(vr65,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr65)) {
 goto fail;
     }
 
@@ -1844,13 +1834,13 @@ goto r_dispatch;
 case 124:
 {
 {
-{tagged_t vr75;
-RefHeapNext(vr75,S);
+{tagged_t vr66;
+RefHeapNext(vr66,S);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
     }
 
-Yb(BcP(f_y,0)) = vr75;
+Yb(BcP(f_y,0)) = vr66;
 }P+=Fs(f_y);
 goto r_dispatch;
     }
@@ -1861,9 +1851,9 @@ case 126:
 {
 r_op126:
 {
-{tagged_t vr76;
-RefHeapNext(vr76,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr76)) {
+{tagged_t vr67;
+RefHeapNext(vr67,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr67)) {
 goto fail;
     }
 
@@ -1878,18 +1868,18 @@ case 128:
 {
 r_op128:
 {
-tagged_t vr77;
-RefHeapNext(vr77,S);
-tagged_t vr78 = vr77;
-tagged_t vr79;
-SwitchOnHeapVar(vr78,vr79,{
-BindHVA(vr78,BcP(f_t,0));
+tagged_t vr68;
+RefHeapNext(vr68,S);
+tagged_t vr69 = vr68;
+tagged_t vr70;
+SwitchOnHeapVar(vr69,vr70,{
+BindHVA(vr69,BcP(f_t,0));
     }
 ,{
-BindCVA(vr78,BcP(f_t,0));
+BindCVA(vr69,BcP(f_t,0));
     }
 ,{
-if (vr78!=BcP(f_t,0)) {
+if (vr69!=BcP(f_t,0)) {
 goto fail;
       }
 
@@ -1906,18 +1896,18 @@ case 259:
 {
 r_op259:
 {
-tagged_t vr80;
-RefHeapNext(vr80,S);
-{tagged_t vr81 = vr80;
-tagged_t vr82;
-SwitchOnHeapVar(vr81,vr82,{
-BindHVA(vr81,BC_MakeBlob(w,&BcP(f_t,0)));
+tagged_t vr71;
+RefHeapNext(vr71,S);
+{tagged_t vr72 = vr71;
+tagged_t vr73;
+SwitchOnHeapVar(vr72,vr73,{
+BindHVA(vr72,BC_MakeBlob(w,&BcP(f_t,0)));
     }
 ,{
-BindCVA(vr81,BC_MakeBlob(w,&BcP(f_t,0)));
+BindCVA(vr72,BC_MakeBlob(w,&BcP(f_t,0)));
     }
 ,{
-BC_EqBlob(vr81,&BcP(f_t,0),{
+BC_EqBlob(vr72,&BcP(f_t,0),{
 goto fail;
       }
 )    }
@@ -1933,30 +1923,30 @@ case 130:
 {
 r_op130:
 {
-tagged_t vr83;
-RefHeapNext(vr83,S);
-tagged_t vr84 = vr83;
-tagged_t vr85;
-SwitchOnHeapVar(vr84,vr85,{
+tagged_t vr74;
+RefHeapNext(vr74,S);
+tagged_t vr75 = vr74;
+tagged_t vr76;
+SwitchOnHeapVar(vr75,vr76,{
 H = w->heap_top;
-BindHVA(vr84,Tagp(STR,H));
+BindHVA(vr75,Tagp(STR,H));
 HeapPush(H,BcP(f_f,0));
 P+=Fs(f_f);
 goto w_dispatch;
     }
 ,{
 H = w->heap_top;
-BindCVA(vr84,Tagp(STR,H));
+BindCVA(vr75,Tagp(STR,H));
 HeapPush(H,BcP(f_f,0));
 P+=Fs(f_f);
 goto w_dispatch;
     }
 ,{
-if (!TaggedIsSTR(vr84)||TaggedToHeadfunctor(vr84)!=BcP(f_f,0)) {
+if (!TaggedIsSTR(vr75)||TaggedToHeadfunctor(vr75)!=BcP(f_f,0)) {
 goto fail;
       }
 
-S = TaggedToArg(vr84,1);
+S = TaggedToArg(vr75,1);
 P+=Fs(f_f);
 goto r_dispatch;
     }
@@ -1964,6 +1954,89 @@ goto r_dispatch;
     }
     }
 case 131:
+{
+{
+tagged_t vr77;
+RefHeapNext(vr77,S);
+tagged_t vr78 = vr77;
+tagged_t vr79;
+SwitchOnHeapVar(vr78,vr79,{
+BindHVA(vr78,atom_nil);
+    }
+,{
+BindCVA(vr78,atom_nil);
+    }
+,{
+if (vr78!=atom_nil) {
+goto fail;
+      }
+
+    }
+);
+P+=0;
+goto r_dispatch;
+    }
+    }
+case 132:
+{
+{
+tagged_t vr80;
+RefHeapNext(vr80,S);
+{tagged_t vr81 = vr80;
+tagged_t vr82;
+SwitchOnHeapVar(vr81,vr82,{
+H = w->heap_top;
+BindHVA(vr81,Tagp(LST,H));
+P+=0;
+goto w_dispatch;
+    }
+,{
+H = w->heap_top;
+BindCVA(vr81,Tagp(LST,H));
+P+=0;
+goto w_dispatch;
+    }
+,{
+if (!TermIsLST(vr81)) {
+goto fail;
+      }
+
+S = TagpPtr(LST,vr81);
+P+=0;
+goto r_dispatch;
+    }
+);
+}    }
+    }
+case 133:
+P+=Fs(f_Q);
+goto r_op134;
+case 134:
+{
+r_op134:
+{
+tagged_t vr83;
+RefHeapNext(vr83,S);
+tagged_t vr84 = vr83;
+tagged_t vr85;
+SwitchOnHeapVar(vr84,vr85,{
+BindHVA(vr84,BcP(f_t,0));
+    }
+,{
+BindCVA(vr84,BcP(f_t,0));
+    }
+,{
+if (vr84!=BcP(f_t,0)) {
+goto fail;
+      }
+
+    }
+);
+H = w->heap_top;
+goto w_op66;
+    }
+    }
+case 135:
 {
 {
 tagged_t vr86;
@@ -1978,89 +2051,6 @@ BindCVA(vr87,atom_nil);
     }
 ,{
 if (vr87!=atom_nil) {
-goto fail;
-      }
-
-    }
-);
-P+=0;
-goto r_dispatch;
-    }
-    }
-case 132:
-{
-{
-tagged_t vr89;
-RefHeapNext(vr89,S);
-{tagged_t vr90 = vr89;
-tagged_t vr91;
-SwitchOnHeapVar(vr90,vr91,{
-H = w->heap_top;
-BindHVA(vr90,Tagp(LST,H));
-P+=0;
-goto w_dispatch;
-    }
-,{
-H = w->heap_top;
-BindCVA(vr90,Tagp(LST,H));
-P+=0;
-goto w_dispatch;
-    }
-,{
-if (!TermIsLST(vr90)) {
-goto fail;
-      }
-
-S = TagpPtr(LST,vr90);
-P+=0;
-goto r_dispatch;
-    }
-);
-}    }
-    }
-case 133:
-P+=Fs(f_Q);
-goto r_op134;
-case 134:
-{
-r_op134:
-{
-tagged_t vr92;
-RefHeapNext(vr92,S);
-tagged_t vr93 = vr92;
-tagged_t vr94;
-SwitchOnHeapVar(vr93,vr94,{
-BindHVA(vr93,BcP(f_t,0));
-    }
-,{
-BindCVA(vr93,BcP(f_t,0));
-    }
-,{
-if (vr93!=BcP(f_t,0)) {
-goto fail;
-      }
-
-    }
-);
-H = w->heap_top;
-goto w_op66;
-    }
-    }
-case 135:
-{
-{
-tagged_t vr95;
-RefHeapNext(vr95,S);
-tagged_t vr96 = vr95;
-tagged_t vr97;
-SwitchOnHeapVar(vr96,vr97,{
-BindHVA(vr96,atom_nil);
-    }
-,{
-BindCVA(vr96,atom_nil);
-    }
-,{
-if (vr96!=atom_nil) {
 goto fail;
       }
 
@@ -2091,9 +2081,9 @@ case 138:
 r_op138:
 {
 S = HeapOffset(S,BcP(f_i,0));
-{tagged_t vr98;
-RefHeapNext(vr98,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_i))),vr98)) {
+{tagged_t vr89;
+RefHeapNext(vr89,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_i))),vr89)) {
 goto fail;
     }
 
@@ -2105,13 +2095,13 @@ case 141:
 {
 {
 S = HeapOffset(S,BcP(f_i,0));
-{tagged_t vr99;
-RefHeapNext(vr99,S);
+{tagged_t vr90;
+RefHeapNext(vr90,S);
 if (CondStackvar(Yb(BcP(f_y,0+Fs(f_i))))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_i)))));
     }
 
-Yb(BcP(f_y,0+Fs(f_i))) = vr99;
+Yb(BcP(f_y,0+Fs(f_i))) = vr90;
 }P+=Fs(f_i)+Fs(f_y);
 goto r_dispatch;
     }
@@ -2123,9 +2113,9 @@ case 143:
 r_op143:
 {
 S = HeapOffset(S,BcP(f_i,0));
-{tagged_t vr100;
-RefHeapNext(vr100,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_i))),vr100)) {
+{tagged_t vr91;
+RefHeapNext(vr91,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_i))),vr91)) {
 goto fail;
     }
 
@@ -2159,9 +2149,9 @@ case 147:
 r_op147:
 {
 RefHeapNext(Xb(BcP(f_x,0)),S);
-{tagged_t vr101;
-RefHeapNext(vr101,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_x))),vr101)) {
+{tagged_t vr92;
+RefHeapNext(vr92,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_x))),vr92)) {
 goto fail;
     }
 
@@ -2173,13 +2163,13 @@ case 150:
 {
 {
 RefHeapNext(Xb(BcP(f_x,0)),S);
-{tagged_t vr102;
-RefHeapNext(vr102,S);
+{tagged_t vr93;
+RefHeapNext(vr93,S);
 if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
     }
 
-Yb(BcP(f_y,0+Fs(f_x))) = vr102;
+Yb(BcP(f_y,0+Fs(f_x))) = vr93;
 }P+=Fs(f_x)+Fs(f_y);
 goto r_dispatch;
     }
@@ -2191,9 +2181,9 @@ case 152:
 r_op152:
 {
 RefHeapNext(Xb(BcP(f_x,0)),S);
-{tagged_t vr103;
-RefHeapNext(vr103,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_x))),vr103)) {
+{tagged_t vr94;
+RefHeapNext(vr94,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_x))),vr94)) {
 goto fail;
     }
 
@@ -2241,9 +2231,9 @@ case 162:
 r_op162:
 {
 RefHeapNext(Yb(BcP(f_y,0)),S);
-{tagged_t vr104;
-RefHeapNext(vr104,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_y))),vr104)) {
+{tagged_t vr95;
+RefHeapNext(vr95,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_y))),vr95)) {
 goto fail;
     }
 
@@ -2264,9 +2254,9 @@ case 166:
 r_op166:
 {
 RefHeapNext(Yb(BcP(f_y,0)),S);
-{tagged_t vr105;
-RefHeapNext(vr105,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_y))),vr105)) {
+{tagged_t vr96;
+RefHeapNext(vr96,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_y))),vr96)) {
 goto fail;
     }
 
@@ -2277,13 +2267,13 @@ goto r_dispatch;
 case 185:
 {
 {
-{tagged_t vr106;
-RefHeapNext(vr106,S);
+{tagged_t vr97;
+RefHeapNext(vr97,S);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
     }
 
-Yb(BcP(f_y,0)) = vr106;
+Yb(BcP(f_y,0)) = vr97;
 }S = HeapOffset(S,BcP(f_i,0+Fs(f_y)));
 P+=Fs(f_y)+Fs(f_i);
 goto r_dispatch;
@@ -2292,13 +2282,13 @@ goto r_dispatch;
 case 188:
 {
 {
-{tagged_t vr107;
-RefHeapNext(vr107,S);
+{tagged_t vr98;
+RefHeapNext(vr98,S);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
     }
 
-Yb(BcP(f_y,0)) = vr107;
+Yb(BcP(f_y,0)) = vr98;
 }RefHeapNext(Xb(BcP(f_x,0+Fs(f_y))),S);
 P+=Fs(f_y)+Fs(f_x);
 goto r_dispatch;
@@ -2307,20 +2297,20 @@ goto r_dispatch;
 case 199:
 {
 {
-{tagged_t vr108;
-RefHeapNext(vr108,S);
+{tagged_t vr99;
+RefHeapNext(vr99,S);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
     }
 
-Yb(BcP(f_y,0)) = vr108;
-}{tagged_t vr109;
-RefHeapNext(vr109,S);
+Yb(BcP(f_y,0)) = vr99;
+}{tagged_t vr100;
+RefHeapNext(vr100,S);
 if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
     }
 
-Yb(BcP(f_y,0+Fs(f_y))) = vr109;
+Yb(BcP(f_y,0+Fs(f_y))) = vr100;
 }P+=Fs(f_y)+Fs(f_y);
 goto r_dispatch;
     }
@@ -2331,16 +2321,16 @@ case 196:
 {
 r_op196:
 {
-{tagged_t vr110;
-RefHeapNext(vr110,S);
+{tagged_t vr101;
+RefHeapNext(vr101,S);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
     }
 
-Yb(BcP(f_y,0)) = vr110;
-}{tagged_t vr111;
-RefHeapNext(vr111,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_y))),vr111)) {
+Yb(BcP(f_y,0)) = vr101;
+}{tagged_t vr102;
+RefHeapNext(vr102,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_y))),vr102)) {
 goto fail;
     }
 
@@ -2354,16 +2344,16 @@ case 205:
 {
 r_op205:
 {
-{tagged_t vr112;
-RefHeapNext(vr112,S);
+{tagged_t vr103;
+RefHeapNext(vr103,S);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
     }
 
-Yb(BcP(f_y,0)) = vr112;
-}{tagged_t vr113;
-RefHeapNext(vr113,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_y))),vr113)) {
+Yb(BcP(f_y,0)) = vr103;
+}{tagged_t vr104;
+RefHeapNext(vr104,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_y))),vr104)) {
 goto fail;
     }
 
@@ -2377,9 +2367,9 @@ case 168:
 {
 r_op168:
 {
-{tagged_t vr114;
-RefHeapNext(vr114,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr114)) {
+{tagged_t vr105;
+RefHeapNext(vr105,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr105)) {
 goto fail;
     }
 
@@ -2394,9 +2384,9 @@ case 170:
 {
 r_op170:
 {
-{tagged_t vr115;
-RefHeapNext(vr115,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr115)) {
+{tagged_t vr106;
+RefHeapNext(vr106,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr106)) {
 goto fail;
     }
 
@@ -2417,9 +2407,9 @@ case 174:
 {
 r_op174:
 {
-{tagged_t vr116;
-RefHeapNext(vr116,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr116)) {
+{tagged_t vr107;
+RefHeapNext(vr107,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr107)) {
 goto fail;
     }
 
@@ -2440,15 +2430,15 @@ case 178:
 {
 r_op178:
 {
-{tagged_t vr117;
-RefHeapNext(vr117,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr117)) {
+{tagged_t vr108;
+RefHeapNext(vr108,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr108)) {
 goto fail;
     }
 
-}{tagged_t vr118;
-RefHeapNext(vr118,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_x))),vr118)) {
+}{tagged_t vr109;
+RefHeapNext(vr109,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_x))),vr109)) {
 goto fail;
     }
 
@@ -2462,19 +2452,19 @@ case 180:
 {
 r_op180:
 {
-{tagged_t vr119;
-RefHeapNext(vr119,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr119)) {
+{tagged_t vr110;
+RefHeapNext(vr110,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr110)) {
 goto fail;
     }
 
-}{tagged_t vr120;
-RefHeapNext(vr120,S);
+}{tagged_t vr111;
+RefHeapNext(vr111,S);
 if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
     }
 
-Yb(BcP(f_y,0+Fs(f_x))) = vr120;
+Yb(BcP(f_y,0+Fs(f_x))) = vr111;
 }P+=Fs(f_x)+Fs(f_y);
 goto r_dispatch;
     }
@@ -2491,15 +2481,15 @@ case 184:
 {
 r_op184:
 {
-{tagged_t vr121;
-RefHeapNext(vr121,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr121)) {
+{tagged_t vr112;
+RefHeapNext(vr112,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0)),vr112)) {
 goto fail;
     }
 
-}{tagged_t vr122;
-RefHeapNext(vr122,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_x))),vr122)) {
+}{tagged_t vr113;
+RefHeapNext(vr113,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_x))),vr113)) {
 goto fail;
     }
 
@@ -2513,9 +2503,9 @@ case 187:
 {
 r_op187:
 {
-{tagged_t vr123;
-RefHeapNext(vr123,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr123)) {
+{tagged_t vr114;
+RefHeapNext(vr114,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr114)) {
 goto fail;
     }
 
@@ -2530,9 +2520,9 @@ case 190:
 {
 r_op190:
 {
-{tagged_t vr124;
-RefHeapNext(vr124,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr124)) {
+{tagged_t vr115;
+RefHeapNext(vr115,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr115)) {
 goto fail;
     }
 
@@ -2547,9 +2537,9 @@ case 192:
 {
 r_op192:
 {
-{tagged_t vr125;
-RefHeapNext(vr125,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr125)) {
+{tagged_t vr116;
+RefHeapNext(vr116,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr116)) {
 goto fail;
     }
 
@@ -2564,19 +2554,19 @@ case 201:
 {
 r_op201:
 {
-{tagged_t vr126;
-RefHeapNext(vr126,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr126)) {
+{tagged_t vr117;
+RefHeapNext(vr117,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr117)) {
 goto fail;
     }
 
-}{tagged_t vr127;
-RefHeapNext(vr127,S);
+}{tagged_t vr118;
+RefHeapNext(vr118,S);
 if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
     }
 
-Yb(BcP(f_y,0+Fs(f_y))) = vr127;
+Yb(BcP(f_y,0+Fs(f_y))) = vr118;
 }P+=Fs(f_y)+Fs(f_y);
 goto r_dispatch;
     }
@@ -2593,15 +2583,15 @@ case 198:
 {
 r_op198:
 {
-{tagged_t vr128;
-RefHeapNext(vr128,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr128)) {
+{tagged_t vr119;
+RefHeapNext(vr119,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr119)) {
 goto fail;
     }
 
-}{tagged_t vr129;
-RefHeapNext(vr129,S);
-if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_y))),vr129)) {
+}{tagged_t vr120;
+RefHeapNext(vr120,S);
+if (!CBOOL__SUCCEED(cunify,Xb(BcP(f_x,0+Fs(f_y))),vr120)) {
 goto fail;
     }
 
@@ -2621,15 +2611,15 @@ case 207:
 {
 r_op207:
 {
-{tagged_t vr130;
-RefHeapNext(vr130,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr130)) {
+{tagged_t vr121;
+RefHeapNext(vr121,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0)),vr121)) {
 goto fail;
     }
 
-}{tagged_t vr131;
-RefHeapNext(vr131,S);
-if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_y))),vr131)) {
+}{tagged_t vr122;
+RefHeapNext(vr122,S);
+if (!CBOOL__SUCCEED(cunify,Yb(BcP(f_y,0+Fs(f_y))),vr122)) {
 goto fail;
     }
 
@@ -2698,10 +2688,10 @@ B->next_alt = w->next_alt;
 B->frame = w->frame;
 B->next_insn = w->next_insn;
 B->local_top = w->local_top;
-intmach_t vr132 = ChoiceArity(B);
-for (intmach_t vr133 = 0;
-vr133<vr132;vr133++) {
-B->x[vr133] = w->x[vr133];
+intmach_t vr123 = ChoiceArity(B);
+for (intmach_t vr124 = 0;
+vr124<vr123;vr124++) {
+B->x[vr124] = w->x[vr124];
         }
 
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
@@ -2752,11 +2742,11 @@ INCR_COUNTER(alts->entry_counter);
 #endif
 P = alts->emul_p;
 w->previous_choice = w->choice;
-try_node_t * vr134 = alts->next;
-if (vr134!=NULL) {
+try_node_t * vr125 = alts->next;
+if (vr125!=NULL) {
 B = w->choice;
 GetFrameTop(w->local_top,B,G->frame);
-CODE_CHOICE_NEW0(B,vr134,H);
+CODE_CHOICE_NEW0(B,vr125,H);
 ON_DEBUG({
 if (debug_choicepoints) {
 fprintf(stderr,"WAM created choicepoint (r), node = %p\n",w->choice);
@@ -2783,9 +2773,9 @@ case 260:
 w_op260:
 {
 CODE_ALLOC(E);
-for (intmach_t vr135 = BcP(f_e,0)-sizeof(tagged_t);
-vr135>=EToY0*sizeof(tagged_t);vr135-=sizeof(tagged_t)) {
-LoadSVA(Yb(vr135));
+for (intmach_t vr126 = BcP(f_e,0)-sizeof(tagged_t);
+vr126>=EToY0*sizeof(tagged_t);vr126-=sizeof(tagged_t)) {
+LoadSVA(Yb(vr126));
     }
 
 goto firsttrue;
@@ -2795,13 +2785,13 @@ case 261:
 {
 w_op261:
 {
-intmach_t vr136 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
+intmach_t vr127 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 P+=Fs(f_i);
-for (intmach_t vr137 = vr136;
-vr137>0;vr137--) {
-tagged_t vr138 = BcP(f_y,0);
+for (intmach_t vr128 = vr127;
+vr128>0;vr128--) {
+tagged_t vr129 = BcP(f_y,0);
 P+=Fs(f_y);
-LoadSVA(Yb(vr138));
+LoadSVA(Yb(vr129));
     }
 
 goto firsttrue;
@@ -2827,9 +2817,9 @@ case 1:
 w_op1:
 {
 CODE_ALLOC(E);
-for (intmach_t vr139 = BcP(f_e,0+Fs(f_E))-sizeof(tagged_t);
-vr139>=EToY0*sizeof(tagged_t);vr139-=sizeof(tagged_t)) {
-LoadSVA(Yb(vr139));
+for (intmach_t vr130 = BcP(f_e,0+Fs(f_E))-sizeof(tagged_t);
+vr130>=EToY0*sizeof(tagged_t);vr130-=sizeof(tagged_t)) {
+LoadSVA(Yb(vr130));
     }
 
 goto w_op3;
@@ -2842,13 +2832,13 @@ case 21:
 {
 w_op21:
 {
-intmach_t vr140 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
+intmach_t vr131 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 P+=Fs(f_i);
-for (intmach_t vr141 = vr140;
-vr141>8;vr141--) {
-tagged_t vr142 = BcP(f_y,0);
+for (intmach_t vr132 = vr131;
+vr132>8;vr132--) {
+tagged_t vr133 = BcP(f_y,0);
 P+=Fs(f_y);
-LoadSVA(Yb(vr142));
+LoadSVA(Yb(vr133));
     }
 
 goto w_op19;
@@ -2862,9 +2852,9 @@ case 19:
 w_op19:
 {
 {
-tagged_t vr143 = BcP(f_y,0);
+tagged_t vr134 = BcP(f_y,0);
 P+=Fs(f_y);
-LoadSVA(Yb(vr143));
+LoadSVA(Yb(vr134));
     }
 goto w_op17;
     }
@@ -2877,9 +2867,9 @@ case 17:
 w_op17:
 {
 {
-tagged_t vr144 = BcP(f_y,0);
+tagged_t vr135 = BcP(f_y,0);
 P+=Fs(f_y);
-LoadSVA(Yb(vr144));
+LoadSVA(Yb(vr135));
     }
 goto w_op15;
     }
@@ -2892,9 +2882,9 @@ case 15:
 w_op15:
 {
 {
-tagged_t vr145 = BcP(f_y,0);
+tagged_t vr136 = BcP(f_y,0);
 P+=Fs(f_y);
-LoadSVA(Yb(vr145));
+LoadSVA(Yb(vr136));
     }
 goto w_op13;
     }
@@ -2907,9 +2897,9 @@ case 13:
 w_op13:
 {
 {
-tagged_t vr146 = BcP(f_y,0);
+tagged_t vr137 = BcP(f_y,0);
 P+=Fs(f_y);
-LoadSVA(Yb(vr146));
+LoadSVA(Yb(vr137));
     }
 goto w_op11;
     }
@@ -2922,9 +2912,9 @@ case 11:
 w_op11:
 {
 {
-tagged_t vr147 = BcP(f_y,0);
+tagged_t vr138 = BcP(f_y,0);
 P+=Fs(f_y);
-LoadSVA(Yb(vr147));
+LoadSVA(Yb(vr138));
     }
 goto w_op9;
     }
@@ -2937,9 +2927,9 @@ case 9:
 w_op9:
 {
 {
-tagged_t vr148 = BcP(f_y,0);
+tagged_t vr139 = BcP(f_y,0);
 P+=Fs(f_y);
-LoadSVA(Yb(vr148));
+LoadSVA(Yb(vr139));
     }
 goto w_op7;
     }
@@ -2952,9 +2942,9 @@ case 7:
 w_op7:
 {
 {
-tagged_t vr149 = BcP(f_y,0);
+tagged_t vr140 = BcP(f_y,0);
 P+=Fs(f_y);
-LoadSVA(Yb(vr149));
+LoadSVA(Yb(vr140));
     }
 goto w_op5;
     }
@@ -2967,9 +2957,9 @@ case 5:
 w_op5:
 {
 {
-tagged_t vr150 = BcP(f_y,0);
+tagged_t vr141 = BcP(f_y,0);
 P+=Fs(f_y);
-LoadSVA(Yb(vr150));
+LoadSVA(Yb(vr141));
     }
 goto w_op3;
     }
@@ -2997,37 +2987,37 @@ case 41:
 {
 w_op41:
 {
-intmach_t vr151 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
+intmach_t vr142 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 P+=Fs(f_i);
-for (intmach_t vr152 = vr151;
-vr152>8;vr152--) {
-tagged_t vr153 = BcP(f_z,0);
+for (intmach_t vr143 = vr142;
+vr143>8;vr143--) {
+tagged_t vr144 = BcP(f_z,0);
 P+=Fs(f_z);
-if (vr153&1) {
-tagged_t vr154;
-tagged_t vr155;
-vr154 = Yb(vr153+1);
-if (TaggedIsSVA(vr154)) {
+if (vr144&1) {
+tagged_t vr145;
+tagged_t vr146;
+vr145 = Yb(vr144+1);
+if (TaggedIsSVA(vr145)) {
 do {
-RefSVA(vr155,vr154);
-if (vr155==vr154) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr154)) {
-LoadHVA(vr154,H);
-BindSVA(vr155,vr154);
+RefSVA(vr146,vr145);
+if (vr146==vr145) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr145)) {
+LoadHVA(vr145,H);
+BindSVA(vr146,vr145);
               }
 
 break;
             }
 
-vr154 = vr155;
+vr145 = vr146;
           }
- while (TaggedIsSVA(vr154));
+ while (TaggedIsSVA(vr145));
         }
 
-X(vr152-1) = vr154;
+X(vr143-1) = vr145;
       }
  else {
-X(vr152-1) = Yb(vr153);
+X(vr143-1) = Yb(vr144);
       }
 
     }
@@ -3041,6 +3031,129 @@ goto w_op39;
 case 39:
 {
 w_op39:
+{
+{
+tagged_t vr147 = BcP(f_z,0);
+P+=Fs(f_z);
+if (vr147&1) {
+tagged_t vr148;
+tagged_t vr149;
+vr148 = Yb(vr147+1);
+if (TaggedIsSVA(vr148)) {
+do {
+RefSVA(vr149,vr148);
+if (vr149==vr148) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr148)) {
+LoadHVA(vr148,H);
+BindSVA(vr149,vr148);
+            }
+
+break;
+          }
+
+vr148 = vr149;
+        }
+ while (TaggedIsSVA(vr148));
+      }
+
+X(7) = vr148;
+    }
+ else {
+X(7) = Yb(vr147);
+    }
+
+    }
+goto w_op37;
+    }
+    }
+case 36:
+P+=Fs(f_Q);
+goto w_op37;
+case 37:
+{
+w_op37:
+{
+{
+tagged_t vr150 = BcP(f_z,0);
+P+=Fs(f_z);
+if (vr150&1) {
+tagged_t vr151;
+tagged_t vr152;
+vr151 = Yb(vr150+1);
+if (TaggedIsSVA(vr151)) {
+do {
+RefSVA(vr152,vr151);
+if (vr152==vr151) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr151)) {
+LoadHVA(vr151,H);
+BindSVA(vr152,vr151);
+            }
+
+break;
+          }
+
+vr151 = vr152;
+        }
+ while (TaggedIsSVA(vr151));
+      }
+
+X(6) = vr151;
+    }
+ else {
+X(6) = Yb(vr150);
+    }
+
+    }
+goto w_op35;
+    }
+    }
+case 34:
+P+=Fs(f_Q);
+goto w_op35;
+case 35:
+{
+w_op35:
+{
+{
+tagged_t vr153 = BcP(f_z,0);
+P+=Fs(f_z);
+if (vr153&1) {
+tagged_t vr154;
+tagged_t vr155;
+vr154 = Yb(vr153+1);
+if (TaggedIsSVA(vr154)) {
+do {
+RefSVA(vr155,vr154);
+if (vr155==vr154) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr154)) {
+LoadHVA(vr154,H);
+BindSVA(vr155,vr154);
+            }
+
+break;
+          }
+
+vr154 = vr155;
+        }
+ while (TaggedIsSVA(vr154));
+      }
+
+X(5) = vr154;
+    }
+ else {
+X(5) = Yb(vr153);
+    }
+
+    }
+goto w_op33;
+    }
+    }
+case 32:
+P+=Fs(f_Q);
+goto w_op33;
+case 33:
+{
+w_op33:
 {
 {
 tagged_t vr156 = BcP(f_z,0);
@@ -3066,22 +3179,22 @@ vr157 = vr158;
  while (TaggedIsSVA(vr157));
       }
 
-X(7) = vr157;
+X(4) = vr157;
     }
  else {
-X(7) = Yb(vr156);
+X(4) = Yb(vr156);
     }
 
     }
-goto w_op37;
+goto w_op31;
     }
     }
-case 36:
+case 30:
 P+=Fs(f_Q);
-goto w_op37;
-case 37:
+goto w_op31;
+case 31:
 {
-w_op37:
+w_op31:
 {
 {
 tagged_t vr159 = BcP(f_z,0);
@@ -3107,22 +3220,22 @@ vr160 = vr161;
  while (TaggedIsSVA(vr160));
       }
 
-X(6) = vr160;
+X(3) = vr160;
     }
  else {
-X(6) = Yb(vr159);
+X(3) = Yb(vr159);
     }
 
     }
-goto w_op35;
+goto w_op29;
     }
     }
-case 34:
+case 28:
 P+=Fs(f_Q);
-goto w_op35;
-case 35:
+goto w_op29;
+case 29:
 {
-w_op35:
+w_op29:
 {
 {
 tagged_t vr162 = BcP(f_z,0);
@@ -3148,22 +3261,22 @@ vr163 = vr164;
  while (TaggedIsSVA(vr163));
       }
 
-X(5) = vr163;
+X(2) = vr163;
     }
  else {
-X(5) = Yb(vr162);
+X(2) = Yb(vr162);
     }
 
     }
-goto w_op33;
+goto w_op27;
     }
     }
-case 32:
+case 26:
 P+=Fs(f_Q);
-goto w_op33;
-case 33:
+goto w_op27;
+case 27:
 {
-w_op33:
+w_op27:
 {
 {
 tagged_t vr165 = BcP(f_z,0);
@@ -3189,22 +3302,22 @@ vr166 = vr167;
  while (TaggedIsSVA(vr166));
       }
 
-X(4) = vr166;
+X(1) = vr166;
     }
  else {
-X(4) = Yb(vr165);
+X(1) = Yb(vr165);
     }
 
     }
-goto w_op31;
+goto w_op25;
     }
     }
-case 30:
+case 24:
 P+=Fs(f_Q);
-goto w_op31;
-case 31:
+goto w_op25;
+case 25:
 {
-w_op31:
+w_op25:
 {
 {
 tagged_t vr168 = BcP(f_z,0);
@@ -3230,133 +3343,10 @@ vr169 = vr170;
  while (TaggedIsSVA(vr169));
       }
 
-X(3) = vr169;
+X(0) = vr169;
     }
  else {
-X(3) = Yb(vr168);
-    }
-
-    }
-goto w_op29;
-    }
-    }
-case 28:
-P+=Fs(f_Q);
-goto w_op29;
-case 29:
-{
-w_op29:
-{
-{
-tagged_t vr171 = BcP(f_z,0);
-P+=Fs(f_z);
-if (vr171&1) {
-tagged_t vr172;
-tagged_t vr173;
-vr172 = Yb(vr171+1);
-if (TaggedIsSVA(vr172)) {
-do {
-RefSVA(vr173,vr172);
-if (vr173==vr172) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr172)) {
-LoadHVA(vr172,H);
-BindSVA(vr173,vr172);
-            }
-
-break;
-          }
-
-vr172 = vr173;
-        }
- while (TaggedIsSVA(vr172));
-      }
-
-X(2) = vr172;
-    }
- else {
-X(2) = Yb(vr171);
-    }
-
-    }
-goto w_op27;
-    }
-    }
-case 26:
-P+=Fs(f_Q);
-goto w_op27;
-case 27:
-{
-w_op27:
-{
-{
-tagged_t vr174 = BcP(f_z,0);
-P+=Fs(f_z);
-if (vr174&1) {
-tagged_t vr175;
-tagged_t vr176;
-vr175 = Yb(vr174+1);
-if (TaggedIsSVA(vr175)) {
-do {
-RefSVA(vr176,vr175);
-if (vr176==vr175) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr175)) {
-LoadHVA(vr175,H);
-BindSVA(vr176,vr175);
-            }
-
-break;
-          }
-
-vr175 = vr176;
-        }
- while (TaggedIsSVA(vr175));
-      }
-
-X(1) = vr175;
-    }
- else {
-X(1) = Yb(vr174);
-    }
-
-    }
-goto w_op25;
-    }
-    }
-case 24:
-P+=Fs(f_Q);
-goto w_op25;
-case 25:
-{
-w_op25:
-{
-{
-tagged_t vr177 = BcP(f_z,0);
-P+=Fs(f_z);
-if (vr177&1) {
-tagged_t vr178;
-tagged_t vr179;
-vr178 = Yb(vr177+1);
-if (TaggedIsSVA(vr178)) {
-do {
-RefSVA(vr179,vr178);
-if (vr179==vr178) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr178)) {
-LoadHVA(vr178,H);
-BindSVA(vr179,vr178);
-            }
-
-break;
-          }
-
-vr178 = vr179;
-        }
- while (TaggedIsSVA(vr178));
-      }
-
-X(0) = vr178;
-    }
- else {
-X(0) = Yb(vr177);
+X(0) = Yb(vr168);
     }
 
     }
@@ -3378,37 +3368,37 @@ case 61:
 {
 w_op61:
 {
-intmach_t vr180 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
+intmach_t vr171 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 P+=Fs(f_i);
-for (intmach_t vr181 = vr180;
-vr181>8;vr181--) {
-tagged_t vr182 = BcP(f_z,0);
+for (intmach_t vr172 = vr171;
+vr172>8;vr172--) {
+tagged_t vr173 = BcP(f_z,0);
 P+=Fs(f_z);
-if (vr182&1) {
-tagged_t vr183;
-tagged_t vr184;
-vr183 = Yb(vr182+1);
-if (TaggedIsSVA(vr183)) {
+if (vr173&1) {
+tagged_t vr174;
+tagged_t vr175;
+vr174 = Yb(vr173+1);
+if (TaggedIsSVA(vr174)) {
 do {
-RefSVA(vr184,vr183);
-if (vr184==vr183) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr183)) {
-LoadHVA(vr183,H);
-BindSVA(vr184,vr183);
+RefSVA(vr175,vr174);
+if (vr175==vr174) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr174)) {
+LoadHVA(vr174,H);
+BindSVA(vr175,vr174);
               }
 
 break;
             }
 
-vr183 = vr184;
+vr174 = vr175;
           }
- while (TaggedIsSVA(vr183));
+ while (TaggedIsSVA(vr174));
         }
 
-X(vr181-1) = vr183;
+X(vr172-1) = vr174;
       }
  else {
-X(vr181-1) = Yb(vr182);
+X(vr172-1) = Yb(vr173);
       }
 
     }
@@ -3422,6 +3412,129 @@ goto w_op59;
 case 59:
 {
 w_op59:
+{
+{
+tagged_t vr176 = BcP(f_z,0);
+P+=Fs(f_z);
+if (vr176&1) {
+tagged_t vr177;
+tagged_t vr178;
+vr177 = Yb(vr176+1);
+if (TaggedIsSVA(vr177)) {
+do {
+RefSVA(vr178,vr177);
+if (vr178==vr177) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr177)) {
+LoadHVA(vr177,H);
+BindSVA(vr178,vr177);
+            }
+
+break;
+          }
+
+vr177 = vr178;
+        }
+ while (TaggedIsSVA(vr177));
+      }
+
+X(7) = vr177;
+    }
+ else {
+X(7) = Yb(vr176);
+    }
+
+    }
+goto w_op57;
+    }
+    }
+case 56:
+P+=Fs(f_Q);
+goto w_op57;
+case 57:
+{
+w_op57:
+{
+{
+tagged_t vr179 = BcP(f_z,0);
+P+=Fs(f_z);
+if (vr179&1) {
+tagged_t vr180;
+tagged_t vr181;
+vr180 = Yb(vr179+1);
+if (TaggedIsSVA(vr180)) {
+do {
+RefSVA(vr181,vr180);
+if (vr181==vr180) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr180)) {
+LoadHVA(vr180,H);
+BindSVA(vr181,vr180);
+            }
+
+break;
+          }
+
+vr180 = vr181;
+        }
+ while (TaggedIsSVA(vr180));
+      }
+
+X(6) = vr180;
+    }
+ else {
+X(6) = Yb(vr179);
+    }
+
+    }
+goto w_op55;
+    }
+    }
+case 54:
+P+=Fs(f_Q);
+goto w_op55;
+case 55:
+{
+w_op55:
+{
+{
+tagged_t vr182 = BcP(f_z,0);
+P+=Fs(f_z);
+if (vr182&1) {
+tagged_t vr183;
+tagged_t vr184;
+vr183 = Yb(vr182+1);
+if (TaggedIsSVA(vr183)) {
+do {
+RefSVA(vr184,vr183);
+if (vr184==vr183) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr183)) {
+LoadHVA(vr183,H);
+BindSVA(vr184,vr183);
+            }
+
+break;
+          }
+
+vr183 = vr184;
+        }
+ while (TaggedIsSVA(vr183));
+      }
+
+X(5) = vr183;
+    }
+ else {
+X(5) = Yb(vr182);
+    }
+
+    }
+goto w_op53;
+    }
+    }
+case 52:
+P+=Fs(f_Q);
+goto w_op53;
+case 53:
+{
+w_op53:
 {
 {
 tagged_t vr185 = BcP(f_z,0);
@@ -3447,22 +3560,22 @@ vr186 = vr187;
  while (TaggedIsSVA(vr186));
       }
 
-X(7) = vr186;
+X(4) = vr186;
     }
  else {
-X(7) = Yb(vr185);
+X(4) = Yb(vr185);
     }
 
     }
-goto w_op57;
+goto w_op51;
     }
     }
-case 56:
+case 50:
 P+=Fs(f_Q);
-goto w_op57;
-case 57:
+goto w_op51;
+case 51:
 {
-w_op57:
+w_op51:
 {
 {
 tagged_t vr188 = BcP(f_z,0);
@@ -3488,22 +3601,22 @@ vr189 = vr190;
  while (TaggedIsSVA(vr189));
       }
 
-X(6) = vr189;
+X(3) = vr189;
     }
  else {
-X(6) = Yb(vr188);
+X(3) = Yb(vr188);
     }
 
     }
-goto w_op55;
+goto w_op49;
     }
     }
-case 54:
+case 48:
 P+=Fs(f_Q);
-goto w_op55;
-case 55:
+goto w_op49;
+case 49:
 {
-w_op55:
+w_op49:
 {
 {
 tagged_t vr191 = BcP(f_z,0);
@@ -3529,22 +3642,22 @@ vr192 = vr193;
  while (TaggedIsSVA(vr192));
       }
 
-X(5) = vr192;
+X(2) = vr192;
     }
  else {
-X(5) = Yb(vr191);
+X(2) = Yb(vr191);
     }
 
     }
-goto w_op53;
+goto w_op47;
     }
     }
-case 52:
+case 46:
 P+=Fs(f_Q);
-goto w_op53;
-case 53:
+goto w_op47;
+case 47:
 {
-w_op53:
+w_op47:
 {
 {
 tagged_t vr194 = BcP(f_z,0);
@@ -3570,22 +3683,22 @@ vr195 = vr196;
  while (TaggedIsSVA(vr195));
       }
 
-X(4) = vr195;
+X(1) = vr195;
     }
  else {
-X(4) = Yb(vr194);
+X(1) = Yb(vr194);
     }
 
     }
-goto w_op51;
+goto w_op45;
     }
     }
-case 50:
+case 44:
 P+=Fs(f_Q);
-goto w_op51;
-case 51:
+goto w_op45;
+case 45:
 {
-w_op51:
+w_op45:
 {
 {
 tagged_t vr197 = BcP(f_z,0);
@@ -3611,133 +3724,10 @@ vr198 = vr199;
  while (TaggedIsSVA(vr198));
       }
 
-X(3) = vr198;
+X(0) = vr198;
     }
  else {
-X(3) = Yb(vr197);
-    }
-
-    }
-goto w_op49;
-    }
-    }
-case 48:
-P+=Fs(f_Q);
-goto w_op49;
-case 49:
-{
-w_op49:
-{
-{
-tagged_t vr200 = BcP(f_z,0);
-P+=Fs(f_z);
-if (vr200&1) {
-tagged_t vr201;
-tagged_t vr202;
-vr201 = Yb(vr200+1);
-if (TaggedIsSVA(vr201)) {
-do {
-RefSVA(vr202,vr201);
-if (vr202==vr201) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr201)) {
-LoadHVA(vr201,H);
-BindSVA(vr202,vr201);
-            }
-
-break;
-          }
-
-vr201 = vr202;
-        }
- while (TaggedIsSVA(vr201));
-      }
-
-X(2) = vr201;
-    }
- else {
-X(2) = Yb(vr200);
-    }
-
-    }
-goto w_op47;
-    }
-    }
-case 46:
-P+=Fs(f_Q);
-goto w_op47;
-case 47:
-{
-w_op47:
-{
-{
-tagged_t vr203 = BcP(f_z,0);
-P+=Fs(f_z);
-if (vr203&1) {
-tagged_t vr204;
-tagged_t vr205;
-vr204 = Yb(vr203+1);
-if (TaggedIsSVA(vr204)) {
-do {
-RefSVA(vr205,vr204);
-if (vr205==vr204) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr204)) {
-LoadHVA(vr204,H);
-BindSVA(vr205,vr204);
-            }
-
-break;
-          }
-
-vr204 = vr205;
-        }
- while (TaggedIsSVA(vr204));
-      }
-
-X(1) = vr204;
-    }
- else {
-X(1) = Yb(vr203);
-    }
-
-    }
-goto w_op45;
-    }
-    }
-case 44:
-P+=Fs(f_Q);
-goto w_op45;
-case 45:
-{
-w_op45:
-{
-{
-tagged_t vr206 = BcP(f_z,0);
-P+=Fs(f_z);
-if (vr206&1) {
-tagged_t vr207;
-tagged_t vr208;
-vr207 = Yb(vr206+1);
-if (TaggedIsSVA(vr207)) {
-do {
-RefSVA(vr208,vr207);
-if (vr208==vr207) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr207)) {
-LoadHVA(vr207,H);
-BindSVA(vr208,vr207);
-            }
-
-break;
-          }
-
-vr207 = vr208;
-        }
- while (TaggedIsSVA(vr207));
-      }
-
-X(0) = vr207;
-    }
- else {
-X(0) = Yb(vr206);
+X(0) = Yb(vr197);
     }
 
     }
@@ -3769,11 +3759,11 @@ case 70:
 w_op70:
 {
 {
-tagged_t vr209;
-vr209 = Tagp(HVA,H);
-Xb(BcP(f_x,0+Fs(f_x))) = vr209;
-Xb(BcP(f_x,0)) = vr209;
-HeapPush(H,vr209);
+tagged_t vr200;
+vr200 = Tagp(HVA,H);
+Xb(BcP(f_x,0+Fs(f_x))) = vr200;
+Xb(BcP(f_x,0)) = vr200;
+HeapPush(H,vr200);
     }
 P+=Fs(f_x)+Fs(f_x);
 goto w_dispatch;
@@ -3792,30 +3782,30 @@ case 72:
 {
 w_op72:
 {
-tagged_t vr210;
-tagged_t vr211;
-tagged_t vr212;
-vr211 = Xb(BcP(f_x,0+Fs(f_x)));
-if (TaggedIsSVA(vr211)) {
+tagged_t vr201;
+tagged_t vr202;
+tagged_t vr203;
+vr202 = Xb(BcP(f_x,0+Fs(f_x)));
+if (TaggedIsSVA(vr202)) {
 do {
-RefSVA(vr212,vr211);
-if (vr212==vr211) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr211)) {
-LoadHVA(vr211,H);
-BindSVA(vr212,vr211);
+RefSVA(vr203,vr202);
+if (vr203==vr202) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr202)) {
+LoadHVA(vr202,H);
+BindSVA(vr203,vr202);
           }
 
 break;
         }
 
-vr211 = vr212;
+vr202 = vr203;
       }
- while (TaggedIsSVA(vr211));
+ while (TaggedIsSVA(vr202));
     }
 
-vr210 = vr211;
-Xb(BcP(f_x,0)) = vr210;
-Xb(BcP(f_x,0+Fs(f_x))) = vr210;
+vr201 = vr202;
+Xb(BcP(f_x,0)) = vr201;
+Xb(BcP(f_x,0+Fs(f_x))) = vr201;
 P+=Fs(f_x)+Fs(f_x);
 goto w_dispatch;
     }
@@ -3829,10 +3819,10 @@ case 74:
 w_op74:
 {
 {
-tagged_t vr213;
-vr213 = Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x))));
-Yb(BcP(f_y,0+Fs(f_x))) = vr213;
-Xb(BcP(f_x,0)) = vr213;
+tagged_t vr204;
+vr204 = Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x))));
+Yb(BcP(f_y,0+Fs(f_x))) = vr204;
+Xb(BcP(f_x,0)) = vr204;
     }
 P+=Fs(f_x)+Fs(f_y);
 goto w_dispatch;
@@ -3847,16 +3837,16 @@ case 84:
 w_op84:
 {
 {
-tagged_t vr214;
-vr214 = Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x))));
-Yb(BcP(f_y,0+Fs(f_x))) = vr214;
-Xb(BcP(f_x,0)) = vr214;
+tagged_t vr205;
+vr205 = Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x))));
+Yb(BcP(f_y,0+Fs(f_x))) = vr205;
+Xb(BcP(f_x,0)) = vr205;
     }
 {
-tagged_t vr215;
-vr215 = Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x))));
-Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x))) = vr215;
-Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = vr215;
+tagged_t vr206;
+vr206 = Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x))));
+Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x))) = vr206;
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = vr206;
     }
 P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
 goto w_dispatch;
@@ -3870,27 +3860,27 @@ case 76:
 {
 w_op76:
 {
-tagged_t vr216;
-tagged_t vr217;
-vr216 = Yb(BcP(f_y,0+Fs(f_x)));
-if (TaggedIsSVA(vr216)) {
+tagged_t vr207;
+tagged_t vr208;
+vr207 = Yb(BcP(f_y,0+Fs(f_x)));
+if (TaggedIsSVA(vr207)) {
 do {
-RefSVA(vr217,vr216);
-if (vr217==vr216) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr216)) {
-LoadHVA(vr216,H);
-BindSVA(vr217,vr216);
+RefSVA(vr208,vr207);
+if (vr208==vr207) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr207)) {
+LoadHVA(vr207,H);
+BindSVA(vr208,vr207);
           }
 
 break;
         }
 
-vr216 = vr217;
+vr207 = vr208;
       }
- while (TaggedIsSVA(vr216));
+ while (TaggedIsSVA(vr207));
     }
 
-Xb(BcP(f_x,0)) = vr216;
+Xb(BcP(f_x,0)) = vr207;
 P+=Fs(f_x)+Fs(f_y);
 goto w_dispatch;
     }
@@ -3948,27 +3938,27 @@ case 87:
 w_op87:
 {
 Xb(BcP(f_x,0)) = Yb(BcP(f_y,0+Fs(f_x)));
-tagged_t vr218;
-tagged_t vr219;
-vr218 = Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x)));
-if (TaggedIsSVA(vr218)) {
+tagged_t vr209;
+tagged_t vr210;
+vr209 = Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x)));
+if (TaggedIsSVA(vr209)) {
 do {
-RefSVA(vr219,vr218);
-if (vr219==vr218) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr218)) {
-LoadHVA(vr218,H);
-BindSVA(vr219,vr218);
+RefSVA(vr210,vr209);
+if (vr210==vr209) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr209)) {
+LoadHVA(vr209,H);
+BindSVA(vr210,vr209);
           }
 
 break;
         }
 
-vr218 = vr219;
+vr209 = vr210;
       }
- while (TaggedIsSVA(vr218));
+ while (TaggedIsSVA(vr209));
     }
 
-Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = vr218;
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = vr209;
 P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
 goto w_dispatch;
     }
@@ -3977,27 +3967,27 @@ case 88:
 {
 w_op88:
 {
-tagged_t vr220;
-tagged_t vr221;
-vr220 = Yb(BcP(f_y,0+Fs(f_x)));
-if (TaggedIsSVA(vr220)) {
+tagged_t vr211;
+tagged_t vr212;
+vr211 = Yb(BcP(f_y,0+Fs(f_x)));
+if (TaggedIsSVA(vr211)) {
 do {
-RefSVA(vr221,vr220);
-if (vr221==vr220) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr220)) {
-LoadHVA(vr220,H);
-BindSVA(vr221,vr220);
+RefSVA(vr212,vr211);
+if (vr212==vr211) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr211)) {
+LoadHVA(vr211,H);
+BindSVA(vr212,vr211);
           }
 
 break;
         }
 
-vr220 = vr221;
+vr211 = vr212;
       }
- while (TaggedIsSVA(vr220));
+ while (TaggedIsSVA(vr211));
     }
 
-Xb(BcP(f_x,0)) = vr220;
+Xb(BcP(f_x,0)) = vr211;
 Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x)));
 P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
 goto w_dispatch;
@@ -4007,48 +3997,48 @@ case 89:
 {
 w_op89:
 {
-tagged_t vr222;
-tagged_t vr223;
-vr222 = Yb(BcP(f_y,0+Fs(f_x)));
-if (TaggedIsSVA(vr222)) {
+tagged_t vr213;
+tagged_t vr214;
+vr213 = Yb(BcP(f_y,0+Fs(f_x)));
+if (TaggedIsSVA(vr213)) {
 do {
-RefSVA(vr223,vr222);
-if (vr223==vr222) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr222)) {
-LoadHVA(vr222,H);
-BindSVA(vr223,vr222);
+RefSVA(vr214,vr213);
+if (vr214==vr213) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr213)) {
+LoadHVA(vr213,H);
+BindSVA(vr214,vr213);
           }
 
 break;
         }
 
-vr222 = vr223;
+vr213 = vr214;
       }
- while (TaggedIsSVA(vr222));
+ while (TaggedIsSVA(vr213));
     }
 
-Xb(BcP(f_x,0)) = vr222;
-tagged_t vr224;
-tagged_t vr225;
-vr224 = Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x)));
-if (TaggedIsSVA(vr224)) {
+Xb(BcP(f_x,0)) = vr213;
+tagged_t vr215;
+tagged_t vr216;
+vr215 = Yb(BcP(f_y,0+Fs(f_x)+Fs(f_y)+Fs(f_x)));
+if (TaggedIsSVA(vr215)) {
 do {
-RefSVA(vr225,vr224);
-if (vr225==vr224) {
-if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr224)) {
-LoadHVA(vr224,H);
-BindSVA(vr225,vr224);
+RefSVA(vr216,vr215);
+if (vr216==vr215) {
+if (!YoungerStackVar(Tagp(SVA,Offset(E,EToY0)),vr215)) {
+LoadHVA(vr215,H);
+BindSVA(vr216,vr215);
           }
 
 break;
         }
 
-vr224 = vr225;
+vr215 = vr216;
       }
- while (TaggedIsSVA(vr224));
+ while (TaggedIsSVA(vr215));
     }
 
-Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = vr224;
+Xb(BcP(f_x,0+Fs(f_x)+Fs(f_y))) = vr215;
 P+=Fs(f_x)+Fs(f_y)+Fs(f_x)+Fs(f_y);
 goto w_dispatch;
     }
@@ -4149,9 +4139,9 @@ case 233:
 w_op233:
 {
 Setfunc(TaggedToFunctor(Y(0)));
-for (intmach_t vr226 = 0;
-vr226<Func->arity;vr226++) {
-X(vr226) = Y(vr226+1);
+for (intmach_t vr217 = 0;
+vr217<Func->arity;vr217++) {
+X(vr217) = Y(vr217+1);
     }
 
 w->next_insn = E->next_insn;
@@ -4178,16 +4168,16 @@ case 105:
 {
 w_op105:
 {
-tagged_t vr227 = Tagp(STR,H);
-tagged_t vr228 = X(0);
-if (TaggedIsHVA(vr228)) {
-BindHVA(vr228,vr227);
+tagged_t vr218 = Tagp(STR,H);
+tagged_t vr219 = X(0);
+if (TaggedIsHVA(vr219)) {
+BindHVA(vr219,vr218);
     }
- else if (vr228&TagBitSVA) {
-BindSVA(vr228,vr227);
+ else if (vr219&TagBitSVA) {
+BindSVA(vr219,vr218);
     }
  else {
-BindCVA(vr228,vr227);
+BindCVA(vr219,vr218);
     }
 
 HeapPush(H,BcP(f_f,0));
@@ -4203,17 +4193,17 @@ case 257:
 w_op257:
 {
 w->heap_top = H;
-tagged_t vr229 = BC_MakeBlob(w,&BcP(f_t,0));
+tagged_t vr220 = BC_MakeBlob(w,&BcP(f_t,0));
 H = w->heap_top;
-tagged_t vr230 = X(0);
-if (TaggedIsHVA(vr230)) {
-BindHVA(vr230,vr229);
+tagged_t vr221 = X(0);
+if (TaggedIsHVA(vr221)) {
+BindHVA(vr221,vr220);
     }
- else if (vr230&TagBitSVA) {
-BindSVA(vr230,vr229);
+ else if (vr221&TagBitSVA) {
+BindSVA(vr221,vr220);
     }
  else {
-BindCVA(vr230,vr229);
+BindCVA(vr221,vr220);
     }
 
 P+=LargeSize(*&BcP(f_t,0));
@@ -4227,15 +4217,15 @@ case 103:
 {
 w_op103:
 {
-tagged_t vr231 = X(0);
-if (TaggedIsHVA(vr231)) {
-BindHVA(vr231,BcP(f_t,0));
+tagged_t vr222 = X(0);
+if (TaggedIsHVA(vr222)) {
+BindHVA(vr222,BcP(f_t,0));
     }
- else if (vr231&TagBitSVA) {
-BindSVA(vr231,BcP(f_t,0));
+ else if (vr222&TagBitSVA) {
+BindSVA(vr222,BcP(f_t,0));
     }
  else {
-BindCVA(vr231,BcP(f_t,0));
+BindCVA(vr222,BcP(f_t,0));
     }
 
 P+=Fs(f_t);
@@ -4245,15 +4235,15 @@ goto w_dispatch;
 case 106:
 {
 {
-tagged_t vr232 = X(0);
-if (TaggedIsHVA(vr232)) {
-BindHVA(vr232,atom_nil);
+tagged_t vr223 = X(0);
+if (TaggedIsHVA(vr223)) {
+BindHVA(vr223,atom_nil);
     }
- else if (vr232&TagBitSVA) {
-BindSVA(vr232,atom_nil);
+ else if (vr223&TagBitSVA) {
+BindSVA(vr223,atom_nil);
     }
  else {
-BindCVA(vr232,atom_nil);
+BindCVA(vr223,atom_nil);
     }
 
 P+=0;
@@ -4263,16 +4253,16 @@ goto w_dispatch;
 case 107:
 {
 {
-tagged_t vr233 = Tagp(LST,H);
-tagged_t vr234 = X(0);
-if (TaggedIsHVA(vr234)) {
-BindHVA(vr234,vr233);
+tagged_t vr224 = Tagp(LST,H);
+tagged_t vr225 = X(0);
+if (TaggedIsHVA(vr225)) {
+BindHVA(vr225,vr224);
     }
- else if (vr234&TagBitSVA) {
-BindSVA(vr234,vr233);
+ else if (vr225&TagBitSVA) {
+BindSVA(vr225,vr224);
     }
  else {
-BindCVA(vr234,vr233);
+BindCVA(vr225,vr224);
     }
 
 P+=0;
@@ -4345,23 +4335,22 @@ case 247:
 {
 w_op247:
 {
-tagged_t vr235 = Xb(BcP(f_x,0));
-tagged_t vr236;
-LoadCVA(vr236,H);
-tagged_t vr237;
-SwitchOnVar(vr235,vr237,{
-BindHVA(vr235,vr236);
-Xb(BcP(f_x,0)) = vr236;
+tagged_t vr226 = Xb(BcP(f_x,0));
+tagged_t vr227;
+LoadCVA(vr227,H);
+DerefSw_HVA_CVA_SVA_Other(vr226,{
+BindHVA(vr226,vr227);
+Xb(BcP(f_x,0)) = vr227;
     }
 ,{
-BindCVA(vr236,vr235);
+BindCVA(vr227,vr226);
     }
 ,{
-BindSVA(vr235,vr236);
-Xb(BcP(f_x,0)) = vr236;
+BindSVA(vr226,vr227);
+Xb(BcP(f_x,0)) = vr227;
     }
 ,{
-BindCVA(vr236,vr235);
+BindCVA(vr227,vr226);
     }
 );
 P+=Fs(f_x);
@@ -4371,10 +4360,10 @@ goto w_dispatch;
 case 114:
 {
 {
-intmach_t vr238 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
+intmach_t vr228 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 P+=Fs(f_i);
-for (intmach_t vr239 = vr238;
-vr239>4;vr239--) {
+for (intmach_t vr229 = vr228;
+vr229>4;vr229--) {
 ConstrHVA(H);
     }
 
@@ -4409,23 +4398,23 @@ goto w_dispatch;
 case 121:
 {
 {
-{tagged_t vr240 = Xb(BcP(f_x,0));
-if (TaggedIsSVA(vr240)) {
-tagged_t vr241;
+{tagged_t vr230 = Xb(BcP(f_x,0));
+if (TaggedIsSVA(vr230)) {
+tagged_t vr231;
 do {
-RefSVA(vr241,vr240);
-if (vr241==vr240) {
-BindSVA(vr240,Tagp(HVA,H));
-PreLoadHVA(vr240,H);
+RefSVA(vr231,vr230);
+if (vr231==vr230) {
+BindSVA(vr230,Tagp(HVA,H));
+PreLoadHVA(vr230,H);
 break;
         }
 
-vr240 = vr241;
+vr230 = vr231;
       }
- while (TaggedIsSVA(vr240));
+ while (TaggedIsSVA(vr230));
     }
 
-HeapPush(H,vr240);
+HeapPush(H,vr230);
 }P+=Fs(f_x);
 goto w_dispatch;
     }
@@ -4441,13 +4430,13 @@ goto w_dispatch;
 case 124:
 {
 {
-{tagged_t vr242;
-LoadHVA(vr242,H);
+{tagged_t vr232;
+LoadHVA(vr232,H);
 if (CondStackvar(Yb(BcP(f_y,0)))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
     }
 
-Yb(BcP(f_y,0)) = vr242;
+Yb(BcP(f_y,0)) = vr232;
 }P+=Fs(f_y);
 goto w_dispatch;
     }
@@ -4459,23 +4448,23 @@ goto w_dispatch;
 case 126:
 {
 {
-{tagged_t vr243 = Yb(BcP(f_y,0));
-if (TaggedIsSVA(vr243)) {
-tagged_t vr244;
+{tagged_t vr233 = Yb(BcP(f_y,0));
+if (TaggedIsSVA(vr233)) {
+tagged_t vr234;
 do {
-RefSVA(vr244,vr243);
-if (vr244==vr243) {
-BindSVA(vr243,Tagp(HVA,H));
-PreLoadHVA(vr243,H);
+RefSVA(vr234,vr233);
+if (vr234==vr233) {
+BindSVA(vr233,Tagp(HVA,H));
+PreLoadHVA(vr233,H);
 break;
         }
 
-vr243 = vr244;
+vr233 = vr234;
       }
- while (TaggedIsSVA(vr243));
+ while (TaggedIsSVA(vr233));
     }
 
-HeapPush(H,vr243);
+HeapPush(H,vr233);
 }P+=Fs(f_y);
 goto w_dispatch;
     }
@@ -4527,11 +4516,11 @@ goto w_op66;
 case 136:
 {
 {
-intmach_t vr245 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
+intmach_t vr235 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
 ConstrHVA(H);
     }
- while (--vr245);
+ while (--vr235);
 LoadHVA(Xb(BcP(f_x,0+Fs(f_i))),H);
 P+=Fs(f_i)+Fs(f_x);
 goto w_dispatch;
@@ -4544,11 +4533,11 @@ case 140:
 {
 w_op140:
 {
-intmach_t vr246 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
+intmach_t vr236 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
 ConstrHVA(H);
     }
- while (--vr246);
+ while (--vr236);
 LoadHVA(Yb(BcP(f_y,0+Fs(f_i))),H);
 P+=Fs(f_i)+Fs(f_y);
 goto w_dispatch;
@@ -4557,11 +4546,11 @@ goto w_dispatch;
 case 137:
 {
 {
-intmach_t vr247 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
+intmach_t vr237 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
 ConstrHVA(H);
     }
- while (--vr247);
+ while (--vr237);
 HeapPush(H,Xb(BcP(f_x,0+Fs(f_i))));
 P+=Fs(f_i)+Fs(f_x);
 goto w_dispatch;
@@ -4570,28 +4559,28 @@ goto w_dispatch;
 case 138:
 {
 {
-intmach_t vr248 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
+intmach_t vr238 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
 ConstrHVA(H);
     }
- while (--vr248);
-{tagged_t vr249 = Xb(BcP(f_x,0+Fs(f_i)));
-if (TaggedIsSVA(vr249)) {
-tagged_t vr250;
+ while (--vr238);
+{tagged_t vr239 = Xb(BcP(f_x,0+Fs(f_i)));
+if (TaggedIsSVA(vr239)) {
+tagged_t vr240;
 do {
-RefSVA(vr250,vr249);
-if (vr250==vr249) {
-BindSVA(vr249,Tagp(HVA,H));
-PreLoadHVA(vr249,H);
+RefSVA(vr240,vr239);
+if (vr240==vr239) {
+BindSVA(vr239,Tagp(HVA,H));
+PreLoadHVA(vr239,H);
 break;
         }
 
-vr249 = vr250;
+vr239 = vr240;
       }
- while (TaggedIsSVA(vr249));
+ while (TaggedIsSVA(vr239));
     }
 
-HeapPush(H,vr249);
+HeapPush(H,vr239);
 }P+=Fs(f_i)+Fs(f_x);
 goto w_dispatch;
     }
@@ -4599,18 +4588,18 @@ goto w_dispatch;
 case 141:
 {
 {
-intmach_t vr251 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
+intmach_t vr241 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
 ConstrHVA(H);
     }
- while (--vr251);
-{tagged_t vr252;
-LoadHVA(vr252,H);
+ while (--vr241);
+{tagged_t vr242;
+LoadHVA(vr242,H);
 if (CondStackvar(Yb(BcP(f_y,0+Fs(f_i))))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_i)))));
     }
 
-Yb(BcP(f_y,0+Fs(f_i))) = vr252;
+Yb(BcP(f_y,0+Fs(f_i))) = vr242;
 }P+=Fs(f_i)+Fs(f_y);
 goto w_dispatch;
     }
@@ -4618,11 +4607,11 @@ goto w_dispatch;
 case 142:
 {
 {
-intmach_t vr253 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
+intmach_t vr243 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
 ConstrHVA(H);
     }
- while (--vr253);
+ while (--vr243);
 HeapPush(H,Yb(BcP(f_y,0+Fs(f_i))));
 P+=Fs(f_i)+Fs(f_y);
 goto w_dispatch;
@@ -4631,28 +4620,28 @@ goto w_dispatch;
 case 143:
 {
 {
-intmach_t vr254 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
+intmach_t vr244 = (FTYPE_ctype(f_i_signed))BcP(f_i,0);
 do {
 ConstrHVA(H);
     }
- while (--vr254);
-{tagged_t vr255 = Yb(BcP(f_y,0+Fs(f_i)));
-if (TaggedIsSVA(vr255)) {
-tagged_t vr256;
+ while (--vr244);
+{tagged_t vr245 = Yb(BcP(f_y,0+Fs(f_i)));
+if (TaggedIsSVA(vr245)) {
+tagged_t vr246;
 do {
-RefSVA(vr256,vr255);
-if (vr256==vr255) {
-BindSVA(vr255,Tagp(HVA,H));
-PreLoadHVA(vr255,H);
+RefSVA(vr246,vr245);
+if (vr246==vr245) {
+BindSVA(vr245,Tagp(HVA,H));
+PreLoadHVA(vr245,H);
 break;
         }
 
-vr255 = vr256;
+vr245 = vr246;
       }
- while (TaggedIsSVA(vr255));
+ while (TaggedIsSVA(vr245));
     }
 
-HeapPush(H,vr255);
+HeapPush(H,vr245);
 }P+=Fs(f_i)+Fs(f_y);
 goto w_dispatch;
     }
@@ -4661,11 +4650,11 @@ case 144:
 {
 {
 LoadHVA(Xb(BcP(f_x,0)),H);
-intmach_t vr257 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_x));
+intmach_t vr247 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_x));
 do {
 ConstrHVA(H);
     }
- while (--vr257);
+ while (--vr247);
 P+=Fs(f_x)+Fs(f_i);
 goto w_dispatch;
     }
@@ -4693,23 +4682,23 @@ case 147:
 {
 {
 LoadHVA(Xb(BcP(f_x,0)),H);
-{tagged_t vr258 = Xb(BcP(f_x,0+Fs(f_x)));
-if (TaggedIsSVA(vr258)) {
-tagged_t vr259;
+{tagged_t vr248 = Xb(BcP(f_x,0+Fs(f_x)));
+if (TaggedIsSVA(vr248)) {
+tagged_t vr249;
 do {
-RefSVA(vr259,vr258);
-if (vr259==vr258) {
-BindSVA(vr258,Tagp(HVA,H));
-PreLoadHVA(vr258,H);
+RefSVA(vr249,vr248);
+if (vr249==vr248) {
+BindSVA(vr248,Tagp(HVA,H));
+PreLoadHVA(vr248,H);
 break;
         }
 
-vr258 = vr259;
+vr248 = vr249;
       }
- while (TaggedIsSVA(vr258));
+ while (TaggedIsSVA(vr248));
     }
 
-HeapPush(H,vr258);
+HeapPush(H,vr248);
 }P+=Fs(f_x)+Fs(f_x);
 goto w_dispatch;
     }
@@ -4718,13 +4707,13 @@ case 150:
 {
 {
 LoadHVA(Xb(BcP(f_x,0)),H);
-{tagged_t vr260;
-LoadHVA(vr260,H);
+{tagged_t vr250;
+LoadHVA(vr250,H);
 if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
 TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
     }
 
-Yb(BcP(f_y,0+Fs(f_x))) = vr260;
+Yb(BcP(f_y,0+Fs(f_x))) = vr250;
 }P+=Fs(f_x)+Fs(f_y);
 goto w_dispatch;
     }
@@ -4738,23 +4727,23 @@ case 152:
 {
 {
 LoadHVA(Xb(BcP(f_x,0)),H);
-{tagged_t vr261 = Yb(BcP(f_y,0+Fs(f_x)));
-if (TaggedIsSVA(vr261)) {
-tagged_t vr262;
+{tagged_t vr251 = Yb(BcP(f_y,0+Fs(f_x)));
+if (TaggedIsSVA(vr251)) {
+tagged_t vr252;
 do {
-RefSVA(vr262,vr261);
-if (vr262==vr261) {
-BindSVA(vr261,Tagp(HVA,H));
-PreLoadHVA(vr261,H);
+RefSVA(vr252,vr251);
+if (vr252==vr251) {
+BindSVA(vr251,Tagp(HVA,H));
+PreLoadHVA(vr251,H);
 break;
         }
 
-vr261 = vr262;
+vr251 = vr252;
       }
- while (TaggedIsSVA(vr261));
+ while (TaggedIsSVA(vr251));
     }
 
-HeapPush(H,vr261);
+HeapPush(H,vr251);
 }P+=Fs(f_x)+Fs(f_y);
 goto w_dispatch;
     }
@@ -4767,11 +4756,11 @@ case 154:
 w_op154:
 {
 LoadHVA(Yb(BcP(f_y,0)),H);
-intmach_t vr263 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_y));
+intmach_t vr253 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_y));
 do {
 ConstrHVA(H);
     }
- while (--vr263);
+ while (--vr253);
 P+=Fs(f_y)+Fs(f_i);
 goto w_dispatch;
     }
@@ -4811,23 +4800,23 @@ case 162:
 w_op162:
 {
 LoadHVA(Yb(BcP(f_y,0)),H);
-{tagged_t vr264 = Xb(BcP(f_x,0+Fs(f_y)));
-if (TaggedIsSVA(vr264)) {
-tagged_t vr265;
+{tagged_t vr254 = Xb(BcP(f_x,0+Fs(f_y)));
+if (TaggedIsSVA(vr254)) {
+tagged_t vr255;
 do {
-RefSVA(vr265,vr264);
-if (vr265==vr264) {
-BindSVA(vr264,Tagp(HVA,H));
-PreLoadHVA(vr264,H);
+RefSVA(vr255,vr254);
+if (vr255==vr254) {
+BindSVA(vr254,Tagp(HVA,H));
+PreLoadHVA(vr254,H);
 break;
         }
 
-vr264 = vr265;
+vr254 = vr255;
       }
- while (TaggedIsSVA(vr264));
+ while (TaggedIsSVA(vr254));
     }
 
-HeapPush(H,vr264);
+HeapPush(H,vr254);
 }P+=Fs(f_y)+Fs(f_x);
 goto w_dispatch;
     }
@@ -4849,28 +4838,144 @@ case 166:
 w_op166:
 {
 LoadHVA(Yb(BcP(f_y,0)),H);
-{tagged_t vr266 = Yb(BcP(f_y,0+Fs(f_y)));
-if (TaggedIsSVA(vr266)) {
-tagged_t vr267;
+{tagged_t vr256 = Yb(BcP(f_y,0+Fs(f_y)));
+if (TaggedIsSVA(vr256)) {
+tagged_t vr257;
 do {
-RefSVA(vr267,vr266);
-if (vr267==vr266) {
-BindSVA(vr266,Tagp(HVA,H));
-PreLoadHVA(vr266,H);
+RefSVA(vr257,vr256);
+if (vr257==vr256) {
+BindSVA(vr256,Tagp(HVA,H));
+PreLoadHVA(vr256,H);
 break;
         }
 
-vr266 = vr267;
+vr256 = vr257;
       }
- while (TaggedIsSVA(vr266));
+ while (TaggedIsSVA(vr256));
     }
 
-HeapPush(H,vr266);
+HeapPush(H,vr256);
 }P+=Fs(f_y)+Fs(f_y);
 goto w_dispatch;
     }
     }
 case 185:
+{
+{
+{tagged_t vr258;
+LoadHVA(vr258,H);
+if (CondStackvar(Yb(BcP(f_y,0)))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
+Yb(BcP(f_y,0)) = vr258;
+}intmach_t vr259 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_y));
+do {
+ConstrHVA(H);
+    }
+ while (--vr259);
+P+=Fs(f_y)+Fs(f_i);
+goto w_dispatch;
+    }
+    }
+case 188:
+{
+{
+{tagged_t vr260;
+LoadHVA(vr260,H);
+if (CondStackvar(Yb(BcP(f_y,0)))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
+Yb(BcP(f_y,0)) = vr260;
+}LoadHVA(Xb(BcP(f_x,0+Fs(f_y))),H);
+P+=Fs(f_y)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 199:
+{
+{
+{tagged_t vr261;
+LoadHVA(vr261,H);
+if (CondStackvar(Yb(BcP(f_y,0)))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
+Yb(BcP(f_y,0)) = vr261;
+}{tagged_t vr262;
+LoadHVA(vr262,H);
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_y))) = vr262;
+}P+=Fs(f_y)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 193:
+{
+{
+{tagged_t vr263;
+LoadHVA(vr263,H);
+if (CondStackvar(Yb(BcP(f_y,0)))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
+Yb(BcP(f_y,0)) = vr263;
+}HeapPush(H,Xb(BcP(f_x,0+Fs(f_y))));
+P+=Fs(f_y)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 196:
+{
+{
+{tagged_t vr264;
+LoadHVA(vr264,H);
+if (CondStackvar(Yb(BcP(f_y,0)))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
+Yb(BcP(f_y,0)) = vr264;
+}{tagged_t vr265 = Xb(BcP(f_x,0+Fs(f_y)));
+if (TaggedIsSVA(vr265)) {
+tagged_t vr266;
+do {
+RefSVA(vr266,vr265);
+if (vr266==vr265) {
+BindSVA(vr265,Tagp(HVA,H));
+PreLoadHVA(vr265,H);
+break;
+        }
+
+vr265 = vr266;
+      }
+ while (TaggedIsSVA(vr265));
+    }
+
+HeapPush(H,vr265);
+}P+=Fs(f_y)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 202:
+{
+{
+{tagged_t vr267;
+LoadHVA(vr267,H);
+if (CondStackvar(Yb(BcP(f_y,0)))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+    }
+
+Yb(BcP(f_y,0)) = vr267;
+}HeapPush(H,Yb(BcP(f_y,0+Fs(f_y))));
+P+=Fs(f_y)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 205:
 {
 {
 {tagged_t vr268;
@@ -4880,77 +4985,78 @@ TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
     }
 
 Yb(BcP(f_y,0)) = vr268;
-}intmach_t vr269 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_y));
+}{tagged_t vr269 = Yb(BcP(f_y,0+Fs(f_y)));
+if (TaggedIsSVA(vr269)) {
+tagged_t vr270;
 do {
-ConstrHVA(H);
-    }
- while (--vr269);
-P+=Fs(f_y)+Fs(f_i);
-goto w_dispatch;
-    }
-    }
-case 188:
-{
-{
-{tagged_t vr270;
-LoadHVA(vr270,H);
-if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+RefSVA(vr270,vr269);
+if (vr270==vr269) {
+BindSVA(vr269,Tagp(HVA,H));
+PreLoadHVA(vr269,H);
+break;
+        }
+
+vr269 = vr270;
+      }
+ while (TaggedIsSVA(vr269));
     }
 
-Yb(BcP(f_y,0)) = vr270;
-}LoadHVA(Xb(BcP(f_x,0+Fs(f_y))),H);
-P+=Fs(f_y)+Fs(f_x);
-goto w_dispatch;
-    }
-    }
-case 199:
-{
-{
-{tagged_t vr271;
-LoadHVA(vr271,H);
-if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
-    }
-
-Yb(BcP(f_y,0)) = vr271;
-}{tagged_t vr272;
-LoadHVA(vr272,H);
-if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
-TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
-    }
-
-Yb(BcP(f_y,0+Fs(f_y))) = vr272;
+HeapPush(H,vr269);
 }P+=Fs(f_y)+Fs(f_y);
 goto w_dispatch;
     }
     }
-case 193:
+case 167:
 {
 {
-{tagged_t vr273;
-LoadHVA(vr273,H);
-if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+HeapPush(H,Xb(BcP(f_x,0)));
+intmach_t vr271 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_x));
+do {
+ConstrHVA(H);
     }
-
-Yb(BcP(f_y,0)) = vr273;
-}HeapPush(H,Xb(BcP(f_x,0+Fs(f_y))));
-P+=Fs(f_y)+Fs(f_x);
+ while (--vr271);
+P+=Fs(f_x)+Fs(f_i);
 goto w_dispatch;
     }
     }
-case 196:
+case 168:
 {
 {
-{tagged_t vr274;
-LoadHVA(vr274,H);
-if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
+{tagged_t vr272 = Xb(BcP(f_x,0));
+if (TaggedIsSVA(vr272)) {
+tagged_t vr273;
+do {
+RefSVA(vr273,vr272);
+if (vr273==vr272) {
+BindSVA(vr272,Tagp(HVA,H));
+PreLoadHVA(vr272,H);
+break;
+        }
+
+vr272 = vr273;
+      }
+ while (TaggedIsSVA(vr272));
     }
 
-Yb(BcP(f_y,0)) = vr274;
-}{tagged_t vr275 = Xb(BcP(f_x,0+Fs(f_y)));
+HeapPush(H,vr272);
+}intmach_t vr274 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_x));
+do {
+ConstrHVA(H);
+    }
+ while (--vr274);
+P+=Fs(f_x)+Fs(f_i);
+goto w_dispatch;
+    }
+    }
+case 169:
+HeapPush(H,Xb(BcP(f_x,0)));
+LoadHVA(Xb(BcP(f_x,0+Fs(f_x))),H);
+P+=Fs(f_x)+Fs(f_x);
+goto w_dispatch;
+case 170:
+{
+{
+{tagged_t vr275 = Xb(BcP(f_x,0));
 if (TaggedIsSVA(vr275)) {
 tagged_t vr276;
 do {
@@ -4967,123 +5073,6 @@ vr275 = vr276;
     }
 
 HeapPush(H,vr275);
-}P+=Fs(f_y)+Fs(f_x);
-goto w_dispatch;
-    }
-    }
-case 202:
-{
-{
-{tagged_t vr277;
-LoadHVA(vr277,H);
-if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
-    }
-
-Yb(BcP(f_y,0)) = vr277;
-}HeapPush(H,Yb(BcP(f_y,0+Fs(f_y))));
-P+=Fs(f_y)+Fs(f_y);
-goto w_dispatch;
-    }
-    }
-case 205:
-{
-{
-{tagged_t vr278;
-LoadHVA(vr278,H);
-if (CondStackvar(Yb(BcP(f_y,0)))) {
-TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0))));
-    }
-
-Yb(BcP(f_y,0)) = vr278;
-}{tagged_t vr279 = Yb(BcP(f_y,0+Fs(f_y)));
-if (TaggedIsSVA(vr279)) {
-tagged_t vr280;
-do {
-RefSVA(vr280,vr279);
-if (vr280==vr279) {
-BindSVA(vr279,Tagp(HVA,H));
-PreLoadHVA(vr279,H);
-break;
-        }
-
-vr279 = vr280;
-      }
- while (TaggedIsSVA(vr279));
-    }
-
-HeapPush(H,vr279);
-}P+=Fs(f_y)+Fs(f_y);
-goto w_dispatch;
-    }
-    }
-case 167:
-{
-{
-HeapPush(H,Xb(BcP(f_x,0)));
-intmach_t vr281 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_x));
-do {
-ConstrHVA(H);
-    }
- while (--vr281);
-P+=Fs(f_x)+Fs(f_i);
-goto w_dispatch;
-    }
-    }
-case 168:
-{
-{
-{tagged_t vr282 = Xb(BcP(f_x,0));
-if (TaggedIsSVA(vr282)) {
-tagged_t vr283;
-do {
-RefSVA(vr283,vr282);
-if (vr283==vr282) {
-BindSVA(vr282,Tagp(HVA,H));
-PreLoadHVA(vr282,H);
-break;
-        }
-
-vr282 = vr283;
-      }
- while (TaggedIsSVA(vr282));
-    }
-
-HeapPush(H,vr282);
-}intmach_t vr284 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_x));
-do {
-ConstrHVA(H);
-    }
- while (--vr284);
-P+=Fs(f_x)+Fs(f_i);
-goto w_dispatch;
-    }
-    }
-case 169:
-HeapPush(H,Xb(BcP(f_x,0)));
-LoadHVA(Xb(BcP(f_x,0+Fs(f_x))),H);
-P+=Fs(f_x)+Fs(f_x);
-goto w_dispatch;
-case 170:
-{
-{
-{tagged_t vr285 = Xb(BcP(f_x,0));
-if (TaggedIsSVA(vr285)) {
-tagged_t vr286;
-do {
-RefSVA(vr286,vr285);
-if (vr286==vr285) {
-BindSVA(vr285,Tagp(HVA,H));
-PreLoadHVA(vr285,H);
-break;
-        }
-
-vr285 = vr286;
-      }
- while (TaggedIsSVA(vr285));
-    }
-
-HeapPush(H,vr285);
 }LoadHVA(Xb(BcP(f_x,0+Fs(f_x))),H);
 P+=Fs(f_x)+Fs(f_x);
 goto w_dispatch;
@@ -5105,23 +5094,23 @@ case 174:
 {
 w_op174:
 {
-{tagged_t vr287 = Xb(BcP(f_x,0));
-if (TaggedIsSVA(vr287)) {
-tagged_t vr288;
+{tagged_t vr277 = Xb(BcP(f_x,0));
+if (TaggedIsSVA(vr277)) {
+tagged_t vr278;
 do {
-RefSVA(vr288,vr287);
-if (vr288==vr287) {
-BindSVA(vr287,Tagp(HVA,H));
-PreLoadHVA(vr287,H);
+RefSVA(vr278,vr277);
+if (vr278==vr277) {
+BindSVA(vr277,Tagp(HVA,H));
+PreLoadHVA(vr277,H);
 break;
         }
 
-vr287 = vr288;
+vr277 = vr278;
       }
- while (TaggedIsSVA(vr287));
+ while (TaggedIsSVA(vr277));
     }
 
-HeapPush(H,vr287);
+HeapPush(H,vr277);
 }LoadHVA(Yb(BcP(f_y,0+Fs(f_x))),H);
 P+=Fs(f_x)+Fs(f_y);
 goto w_dispatch;
@@ -5136,23 +5125,23 @@ case 177:
 {
 {
 HeapPush(H,Xb(BcP(f_x,0)));
-{tagged_t vr289 = Xb(BcP(f_x,0+Fs(f_x)));
-if (TaggedIsSVA(vr289)) {
-tagged_t vr290;
+{tagged_t vr279 = Xb(BcP(f_x,0+Fs(f_x)));
+if (TaggedIsSVA(vr279)) {
+tagged_t vr280;
 do {
-RefSVA(vr290,vr289);
-if (vr290==vr289) {
-BindSVA(vr289,Tagp(HVA,H));
-PreLoadHVA(vr289,H);
+RefSVA(vr280,vr279);
+if (vr280==vr279) {
+BindSVA(vr279,Tagp(HVA,H));
+PreLoadHVA(vr279,H);
 break;
         }
 
-vr289 = vr290;
+vr279 = vr280;
       }
- while (TaggedIsSVA(vr289));
+ while (TaggedIsSVA(vr279));
     }
 
-HeapPush(H,vr289);
+HeapPush(H,vr279);
 }P+=Fs(f_x)+Fs(f_x);
 goto w_dispatch;
     }
@@ -5160,7 +5149,125 @@ goto w_dispatch;
 case 176:
 {
 {
-{tagged_t vr291 = Xb(BcP(f_x,0));
+{tagged_t vr281 = Xb(BcP(f_x,0));
+if (TaggedIsSVA(vr281)) {
+tagged_t vr282;
+do {
+RefSVA(vr282,vr281);
+if (vr282==vr281) {
+BindSVA(vr281,Tagp(HVA,H));
+PreLoadHVA(vr281,H);
+break;
+        }
+
+vr281 = vr282;
+      }
+ while (TaggedIsSVA(vr281));
+    }
+
+HeapPush(H,vr281);
+}HeapPush(H,Xb(BcP(f_x,0+Fs(f_x))));
+P+=Fs(f_x)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 178:
+{
+{
+{tagged_t vr283 = Xb(BcP(f_x,0));
+if (TaggedIsSVA(vr283)) {
+tagged_t vr284;
+do {
+RefSVA(vr284,vr283);
+if (vr284==vr283) {
+BindSVA(vr283,Tagp(HVA,H));
+PreLoadHVA(vr283,H);
+break;
+        }
+
+vr283 = vr284;
+      }
+ while (TaggedIsSVA(vr283));
+    }
+
+HeapPush(H,vr283);
+}{tagged_t vr285 = Xb(BcP(f_x,0+Fs(f_x)));
+if (TaggedIsSVA(vr285)) {
+tagged_t vr286;
+do {
+RefSVA(vr286,vr285);
+if (vr286==vr285) {
+BindSVA(vr285,Tagp(HVA,H));
+PreLoadHVA(vr285,H);
+break;
+        }
+
+vr285 = vr286;
+      }
+ while (TaggedIsSVA(vr285));
+    }
+
+HeapPush(H,vr285);
+}P+=Fs(f_x)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 179:
+{
+{
+HeapPush(H,Xb(BcP(f_x,0)));
+{tagged_t vr287;
+LoadHVA(vr287,H);
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_x))) = vr287;
+}P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 180:
+{
+{
+{tagged_t vr288 = Xb(BcP(f_x,0));
+if (TaggedIsSVA(vr288)) {
+tagged_t vr289;
+do {
+RefSVA(vr289,vr288);
+if (vr289==vr288) {
+BindSVA(vr288,Tagp(HVA,H));
+PreLoadHVA(vr288,H);
+break;
+        }
+
+vr288 = vr289;
+      }
+ while (TaggedIsSVA(vr288));
+    }
+
+HeapPush(H,vr288);
+}{tagged_t vr290;
+LoadHVA(vr290,H);
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
+    }
+
+Yb(BcP(f_y,0+Fs(f_x))) = vr290;
+}P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 181:
+HeapPush(H,Xb(BcP(f_x,0)));
+HeapPush(H,Yb(BcP(f_y,0+Fs(f_x))));
+P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+case 183:
+{
+{
+HeapPush(H,Xb(BcP(f_x,0)));
+{tagged_t vr291 = Yb(BcP(f_y,0+Fs(f_x)));
 if (TaggedIsSVA(vr291)) {
 tagged_t vr292;
 do {
@@ -5177,12 +5284,11 @@ vr291 = vr292;
     }
 
 HeapPush(H,vr291);
-}HeapPush(H,Xb(BcP(f_x,0+Fs(f_x))));
-P+=Fs(f_x)+Fs(f_x);
+}P+=Fs(f_x)+Fs(f_y);
 goto w_dispatch;
     }
     }
-case 178:
+case 182:
 {
 {
 {tagged_t vr293 = Xb(BcP(f_x,0));
@@ -5202,7 +5308,15 @@ vr293 = vr294;
     }
 
 HeapPush(H,vr293);
-}{tagged_t vr295 = Xb(BcP(f_x,0+Fs(f_x)));
+}HeapPush(H,Yb(BcP(f_y,0+Fs(f_x))));
+P+=Fs(f_x)+Fs(f_y);
+goto w_dispatch;
+    }
+    }
+case 184:
+{
+{
+{tagged_t vr295 = Xb(BcP(f_x,0));
 if (TaggedIsSVA(vr295)) {
 tagged_t vr296;
 do {
@@ -5219,90 +5333,78 @@ vr295 = vr296;
     }
 
 HeapPush(H,vr295);
-}P+=Fs(f_x)+Fs(f_x);
-goto w_dispatch;
-    }
-    }
-case 179:
-{
-{
-HeapPush(H,Xb(BcP(f_x,0)));
-{tagged_t vr297;
-LoadHVA(vr297,H);
-if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
-TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
-    }
-
-Yb(BcP(f_y,0+Fs(f_x))) = vr297;
-}P+=Fs(f_x)+Fs(f_y);
-goto w_dispatch;
-    }
-    }
-case 180:
-{
-{
-{tagged_t vr298 = Xb(BcP(f_x,0));
-if (TaggedIsSVA(vr298)) {
-tagged_t vr299;
+}{tagged_t vr297 = Yb(BcP(f_y,0+Fs(f_x)));
+if (TaggedIsSVA(vr297)) {
+tagged_t vr298;
 do {
-RefSVA(vr299,vr298);
-if (vr299==vr298) {
-BindSVA(vr298,Tagp(HVA,H));
-PreLoadHVA(vr298,H);
+RefSVA(vr298,vr297);
+if (vr298==vr297) {
+BindSVA(vr297,Tagp(HVA,H));
+PreLoadHVA(vr297,H);
 break;
         }
 
-vr298 = vr299;
+vr297 = vr298;
       }
- while (TaggedIsSVA(vr298));
+ while (TaggedIsSVA(vr297));
     }
 
-HeapPush(H,vr298);
-}{tagged_t vr300;
-LoadHVA(vr300,H);
-if (CondStackvar(Yb(BcP(f_y,0+Fs(f_x))))) {
-TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_x)))));
-    }
-
-Yb(BcP(f_y,0+Fs(f_x))) = vr300;
+HeapPush(H,vr297);
 }P+=Fs(f_x)+Fs(f_y);
 goto w_dispatch;
     }
     }
-case 181:
-HeapPush(H,Xb(BcP(f_x,0)));
-HeapPush(H,Yb(BcP(f_y,0+Fs(f_x))));
-P+=Fs(f_x)+Fs(f_y);
-goto w_dispatch;
-case 183:
+case 186:
 {
 {
-HeapPush(H,Xb(BcP(f_x,0)));
-{tagged_t vr301 = Yb(BcP(f_y,0+Fs(f_x)));
-if (TaggedIsSVA(vr301)) {
-tagged_t vr302;
+HeapPush(H,Yb(BcP(f_y,0)));
+intmach_t vr299 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_y));
 do {
-RefSVA(vr302,vr301);
-if (vr302==vr301) {
-BindSVA(vr301,Tagp(HVA,H));
-PreLoadHVA(vr301,H);
+ConstrHVA(H);
+    }
+ while (--vr299);
+P+=Fs(f_y)+Fs(f_i);
+goto w_dispatch;
+    }
+    }
+case 187:
+{
+{
+{tagged_t vr300 = Yb(BcP(f_y,0));
+if (TaggedIsSVA(vr300)) {
+tagged_t vr301;
+do {
+RefSVA(vr301,vr300);
+if (vr301==vr300) {
+BindSVA(vr300,Tagp(HVA,H));
+PreLoadHVA(vr300,H);
 break;
         }
 
-vr301 = vr302;
+vr300 = vr301;
       }
- while (TaggedIsSVA(vr301));
+ while (TaggedIsSVA(vr300));
     }
 
-HeapPush(H,vr301);
-}P+=Fs(f_x)+Fs(f_y);
+HeapPush(H,vr300);
+}intmach_t vr302 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_y));
+do {
+ConstrHVA(H);
+    }
+ while (--vr302);
+P+=Fs(f_y)+Fs(f_i);
 goto w_dispatch;
     }
     }
-case 182:
+case 189:
+HeapPush(H,Yb(BcP(f_y,0)));
+LoadHVA(Xb(BcP(f_x,0+Fs(f_y))),H);
+P+=Fs(f_y)+Fs(f_x);
+goto w_dispatch;
+case 190:
 {
 {
-{tagged_t vr303 = Xb(BcP(f_x,0));
+{tagged_t vr303 = Yb(BcP(f_y,0));
 if (TaggedIsSVA(vr303)) {
 tagged_t vr304;
 do {
@@ -5319,15 +5421,20 @@ vr303 = vr304;
     }
 
 HeapPush(H,vr303);
-}HeapPush(H,Yb(BcP(f_y,0+Fs(f_x))));
-P+=Fs(f_x)+Fs(f_y);
+}LoadHVA(Xb(BcP(f_x,0+Fs(f_y))),H);
+P+=Fs(f_y)+Fs(f_x);
 goto w_dispatch;
     }
     }
-case 184:
+case 191:
+HeapPush(H,Yb(BcP(f_y,0)));
+LoadHVA(Yb(BcP(f_y,0+Fs(f_y))),H);
+P+=Fs(f_y)+Fs(f_y);
+goto w_dispatch;
+case 192:
 {
 {
-{tagged_t vr305 = Xb(BcP(f_x,0));
+{tagged_t vr305 = Yb(BcP(f_y,0));
 if (TaggedIsSVA(vr305)) {
 tagged_t vr306;
 do {
@@ -5344,75 +5451,88 @@ vr305 = vr306;
     }
 
 HeapPush(H,vr305);
-}{tagged_t vr307 = Yb(BcP(f_y,0+Fs(f_x)));
-if (TaggedIsSVA(vr307)) {
-tagged_t vr308;
-do {
-RefSVA(vr308,vr307);
-if (vr308==vr307) {
-BindSVA(vr307,Tagp(HVA,H));
-PreLoadHVA(vr307,H);
-break;
-        }
-
-vr307 = vr308;
-      }
- while (TaggedIsSVA(vr307));
-    }
-
-HeapPush(H,vr307);
-}P+=Fs(f_x)+Fs(f_y);
+}LoadHVA(Yb(BcP(f_y,0+Fs(f_y))),H);
+P+=Fs(f_y)+Fs(f_y);
 goto w_dispatch;
     }
     }
-case 186:
+case 200:
 {
 {
 HeapPush(H,Yb(BcP(f_y,0)));
-intmach_t vr309 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_y));
-do {
-ConstrHVA(H);
+{tagged_t vr307;
+LoadHVA(vr307,H);
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
     }
- while (--vr309);
-P+=Fs(f_y)+Fs(f_i);
+
+Yb(BcP(f_y,0+Fs(f_y))) = vr307;
+}P+=Fs(f_y)+Fs(f_y);
 goto w_dispatch;
     }
     }
-case 187:
+case 201:
 {
 {
-{tagged_t vr310 = Yb(BcP(f_y,0));
-if (TaggedIsSVA(vr310)) {
-tagged_t vr311;
+{tagged_t vr308 = Yb(BcP(f_y,0));
+if (TaggedIsSVA(vr308)) {
+tagged_t vr309;
 do {
-RefSVA(vr311,vr310);
-if (vr311==vr310) {
-BindSVA(vr310,Tagp(HVA,H));
-PreLoadHVA(vr310,H);
+RefSVA(vr309,vr308);
+if (vr309==vr308) {
+BindSVA(vr308,Tagp(HVA,H));
+PreLoadHVA(vr308,H);
 break;
         }
 
-vr310 = vr311;
+vr308 = vr309;
       }
- while (TaggedIsSVA(vr310));
+ while (TaggedIsSVA(vr308));
     }
 
-HeapPush(H,vr310);
-}intmach_t vr312 = (FTYPE_ctype(f_i_signed))BcP(f_i,0+Fs(f_y));
-do {
-ConstrHVA(H);
+HeapPush(H,vr308);
+}{tagged_t vr310;
+LoadHVA(vr310,H);
+if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
+TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
     }
- while (--vr312);
-P+=Fs(f_y)+Fs(f_i);
+
+Yb(BcP(f_y,0+Fs(f_y))) = vr310;
+}P+=Fs(f_y)+Fs(f_y);
 goto w_dispatch;
     }
     }
-case 189:
+case 194:
 HeapPush(H,Yb(BcP(f_y,0)));
-LoadHVA(Xb(BcP(f_x,0+Fs(f_y))),H);
+HeapPush(H,Xb(BcP(f_x,0+Fs(f_y))));
 P+=Fs(f_y)+Fs(f_x);
 goto w_dispatch;
-case 190:
+case 197:
+{
+{
+HeapPush(H,Yb(BcP(f_y,0)));
+{tagged_t vr311 = Xb(BcP(f_x,0+Fs(f_y)));
+if (TaggedIsSVA(vr311)) {
+tagged_t vr312;
+do {
+RefSVA(vr312,vr311);
+if (vr312==vr311) {
+BindSVA(vr311,Tagp(HVA,H));
+PreLoadHVA(vr311,H);
+break;
+        }
+
+vr311 = vr312;
+      }
+ while (TaggedIsSVA(vr311));
+    }
+
+HeapPush(H,vr311);
+}P+=Fs(f_y)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 195:
 {
 {
 {tagged_t vr313 = Yb(BcP(f_y,0));
@@ -5432,17 +5552,12 @@ vr313 = vr314;
     }
 
 HeapPush(H,vr313);
-}LoadHVA(Xb(BcP(f_x,0+Fs(f_y))),H);
+}HeapPush(H,Xb(BcP(f_x,0+Fs(f_y))));
 P+=Fs(f_y)+Fs(f_x);
 goto w_dispatch;
     }
     }
-case 191:
-HeapPush(H,Yb(BcP(f_y,0)));
-LoadHVA(Yb(BcP(f_y,0+Fs(f_y))),H);
-P+=Fs(f_y)+Fs(f_y);
-goto w_dispatch;
-case 192:
+case 198:
 {
 {
 {tagged_t vr315 = Yb(BcP(f_y,0));
@@ -5462,67 +5577,61 @@ vr315 = vr316;
     }
 
 HeapPush(H,vr315);
-}LoadHVA(Yb(BcP(f_y,0+Fs(f_y))),H);
-P+=Fs(f_y)+Fs(f_y);
-goto w_dispatch;
-    }
-    }
-case 200:
-{
-{
-HeapPush(H,Yb(BcP(f_y,0)));
-{tagged_t vr317;
-LoadHVA(vr317,H);
-if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
-TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
-    }
-
-Yb(BcP(f_y,0+Fs(f_y))) = vr317;
-}P+=Fs(f_y)+Fs(f_y);
-goto w_dispatch;
-    }
-    }
-case 201:
-{
-{
-{tagged_t vr318 = Yb(BcP(f_y,0));
-if (TaggedIsSVA(vr318)) {
-tagged_t vr319;
+}{tagged_t vr317 = Xb(BcP(f_x,0+Fs(f_y)));
+if (TaggedIsSVA(vr317)) {
+tagged_t vr318;
 do {
-RefSVA(vr319,vr318);
-if (vr319==vr318) {
-BindSVA(vr318,Tagp(HVA,H));
-PreLoadHVA(vr318,H);
+RefSVA(vr318,vr317);
+if (vr318==vr317) {
+BindSVA(vr317,Tagp(HVA,H));
+PreLoadHVA(vr317,H);
 break;
         }
 
-vr318 = vr319;
+vr317 = vr318;
       }
- while (TaggedIsSVA(vr318));
+ while (TaggedIsSVA(vr317));
     }
 
-HeapPush(H,vr318);
-}{tagged_t vr320;
-LoadHVA(vr320,H);
-if (CondStackvar(Yb(BcP(f_y,0+Fs(f_y))))) {
-TrailPushCheck(w->trail_top,Tagp(SVA,&Yb(BcP(f_y,0+Fs(f_y)))));
+HeapPush(H,vr317);
+}P+=Fs(f_y)+Fs(f_x);
+goto w_dispatch;
+    }
+    }
+case 203:
+HeapPush(H,Yb(BcP(f_y,0)));
+HeapPush(H,Yb(BcP(f_y,0+Fs(f_y))));
+P+=Fs(f_y)+Fs(f_y);
+goto w_dispatch;
+case 206:
+{
+{
+HeapPush(H,Yb(BcP(f_y,0)));
+{tagged_t vr319 = Yb(BcP(f_y,0+Fs(f_y)));
+if (TaggedIsSVA(vr319)) {
+tagged_t vr320;
+do {
+RefSVA(vr320,vr319);
+if (vr320==vr319) {
+BindSVA(vr319,Tagp(HVA,H));
+PreLoadHVA(vr319,H);
+break;
+        }
+
+vr319 = vr320;
+      }
+ while (TaggedIsSVA(vr319));
     }
 
-Yb(BcP(f_y,0+Fs(f_y))) = vr320;
+HeapPush(H,vr319);
 }P+=Fs(f_y)+Fs(f_y);
 goto w_dispatch;
     }
     }
-case 194:
-HeapPush(H,Yb(BcP(f_y,0)));
-HeapPush(H,Xb(BcP(f_x,0+Fs(f_y))));
-P+=Fs(f_y)+Fs(f_x);
-goto w_dispatch;
-case 197:
+case 204:
 {
 {
-HeapPush(H,Yb(BcP(f_y,0)));
-{tagged_t vr321 = Xb(BcP(f_x,0+Fs(f_y)));
+{tagged_t vr321 = Yb(BcP(f_y,0));
 if (TaggedIsSVA(vr321)) {
 tagged_t vr322;
 do {
@@ -5539,11 +5648,12 @@ vr321 = vr322;
     }
 
 HeapPush(H,vr321);
-}P+=Fs(f_y)+Fs(f_x);
+}HeapPush(H,Yb(BcP(f_y,0+Fs(f_y))));
+P+=Fs(f_y)+Fs(f_y);
 goto w_dispatch;
     }
     }
-case 195:
+case 207:
 {
 {
 {tagged_t vr323 = Yb(BcP(f_y,0));
@@ -5563,15 +5673,7 @@ vr323 = vr324;
     }
 
 HeapPush(H,vr323);
-}HeapPush(H,Xb(BcP(f_x,0+Fs(f_y))));
-P+=Fs(f_y)+Fs(f_x);
-goto w_dispatch;
-    }
-    }
-case 198:
-{
-{
-{tagged_t vr325 = Yb(BcP(f_y,0));
+}{tagged_t vr325 = Yb(BcP(f_y,0+Fs(f_y)));
 if (TaggedIsSVA(vr325)) {
 tagged_t vr326;
 do {
@@ -5588,119 +5690,6 @@ vr325 = vr326;
     }
 
 HeapPush(H,vr325);
-}{tagged_t vr327 = Xb(BcP(f_x,0+Fs(f_y)));
-if (TaggedIsSVA(vr327)) {
-tagged_t vr328;
-do {
-RefSVA(vr328,vr327);
-if (vr328==vr327) {
-BindSVA(vr327,Tagp(HVA,H));
-PreLoadHVA(vr327,H);
-break;
-        }
-
-vr327 = vr328;
-      }
- while (TaggedIsSVA(vr327));
-    }
-
-HeapPush(H,vr327);
-}P+=Fs(f_y)+Fs(f_x);
-goto w_dispatch;
-    }
-    }
-case 203:
-HeapPush(H,Yb(BcP(f_y,0)));
-HeapPush(H,Yb(BcP(f_y,0+Fs(f_y))));
-P+=Fs(f_y)+Fs(f_y);
-goto w_dispatch;
-case 206:
-{
-{
-HeapPush(H,Yb(BcP(f_y,0)));
-{tagged_t vr329 = Yb(BcP(f_y,0+Fs(f_y)));
-if (TaggedIsSVA(vr329)) {
-tagged_t vr330;
-do {
-RefSVA(vr330,vr329);
-if (vr330==vr329) {
-BindSVA(vr329,Tagp(HVA,H));
-PreLoadHVA(vr329,H);
-break;
-        }
-
-vr329 = vr330;
-      }
- while (TaggedIsSVA(vr329));
-    }
-
-HeapPush(H,vr329);
-}P+=Fs(f_y)+Fs(f_y);
-goto w_dispatch;
-    }
-    }
-case 204:
-{
-{
-{tagged_t vr331 = Yb(BcP(f_y,0));
-if (TaggedIsSVA(vr331)) {
-tagged_t vr332;
-do {
-RefSVA(vr332,vr331);
-if (vr332==vr331) {
-BindSVA(vr331,Tagp(HVA,H));
-PreLoadHVA(vr331,H);
-break;
-        }
-
-vr331 = vr332;
-      }
- while (TaggedIsSVA(vr331));
-    }
-
-HeapPush(H,vr331);
-}HeapPush(H,Yb(BcP(f_y,0+Fs(f_y))));
-P+=Fs(f_y)+Fs(f_y);
-goto w_dispatch;
-    }
-    }
-case 207:
-{
-{
-{tagged_t vr333 = Yb(BcP(f_y,0));
-if (TaggedIsSVA(vr333)) {
-tagged_t vr334;
-do {
-RefSVA(vr334,vr333);
-if (vr334==vr333) {
-BindSVA(vr333,Tagp(HVA,H));
-PreLoadHVA(vr333,H);
-break;
-        }
-
-vr333 = vr334;
-      }
- while (TaggedIsSVA(vr333));
-    }
-
-HeapPush(H,vr333);
-}{tagged_t vr335 = Yb(BcP(f_y,0+Fs(f_y)));
-if (TaggedIsSVA(vr335)) {
-tagged_t vr336;
-do {
-RefSVA(vr336,vr335);
-if (vr336==vr335) {
-BindSVA(vr335,Tagp(HVA,H));
-PreLoadHVA(vr335,H);
-break;
-        }
-
-vr335 = vr336;
-      }
- while (TaggedIsSVA(vr335));
-    }
-
-HeapPush(H,vr335);
 }P+=Fs(f_y)+Fs(f_y);
 goto w_dispatch;
     }
@@ -5768,10 +5757,10 @@ B->next_alt = w->next_alt;
 B->frame = w->frame;
 B->next_insn = w->next_insn;
 B->local_top = w->local_top;
-intmach_t vr337 = ChoiceArity(B);
-for (intmach_t vr338 = 0;
-vr338<vr337;vr338++) {
-B->x[vr338] = w->x[vr338];
+intmach_t vr327 = ChoiceArity(B);
+for (intmach_t vr328 = 0;
+vr328<vr327;vr328++) {
+B->x[vr328] = w->x[vr328];
         }
 
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
@@ -5792,12 +5781,12 @@ case 236:
 {
 w_op236:
 {
-tagged_t vr339 = X(3);
-if (vr339&TagBitSVA) {
-BindSVA(vr339,PointerToTerm(w->misc->ins));
+tagged_t vr329 = X(3);
+if (vr329&TagBitSVA) {
+BindSVA(vr329,PointerToTerm(w->misc->ins));
     }
  else {
-BindHVA(vr339,PointerToTerm(w->misc->ins));
+BindHVA(vr329,PointerToTerm(w->misc->ins));
     }
 
 if (IsDeep()) {
@@ -5832,10 +5821,10 @@ B->next_alt = w->next_alt;
 B->frame = w->frame;
 B->next_insn = w->next_insn;
 B->local_top = w->local_top;
-intmach_t vr340 = ChoiceArity(B);
-for (intmach_t vr341 = 0;
-vr341<vr340;vr341++) {
-B->x[vr341] = w->x[vr341];
+intmach_t vr330 = ChoiceArity(B);
+for (intmach_t vr331 = 0;
+vr331<vr330;vr331++) {
+B->x[vr331] = w->x[vr331];
         }
 
 if (ChoiceYounger(ChoiceOffset(B,CHOICEPAD),w->trail_top)) {
