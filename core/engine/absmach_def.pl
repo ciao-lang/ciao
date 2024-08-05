@@ -538,8 +538,7 @@ setmode_setH(r, NewH), [[ mode(w) ]] =>
 
 :- rkind(sw_on_heap_var/4, []).
 sw_on_heap_var(Reg, HVACode, CVACode, NVACode) =>
-    localv(tagged, Aux),
-    callstmt('SwitchOnHeapVar', [Reg, Aux, blk(HVACode), blk(CVACode), blk(NVACode)]).
+    callstmt('DerefSw_HVA_CVA_Other', [Reg, blk(HVACode), blk(CVACode), blk(NVACode)]).
 
 :- rkind(sw_on_var/5, []).
 sw_on_var(Reg, HVACode, CVACode, SVACode, NVACode) =>

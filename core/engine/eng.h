@@ -2573,25 +2573,27 @@ derefsw_other: OtherCode; goto derefsw_end; \
 derefsw_end: {} \
 } while(0)
 
-#define SwitchOnHeapVar(Reg,Aux,HVACode,CVACode,NVACode) \
-{ \
-    for (;;) \
-      { \
-          if (!IsVar(Reg)) \
-            NVACode \
-          else if (!(Reg & TagBitCVA)) \
-            { RefHVA(Aux,Reg); \
-              if (Reg!=Aux) { Reg=Aux; continue; } \
-              else HVACode \
-            } \
-          else \
-            { Aux = *TagpPtr(CVA,(Reg)); \
-              if (Reg!=Aux) { Reg=Aux; continue; } \
-              else CVACode \
-            } \
-          break; \
-        } \
-}
+#define DerefSw_HVA_CVA_Other(Reg,HVACode,CVACode,OtherCode) do { \
+  __label__ derefsw_hva; \
+  __label__ derefsw_cva; \
+  __label__ derefsw_other; \
+  __label__ derefsw_end; \
+  for (;;) { \
+    Sw_HVA_CVA_Other(Reg, { \
+      tagged_t aux_ = *TagpPtr(HVA,Reg); \
+      if (Reg!=aux_) { Reg=aux_; } else { goto derefsw_hva; } \
+    },{ \
+      tagged_t aux_ = *TagpPtr(CVA,Reg); \
+      if (Reg!=aux_) { Reg=aux_; } else { goto derefsw_cva; } \
+    },{ \
+      goto derefsw_other; \
+    }); \
+  } \
+derefsw_hva: HVACode; goto derefsw_end; \
+derefsw_cva: CVACode; goto derefsw_end; \
+derefsw_other: OtherCode; goto derefsw_end; \
+derefsw_end: {} \
+} while(0)
 
 #define Sw_HVA_CVA_SVA_Other(T, HVACode, CVACode, SVACode, NONVARCode) do { \
   if (!IsVar((T))) { \
@@ -2600,6 +2602,18 @@ derefsw_end: {} \
     if ((T) & TagBitSVA) { \
       SVACode; \
     } else if (!((T) & TagBitCVA)) { \
+      HVACode; \
+    } else { \
+      CVACode; \
+    } \
+  } \
+} while(0);
+
+#define Sw_HVA_CVA_Other(T, HVACode, CVACode, NONVARCode) do { \
+  if (!IsVar((T))) { \
+    NONVARCode; \
+  } else { \
+    if (!((T) & TagBitCVA)) { \
       HVACode; \
     } else { \
       CVACode; \

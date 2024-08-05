@@ -112,22 +112,24 @@ CBOOL__PROTO(prolog_copy_term) {
 }
 
 static CVOID__PROTO(copy_it, tagged_t *loc) {
-  tagged_t t1, t2, *pt1, *pt2;
+  tagged_t t1, *pt1, *pt2;
   int i;
   int term_so_far;              /* size of new heap before copying subterms */
 
  start:
   RefHeap(t1,loc);
-  SwitchOnHeapVar(t1,t2,{goto copy_hva;},{goto copy_cva;},{});
+  DerefSw_HVA_CVA_Other(t1,{goto copy_hva;},{goto copy_cva;},{});
 
   if (TaggedIsATM(t1) || IsNumber(t1)) {                           /* NUM, ATM */
     *loc = t1;
     return;
   } else if (t1 & TagBitFunctor) {                                 /* STR */
+    tagged_t t2;
     pt1 = TagpPtr(STR,t1);
     pt2 = w->heap_top;
     *loc = Tagp(STR,pt2);
-    t2 = HeapNext(pt1), HeapPush(pt2,t2);
+    t2 = HeapNext(pt1);
+    HeapPush(pt2,t2);
     for (i=Arity(t2); i>0; --i) {
       RefHeapNext(t1,pt1);
       HeapPush(pt2,t1);
@@ -157,6 +159,7 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
 
  copy_hva:
   if (OldHVA(t1)) { /* HVA */
+    tagged_t t2;
     PreLoadHVA(*loc,loc);
     t2 = Tagp(HVA,loc);
     BindHVA(t1,t2);
@@ -165,6 +168,7 @@ static CVOID__PROTO(copy_it, tagged_t *loc) {
 
  copy_cva:
   if (OldCVA(t1)) { /* new 3-field CVA */
+    tagged_t t2;
     pt1 = TaggedToGoal(t1);
     pt2 = w->heap_top;
     LoadCVA(t2,pt2);
@@ -209,22 +213,24 @@ CBOOL__PROTO(prolog_copy_term_nat)
 
 static CVOID__PROTO(copy_it_nat, tagged_t *loc)
 {
-  tagged_t t1, t2, *pt1, *pt2;
+  tagged_t t1, *pt1, *pt2;
   int i;
   int term_so_far;              /* size of new heap before copying subterms */
 
  start:
   RefHeap(t1,loc);
-  SwitchOnHeapVar(t1,t2,{goto copy_hva;},{goto skip_cva;},{});
+  DerefSw_HVA_CVA_Other(t1,{goto copy_hva;},{goto skip_cva;},{});
 
   if (TaggedIsATM(t1) || IsNumber(t1)) {                           /* NUM, ATM */
     *loc = t1;
     return;
   } else if (t1 & TagBitFunctor) {                                 /* STR */
+    tagged_t t2;
     pt1 = TagpPtr(STR,t1);
     pt2 = w->heap_top;
     *loc = Tagp(STR,pt2);
-    t2 = HeapNext(pt1), HeapPush(pt2,t2);
+    t2 = HeapNext(pt1);
+    HeapPush(pt2,t2);
     for (i=Arity(t2); i>0; --i) {
       RefHeapNext(t1,pt1);
       HeapPush(pt2,t1);
@@ -253,6 +259,7 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
 
  copy_hva:
   if (OldHVA(t1)) { /* HVA */
+    tagged_t t2;
     PreLoadHVA(*loc,loc);
     t2 = Tagp(HVA,loc);
     BindHVA(t1,t2);
@@ -261,6 +268,7 @@ static CVOID__PROTO(copy_it_nat, tagged_t *loc)
 
  skip_cva:
   if (OldCVA(t1)) {
+    tagged_t t2;
     /* This code is equivalent to taking out the attribute;
        xref bu1_detach_attribute() */
     PreLoadHVA(*loc,loc);
