@@ -730,6 +730,8 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define TagOf(P)        ((P)>>TAGOFFSET)  /* collects tag */
 #define CT(T1,T2)       ((T1)<<TAGSIZE|(T2)) /* for concatenating tags     */
 
+#define TaggedSameTag(U,V) (((U)^(V)) < QMask)
+
 #define IsVar(A)        ((stagged_t)(A)>=0)        /* variable tags begin with 0 */
 
 #define TaggedIsHVA(X)     ((X) < CVA<<TAGOFFSET)

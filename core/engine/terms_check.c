@@ -143,15 +143,14 @@ static CBOOL__PROTO(cinstance_aux,
               ;);
 
                                 /* two non variables */
-  if (!(v ^= u))                /* are they equal? */
+  if (u == v)                   /* are they equal? */
     goto win;
-  else if (v>=QMask)            /* not the same type? */
+  else if (!TaggedSameTag(u, v))            /* not the same type? */
     goto lose;
   else if (!(u & TagBitComplex)) /* atomic? (& not LNUM)*/
     goto lose;
   else if (!(u & TagBitFunctor)) /* list? */
     {
-      v ^= u;                   /* restore v */
       if (cinstance_args_aux(Arg,2,TaggedToCar(u),TaggedToCar(v),&x1,&x2,n))
         goto in;
       else
@@ -160,7 +159,6 @@ static CBOOL__PROTO(cinstance_aux,
   else                          /* structure. */
     {
       tagged_t t1;
-      v ^= u;                   /* restore v */
       if (TaggedToHeadfunctor(u) != (t1=TaggedToHeadfunctor(v)))
         goto lose;
       else if (t1&QMask)        /* large number */
