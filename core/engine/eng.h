@@ -743,7 +743,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define TaggedIsSTR(X)     ((X) >= (STR<<TAGOFFSET))
 
 #define TaggedIsStructure(X) (TaggedIsSTR(X) && !STRIsLarge(X))
-#define STRIsLarge(X)   (TaggedToHeadfunctor(X) & QMask)
+#define STRIsLarge(X)   (FunctorIsBlob(TaggedToHeadfunctor(X)))
 
 /* Term<->pointer conversion */
 /* NOTE: pointers must be in the SMALLPTR_BASE range and they must be
@@ -869,6 +869,8 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 /* LargeArity() in bytes */
 #define LargeSize(X)    ((PointerPart(X)>>tagged__atm_offset)*sizeof(tagged_t))
 
+/* Pre: a functor; Post: a functor for STR(blob(bignum)) or STR(blob(float)) */
+#define FunctorIsBlob(F) ((F) & QMask)
 /* Pre: any tagged; Post: a functor for STR(blob(bignum)) or STR(blob(float)) */
 #define BlobHF(F) ((F) & QMask)
 
@@ -2512,6 +2514,15 @@ module_t *define_c_static_mod(char *module_name);
   Xderef = m_i; \
 }
 
+#define SwStruct(F, V, CODE_STRBlob, CODE_STRStruct) ({ \
+  tagged_t F = TaggedToHeadfunctor((V)); \
+  if (FunctorIsBlob(F)) { \
+    CODE_STRBlob; \
+  } else { \
+    CODE_STRStruct; \
+  } \
+})
+
 #define DerefSw_HVAorCVAorSVA_Other(Reg,CODE_HVAorCVAorSVA,CODE_Other) do { \
   __label__ labelend; \
   if (IsVar(Reg)) { \
@@ -2620,6 +2631,54 @@ derefsw_end: {} \
     } \
   } \
 } while(0);
+
+#define Sw_HVA_SVA_CVA_NUM_ATM_LST_STR(Reg, CODE_HVA, CODE_SVA, CODE_CVA, CODE_NUM, CODE_ATM, CODE_LST, CODE_STR) ({ \
+  switch (TagOf(Reg)) { \
+  case UBV: case SVA: CODE_SVA; break; \
+  case HVA: CODE_HVA; break; \
+  case CVA: CODE_CVA; break; \
+  case STR: CODE_STR; break; \
+  case ATM: CODE_ATM; break; \
+  case LST: CODE_LST; break; \
+  case NUM: CODE_NUM; break; \
+  } \
+})
+
+#define DerefSw_any(Reg, HeadFunctor, CODE_HVA, CODE_SVA, CODE_CVA, CODE_NUM, CODE_ATM, CODE_LST, CODE_STRFloat, CODE_STRBignum, CODE_STRStruct) ({ \
+  DEREF(Reg, Reg); \
+  Sw_HVA_SVA_CVA_NUM_ATM_LST_STR(Reg, CODE_HVA, CODE_SVA, CODE_CVA, CODE_NUM, CODE_ATM, CODE_LST, { \
+    SwStruct(HeadFunctor, Reg, { \
+      if (FunctorIsFloat(HeadFunctor)) { \
+        CODE_STRFloat; \
+        break; \
+      } else { \
+        CODE_STRBignum; \
+        break; \
+      } \
+    }, { \
+      CODE_STRStruct; \
+      break; \
+    }); \
+  }); \
+})
+
+#define DerefSw_HVAorCVAorSVA_NUMorATM_LST_STR(Reg, CODE_HVAorCVAorSVA, CODE_NUMorATM, CODE_LST, CODE_STR) ({ \
+  DerefSw_HVAorCVAorSVA_Other(Reg, { /* HVA CVA SVA */ \
+    CODE_HVAorCVAorSVA; \
+  }, { /* Other */ \
+    Sw_NUMorATM_LST_STR(Reg, CODE_NUMorATM, CODE_LST, CODE_STR); \
+  }); \
+})
+
+#define Sw_NUMorATM_LST_STR(Reg, CODE_NUMorATM, CODE_LST, CODE_STR) ({ \
+  if (TaggedIsATM(Reg)||TaggedIsSmall(Reg)) { \
+    CODE_NUMorATM; \
+  } else if (TaggedIsLST(Reg)) { \
+    CODE_LST; \
+  } else { \
+    CODE_STR; \
+  } \
+})
 
 #define SwEval(V, HeadFunctor, NUMCode, LSTCode, BlobCode, STRCode, OtherCode) ({ \
   switch (TagOf((V))) { \
@@ -2744,8 +2803,6 @@ CVOID__PROTO(trail_push_check, tagged_t x);
 
 /* --------------------------------------------------------------------------- */
 /* support for copy term */
-
-#define TopOfOldHeap TagpPtr(HVA,w->global_uncond)
 
 /* Enable copying of terms between different heaps in copy_term */
 /* (it does not have any significant impact on performance) */

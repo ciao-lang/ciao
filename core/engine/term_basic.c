@@ -27,6 +27,7 @@
 
 /* local declarations */
 
+#define TopOfOldHeap TagpPtr(HVA,w->global_uncond)
 #define GCTEST(Pad) { \
     if (HeapCharDifference(w->heap_top,Heap_End) < (Pad)*sizeof(tagged_t)) \
       heap_overflow(Arg,2*((Pad)*sizeof(tagged_t))); \
@@ -518,12 +519,11 @@ static CBOOL__PROTO(var_occurs_args_aux,
                     int arity,
                     tagged_t *pt1,
                     tagged_t *x1) {
-  tagged_t 
-    t1 = ~0;
+  tagged_t t1 = ~0;
   for (; arity>0; --arity) {
     t1 = *pt1;
-    if (arity > 1 && var_occurs(Arg,v,t1)) return TRUE;
-    (void)HeapNext(pt1);
+    if (arity > 1 && CBOOL__SUCCEED(var_occurs,v,t1)) return TRUE;
+    pt1++;
   }
   *x1 = t1;
   return FALSE;
@@ -545,16 +545,17 @@ static CBOOL__PROTO(var_occurs, tagged_t v, tagged_t x1) {
   if (TaggedIsATM(u)) goto lose;
   if (TaggedIsSmall(u)) goto lose;
   if (TaggedIsLST(u)) {
-    if (!var_occurs_args_aux(Arg,v,2,TaggedToCar(u),&x1))
+    if (!CBOOL__SUCCEED(var_occurs_args_aux,v,2,TaggedToCar(u),&x1)) {
       goto in;
-    else
+    } else {
       goto win;
+    }
   } else { /* structure. */
     tagged_t t1;
     t1=TaggedToHeadfunctor(u);
-    if (t1&QMask) { /* large number */
-          goto lose;
-    } if (!var_occurs_args_aux(Arg,v,Arity(t1),TaggedToArg(u,1),&x1)) {
+    if (FunctorIsBlob(t1)) { /* large number */
+      goto lose;
+    } if (!CBOOL__SUCCEED(var_occurs_args_aux,v,Arity(t1),TaggedToArg(u,1),&x1)) {
       goto in;
     } else {
       goto win;
@@ -590,7 +591,7 @@ CBOOL__PROTO(cunifyOC_args,
              tagged_t *pt1,
              tagged_t *pt2) {
   tagged_t x1, x2;
-  return (cunifyOC_args_aux(Arg,arity,pt1,pt2,&x1,&x2) && cunifyOC_aux(Arg,x1,x2));
+  return (CBOOL__SUCCEED(cunifyOC_args_aux,arity,pt1,pt2,&x1,&x2) && CBOOL__SUCCEED(cunifyOC_aux,x1,x2));
 }
 
 static CBOOL__PROTO(cunifyOC_args_aux, 
@@ -612,14 +613,14 @@ static CBOOL__PROTO(cunifyOC_args_aux,
       if (t1!=t2 && IsComplex(t1&t2)) {
         /* NOTE: do forward args from pt2 to pt1 */ 
       noforward:
-        if (arity>1 && !cunifyOC_aux(Arg,t1,t2))
+        if (arity>1 && !CBOOL__SUCCEED(cunifyOC_aux,t1,t2))
           return FALSE;
       } else if (t1 != t2) {
         return FALSE;
       }
     }
-    (void)HeapNext(pt1);
-    (void)HeapNext(pt2);
+    pt1++;
+    pt2++;
   }
 
   *x1 = t1;
@@ -690,19 +691,19 @@ static CBOOL__PROTO(cunifyOC_aux, tagged_t x1, tagged_t x2) {
   } else {                              /* structure. */
     tagged_t t1;
     v ^= u;                     /* restore v */
-    if (TaggedToHeadfunctor(u) != (t1=TaggedToHeadfunctor(v))) {
+    t1 = TaggedToHeadfunctor(v);
+    if (TaggedToHeadfunctor(u) != t1) {
       goto lose;
-    } else if (t1&QMask) {      /* large number */
-      int i;
-        
-      for (i = LargeArity(t1)-1; i>0; i--)
-        if (*TaggedToArg(u,i) != *TaggedToArg(v,i)) goto lose;
-      goto win;
-    }
-    if (cunifyOC_args_aux(Arg,Arity(t1),TaggedToArg(u,1),TaggedToArg(v,1),&x1,&x2)) {
-      goto in;
     } else {
-      goto lose;
+      if (FunctorIsBlob(t1)) {      /* large number */
+        int i;
+        for (i = LargeArity(t1)-1; i>0; i--)
+          if (*TaggedToArg(u,i) != *TaggedToArg(v,i)) return FALSE;
+        goto win;
+      } else { 
+        if (!cunifyOC_args_aux(Arg,Arity(t1),TaggedToArg(u,1),TaggedToArg(v,1),&x1,&x2)) return FALSE;
+        goto in;
+      }
     }
   }
 

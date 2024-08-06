@@ -130,7 +130,6 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
   } \
 })
 
-#if defined(OPTIM_COMP)
 #define CheckInteger(U,ArgNo) ({ \
   if (!TaggedIsSmall(U)) { \
     __label__ noteval_; \
@@ -145,18 +144,6 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
     } \
   } \
 })
-#else
-#define CheckInteger(U,ArgNo) ({ \
-  if (!TaggedIsSmall(U)) { \
-    if (!TaggedIsLarge(U)) { \
-      BUILTIN_ERROR(TYPE_ERROR(EVALUABLE), (U), (ArgNo)); \
-    } \
-    if (LargeIsFloat(U)) { \
-      BUILTIN_ERROR(TYPE_ERROR(INTEGER), (U), (ArgNo)); \
-    } \
-  } \
-})
-#endif
 
 /* Evaluate U (if needed) and check that it has type DOM.
    Additional arguments are GC roots (if a heap overflow or GC is needed) */
