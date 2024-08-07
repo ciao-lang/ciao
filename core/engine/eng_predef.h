@@ -107,6 +107,8 @@ typedef int64_t inttime_t;
 
 typedef tagged_t blob_unit_t; // TODO:[oc-merge] make OC use this def?
 
+typedef int arity_t; /* type for arity */ // TODO:[oc-merge] intmach_t in OC
+
 /* ------------------------------------------------------------------------- */
 /* Macros for formatting integers */
 
