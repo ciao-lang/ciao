@@ -2,30 +2,18 @@
  *  term_basic.c
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
+ *  Copyright (C) 2020-2024 The Ciao Development Team
  */
-
-#include <stdio.h>
-#include <stdlib.h>
 
 #include <ciao/eng.h>
 #include <ciao/basiccontrol.h>
-#include <ciao/dynamic_rt.h>
-#include <ciao/dtoa_ryu.h>
-#include <ciao/eng_start.h>
-#include <ciao/eng_registry.h>
 #include <ciao/eng_gc.h>
-#include <ciao/rt_exp.h>
 #include <ciao/runtime_control.h>
-#include <ciao/io_basic.h>
-#include <ciao/eng_bignum.h>
 
 /* Unify with occurs-check, using inline checks (var-nonvar cases) */
 #define UNIFY_OC_INLINE 1
 /* Enable tail optimization in cyclic_term */
 #define CYCLIC_TERM_TAIL_OPTIM 1
-
-/* local declarations */
 
 #define TopOfOldHeap TagpPtr(HVA,w->global_uncond)
 #define GCTEST(Pad) { \

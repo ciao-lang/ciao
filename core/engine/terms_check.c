@@ -2,32 +2,28 @@
  *  terms_check.c
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
+ *  Copyright (C) 2020-2024 The Ciao Development Team
  */
 
 #include <ciao/eng.h>
 #include <ciao/basiccontrol.h>
-#include <ciao/eng_bignum.h>
+#include <ciao/runtime_control.h>
 #include <ciao/eng_gc.h>
-#include <ciao/eng_start.h>
-#include <ciao/internals.h>
 
 /* ------------------------------------------------------------------------- */
 /* instance */
+/* TODO: optimize, port to improlog, make it work with cyclic terms */
 
 static CBOOL__PROTO(cinstance_args_aux,
                     int arity, tagged_t *pt1, tagged_t *pt2,
                     tagged_t *x1, tagged_t *x2, intmach_t *n);
 static CBOOL__PROTO(cinstance_aux, tagged_t x1, tagged_t x2, intmach_t *n);
 
-CBOOL__PROTO(cinstance_args, 
-             int arity,
-             tagged_t *pt1,
-             tagged_t *pt2,
-             intmach_t *n)
-{
-  tagged_t x1, x2;
-  return cinstance_args_aux(Arg,arity,pt1,pt2,&x1,&x2,n) && cinstance_aux(Arg,x1,x2,n);
+CBOOL__PROTO(cinstance_args, int arity, tagged_t *pt1, tagged_t *pt2, intmach_t *n) {
+  tagged_t x1;
+  tagged_t x2;
+  CBOOL__CALL(cinstance_args_aux, arity, pt1, pt2, &x1, &x2, n);
+  CBOOL__LASTCALL(cinstance_aux, x1, x2, n);
 }
 
 static CBOOL__PROTO(cinstance_args_aux, 
@@ -38,9 +34,8 @@ static CBOOL__PROTO(cinstance_args_aux,
                     tagged_t *x2,
                     intmach_t *n)
 {
-  tagged_t 
-    t1 = ~0,
-    t2 = ~0;
+  tagged_t t1 = ~0;
+  tagged_t t2 = ~0;
 
   /* Terminating unification of complex structures: Forward args of pt2 to
      args of pt1 using choice stack as value cell.  When done, reinstall
@@ -50,26 +45,28 @@ static CBOOL__PROTO(cinstance_args_aux,
                                 /* really: < 2*arity */
     choice_overflow(Arg,2*2*CHOICEPAD*sizeof(tagged_t),TRUE);
   for (; arity>0; --arity) {
-    t1 = *pt1, t2 = *pt2;
-    if (arity>1 && !cinstance_aux(Arg,t1,t2,n))
-      return FALSE;
+    t1 = *pt1;
+    t2 = *pt2;
+    if (arity>1) {
+      CBOOL__CALL(cinstance_aux,t1,t2,n);
+    }
     (void)HeapNext(pt1);
     (void)HeapNext(pt2);
   }
 
-  *x1 = t1, *x2 = t2;
+  *x1 = t1;
+  *x2 = t2;
 
   if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
     choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE);
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
-CVOID__PROTO(pop_choicept);
-CVOID__PROTO(push_choicept, try_node_t *alt);
-
-CBOOL__PROTO(cinstance)
-{
-  tagged_t t1, /* t2,*/ *pt1, *pt2;
+CBOOL__PROTO(cinstance) {
+  tagged_t t1;
+  // tagged_t t2;
+  tagged_t *pt1;
+  tagged_t *pt2;
   int result;
   intmach_t n = 0;
 
@@ -78,21 +75,24 @@ CBOOL__PROTO(cinstance)
   t2 = X(1);
 #endif
 
-  push_choicept(Arg,fail_alt);  /* try, arity=0 */
+  /* create a choice point to undo temporary bindings */
+  CVOID__CALL(push_choicept, fail_alt);
 
-  result = cinstance_aux(Arg,X(0),X(1),&n);
+  /* check if X(0) is an instance of X(1) */
+  result = CBOOL__SUCCEED(cinstance_aux, X(0), X(1), &n);
 
   pt1 = pt2 = TrailTopUnmark(w->choice->trail_top); /* untrail */
-  while (TrailYounger(w->trail_top,pt2)) {
+  while (TrailYounger(G->trail_top,pt2)) {
     t1 = *pt2; /* old var */
     pt2++;
     *TaggedToPointer(t1) = t1;
   }
-  w->trail_top = pt1;
+  G->trail_top = pt1;
 
-  pop_choicept(Arg);            /* trust */
+  /* remove the choice point */
+  CVOID__CALL(pop_choicept);
 
-  return result;
+  CBOOL__LASTTEST(result);
 }
 
 static CBOOL__PROTO(cinstance_aux, 
@@ -176,9 +176,9 @@ static CBOOL__PROTO(cinstance_aux,
     }
 
  win:
-  return TRUE;
+  CBOOL__PROCEED;
 
  lose:
-  return FALSE;
+  CBOOL__FAIL;
 }
 
