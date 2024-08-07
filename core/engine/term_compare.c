@@ -52,7 +52,7 @@ CFUN__PROTO(fu2_compare, tagged_t, tagged_t x1, tagged_t x2) {
 
 static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2);
 static CFUN__PROTO(compare_args_aux, int,
-                   int arity,
+                   arity_t arity,
                    tagged_t *pt1, tagged_t *pt2,
                    tagged_t *x1, tagged_t *x2);
 
@@ -200,7 +200,7 @@ static CFUN__PROTO(compare_aux, int, tagged_t x1, tagged_t x2) {
 }
 
 static CFUN__PROTO(compare_args_aux, int,
-                   int arity,
+                   arity_t arity,
                    tagged_t *pt1, tagged_t *pt2,
                    tagged_t *x1, tagged_t *x2)
 {

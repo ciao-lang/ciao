@@ -93,10 +93,10 @@ CFUN__PROTO(fu1_type, tagged_t, tagged_t t0) {
 
 /* ground */
 /* TODO: optimize, port to improlog, make it work with cyclic terms */
-static CBOOL__PROTO(cground_args_aux, int arity, tagged_t *pt1, tagged_t *x1);
+static CBOOL__PROTO(cground_args_aux, arity_t arity, tagged_t *pt1, tagged_t *x1);
 static CBOOL__PROTO(cground_aux, tagged_t x1);
 
-static CBOOL__PROTO(cground_args_aux, int arity, tagged_t *pt1, tagged_t *x1) {
+static CBOOL__PROTO(cground_args_aux, arity_t arity, tagged_t *pt1, tagged_t *x1) {
   tagged_t t1 = ~0;
   for (; arity>0; --arity) {
     t1 = *pt1;

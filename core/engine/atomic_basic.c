@@ -94,7 +94,7 @@ CBOOL__PROTO(string_to_number,
              char *AtBuf,
              int base,
              tagged_t *strnum,
-             int arity) {
+             int liveregs) {
   static const char char_digit[] = {
     -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
     -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -144,7 +144,7 @@ CBOOL__PROTO(string_to_number,
     CBOOL__FAIL; /* No digit found! */
   }
   if (i=='\0') { /* ended in \0, integer (small or bignum) */
-    StringToInt(AtBuf, base, *strnum, arity);
+    StringToInt(AtBuf, base, *strnum, liveregs);
     CBOOL__PROCEED;
   } else if (i=='.') { /* maybe a float */ /* TODO: allow 1e0 syntax (see tokenize.pl too) */
     flt64_t num;

@@ -672,11 +672,11 @@ CVOID__PROTO(print_task_status) {
 }
 
 #if 0
-/* TODO:[oc-merge] unused, missing heap overflows */
+/* TODO:[oc-merge] unused, missing heap overflows, fixed -3->arity */
 CFUN__PROTO(list_of_goals, tagged_t) {
   tagged_t *pt1 = G->heap_top;
   goal_descriptor_t *current_goal = goal_desc_list;
-  intmach_t arity MAYBE_UNUSED;
+  arity_t arity;
   
   do {
     switch(current_goal->state) {
@@ -713,7 +713,7 @@ CFUN__PROTO(list_of_goals, tagged_t) {
   } while (current_goal != goal_desc_list);
 
   G->heap_top=pt1;
-  CFUN__PROCEED(Tagp(STR,HeapCharOffset(pt1,-3*sizeof(tagged_t))));
+  CFUN__PROCEED(Tagp(STR,HeapCharOffset(pt1,-arity*sizeof(tagged_t))));
 }
 
 CBOOL__PROTO(prolog_eng_status1) {

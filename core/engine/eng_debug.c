@@ -205,7 +205,7 @@ CFUN__PROTO(TESTINT, intmach_t, tagged_t *p, intmach_t mask, bool_t quiet) {
   CFUN__PROCEED(bad);
 }
 
-CFUN__PROTO(worker_integrity, intmach_t, intmach_t arity, bool_t quiet) {
+CFUN__PROTO(worker_integrity, intmach_t, arity_t arity, bool_t quiet) {
   frame_t *a;
   intmach_t bad = 0;
   tagged_t t1;
@@ -382,7 +382,7 @@ void proofread__showfrom(void) {
   proofread__from = NULL;
 }
 
-CBOOL__PROTO(proofread, char *text, intmach_t arity, bool_t force) {
+CBOOL__PROTO(proofread, char *text, arity_t arity, bool_t force) {
   intmach_t trail_free;
 
   INSCOUNT_NEXT();

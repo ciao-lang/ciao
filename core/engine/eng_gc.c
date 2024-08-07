@@ -39,7 +39,7 @@
 
 #if !defined(OPTIM_COMP) && defined(USE_LOWRTCHECKS)
 /* TODO:[oc-merge] port */
-static CBOOL__PROTO(proofread, char *text, intmach_t arity, bool_t force) {
+static CBOOL__PROTO(proofread, char *text, arity_t arity, bool_t force) {
   CBOOL__PROCEED;
 }
 #endif

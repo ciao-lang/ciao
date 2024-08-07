@@ -178,12 +178,12 @@ static inline CFUN__PROTO(bn_finish, tagged_t) {
  * `Arity` is the number of live X registers (in case of heap GC).
  * (assumes `Str` represents a number)
  */
-#define StringToInt(Str, Base, Out, Arity) ({                           \
+#define StringToInt(Str, Base, Out, LiveRegs) ({                        \
   bignum_size_t req = bn_from_string((Str),                             \
                                      (bignum_t *)G->heap_top,           \
                                      (bignum_t *)Heap_Warn_Pad(CONTPAD), (Base)); \
   if (req != 0) {                                                       \
-    CVOID__CALL(explicit_heap_overflow, (req*sizeof(tagged_t)+CONTPAD)*2, (Arity)); \
+    CVOID__CALL(explicit_heap_overflow, (req*sizeof(tagged_t)+CONTPAD)*2, (LiveRegs)); \
     if (bn_from_string((Str),                                           \
                        (bignum_t *)G->heap_top,                         \
                        (bignum_t *)Heap_Warn_Pad(CONTPAD), (Base))) {   \

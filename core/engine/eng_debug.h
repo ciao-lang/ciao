@@ -42,7 +42,7 @@ void init_debug_inscount(void);
 #if defined(OPTIM_COMP)
 
 #if defined(USE_LOWRTCHECKS)
-CBOOL__PROTO(proofread, char *text, intmach_t arity, bool_t force);
+CBOOL__PROTO(proofread, char *text, arity_t arity, bool_t force);
 void dump_tagged(tagged_t t);
 CVOID__PROTO(dump_call, char *s, definition_t *func);
 #endif
