@@ -6,37 +6,8 @@
  *  See Copyright Notice in ciaoengine.pl
  */
 
-#if defined(_WIN32) || defined(_WIN64) /* MinGW */
-//#include <winsock2.h>
-#include <windows.h>
-#endif
-
-#include <string.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <time.h>
-#include <sys/stat.h>
-#include <sys/param.h>
-
 #include <ciao/eng.h>
-
-#if !(defined(__svr4__) || defined(DARWIN) || defined(BSD))
-#include <sys/types.h>
-#include <malloc.h>
-#endif
-#include <assert.h>
-
-#if defined(DARWIN) /* for get_execpath() */
-#include <stdint.h>
-#include <limits.h>
-#include <mach-o/dyld.h>
-#endif
-
-#if defined(Win32) && !(defined(_WIN32) || defined(_WIN64)) /* MSYS2/Cygwin */
-#include <sys/cygwin.h>
-#endif
-
+#if !defined(OPTIM_COMP)
 #include <ciao/basiccontrol.h>
 #include <ciao/internals.h>
 #include <ciao/eng_registry.h>
@@ -44,10 +15,29 @@
 #include <ciao/qread.h>
 #include <ciao/eng_profile.h>
 #include <ciao/timing.h>
-
-#if !defined(MAXPATHLEN)
-# define MAXPATHLEN 1024
 #endif
+#include <ciao/os_defs.h>
+
+#if defined(_WIN32) || defined(_WIN64) /* MinGW */
+//#include <winsock2.h>
+#include <windows.h>
+#endif
+#if defined(Win32) && !(defined(_WIN32) || defined(_WIN64)) /* MSYS2/Cygwin */
+#include <sys/cygwin.h>
+#endif
+
+#include <string.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <assert.h>
+#include <limits.h>
+
+#if defined(DARWIN) /* for get_execpath() */
+#include <mach-o/dyld.h>
+#endif
+
+/* --------------------------------------------------------------------------- */
+
 #if !defined(X_OK)
 # define X_OK 1
 #endif
@@ -68,7 +58,7 @@ void checkctypes(void)
   assert((fzero.as_int[0]==0 && fzero.as_int[1]==0));
 }
 
-/* local declarations */
+/* --------------------------------------------------------------------------- */
 
 #define USAGE_STRING "Usage: %s [prolog_args] -C [-i] [-q] [-v] -b bootfile\n"
 

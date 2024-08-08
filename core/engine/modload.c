@@ -7,6 +7,7 @@
  */
 
 #include <ciao/eng.h>
+#include <ciao/os_defs.h>
 #include <ciao/io_basic.h>
 
 #if defined(FOREIGN_FILES)
@@ -19,10 +20,6 @@
 #include <string.h>
 
 #include <ciao/modload.h>
-
-#if !defined(MAXPATHLEN)
-# define MAXPATHLEN 1024
-#endif
 
 static void unload_if_present(char *module_name);
 

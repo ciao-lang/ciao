@@ -84,6 +84,7 @@ extern definition_t *address_ucc;
   RECOVER_FIELD(ptemp);
 
 /* ------------------------------------------------------------------------- */
+/* Aux bytecode for the C->Prolog interface */
 
 bcp_t call_code;
 bcp_t default_code;

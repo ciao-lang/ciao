@@ -47,9 +47,6 @@
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_gc.h>
 #include <ciao/basiccontrol.h>
-#if !defined(MAXPATHLEN)
-# define MAXPATHLEN 1024
-#endif
 #endif
 
 void ciao_exit(int result);
