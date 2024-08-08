@@ -198,7 +198,6 @@ static try_node_t *get_null_alt(int arity)
   return a;
 }
 
-
 /* return no. of bytes to skip if first alt. in read mode (skip work
    already done by indexing on first argument) */
 int p2_offset(uintmach_t insn)

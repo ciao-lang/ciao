@@ -6,25 +6,16 @@
  */
 
 #include <ciao/eng.h>
+#if !defined(OPTIM_COMP)
 #include <ciao/basiccontrol.h>
 #include <ciao/eng_gc.h>
 #include <ciao/runtime_control.h>
+#endif
 
 /* Unify with occurs-check, using inline checks (var-nonvar cases) */
 #define UNIFY_OC_INLINE 1
 /* Enable tail optimization in cyclic_term */
 #define CYCLIC_TERM_TAIL_OPTIM 1
-
-#define TopOfOldHeap TagpPtr(HVA,w->global_uncond)
-#define GCTEST(Pad) { \
-    if (HeapCharDifference(w->heap_top,Heap_End) < (Pad)*sizeof(tagged_t)) \
-      heap_overflow(Arg,2*((Pad)*sizeof(tagged_t))); \
-    if (ChoiceDifference(w->choice,w->trail_top) < (Pad)) \
-      choice_overflow(Arg,2*(Pad)*sizeof(tagged_t),TRUE); \
-  }
-
-static CVOID__PROTO(copy_it, tagged_t *loc);
-static CVOID__PROTO(copy_it_nat, tagged_t *loc);
 
 /* -------------------------------------------------------------------
    FRAME MANIPULATIONS
@@ -71,6 +62,18 @@ CVOID__PROTO(push_frame, int arity) {
  * Finally untrail but trail any new CVA:s, deallocate frame & choicept,
  * and unify copy with New.
  */
+
+#define TopOfOldHeap TagpPtr(HVA,w->global_uncond)
+#define GCTEST(Pad) { \
+    if (HeapCharDifference(w->heap_top,Heap_End) < (Pad)*sizeof(tagged_t)) \
+      heap_overflow(Arg,2*((Pad)*sizeof(tagged_t))); \
+    if (ChoiceDifference(w->choice,w->trail_top) < (Pad)) \
+      choice_overflow(Arg,2*(Pad)*sizeof(tagged_t),TRUE); \
+  }
+
+static CVOID__PROTO(copy_it, tagged_t *loc);
+static CVOID__PROTO(copy_it_nat, tagged_t *loc);
+
 CBOOL__PROTO(prolog_copy_term) {
   tagged_t t1, *pt1, *pt2;
 
@@ -82,8 +85,8 @@ CBOOL__PROTO(prolog_copy_term) {
               {});
 
   X(0) = t1;
-  push_choicept(Arg,fail_alt);  /* try, arity=0 */
-  push_frame(Arg,2);            /* allocate, size=2 */
+  CVOID__CALL(push_choicept,fail_alt);  /* try, arity=0 */
+  CVOID__CALL(push_frame,2);            /* allocate, size=2 */
 
   copy_it(Arg,&w->frame->x[0]); /* do the copying */
 
@@ -95,8 +98,8 @@ CBOOL__PROTO(prolog_copy_term) {
   }
   w->trail_top = pt1;
 
-  pop_frame(Arg);
-  pop_choicept(Arg);            /* trust */
+  CVOID__CALL(pop_frame);
+  CVOID__CALL(pop_choicept);            /* trust */
   CBOOL__LASTUNIFY(X(0),X(1));
 }
 
@@ -181,8 +184,8 @@ CBOOL__PROTO(prolog_copy_term_nat)
               {});
 
   X(0) = t1;
-  push_choicept(Arg,fail_alt);  /* try, arity=0 */
-  push_frame(Arg,2);            /* allocate, size=2 */
+  CVOID__CALL(push_choicept,fail_alt);  /* try, arity=0 */
+  CVOID__CALL(push_frame,2);            /* allocate, size=2 */
 
   copy_it_nat(Arg,&w->frame->x[0]); /* do the copying */
 
@@ -194,8 +197,8 @@ CBOOL__PROTO(prolog_copy_term_nat)
   }
   w->trail_top = pt1;
 
-  pop_frame(Arg);
-  pop_choicept(Arg);            /* trust */
+  CVOID__CALL(pop_frame);
+  CVOID__CALL(pop_choicept);            /* trust */
   CBOOL__LASTUNIFY(X(0),X(1));
 }
 
@@ -456,9 +459,9 @@ CBOOL__PROTO(prolog_unifiable)
   tagged_t * limit, *tr;
 
   /* Forces trailing of bindings and saves the top of the trail. */
-  push_choicept(Arg,fail_alt);  
+  CVOID__CALL(push_choicept,fail_alt);  
   /* Saves the arguments in case of GC. */
-  push_frame(Arg,3); /* TODO: frame args used? */
+  CVOID__CALL(push_frame,3); /* TODO: frame args used? */
 
   CBOOL__UNIFY(X(0), X(1));
 
@@ -489,8 +492,8 @@ CBOOL__PROTO(prolog_unifiable)
   if (TestEvent()) UnsetEvent(); /* TODO: check */
   
   w->trail_top = limit;
-  pop_frame(Arg);
-  pop_choicept(Arg);    
+  CVOID__CALL(pop_frame);
+  CVOID__CALL(pop_choicept);    
 
   CBOOL__LASTUNIFY(X(2), t);
 }  
