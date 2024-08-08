@@ -649,36 +649,19 @@ initialization(M) :- '$initialization'(M).
 % ---------------------------------------------------------------------------
 :- doc(section, "Low level global variables").
 
-% Currently, the global variables are reserved statically:
-%
-%   [optim_comp only]
-%   1 - debugger
-%   2 - action__compile
-%   4 - action__split
-%   3 - Errs object during analysis
-%   5 - unused, see compiler/dynload.pl
-%   6 - absmach
-%
-%   [rest of Ciao]
-%   10 - CHR package (chr/hprolog.pl)
-%   11 - global_vars module
-%
-% TODO: move to a different file and share
-%       (core/engine/internals.pl and core/engine_oc/internals.pl)
-
 :- include(.(global_variables)).
 
-:- impl_defined('$global_vars_get_root'/1).
-:- impl_defined('$global_vars_set_root'/1). % TODO: deprecate
-
 % ---------------------------------------------------------------------------
-:- doc(section, "Support for runtime module expansions").
+:- doc(section, "Some handlers").
 
 :- initialization(fail).
 :- on_abort(fail).
 
 :- entry control_c_handler/0.
 control_c_handler :- send_signal(control_c).
+
+% ---------------------------------------------------------------------------
+:- doc(section, "Support for runtime module expansions").
 
 %% Module expansion
 
@@ -1268,8 +1251,7 @@ get_obj_perm(Code, Obj, Perm) :-
  %% culprit_stream([], S) :- !, current_input(S).
  %% culprit_stream(S,S).
 
-%% This is the Prolog counterpart of the definitions in support.h.  Please 
-%% have a look there!
+% NOTE: Keep in sync with defs in ciao/eng.h
 
 range_per_error(100).
 

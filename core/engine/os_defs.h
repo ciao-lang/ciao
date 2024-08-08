@@ -21,4 +21,10 @@
 # endif
 #endif
 
+#if defined(_WIN32) || defined(_WIN64)
+#define PATHSEP "\\"
+#else
+#define PATHSEP "/"
+#endif
+
 #endif /* _CIAO_OS_DEFS_H */

@@ -99,7 +99,7 @@ CFUN__PROTO(c_list_length, int, tagged_t list) {
 
 /* --------------------------------------------------------------------------- */
 
-char cwd[MAXPATHLEN+1];/* Should be private --- each thread may cd freely! */
+char cwd[MAXPATHLEN];/* Should be private --- each thread may cd freely! */
 
 /* --------------------------------------------------------------------------- */
 
@@ -155,8 +155,7 @@ inline bool_t path_has_drive_selector(const char *path) {
 /* Expand and normalize a pathname */
 /* TODO: merge with library(pathnames) */
 /* abs==TRUE: obtain an absolute path name composing with CWD */
-bool_t expand_file_name(const char *name, bool_t abs, char *target)
-{
+bool_t expand_file_name(const char *name, bool_t abs, char *target) {
   const char *src;
   int d = 0;
 
@@ -168,7 +167,7 @@ bool_t expand_file_name(const char *name, bool_t abs, char *target)
 #endif
   
 #if defined(Win32) /* Cygwin||MSYS2||MinGW */
-  char src_buff[MAXPATHLEN+1];
+  char src_buff[MAXPATHLEN];
   /* Replace '\\' by '/' (for Cygwin and MinGW) */
   {
     const char *src = name;
@@ -372,7 +371,7 @@ static struct ren_pair rename_path_pairs[] = REN_PAIRS;
 
 int fix_path(char *path)
 {
-  char *from, *p1, buf[MAXPATHLEN+1];
+  char *from, *p1, buf[MAXPATHLEN];
   struct ren_pair *rp;
 
   for (rp = rename_path_pairs; *(from = rp->from) ; rp++) {
@@ -395,7 +394,7 @@ int fix_path(char *path)
  
 void compute_cwd(void)
 {
-  if (getcwd(cwd, MAXPATHLEN+1) == NULL) {
+  if (getcwd(cwd, MAXPATHLEN) == NULL) {
     /* TODO: throw an exception instead */
     perror("getcwd() in compute_cwd(): ");
     SERIOUS_FAULT("Aborting");
@@ -422,7 +421,7 @@ void compute_cwd(void)
 
 CBOOL__PROTO(prolog_unix_cd) {
   ERR__FUNCTOR("system:working_directory", 2);
-  char pathBuf[MAXPATHLEN+1];
+  char pathBuf[MAXPATHLEN];
 
   CBOOL__UnifyCons(GET_ATOM(cwd), X(0));
   DEREF(X(0), X(0));
@@ -602,7 +601,7 @@ CBOOL__PROTO(prolog_unix_mktemp) {
 
 CBOOL__PROTO(prolog_unix_access) {
   ERR__FUNCTOR("system:file_exists", 2);
-  char pathBuf[MAXPATHLEN+1];
+  char pathBuf[MAXPATHLEN];
   int mode;
 
   DEREF(X(0), X(0));
@@ -628,7 +627,7 @@ CBOOL__PROTO(prolog_unix_access) {
 
 CBOOL__PROTO(prolog_directory_files) {
   ERR__FUNCTOR("system:directory_files", 2);
-  char pathBuf[MAXPATHLEN+1];
+  char pathBuf[MAXPATHLEN];
   DIR *dir;
   // intmach_t gap;
   struct dirent *direntry;
@@ -709,7 +708,7 @@ CBOOL__PROTO(prolog_directory_files) {
 CBOOL__PROTO(prolog_file_properties) {
   ERR__FUNCTOR("system:file_properties", 6);
   struct stat statbuf;
-  char pathBuf[MAXPATHLEN+1];
+  char pathBuf[MAXPATHLEN];
   char symlinkName[STATICMAXATOM+1];
 
   DEREF(X(0), X(0));
@@ -800,7 +799,7 @@ CBOOL__PROTO(prolog_file_properties) {
 
 CBOOL__PROTO(prolog_touch) {
   ERR__FUNCTOR("system:touch", 1);
-  char file[MAXPATHLEN+1];
+  char file[MAXPATHLEN];
   int status;
   int fd = -1;
   int open_errno = 0;
@@ -852,7 +851,7 @@ CBOOL__PROTO(prolog_touch) {
 
 CBOOL__PROTO(prolog_unix_chmod) {
   ERR__FUNCTOR("system:chmod", 2);
-  char pathBuf[MAXPATHLEN+1];
+  char pathBuf[MAXPATHLEN];
 
   DEREF(X(0), X(0));
   /* check argument instantiation error */
@@ -923,7 +922,7 @@ CBOOL__PROTO(prolog_unix_umask) {
 
 CBOOL__PROTO(prolog_unix_delete) {
   ERR__FUNCTOR("system:delete_file", 1);
-  char pathBuf[MAXPATHLEN+1];
+  char pathBuf[MAXPATHLEN];
 
   DEREF(X(0), X(0));
   /* check argument instantiation error */
@@ -994,8 +993,8 @@ static int unix_replace(char const *src, char const *dst) {
 
 CBOOL__PROTO(prolog_unix_rename) {
   ERR__FUNCTOR("system:rename_file", 2);
-  char orig_name[MAXPATHLEN+1];
-  char new_name[MAXPATHLEN+1];
+  char orig_name[MAXPATHLEN];
+  char new_name[MAXPATHLEN];
 
   DEREF(X(0), X(0));
   /* check instantiation error */
@@ -1048,7 +1047,7 @@ CBOOL__PROTO(prolog_unix_rename) {
 
 CBOOL__PROTO(prolog_unix_mkdir) {
   ERR__FUNCTOR("system:make_directory", 2);
-  char dirname[MAXPATHLEN+1];
+  char dirname[MAXPATHLEN];
 
   DEREF(X(0), X(0));
   /* check instantiation error */
@@ -1107,7 +1106,7 @@ CBOOL__PROTO(prolog_unix_mkdir) {
 
 CBOOL__PROTO(prolog_unix_rmdir) {
   ERR__FUNCTOR("system:delete_directory", 1);
-  char dirname[MAXPATHLEN+1];
+  char dirname[MAXPATHLEN];
 
   DEREF(X(0), X(0));
   /* check instantiation error */
@@ -1954,17 +1953,9 @@ void c_free_paths(char **path);
 /* Exists dir+cmd[+.exe] and is not a directory */
 /* Return: a string (client must deallocate) */
 char *c_lookup_exec(const char *dir, const char *cmd) {
-#if defined(_WIN32) || defined(_WIN64)
-  char path[MAX_PATH];
-#else
-  char path[MAXPATHLEN+1];
-#endif
+  char path[MAXPATHLEN];
   strcpy(path, dir);
-#if defined(_WIN32) || defined(_WIN64)
-  strcat(path, "\\");
-#else
-  strcat(path, "/");
-#endif
+  strcat(path, PATHSEP);
   strcat(path, cmd);
   
 #if defined(_WIN32) || defined(_WIN64)

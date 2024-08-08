@@ -1,5 +1,5 @@
-% ===========================================================================
-% :- doc(title, "Low level global variables.").
+% (included file)
+%! # Low level global variables
 
 % Currently, the global variables are reserved statically:
 %
@@ -32,3 +32,22 @@
 '$global_vars_get'(I, X) :-
     '$global_vars_get_root'(R),
     arg(I, R, X).
+
+:- if(defined(optim_comp)).
+:- '$props'('$global_vars_get_root'/1, [impnat=cbool(prolog_global_vars_get_root)]).
+:- else.
+:- impl_defined('$global_vars_get_root'/1).
+:- impl_defined('$global_vars_set_root'/1). % TODO: deprecate
+:- endif.
+
+% naive implementation of mutable variables based on setarg
+% TODO: I could place mutable type info here
+% :- export('$mutvar_init'/2).
+% '$mutvar_init'(Val, X) :-
+%   X = '$mut'(Val).
+% :- export('$mutvar_assign'/2).
+% '$mutvar_assign'(X, Val) :- nonvar(X), X = '$mut'(_), 
+%   '$setarg'(1, X, Val, on).
+% :- export('$mutvar_get'/2).
+% '$mutvar_get'(X, Val) :- nonvar(X), X = '$mut'(Val).
+

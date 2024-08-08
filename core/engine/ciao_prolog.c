@@ -34,10 +34,6 @@
 #endif
 #include <sys/param.h>
 
-#if !defined(X_OK)
-# define X_OK 1
-#endif
-
 #if !defined(OPTIM_COMP)
 #include <ciao/eng.h>
 #include <ciao/internals.h>

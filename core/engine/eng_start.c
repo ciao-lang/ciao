@@ -29,7 +29,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <assert.h>
 #include <limits.h>
 
 #if defined(DARWIN) /* for get_execpath() */
@@ -37,10 +36,9 @@
 #endif
 
 /* --------------------------------------------------------------------------- */
+/* Check size and encoding of some C types */
 
-#if !defined(X_OK)
-# define X_OK 1
-#endif
+#include <assert.h>
 
 union dbl {
   flt64_t as_flt;
@@ -48,9 +46,7 @@ union dbl {
 };
 static union dbl fzero = { .as_flt = 0.0 };
 
-/* Check size of C types */
-void checkctypes(void)
-{
+void checkctypes(void) {
   /* tagged_t must be large enough to encode pointers */
   assert(sizeof(tagged_t) == sizeof(tagged_t *));
   /* checks for 64-bit floats */
@@ -100,21 +96,22 @@ static void open_exec_skip_stub(const char *file, FILE **stream) {
   if (eng_stub_length == 0) {
     goto usage;
   }
-
-  if (!access(file, X_OK)) {
-    struct stat data;
-    stat(file,&data);
-    if (data.st_size == eng_stub_length) goto usage;
-    if ((*stream = fopen(file,"rb")) == NULL) {
-      fprintf(stderr,"%s: unable to open for read\n", file);
-      engine_exit(1);
-    }
-    fseek(*stream, eng_stub_length, SEEK_SET);
-    return;
+#if defined(_WIN32) || defined(_WIN64)
+  /* X_OK is not valid in some Windows/MinGW versions */
+  if (access(file, F_OK) != 0) { *stream = NULL; return; }
+#else
+  if (access(file, X_OK) != 0) { *stream = NULL; return; }
+#endif
+  struct stat data;
+  stat(file,&data);
+  if (data.st_size == eng_stub_length) goto usage;
+  *stream = fopen(file,"rb");
+  if (*stream == NULL) {
+    fprintf(stderr,"%s: unable to open for read\n", file);
+    engine_exit(1);
   }
-  *stream = NULL;
+  fseek(*stream, eng_stub_length, SEEK_SET);
   return;
-
  usage:
   fprintf(stderr, USAGE_STRING, file);
   engine_exit(1);
@@ -291,8 +288,8 @@ static bool_t get_execpath_(char *buffer, size_t size) {
 
 /* Get executable path (when argv[0] is not reliable) */
 char *get_execpath(void) {
-  char buffer[MAXPATHLEN+1];
-  size_t size = MAXPATHLEN+1;
+  char buffer[MAXPATHLEN];
+  size_t size = MAXPATHLEN;
   if (!get_execpath_(buffer, size)) return NULL;
   return strdup(buffer);
 }
@@ -379,7 +376,7 @@ void set_ciaoroot_directory(const char *boot_path, const char *exec_path) {
 #if defined(_WIN32) || defined(_WIN64)
 #warning "TODO(MinGW): check that normalize path of ciaoroot_directory is ok"
     const char *aux = ciaoroot_directory;
-    ciaoroot_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
+    ciaoroot_directory = checkalloc_ARRAY(char, MAXPATHLEN);
     expand_file_name(aux,TRUE,ciaoroot_directory);
 #endif
   } else if (ciaoroot_directory == NULL) {
@@ -392,9 +389,9 @@ void set_ciaoroot_directory(const char *boot_path, const char *exec_path) {
       /* These are for the Windows registry */
       HKEY SOFTWAREKey, CiaoPrologKey;
       DWORD buffer_size = MAXPATHLEN;
-      char aux[MAXPATHLEN+1];
+      char aux[MAXPATHLEN];
 
-      ciaoroot_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
+      ciaoroot_directory = checkalloc_ARRAY(char, MAXPATHLEN);
      
       if (( RegOpenKeyEx(HKEY_LOCAL_MACHINE, TEXT("SOFTWARE"), 0, KEY_READ,
                          &SOFTWAREKey) == ERROR_SUCCESS ) &&
@@ -446,7 +443,7 @@ void set_ciaoroot_directory(const char *boot_path, const char *exec_path) {
 #if defined(_WIN32) || defined(_WIN64)
 #warning "TODO(MinGW): check that normalize path of c_headers_directory is ok"
     const char *aux = c_headers_directory;
-    c_headers_directory = checkalloc_ARRAY(char, MAXPATHLEN+1);
+    c_headers_directory = checkalloc_ARRAY(char, MAXPATHLEN);
     expand_file_name(aux,TRUE,c_headers_directory);
 #endif
   } else { /* c_headers_directory == NULL */
@@ -474,7 +471,7 @@ int setenv(const char *name, const char *value, int overwrite);
 static void guess_win32_env(const char *boot_path,
                             const char *exec_path) {
   static const char *shexe = "/sh.exe";
-  char path[MAXPATHLEN+1];
+  char path[MAXPATHLEN];
 
   /* Try guessing value for binary path */
   char *binpath = NULL;
