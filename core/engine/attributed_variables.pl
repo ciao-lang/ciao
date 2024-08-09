@@ -1,9 +1,23 @@
-% ===========================================================================
-% :- doc(title, "Internal hooks for attributed variables.").
+% (included file)
+
+%! # Internal hooks for attributed variables
 % 
 % Those internal hooks are called from the engine, and provide an
 % interface with user-level hooks for attributed variables.
-% ===========================================================================
+
+% (entry information)
+:- if(defined(optim_comp)).
+% TODO: better solution? the compiler can remove them if they are not exported
+:- export(uvc/2).
+:- export(ucc/2).
+:- export(pending_unifications/1).
+:- else.
+:- trust pred verify_attribute(A,B).
+:- trust pred combine_attributes(A,B).
+:- entry uvc/2.
+:- entry ucc/2.
+:- entry pending_unifications/1.
+:- endif.
 
 %:- use_module(library(term_basic), [functor/3]).
 

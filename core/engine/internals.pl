@@ -1,4 +1,4 @@
-:- module(internals, [], [assertions, basicmodes, nortchecks, regtypes, datafacts]).
+:- module(internals, [], [noprelude, assertions, basicmodes, nortchecks, regtypes, datafacts]).
 
 :- doc(title, "Internal runtime predicates").  
 
@@ -7,58 +7,129 @@
    should not be used in user code. The file itself provides handles
    for the module system into the internal definitions.").
 
-:- use_module(engine(hiord_rt), ['SYSCALL'/1, '$nodebug_call'/1, '$meta_call'/1]).
+:- use_module(engine(basiccontrol)).
+:- use_module(engine(atomic_basic)).
+:- use_module(engine(term_basic)).
+:- use_module(engine(term_typing)).
+:- use_module(engine(arithmetic)).
+:- use_module(engine(exceptions)).
+:- use_module(engine(term_compare)).
+% TODO:[oc-merge] needed?
+:- if(defined(optim_comp)).
+:- use_module(engine(attributes)).
+:- use_module(engine(io_basic)).
+:- endif.
 
-:- use_module(engine(messages_basic), [message/2]).
-:- use_module(engine(runtime_control), [current_prolog_flag/2, prolog_flag/3, set_prolog_flag/2]).
-:- use_module(engine(system_info), [get_os/1, get_arch/1, get_a_ext/1, get_so_ext/1]).
+% ---------------------------------------------------------------------------
+:- doc(section, "(common C code)").
 
-:- use_module(user, [main/0, main/1, '$main'/1, aborting/0]).
+:- if(defined(optim_comp)).
+:- '$native_include_c_header'(engine(ciao_prolog)). % TODO: backport noalias for this case
+:- '$native_include_c_header'(engine(ciao_gluecode)).
+:- '$native_include_c_header'(engine(os_signal)).
+:- '$native_include_c_header'(engine(os_threads)).
+:- '$native_include_c_header'(engine(own_mmap)).
+:- '$native_include_c_header'(engine(rune)).
+:- '$native_include_c_header'(engine(unicode_tbl)).
+:- endif.
+
+% core definitions
+:- if(defined(optim_comp)).
+:- '$native_include_c_source'(engine(eng_alloc)).
+:- '$native_include_c_source'(engine(eng_bignum)).
+:- '$native_include_c_source'(engine(ciao_prolog)).
+:- '$native_include_c_source'(engine(eng_debug)).
+:- '$native_include_c_source'(engine(eng_interrupt)).
+:- '$native_include_c_source'(engine(own_mmap)).
+:- '$native_include_c_source'(engine(own_malloc)).
+:- '$native_include_c_source'(engine(eng_profile)).
+:- '$native_include_c_source'(engine(eng_threads)).
+:- '$native_include_c_source'(engine(eng_start)).
+:- '$native_include_c_source'(engine(eng_main)).
+:- '$native_include_c_source'(engine(rune)).
+:- '$native_include_c_source'(engine(dtoa_ryu)).
+:- '$native_include_c_source'(engine(eng_registry)).
+:- '$native_include_c_source'(engine(eng_gc)).
+:- endif.
+
+% ---------------------------------------------------------------------------
+
+:- if(defined(optim_comp)).
+:- '$native_include_c_header'(engine(incore_rt)).
+:- endif.
+
+:- if(defined(optim_comp)).
+%:- '$native_include_c_header'(engine(dynamic_rt)).
+:- '$native_include_c_source'(engine(dynamic_rt)).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Internal Debugging").
 
+:- if(defined(optim_comp)).
+:- else.
 :- export('$show_nodes'/2).
-:- trust pred '$show_nodes'/2.   %jcf% Not used in Prolog code.
 :- impl_defined('$show_nodes'/2).
 
 :- export('$show_all_nodes'/0).
-:- trust pred '$show_all_nodes'/0.   %%jcf% Not used in Prolog code.
 :- impl_defined('$show_all_nodes'/0).
 
 :- export('$start_node'/1).
-:- trust pred '$start_node'/1. %jcf% Not used in Prolog code.
 :- impl_defined('$start_node'/1).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Engine version").
 
 :- export('$bootversion'/0).
+:- if(defined(optim_comp)).
+:- '$props'('$bootversion'/0, [impnat=cbool(prolog_print_emulator_version)]).
+:- else.
 :- impl_defined('$bootversion'/0).
+:- endif.
 
+:- if(defined(optim_comp)).
+:- export('$ciao_version'/1).
+:- '$props'('$ciao_version'/1, [impnat=cbool(prolog_version)]).
+:- else.
 :- export('$ciao_version'/7).
 :- trust pred '$ciao_version'(Major, Minor, Patch,
                               CommitBranch, CommitId, CommitDate, CommitDesc) =>
     (int(Major), int(Minor), int(Patch),
      atm(CommitBranch), atm(CommitId), atm(CommitDate), atm(CommitDesc)).
 :- impl_defined('$ciao_version'/7).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Stream support").
 
-:- use_module(engine(stream_basic), [atm_or_int/1, stream/1]). % TODO: circular?
+:- if(defined(optim_comp)).
+:- else.
+:- use_module(engine(stream_basic), [atm_or_int/1, stream/1]). % TODO: circular? move types somewhere else?
+:- endif.
 
+:- if(defined(optim_comp)).
+:- else.
 :- export('$open'/3).
 :- trust pred '$open'(File,Mode,Stream) : (atm_or_int(File), atm(Mode)) => stream(Stream).
 :- impl_defined('$open'/3).
+:- endif.
 
 :- export('$prompt'/2).
+:- if(defined(optim_comp)).
+:- '$props'('$prompt'/2, [impnat=cbool(prompt)]).
+:- else.
 :- trust pred '$prompt'(Old,New) : atm(New) => atm(Old).
 :- trust pred '$prompt'(-Old,-New) : (Old == New) => (atm(Old), atm(New)). 
 :- impl_defined('$prompt'/2).
+:- endif.
 
 :- export('$force_interactive'/0).
+:- if(defined(optim_comp)).
+:- '$props'('$force_interactive'/0, [impnat=cbool(prolog_force_interactive)]).
+:- else.
 :- impl_defined('$force_interactive'/0).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Dynamic predicates").
@@ -151,6 +222,7 @@ pred_property(concurrent).
 pred_property(wait).
 
 % ---------------------------------------------------------------------------
+:- doc(section, "Profiler").
 
 :- export('$ddt'/1).
 :- trust pred '$ddt'(T) : int(T). %jcf% Check that int is the right type!. Not used in Prolog code.
@@ -294,7 +366,7 @@ quiet_mode(off).
 :- impl_defined('$interpreted_clause'/2).
 
 % ---------------------------------------------------------------------------
-/* system.pl */
+:- doc(section, "Internal for system.pl").
     
 :- export('$exec'/9).
 :- trust pred '$exec'/9. % (see system.c for details)
@@ -344,7 +416,7 @@ true_fail(fail).
 :- impl_defined('$expand_file_name'/3).
 
 % ---------------------------------------------------------------------------
- /* format.pl */
+:- doc(section, "Internal for format.pl").
 
  :- export('$format_print_float'/3).
 :- trust pred '$format_print_float'(Format,Arg,Prec) : (int(Format), flt(Arg), int(Prec)).
@@ -355,9 +427,14 @@ true_fail(fail).
 :- trust pred '$format_print_integer'(Format,Arg,Prec) : (int(Format), int(Arg), int(Prec)).
 :- impl_defined('$format_print_integer'/3). 
 
+% ---------------------------------------------------------------------------
+:- doc(section, "Atom GC"). % (incomplete)
+
 :- export('$erase_atom'/1).
 :- trust pred '$erase_atom'/1. %jcf% Not used in Prolog code.
 :- impl_defined('$erase_atom'/1).
+
+% ---------------------------------------------------------------------------
 
 :- export('$runtime'/1).
 :- trust pred '$runtime'(Time) => flt_list2(Time).
@@ -476,6 +553,8 @@ gc_trace_modes(verbose).
 :- regtype gc_list3/1.
 gc_list3([F1,I2,I3]) :- flt(F1), int(I2), int(I3).
 
+% ---------------------------------------------------------------------------
+
 :- export('$current_predicate'/2).
 :- trust pred '$current_predicate'(V,Pred) : cgoal(Pred). %jcf% No info about V.
 :- impl_defined('$current_predicate'/2).
@@ -505,14 +584,6 @@ gc_list3([F1,I2,I3]) :- flt(F1), int(I2), int(I3).
 blocking_mode(block).
 blocking_mode(no_block).
 
-:- export('$emulated_clause_counters'/4).
-:- trust pred '$emulated_clause_counters'/4. %jcf% Not used in Prolog code.
-:- impl_defined('$emulated_clause_counters'/4).
-
-:- export('$counter_values'/3).
-:- trust pred '$counter_values'/3. %jcf% Not used in Prolog code.
-:- impl_defined('$counter_values'/3).
-
 :- export('$close_predicate'/1).
 :- trust pred '$close_predicate'(Root) : int(Root).
 :- impl_defined('$close_predicate'/1).
@@ -525,6 +596,17 @@ blocking_mode(no_block).
 :- trust pred '$unlock_predicate'(Root) : int(Root).
 :- impl_defined('$unlock_predicate'/1).
 
+% (for gauge.pl profiler)
+:- export('$emulated_clause_counters'/4).
+:- trust pred '$emulated_clause_counters'/4.
+:- impl_defined('$emulated_clause_counters'/4).
+
+% (for gauge.pl profiler)
+:- export('$counter_values'/3).
+:- trust pred '$counter_values'/3.
+:- impl_defined('$counter_values'/3).
+
+% (for gauge.pl profiler)
 :- export('$reset_counters'/2).
 :- trust pred '$reset_counters'/2. %jcf% Not used in Prolog code.
 :- impl_defined('$reset_counters'/2).
@@ -544,14 +626,21 @@ blocking_mode(no_block).
 :- impl_defined(dynunlink/1).
 
 % --------------------------------------------------------------------------
+:- doc(section, "Internal for write.pl").
 
-:- export('$atom_mode'/2). /* write.pl */
+:- export('$atom_mode'/2).
 :- trust pred '$atom_mode'(Atom, Context) : atm(Atom) => int(Context).
 :- impl_defined('$atom_mode'/2). 
 
 % --------------------------------------------------------------------------
 :- doc(section, "Boot the machine").
 % (Initialization, module loading, and call to main/0 or main/1)
+
+:- use_module(engine(hiord_rt), ['SYSCALL'/1, '$nodebug_call'/1]).
+:- use_module(engine(messages_basic), [message/2]).
+:- use_module(engine(runtime_control), [current_prolog_flag/2]).
+
+:- use_module(user, [main/0, main/1, '$main'/1, aborting/0]).
 
 % TODO: backport 'loader' from optim_comp (it will allow smaller executables)
 :- data all_loaded/0.
@@ -663,7 +752,8 @@ control_c_handler :- send_signal(control_c).
 % ---------------------------------------------------------------------------
 :- doc(section, "Support for runtime module expansions").
 
-%% Module expansion
+:- use_module(engine(hiord_rt), ['$meta_call'/1]).
+:- use_module(engine(messages_basic), [message/2]).
 
 % Called from engine(mexpand)
 uses_runtime_module_expansion.
@@ -777,6 +867,8 @@ module_concat(_, X, X). % If a number, do not change to complain later
 :- doc(section, "Dynamic loading of libraries").
 
 :- use_module(engine(stream_basic), [close/1]).
+:- use_module(engine(messages_basic), [message/2]).
+:- use_module(engine(runtime_control), [prolog_flag/3, set_prolog_flag/2]).
 
 :- export(load_lib/2).
 :- pred load_lib(Module,File) : atm * atm.
@@ -888,6 +980,9 @@ poversion(version(67)).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Filesystem abstraction for source names").
+
+:- use_module(engine(runtime_control), [prolog_flag/3, set_prolog_flag/2]).
+:- use_module(engine(system_info), [get_os/1, get_arch/1, get_a_ext/1, get_so_ext/1]).
 
 % JF: New absolute file name library. I need it to fix some pending issues
 % of the foreign interface and future problems with the compilation to C
@@ -1168,19 +1263,20 @@ opt_suff('_opt').
 % ---------------------------------------------------------------------------
 :- doc(section, "Attributed variables").
 
-% (entry information)
-:- trust pred verify_attribute(A,B).
-:- trust pred combine_attributes(A,B).
-:- entry uvc/2.
-:- entry ucc/2.
-:- entry pending_unifications/1.
-:- include(attributed_variables).
+:- include('.'(attributed_variables)).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Internal builtin errors").
 
-% Called from within the emulator
+% NOTE: error/5 is called from basiccontrol.c:wam, used to decode the
+%   C exception and throw an error
+% TODO: too complicated? partially recode in C?
+
+:- if(defined(optim_comp)).
+:- export(error/5). % TODO:[oc-merge] internal entry, not an export
+:- else.
 :- entry error/5.
+:- endif.
 
 error(Type, _, _, _, Error_Term) :-
     in_range(foreign, Type, _), !,
@@ -1247,7 +1343,7 @@ error_term(N, Culprit, permission_error(Permission, Object, Culprit)) :-
 get_obj_perm(Code, Obj, Perm) :-
     Obj is Code mod 10,
     Perm is Code // 10.
-         
+
  %% culprit_stream([], S) :- !, current_input(S).
  %% culprit_stream(S,S).
 
