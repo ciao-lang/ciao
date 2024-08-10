@@ -1691,8 +1691,31 @@ CBOOL__PROTO(prolog_get_numcores)
 /* --------------------------------------------------------------------------- */
 
 /* internals:$find_file(+LibDir, +Path, +Opt, +Suffix, ?Found, -AbsPath, -AbsBase, -AbsDir)
- * (See documentation in internals.pl)
- */
+  
+     string LibDir       a library in which to search for Path
+     string Path         a path, may be absolute or relative. If LibDir
+                         is specified then Path must be relative to LibDir.
+     string Opt          an optional suffix to Path, must precede Suffix, is
+                         included in AbsBase
+     string Suffix       an optional suffix to Path, not included in AbsBase
+     atom   Found        true or fail
+     string AbsPath      the absolute pathname of Path
+     string AbsBase      the absolute pathname of Path, without Suffix
+     string AbsDir       the absolute pathname of the directory of Path
+  
+   Description: Try to find in LibDir, in this order:
+     Path+Opt+Suffix
+     Path+Suffix
+     Path
+     Path/Path+Opt+Suffix
+     Path/Path+Suffix
+     Path/Path
+  
+   if any found, unify Found with true, and return in AbsPath, AbsBase
+   and AbsDir the appropriate values, else unify Found with false, and
+   return in AbsPath, AbsBase and AbsDir the values corresponding to
+   Path (no Opt nor Suffix).
+*/
 
 CBOOL__PROTO(prolog_find_file) {
   char *libDir, *path, *opt, *suffix;
