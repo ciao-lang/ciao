@@ -698,15 +698,18 @@ int_list3([I1,I2,I3]) :- int(I1), int(I2), int(I3).
 :- entry error/5.
 :- endif.
 
-error(Type, _, _, _, Error_Term) :-
-    in_range(foreign, Type, _), !,
-    throw(Error_Term).
+:- if(defined(optim_comp)).
+:- else.
+error(Type, _, _, _, ErrorTerm) :-
+    in_range(foreign, Type, _), !, % foreign error, throw the term
+    throw(ErrorTerm).
+:- endif.
 error(Type, PredName, PredArity, Arg, Culprit) :-
-%        display('In Error'(Type, Culprit)), nl,
-    error_term(Type, Culprit, Error_Term),
-%        display(error_term_is(Error_Term)), nl,
-    where_term(PredName, PredArity, Arg, Where_Error),
-    throw(error(Error_Term, Where_Error)).
+    % display('In Error'(Type, Culprit)), nl,
+    error_term(Type, Culprit, ErrorTerm),
+    % display(error_term_is(ErrorTerm)), nl,
+    where_term(PredName, PredArity, Arg, WhereError),
+    throw(error(ErrorTerm, WhereError)).
 
 in_range(Type, Code, WhichWithinType):-
     range_per_error(Range),
@@ -717,30 +720,30 @@ in_range(Type, Code, WhichWithinType):-
     WhichWithinType is Code - Start.
 
 error_term(1, _, instantiation_error) :- !.
+:- if(defined(optim_comp)).
+:- else.
 error_term(2, Culprit, uninstantiation_error(Culprit)) :- !.
+:- endif.
 error_term(Code, _, system_error) :- in_range(system, Code, _), !.
 error_term(Code, _, syntax_error) :- in_range(syntax, Code, _), !.
-error_term(N, _, resource_error(Res)) :- 
-    in_range(res, N, Code), !, 
+:- if(defined(optim_comp)).
+error_term(Code, _, resource_error) :- in_range(res, Code, _), !.
+:- else.
+error_term(N, _, resource_error(Res)) :- in_range(res, N, Code), !, 
     resource_code(Code, Res).
-error_term(Code, _, user_error) :- in_range(user,   Code, _), !.
-error_term(N, _Culprit, evaluation_error(Type)) :-
-    in_range(eval, N, Code), !,
+:- endif.
+error_term(Code, _, user_error) :- in_range(user, Code, _), !.
+error_term(N, _Culprit, evaluation_error(Type)) :- in_range(eval, N, Code), !,
     evaluation_code(Code, Type).
-error_term(N, _Culprit, representation_error(Type)) :-
-    in_range(repres, N, Code), !,
+error_term(N, _Culprit, representation_error(Type)) :- in_range(repres, N, Code), !,
     representation_code(Code, Type).
-error_term(N, Culprit, type_error(Type, Culprit)) :-
-    in_range(type, N, Code), !,
+error_term(N, Culprit, type_error(Type, Culprit)) :- in_range(type, N, Code), !,
     type_code(Code, Type).
-error_term(N, Culprit, domain_error(Type, Culprit)) :-
-    in_range(dom, N, Code), !,
+error_term(N, Culprit, domain_error(Type, Culprit)) :- in_range(dom, N, Code), !,
     domain_code(Code, Type).
-error_term(N, Culprit, existence_error(Type, Culprit)) :-
-    in_range(exist, N, Code), !,
+error_term(N, Culprit, existence_error(Type, Culprit)) :- in_range(exist, N, Code), !,
     existence_code(Code, Type).
-error_term(N, Culprit, permission_error(Permission, Object, Culprit)) :-
-    in_range(perm, N, Code), !,
+error_term(N, Culprit, permission_error(Permission, Object, Culprit)) :- in_range(perm, N, Code), !,
     get_obj_perm(Code,Obj,Per),
     permission_type_code(Per, Permission),
     permission_object_code(Obj, Object).
@@ -767,7 +770,7 @@ get_obj_perm(Code, Obj, Perm) :-
  %% culprit_stream([], S) :- !, current_input(S).
  %% culprit_stream(S,S).
 
-% NOTE: Keep in sync with defs in ciao/eng.h
+% NOTE: Keep in sync with defs in ciao/eng.h or ciao/eng_errhandle.h (oc)
 
 range_per_error(100).
 
@@ -781,8 +784,12 @@ error_start(eval,   6).
 error_start(res,    7).
 error_start(syntax, 8).
 error_start(system, 9).
+:- if(defined(optim_comp)).
+error_start(user,   10).
+:- else.
 error_start(foreign, 10).
 error_start(user,   11).
+:- endif.
 
 type_code(0, atom).
 type_code(1, atomic).
@@ -795,7 +802,9 @@ type_code(7, integer).
 type_code(8, list).
 type_code(9, number).
 type_code(10, predicate_indicator).
-% type_code(11, variable).
+:- if(defined(optim_comp)).
+type_code(11, variable). % TODO:[oc-merge] removed in core
+:- endif.
 type_code(12, callable).
 
 domain_code(0, character_code_list).
@@ -845,8 +854,11 @@ representation_code(3, character).
 representation_code(4, max_integer).
 representation_code(5, min_integer).
 representation_code(6, character_code).
+:- if(defined(optim_comp)).
+:- else.
 representation_code(7, nan_or_inf_to_integer).
 representation_code(8, max_atom_length).
+:- endif.
 
 evaluation_code(0, float_overflow).
 evaluation_code(1, int_overflow).
@@ -861,8 +873,10 @@ resource_code(1, heap).
 
 where_term(PredName, PredArity, Arg, WhereError):-
     '$internal_error_where_term'(PredName, PredArity, Arg, WhereError), !.
-where_term(PredName, PredArity, 0, PredName/PredArity) :- !.
-where_term(PredName, PredArity, Arg, PredName/PredArity-Arg).
+where_term(PredName, PredArity, 0, WhereError) :- !,
+    WhereError = PredName/PredArity.
+where_term(PredName, PredArity, Arg, WhereError) :-
+    WhereError = PredName/PredArity-Arg.
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Internal for streams").
