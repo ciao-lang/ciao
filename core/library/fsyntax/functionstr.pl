@@ -370,7 +370,7 @@ is_arith_exp(F, Arith, ArithF, F) :- \+ disabled_arith(Arith),
     ArithF = Arith.
 
 is_arith_rel(F, Arith, F) :-
-    \+ Arith = true,
+%    \+ Arith = true,
     \+ disabled_arith(Arith),
     arith_rel(F).
 
@@ -692,6 +692,20 @@ arith_rel(_>=_).
 arith_rel(_<_).
 arith_rel(_=<_).
 arith_rel(_=\=_).
+% TODO: enable only if clpq or clpr are used
+arith_rel('.=.'(_,_)).
+arith_rel('.>.'(_,_)).
+arith_rel('.<.'(_,_)).
+arith_rel('.>=.'(_,_)).
+arith_rel('.=<.'(_,_)).
+arith_rel('.<>.'(_,_)).
+% TODO: enable only if clpfd is used
+arith_rel('#='(_,_)).
+arith_rel('#>'(_,_)).
+arith_rel('#<'(_,_)).
+arith_rel('#>='(_,_)).
+arith_rel('#=<'(_,_)).
+arith_rel('#\='(_,_)).
 
 % Goal for arithmetic evaluation
 arith_exp_eval(true, V, NFun, Eval) :- Eval = (V is NFun). % using engine(arithmetic)
@@ -700,9 +714,10 @@ arith_exp_eval(clpr, V, NFun, Eval) :- Eval = '.=.'(V, NFun). % using clpr
 arith_exp_eval(clpfd, V, NFun, Eval) :- Eval = '#='(V, NFun). % using clpfd
 
 % Goal for arithmetic relation
-arith_rel_goal(clpq, G, G2) :- arith_rel_goal_clpqr(G, G2).
-arith_rel_goal(clpr, G, G2) :- arith_rel_goal_clpqr(G, G2).
-arith_rel_goal(clpfd, G, G2) :- arith_rel_goal_clpfd(G, G2).
+arith_rel_goal(true, G, G2) :- G2=G. % (no mapped)
+arith_rel_goal(clpq, G, G2) :- ( arith_rel_goal_clpqr(G, G1) -> G2 = G1 ; G2 = G ).
+arith_rel_goal(clpr, G, G2) :- ( arith_rel_goal_clpqr(G, G1) -> G2 = G1 ; G2 = G ).
+arith_rel_goal(clpfd, G, G2) :- ( arith_rel_goal_clpfd(G, G1) -> G2 = G1 ; G2 = G ).
 
 arith_rel_goal_clpqr(A>B, '.>.'(A,B)).
 arith_rel_goal_clpqr(A<B, '.<.'(A,B)).
