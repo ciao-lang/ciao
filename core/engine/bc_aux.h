@@ -370,6 +370,48 @@ void init_some_bytecode(void) {
 
 /* --------------------------------------------------------------------------- */
 
+CVOID__PROTO(push_choicept, try_node_t *alt) {
+  choice_t *b;
+  CODE_CHOICE_NEW(b, alt);
+  CODE_NECK_TRY(b);
+  SetDeep();
+  TEST_CHOICE_OVERFLOW(w->choice, CHOICEPAD);
+}
+
+CVOID__PROTO(pop_choicept) {
+  choice_t *b = w->choice;
+  b = ChoiceCont(b);
+  SetChoice(b);
+}
+
+/* this assumes w->local_top has been computed! */
+CVOID__PROTO(push_frame, int arity) {
+  frame_t *e;
+  SetE(w->local_top);
+  E->next_insn = w->next_insn;
+  E->frame = w->frame;
+  w->frame = E;
+  w->next_insn = CONTCODE(arity);
+  w->local_top = (frame_t *)Offset(E,EToY0+arity);
+  for(intmach_t i=0; i<arity; i++) {
+    Y(i) = X(i);
+  }
+}
+
+CVOID__PROTO(pop_frame) {
+  frame_t *e;
+  SetE(w->frame);
+  intmach_t arity = FrameSizeToCount(FrameSize(w->next_insn));
+  for(intmach_t i=0; i<arity; i++) {
+    X(i) = Y(i);
+  }
+  w->local_top = E;
+  w->frame = E->frame;
+  w->next_insn = E->next_insn;
+}
+
+/* --------------------------------------------------------------------------- */
+
 /* run_determ_c(goal) runs the goal and returns TRUE if goal is
    defined as a c predicate, even if that predicate fails.  Otherwise
    it returns false.
@@ -1186,6 +1228,55 @@ CBOOL__PROTO(metacut)
   /*  ConcChptCleanUp(TopConcChpt, w->choice);*/
   PROFILE__HOOK_CUT;
   return TRUE;
+}
+
+/* builtin repeat/0 */
+CBOOL__PROTO(prolog_repeat) {
+  push_choicept(Arg,address_nd_repeat);
+  return TRUE;
+}
+
+CBOOL__PROTO(nd_repeat) {
+  return TRUE;
+}
+
+#if defined(PARBACK)
+CBOOL__PROTO(nd_suspension_point) {
+  //Reinstall next_insn and Frame (Done by fail).
+  //Reinstal argument register
+  tagged_t t = w->choice->x[0];
+  definition_t * func = (definition_t *) *TaggedToPointer(t);
+  int i;
+  for (i = 0; i < func->arity; i++) DEREF(X(i),*TaggedToPointer(TaggedToPointer(t)+i+1));
+  //Take choice point out
+  Arg->next_insn = restart_point_insn;
+
+  return TRUE;
+}
+#endif
+
+#if defined(TABLING)
+CBOOL__PROTO(nd_fake_choicept) {
+  pop_choicept(Arg);
+  return FALSE;
+}
+#endif
+
+/* internals:'$yield'/0: force exit of the wam function (continue with ciao_query_resume()) */
+CBOOL__PROTO(prolog_yield) {
+  // TODO: try a more direct way, do not create choice points */
+  push_choicept(w,address_nd_yield);
+  Stop_This_Goal(w) = TRUE;
+  SetEvent(); // TODO: see concurrency.c using "SetWakeCount(1);" instead
+  goal_descriptor_t *ctx = w->misc->goal_desc_ptr;
+  SetSuspendedGoal(w, TRUE);
+  ctx->action = BACKTRACKING | KEEP_STACKS; // continue on alternative
+  CBOOL__PROCEED;
+}
+
+CBOOL__PROTO(nd_yield) {
+  pop_choicept(w);
+  CBOOL__PROCEED;
 }
 
 /*------------------------------------------------------------*/

@@ -28,7 +28,6 @@
 #include <ciao/eng_registry.h>
 #include <ciao/eng_interrupt.h> /* control_c_normal */
 #include <ciao/rt_exp.h>
-#include <ciao/runtime_control.h>
 
 /* ------------------------------------------------------------------------- */
 /* The root stream pointer (all streams are liked) */

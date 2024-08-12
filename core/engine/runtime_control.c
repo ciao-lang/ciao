@@ -2,10 +2,8 @@
  *  runtime_control.c
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2020 The Ciao Development Team
+ *  Copyright (C) 2020-2024 The Ciao Development Team
  */
-
-#include <string.h>
 
 #include <ciao/eng.h>
 #include <ciao/eng_registry.h>
@@ -16,69 +14,16 @@
 #include <ciao/eng_profile.h>
 #include <ciao/basiccontrol.h>
 
-/* --------------------------------------------------------------------------- */
+#include <ciao/timing.h>
+#include <ciao/io_basic.h>
 
-CVOID__PROTO(pop_choicept) {
-  choice_t *b = w->choice;
-  b = ChoiceCont(b);
-  SetChoice(b);
-}
-
-CVOID__PROTO(push_choicept, try_node_t *alt) {
-  choice_t *b;
-  CODE_CHOICE_NEW(b, alt);
-  CODE_NECK_TRY(b);
-  SetDeep();
-  TEST_CHOICE_OVERFLOW(w->choice, CHOICEPAD);
-}
-
-#if defined(PARBACK)
-CBOOL__PROTO(nd_suspension_point)
-{
-  //Reinstall next_insn and Frame (Done by fail).
-  //Reinstal argument register
-  tagged_t t = w->choice->x[0];
-  definition_t * func = (definition_t *) *TaggedToPointer(t);
-  int i;
-  for (i = 0; i < func->arity; i++) DEREF(X(i),*TaggedToPointer(TaggedToPointer(t)+i+1));
-  //Take choice point out
-  Arg->next_insn = restart_point_insn;
-
-  return TRUE;
-}
-#endif
-
-#if defined(TABLING)
-CBOOL__PROTO(nd_fake_choicept)
-{
-  pop_choicept(Arg);
-  return FALSE;
-}
-#endif
-
-/* internals:'$yield'/0: force exit of the wam function (continue with ciao_query_resume()) */
-CBOOL__PROTO(prolog_yield) {
-  // TODO: try a more direct way, do not create choice points */
-  push_choicept(w,address_nd_yield);
-  Stop_This_Goal(w) = TRUE;
-  SetEvent(); // TODO: see concurrency.c using "SetWakeCount(1);" instead
-  goal_descriptor_t *ctx = w->misc->goal_desc_ptr;
-  SetSuspendedGoal(w, TRUE);
-  ctx->action = BACKTRACKING | KEEP_STACKS; // continue on alternative
-  CBOOL__PROCEED;
-}
-
-CBOOL__PROTO(nd_yield) {
-  pop_choicept(w);
-  CBOOL__PROCEED;
-}
+#include <string.h>
 
 /* ------------------------------------------------------------------
    THE BUILTIN C-PREDICATE       CURRENT_ATOM/1
    -----------------------------------------------------------------------*/
 
-CBOOL__PROTO(current_atom)
-{
+CBOOL__PROTO(current_atom) {
   DEREF(X(0),X(0));
   if (TaggedIsATM(X(0)))
     return TRUE;
@@ -101,8 +46,7 @@ CBOOL__PROTO(current_atom)
   return nd_current_atom(Arg);
 }
 
-CBOOL__PROTO(nd_current_atom)
-{
+CBOOL__PROTO(nd_current_atom) {
   intmach_t i = GetSmall(X(1));
 
 #if defined(ATOMGC)
@@ -147,8 +91,7 @@ CBOOL__PROTO(nd_current_atom)
 
 /* TODO: alternatively: use the mem address, if it is stable (JF) */
 
-/* 
-   Support for generating new atoms with "funny names", always different.
+/* Support for generating new atoms with "funny names", always different.
    Make sure that the generation works OK with concurrency.  */
 
 /* This seems to be the right size: one character less, and time (at large)
@@ -162,13 +105,12 @@ static char new_atom_str[] = "!!!!!!!!!!!!!";
 #define FIRST_CHAR 0
 #define LAST_CHAR  (NUM_OF_CHARS-1)
 
-unsigned int x = 13*17;
+static uintmach_t x = 13*17;
 
-CBOOL__PROTO(prolog_new_atom)
-{
+CBOOL__PROTO(prolog_new_atom) {
   ERR__FUNCTOR("runtime_control:new_atom", 1);
-  int i;
-  int previous_atoms_count;
+  intmach_t i;
+  intmach_t previous_atoms_count;
   tagged_t new_atom;
 
   DEREF(X(0), X(0));
@@ -193,58 +135,93 @@ CBOOL__PROTO(prolog_new_atom)
   CBOOL__LASTUNIFY(X(0), new_atom);
 }
 
-/* ------------------------------------------------------------------
-   THE BUILTIN C-PREDICATE       $CURRENT_CLAUSES/2
-   -----------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------- */
 
-/* This used to be nondeterministic. */
-/* ASSERT: X1 is always unbound, unconditional. */
-CBOOL__PROTO(current_clauses)
-{
-  tagged_t *junk;
-  definition_t *d;
+CBOOL__PROTO(statistics) {
+  stream_node_t *s = Output_Stream_Ptr;
+  intmach_t used, free;
+  frame_t *newa;
 
-  DEREF(X(0),X(0));
-  if (! IsVar(X(0))) {
-    d = find_definition(predicates_location,X(0),&junk,FALSE);
-    if ((d!=NULL) && (d->predtyp==ENTER_INTERPRETED)) {
-      return (*TaggedToPointer(X(1))=PointerToTerm(d->code.intinfo), TRUE);
-    } else {
-      return FALSE;
-    }
-  }
-  else {
-    MINOR_FAULT("$current_clauses/2: incorrect 1st arg");
-  }
-}
+#if !defined(EMSCRIPTEN)
+  inttime_t runtick0;
+  inttime_t usertick0 = usertick();
+  inttime_t systemtick0 = systemtick();
+  runtick0=usertick0;
+#endif
+  inttime_t walltick0 = walltick();
 
-/* ------------------------------------------------------------------
-   THE BUILTIN C-PREDICATE       REPEAT/0
-   -----------------------------------------------------------------------*/
+  StreamPrintf(s,
+             "memory used (total)    %10" PRIdm " bytes\n",
+             total_mem_count);
+  StreamPrintf(s, 
+             "   program space (including reserved for atoms): %" PRIdm " bytes\n", 
+             mem_prog_count);
 
-CBOOL__PROTO(prolog_repeat)
-{
-  push_choicept(Arg,address_nd_repeat);
+  StreamPrintf(s,
+             "   number of atoms and functor/predicate names: %" PRIdm "\n", 
+             ciao_atoms->count);
+  StreamPrintf(s,
+             "   number of predicate definitions: %" PRIdm "\n", 
+             num_of_predicates);
+
+  used = HeapCharDifference(Heap_Start,w->heap_top);
+  free = HeapCharDifference(w->heap_top,Heap_End);
+  StreamPrintf(s, 
+             "   global stack   %10" PRIdm " bytes:%" PRIdm " in use,%10" PRIdm " free\n",
+             used+free, used, free);
+
+  GetFrameTop(newa,w->choice,G->frame);
+  used = StackCharDifference(Stack_Start,newa);
+  free = StackCharDifference(newa,Stack_End);
+  StreamPrintf(s,
+             "   local stack    %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n",
+             used+free, used, free);
+
+  used = TrailCharDifference(Trail_Start,w->trail_top);
+  free = TrailCharDifference(w->trail_top,w->choice)/2;
+  StreamPrintf(s,
+             "   trail stack    %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n",
+             used+free, used, free);
+
+  used = ChoiceCharDifference(Choice_Start,w->choice);
+  free = ChoiceCharDifference(w->choice,w->trail_top)/2;
+  StreamPrintf(s,
+             "   control stack  %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n\n",
+             used+free, used, free);
+
+  StreamPrintf(s,
+             " %10.6f sec. for %" PRIdm " global, %" PRIdm " local, and %" PRIdm " control space overflows\n",
+             ((flt64_t)ciao_stats.ss_tick)/RunClockFreq(ciao_stats),
+             ciao_stats.ss_global,
+             ciao_stats.ss_local, ciao_stats.ss_control);
+  StreamPrintf(s,
+             " %10.6f sec. for %" PRIdm " garbage collections which collected %" PRIdm " bytes\n\n",
+             ((flt64_t)ciao_stats.gc_tick)/RunClockFreq(ciao_stats),
+             ciao_stats.gc_count,
+             (intmach_t)ciao_stats.gc_acc);
+
+#if !defined(EMSCRIPTEN) /* not supported by emscripten */
+  StreamPrintf(s,
+             " runtime:    %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
+             (flt64_t)(runtick0-ciao_stats.starttick)/RunClockFreq(ciao_stats),
+             runtick0-ciao_stats.starttick,
+             RunClockFreq(ciao_stats));
+  StreamPrintf(s,
+             " usertime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
+             (flt64_t)(usertick0-ciao_stats.startusertick)/ciao_stats.userclockfreq,
+             usertick0-ciao_stats.startusertick,
+             ciao_stats.userclockfreq);
+  StreamPrintf(s,
+             " systemtime: %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
+             (flt64_t)(systemtick0-ciao_stats.startsystemtick)/ciao_stats.systemclockfreq,
+             systemtick0-ciao_stats.startsystemtick,
+             ciao_stats.systemclockfreq);
+#endif
+  StreamPrintf(s,
+             " walltime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n\n",
+             (flt64_t)(walltick0-ciao_stats.startwalltick)/ciao_stats.wallclockfreq,
+             walltick0-ciao_stats.startwalltick,
+             ciao_stats.wallclockfreq);
+
   return TRUE;
 }
-
-CBOOL__PROTO(nd_repeat)
-{
-  return TRUE;
-}
-
-
-/* ------------------------------------------------------------------ */
-
-CBOOL__PROTO(module_is_static)
-{
-  DEREF(X(0),X(0));
-  if (!TaggedIsATM(X(0)))
-    return FALSE;
-
-  module_t *d = insert_module(modules_location,X(0),FALSE);
-  if (d==NULL) return FALSE;
-
-  return d->properties.is_static;
-}
-

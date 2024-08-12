@@ -8,7 +8,6 @@
 #include <ciao/eng.h>
 #if !defined(OPTIM_COMP)
 #include <ciao/basiccontrol.h>
-#include <ciao/runtime_control.h>
 #include <ciao/eng_gc.h>
 #endif
 

@@ -9,43 +9,12 @@
 #if !defined(OPTIM_COMP)
 #include <ciao/basiccontrol.h>
 #include <ciao/eng_gc.h>
-#include <ciao/runtime_control.h>
 #endif
 
 /* Unify with occurs-check, using inline checks (var-nonvar cases) */
 #define UNIFY_OC_INLINE 1
 /* Enable tail optimization in cyclic_term */
 #define CYCLIC_TERM_TAIL_OPTIM 1
-
-/* -------------------------------------------------------------------
-   FRAME MANIPULATIONS
-   ----------------------------------------------------------------------*/
-
-CVOID__PROTO(pop_frame) {
-  frame_t *e;
-  SetE(w->frame);
-  intmach_t arity = FrameSizeToCount(FrameSize(w->next_insn));
-  for(intmach_t i=0; i<arity; i++) {
-    X(i) = Y(i);
-  }
-  w->local_top = E;
-  w->frame = E->frame;
-  w->next_insn = E->next_insn;
-}
-
-/* this assumes w->local_top has been computed! */
-CVOID__PROTO(push_frame, int arity) {
-  frame_t *e;
-  SetE(w->local_top);
-  E->next_insn = w->next_insn;
-  E->frame = w->frame;
-  w->frame = E;
-  w->next_insn = CONTCODE(arity);
-  w->local_top = (frame_t *)Offset(E,EToY0+arity);
-  for(intmach_t i=0; i<arity; i++) {
-    Y(i) = X(i);
-  }
-}
 
 /* --------------------------------------------------------------------------- */
 /* copy term */

@@ -22,7 +22,6 @@
 #include <ciao/internals.h>
 #include <ciao/dynamic_rt.h>
 #include <ciao/rt_exp.h>
-#include <ciao/runtime_control.h>
 #include <ciao/eng_interrupt.h>
 
 #include <ciao/eng_bignum.h>

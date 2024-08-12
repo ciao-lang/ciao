@@ -12,7 +12,6 @@
 #include <ciao/internals.h>
 #include <ciao/dynamic_rt.h>
 #include <ciao/rt_exp.h>
-#include <ciao/runtime_control.h>
 #include <ciao/eng_gc.h>
 #include <ciao/eng_profile.h>
 #include <ciao/basiccontrol.h>

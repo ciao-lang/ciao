@@ -9,7 +9,6 @@
 #if !defined(OPTIM_COMP)
 #include <ciao/eng_registry.h>
 #include <ciao/rt_exp.h>
-#include <ciao/runtime_control.h>
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_gc.h>
 #include <ciao/internals.h>
@@ -185,6 +184,29 @@ int_info_t *find_int_info(tagged_t head) {
     }
   }
   return NULL; 
+}
+#endif
+
+#if !defined(OPTIM_COMP)
+/* builtin '$current_clauses'/2 */
+/* This used to be nondeterministic. */
+/* ASSERT: X1 is always unbound, unconditional. */
+CBOOL__PROTO(current_clauses) {
+  tagged_t *junk;
+  definition_t *d;
+
+  DEREF(X(0),X(0));
+  if (! IsVar(X(0))) {
+    d = find_definition(predicates_location,X(0),&junk,FALSE);
+    if ((d!=NULL) && (d->predtyp==ENTER_INTERPRETED)) {
+      return (*TaggedToPointer(X(1))=PointerToTerm(d->code.intinfo), TRUE);
+    } else {
+      return FALSE;
+    }
+  }
+  else {
+    MINOR_FAULT("$current_clauses/2: incorrect 1st arg");
+  }
 }
 #endif
 

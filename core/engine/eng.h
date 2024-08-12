@@ -2824,6 +2824,14 @@ CVOID__PROTO(trail_push_check, tagged_t x);
 #define OldCVA(X) (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond))
 #endif
 
+/* ------------------------------------------------------------------------- */
+
+CVOID__PROTO(push_choicept, try_node_t *alt);
+CVOID__PROTO(pop_choicept);
+
+CVOID__PROTO(push_frame, arity_t arity);
+CVOID__PROTO(pop_frame);
+
 /* =========================================================================== */
 /* Faults and errors */
 

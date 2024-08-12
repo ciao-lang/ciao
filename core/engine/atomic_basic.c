@@ -10,7 +10,6 @@
 #include <ciao/eng_gc.h>
 #include <ciao/eng_registry.h>
 #include <ciao/dtoa_ryu.h>
-#include <ciao/runtime_control.h> /* push_choicept,pop_choicept */
 #include <ciao/atomic_basic.h>
 #endif
 #include <ciao/io_basic.h> /* isValidRune */

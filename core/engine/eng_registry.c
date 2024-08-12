@@ -880,6 +880,20 @@ static void deffunction_nobtin(char *atom,
   node->value.proc = proc;
 }
 
+/* --------------------------------------------------------------------------- */
+
+CBOOL__PROTO(module_is_static) {
+  DEREF(X(0),X(0));
+  if (!TaggedIsATM(X(0)))
+    return FALSE;
+
+  module_t *d = insert_module(modules_location,X(0),FALSE);
+  if (d==NULL) return FALSE;
+
+  return d->properties.is_static;
+}
+
+/* --------------------------------------------------------------------------- */
 /* Initializations that need to be made once only. */
 
 void init_locks(void){
@@ -924,6 +938,13 @@ tagged_t atm_var, atm_attv, atm_float, atm_int, atm_str, atm_atm, atm_lst;
 /* bc_aux.h */
 CBOOL__PROTO(metachoice);
 CBOOL__PROTO(metacut);
+CBOOL__PROTO(prolog_repeat);
+CBOOL__PROTO(nd_repeat);
+#if defined(TABLING)
+CBOOL__PROTO(nd_fake_choicept);
+#endif
+CBOOL__PROTO(prolog_yield);
+CBOOL__PROTO(nd_yield);
 /* term_basic.c */
 CBOOL__PROTO(prolog_copy_term);
 CBOOL__PROTO(prolog_copy_term_nat);
@@ -2226,93 +2247,3 @@ CBOOL__PROTO(total_usage)
   CBOOL__LASTUNIFY(X(0),x);
 }
 
-
-CBOOL__PROTO(statistics)
-{
-  stream_node_t *s = Output_Stream_Ptr;
-  intmach_t used, free;
-  frame_t *newa;
-
-#if !defined(EMSCRIPTEN)
-  inttime_t runtick0;
-  inttime_t usertick0 = usertick();
-  inttime_t systemtick0 = systemtick();
-  runtick0=usertick0;
-#endif
-  inttime_t walltick0 = walltick();
-
-  StreamPrintf(s,
-             "memory used (total)    %10" PRIdm " bytes\n",
-             total_mem_count);
-  StreamPrintf(s, 
-             "   program space (including reserved for atoms): %" PRIdm " bytes\n", 
-             mem_prog_count);
-
-  StreamPrintf(s,
-             "   number of atoms and functor/predicate names: %" PRIdm "\n", 
-             ciao_atoms->count);
-  StreamPrintf(s,
-             "   number of predicate definitions: %" PRIdm "\n", 
-             num_of_predicates);
-
-  used = HeapCharDifference(Heap_Start,w->heap_top);
-  free = HeapCharDifference(w->heap_top,Heap_End);
-  StreamPrintf(s, 
-             "   global stack   %10" PRIdm " bytes:%" PRIdm " in use,%10" PRIdm " free\n",
-             used+free, used, free);
-
-  GetFrameTop(newa,w->choice,G->frame);
-  used = StackCharDifference(Stack_Start,newa);
-  free = StackCharDifference(newa,Stack_End);
-  StreamPrintf(s,
-             "   local stack    %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n",
-             used+free, used, free);
-
-  used = TrailCharDifference(Trail_Start,w->trail_top);
-  free = TrailCharDifference(w->trail_top,w->choice)/2;
-  StreamPrintf(s,
-             "   trail stack    %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n",
-             used+free, used, free);
-
-  used = ChoiceCharDifference(Choice_Start,w->choice);
-  free = ChoiceCharDifference(w->choice,w->trail_top)/2;
-  StreamPrintf(s,
-             "   control stack  %10" PRIdm " bytes:%10" PRIdm " in use,%10" PRIdm " free\n\n",
-             used+free, used, free);
-
-  StreamPrintf(s,
-             " %10.6f sec. for %" PRIdm " global, %" PRIdm " local, and %" PRIdm " control space overflows\n",
-             ((flt64_t)ciao_stats.ss_tick)/RunClockFreq(ciao_stats),
-             ciao_stats.ss_global,
-             ciao_stats.ss_local, ciao_stats.ss_control);
-  StreamPrintf(s,
-             " %10.6f sec. for %" PRIdm " garbage collections which collected %" PRIdm " bytes\n\n",
-             ((flt64_t)ciao_stats.gc_tick)/RunClockFreq(ciao_stats),
-             ciao_stats.gc_count,
-             (intmach_t)ciao_stats.gc_acc);
-
-#if !defined(EMSCRIPTEN) /* not supported by emscripten */
-  StreamPrintf(s,
-             " runtime:    %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
-             (flt64_t)(runtick0-ciao_stats.starttick)/RunClockFreq(ciao_stats),
-             runtick0-ciao_stats.starttick,
-             RunClockFreq(ciao_stats));
-  StreamPrintf(s,
-             " usertime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
-             (flt64_t)(usertick0-ciao_stats.startusertick)/ciao_stats.userclockfreq,
-             usertick0-ciao_stats.startusertick,
-             ciao_stats.userclockfreq);
-  StreamPrintf(s,
-             " systemtime: %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
-             (flt64_t)(systemtick0-ciao_stats.startsystemtick)/ciao_stats.systemclockfreq,
-             systemtick0-ciao_stats.startsystemtick,
-             ciao_stats.systemclockfreq);
-#endif
-  StreamPrintf(s,
-             " walltime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n\n",
-             (flt64_t)(walltick0-ciao_stats.startwalltick)/ciao_stats.wallclockfreq,
-             walltick0-ciao_stats.startwalltick,
-             ciao_stats.wallclockfreq);
-
-  return TRUE;
-}

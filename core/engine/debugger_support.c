@@ -18,7 +18,6 @@
 #include <ciao/eng_bignum.h>
 #include <ciao/eng_gc.h>
 #include <ciao/rt_exp.h>
-#include <ciao/runtime_control.h>
 #include <ciao/timing.h>
 #include <ciao/eng_profile.h>
 #endif
