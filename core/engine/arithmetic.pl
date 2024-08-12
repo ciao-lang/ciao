@@ -1,7 +1,4 @@
-:- module(arithmetic, [
-            (is) /2, (<) /2, (=<) /2, (>) /2, (>=) /2, (=:=) /2, (=\=) /2,
-            arithexpression/1, intexpression/1],
-        [assertions, nortchecks, nativeprops, isomodes]).
+:- module(arithmetic, [], [noprelude, assertions, nortchecks, nativeprops, isomodes]).
 
 :- doc(title, "Arithmetic").
 
@@ -28,20 +25,23 @@ yes
 @end{verbatim}
 ").
 
-% Compiled inline -- these are hooks for the interpreter.
+:- use_module(engine(basiccontrol)).
+:- use_module(engine(term_basic)).
+:- use_module(engine(term_typing)).
 
+:- if(defined(optim_comp)).
+:- '$native_include_c_source'(.(arithmetic)).
+:- endif.
+
+:- export((is)/2).
 :- doc(is(Val, Exp), "The arithmetic expression @var{Exp} is
    evaluated and the result is unified with @var{Val}").
 %:- trust pred is(?term,+arithexpression) + iso.
 %:- trust pred is(X,Y) : arithexpression(Y) => num(X) + iso.
-
-:- doc(bug, "We could improve the precision if we had
-    (arithexpression,\\\\+intexpression) but we need a relational
-    domain. -- EMM, JFMC").
-
-:- test (X is Y) : (Y = sqrt(4)) => (X = 2.0) # "is/2, sqrt
-   test".
-
+:- if(defined(optim_comp)).
+:- trust pred is(X,+arithexpression) => num(X) + (iso, native).
+:- trust comp is/2 + sideff(free).
+:- else.
 :- trust pred is(-A, +B) : var * arithexpression
     => (num(A), arithexpression(B), size(A, int(B))) + (not_fails, eval).
 :- trust pred is(-A, +B) : var * intexpression
@@ -51,85 +51,229 @@ yes
 :- trust comp is(A, B) + (size_metric(A, int), size_metric(B, int)).
 :- trust comp is/2 + ( iso, native, sideff(free), bind_ins, is_det,
         relations(inf) ).
+:- endif.
 
-X is Y :- X is +Y.
+X is Y :- X is +Y. % (compiled inline, hook for interpreter)
 
+:- export((<)/2).
 :- doc((Exp1 < Exp2), "The numeric value of @var{Exp1} is less than
    the numeric value of @var{Exp2} when both are evaluated as arithmetic
    expressions.").
-
-
+:- if(defined(optim_comp)).
+:- trust pred <(+arithexpression,+arithexpression) + (iso, native).
+:- trust comp (<)/2 + sideff(free).
+:- '$props'((<)/2, [impnat=cblt(bu2_numlt,m(0,0))]).
+:- else.
 :- trust pred <(+A, +B) : arithexpression * arithexpression
     + (eval, size_metric(A, int), size_metric(B, int)).
 :- trust comp (<) /2 + ( iso, native, sideff(free), bind_ins, is_det,
         relations(inf), test_type(arithmetic) ).
+X<Y :- X<Y. % (compiled inline, hook for interpreter)
+:- endif.
 
-X<Y :- X<Y.
-
+:- export((=<)/2).
 :- doc((Exp1 =< Exp2), "The numeric value of @var{Exp1} is less than
    or equal to the numeric value of @var{Exp2} when both are evaluated as
    arithmetic expressions.").
-
-
+:- if(defined(optim_comp)).
+:- trust pred =<(+arithexpression,+arithexpression) + (iso, native).
+:- trust comp (=<)/2 + sideff(free).
+:- '$props'((=<)/2, [impnat=cblt(bu2_numle,m(0,0))]).
+:- else.
 :- trust pred =<(+A, +B) : arithexpression * arithexpression
     + (eval, size_metric(A, int), size_metric(B, int)).
 :- trust comp (=<) /2 + ( iso, native, sideff(free), bind_ins, is_det,
         relations(inf), test_type(arithmetic) ).
+X=<Y :- X=<Y. % (compiled inline, hook for interpreter)
+:- endif.
 
-X=<Y :- X=<Y.
-
+:- export((>)/2).
 :- doc((Exp1 > Exp2), "The numeric value of @var{Exp1} is greater than
    the numeric value of @var{Exp2} when both are evaluated as arithmetic
    expressions.").
-
-
+:- if(defined(optim_comp)).
+:- trust pred >(+arithexpression,+arithexpression) + (iso, native).
+:- trust comp (>)/2 + sideff(free).
+:- '$props'((>)/2, [impnat=cblt(bu2_numgt,m(0,0))]).
+:- else.
 :- trust pred >(+A, +B) : arithexpression * arithexpression
     + (eval, size_metric(A, int), size_metric(B, int)).
 :- trust comp (>) /2 + ( iso, native, sideff(free), bind_ins, is_det,
         relations(inf), test_type(arithmetic) ).
+X>Y :- X>Y. % (compiled inline, hook for interpreter)
+:- endif.
 
-X>Y :- X>Y.
-
+:- export((>=)/2).
 :- doc((Exp1 >= Exp2), "The numeric value of @var{Exp1} is greater than
    or equal to the numeric value of @var{Exp2} when both are evaluated as
    arithmetic expressions.").
-
-
+:- if(defined(optim_comp)).
+:- trust pred >=(+arithexpression,+arithexpression) + (iso, native).
+:- trust comp (>=)/2 + sideff(free).
+:- '$props'((>=)/2, [impnat=cblt(bu2_numge,m(0,0))]).
+:- else.
 :- trust pred >=(+A, +B) : arithexpression * arithexpression
     + (eval, size_metric(A, int), size_metric(B, int)).
 :- trust comp (>=) /2 + ( iso, native, sideff(free), bind_ins, is_det,
         relations(inf), test_type(arithmetic) ).
+X>=Y :- X>=Y. % (compiled inline, hook for interpreter)
+:- endif.
 
-X>=Y :- X>=Y.
-
+:- export((=:=)/2).
 :- doc((Exp1 =:= Exp2), "The numeric values of @var{Exp1} and
    @var{Exp2} are equal when both are evaluated as arithmetic expressions.").
-
-
+:- if(defined(optim_comp)).
+:- trust pred =:=(+arithexpression,+arithexpression) + (iso, native).
+:- trust comp (=:=)/2 + sideff(free).
+:- '$props'((=:=)/2, [impnat=cblt(bu2_numeq,m(0,0))]).
+:- else.
 :- trust pred =:=(+A, +B) : arithexpression * arithexpression
     + (eval, size_metric(A, int), size_metric(B, int)).
 :- trust comp (=:=) /2 + ( iso, native, sideff(free), bind_ins, is_det,
         relations(inf), test_type(arithmetic) ).
+X=:=Y :- X=:=Y. % (compiled inline, hook for interpreter)
+:- endif.
 
-X=:=Y :- X=:=Y.
-
+:- export((=\=)/2).
 :- doc((Exp1 =\= Exp2), "The numeric values of @var{Exp1} and
    @var{Exp2} are not equal when both are evaluated as arithmetic
    expressions.").
-
-
+:- if(defined(optim_comp)).
+:- trust pred =\=(+arithexpression,+arithexpression) + (iso, native).
+:- trust comp (=\=)/2 + sideff(free).
+:- '$props'((=\=)/2, [impnat=cblt(bu2_numne,m(0,0))]).
+:- else.
 :- trust pred =\=(+A, +B) : arithexpression * arithexpression
     + (eval, size_metric(A, int), size_metric(B, int)).
 :- trust comp (=\=) /2 + ( iso, native, sideff(free), bind_ins, is_det,
         relations(inf), test_type(arithmetic) ).
+X=\=Y :- X=\=Y. % (compiled inline, hook for interpreter)
+:- endif.
 
-X=\=Y :- X=\=Y.
+:- if(defined(optim_comp)).
+% Internal arithmetic predicates (the compiler unfolds is/2 when possible)
+:- export('$-'/2).
+:- '$props'('$-'/2, [impnat=cfun(fu1_minus,yes)]).
+:- export('$+'/2).
+:- '$props'('$+'/2, [impnat=cfun(fu1_plus,yes)]).
+:- export('$--'/2).
+:- '$props'('$--'/2, [impnat=cfun(fu1_sub1,yes)]).
+:- export('$++'/2).
+:- '$props'('$++'/2, [impnat=cfun(fu1_add1,yes)]).
+:- export('$integer'/2).
+:- '$props'('$integer'/2, [impnat=cfun(fu1_integer,yes)]).
+:- export('$truncate'/2).
+:- '$props'('$truncate'/2, [impnat=cfun(fu1_integer,yes)]).
+:- export('$float'/2).
+:- '$props'('$float'/2, [impnat=cfun(fu1_float,yes)]).
+:- export('$\\'/2).
+:- '$props'('$\\'/2, [impnat=cfun(fu1_not,yes)]).
+:- export('$abs'/2).
+:- '$props'('$abs'/2, [impnat=cfun(fu1_abs,yes)]).
+:- export('$sign'/2).
+:- '$props'('$sign'/2, [impnat=cfun(fu1_sign,yes)]).
+:- export('$float_integer_part'/2).
+:- '$props'('$float_integer_part'/2, [impnat=cfun(fu1_intpart,yes)]).
+:- export('$float_fractional_part'/2).
+:- '$props'('$float_fractional_part'/2, [impnat=cfun(fu1_fractpart,yes)]).
+:- export('$floor'/2).
+:- '$props'('$floor'/2, [impnat=cfun(fu1_floor,yes)]).
+:- export('$round'/2).
+:- '$props'('$round'/2, [impnat=cfun(fu1_round,yes)]).
+:- export('$ceiling'/2).
+:- '$props'('$ceiling'/2, [impnat=cfun(fu1_ceil,yes)]).
+:- export('$+'/3).
+:- '$props'('$+'/3, [impnat=cfun(fu2_plus,yes)]).
+:- export('$-'/3).
+:- '$props'('$-'/3, [impnat=cfun(fu2_minus,yes)]).
+:- export('$*'/3).
+:- '$props'('$*'/3, [impnat=cfun(fu2_times,yes)]).
+:- export('$/'/3).
+:- '$props'('$/'/3, [impnat=cfun(fu2_fdivide,yes)]).
+:- export('$//'/3).
+:- '$props'('$//'/3, [impnat=cfun(fu2_idivide,yes)]).
+:- export('$rem'/3).
+:- '$props'('$rem'/3, [impnat=cfun(fu2_rem,yes)]).
+:- export('$#'/3).
+:- '$props'('$#'/3, [impnat=cfun(fu2_xor,yes)]).
+:- export('$/\\'/3).
+:- '$props'('$/\\'/3, [impnat=cfun(fu2_and,yes)]).
+:- export('$\\/'/3).
+:- '$props'('$\\/'/3, [impnat=cfun(fu2_or,yes)]).
+:- export('$<<'/3).
+:- '$props'('$<<'/3, [impnat=cfun(fu2_lsh,yes)]).
+:- export('$>>'/3).
+:- '$props'('$>>'/3, [impnat=cfun(fu2_rsh,yes)]).
+:- export('$mod'/3).
+:- '$props'('$mod'/3, [impnat=cfun(fu2_mod,yes)]).
+:- export('$**'/3).
+:- '$props'('$**'/3, [impnat=cfun(fu2_pow,yes)]).
+
+:- export('$gcd'/3).
+:- '$props'('$gcd'/3, [impnat=cfun(fu2_gcd,yes)]).
+:- export('$exp'/2).
+:- '$props'('$exp'/2, [impnat=cfun(fu1_exp,yes)]). % (ISO) 
+:- export('$log'/2).
+:- '$props'('$log'/2, [impnat=cfun(fu1_log,yes)]). % (ISO) 
+:- export('$sqrt'/2).
+:- '$props'('$sqrt'/2, [impnat=cfun(fu1_sqrt,yes)]). % (ISO) 
+:- export('$sin'/2).
+:- '$props'('$sin'/2, [impnat=cfun(fu1_sin,yes)]). % (ISO) 
+:- export('$cos'/2).
+:- '$props'('$cos'/2, [impnat=cfun(fu1_cos,yes)]). % (ISO) 
+:- export('$atan'/2).
+:- '$props'('$atan'/2, [impnat=cfun(fu1_atan,yes)]). % (ISO) 
+
+% TODO: write in Prolog, obtain c funtion name using pred props
+:- export('$eval_arith'/2). % TODO: NOT A EXPORT BUT A INTERNAL ENTRY
+:- '$props'('$eval_arith'/2, [impnat=cswitchcfun(
+    ('-'/1->fu1_minus
+    ;'+'/1->fu1_plus
+    ;'--'/1->fu1_sub1
+    ;'++'/1->fu1_add1
+    ;'integer'/1->fu1_integer
+    ;'truncate'/1->fu1_integer
+    ;'float'/1->fu1_float
+    ;'\\'/1->fu1_not
+    ;'abs'/1->fu1_abs
+    ;'sign'/1->fu1_sign
+    ;'float_integer_part'/1->fu1_intpart
+    ;'float_fractional_part'/1->fu1_fractpart
+    ;'floor'/1->fu1_floor
+    ;'round'/1->fu1_round
+    ;'ceiling'/1->fu1_ceil
+    ;'+'/2->fu2_plus
+    ;'-'/2->fu2_minus
+    ;'*'/2->fu2_times
+    ;'/'/2->fu2_fdivide
+    ;'//'/2->fu2_idivide
+    ;'rem'/2->fu2_rem
+    ;'#'/2->fu2_xor
+    ;'/\\'/2->fu2_and
+    ;'\\/'/2->fu2_or
+    ;'<<'/2->fu2_lsh
+    ;'>>'/2->fu2_rsh
+    ;'mod'/2->fu2_mod
+    ;'**'/2->fu2_pow
+    ;'gcd'/2->fu2_gcd
+    ;'exp'/1->fu1_exp
+    ;'log'/1->fu1_log
+    ;'sqrt'/1->fu1_sqrt
+    ;'sin'/1->fu1_sin
+    ;'cos'/1->fu1_cos
+    ;'atan'/1->fu1_atan
+    ))]).
+:- endif.
 
 % :- doc(doinclude, arithexpression/1).
 
+:- export(arithexpression/1).
 :- prop arithexpression(E) + regtype # "@var{E} is an arithmetic expression.".
 :- trust comp arithexpression/1 + sideff(free).
+:- if(defined(optim_comp)).
+:- else.
 :- trust comp arithexpression(+) + (is_det, test_type(arithmetic)).
+:- endif.
 
 :- doc(arithexpression/1, "An arithmetic expression is a term built
    from numbers and @concept{evaluable functors} that represent
@@ -277,6 +421,7 @@ arithexpression(atan(X)) :- arithexpression(X).
 arithexpression([X]) :- arithexpression(X).
 arithexpression(X) :- intexpression(X).
 
+:- export(intexpression/1).
 :- prop intexpression(E) + regtype # "@var{E} is an integer expression.".
 :- trust comp intexpression/1 + sideff(free).
 
