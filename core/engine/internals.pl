@@ -1194,6 +1194,8 @@ pred_property(wait).
 
 :- if(defined(optim_comp)).
 % TODO:[oc-merge] this is in compiler_oc/store.pl, split?; note that loader in optim-comp is a user program
+:- multifile file_search_path/2.
+:- dynamic(file_search_path/2).
 :- else.
 % TODO:[JF]: New absolute file name library. I need it to fix some pending issues
 % of the foreign interface and future problems with the compilation to C
@@ -1213,6 +1215,54 @@ file_search_path(library, Lib) :- library_directory(Lib).
 file_search_path(Alias, Path) :- '$bundle_alias_path'(Alias, _Bundle, Path).
 file_search_path(.,.).
 :- endif.
+
+%:- pred absolute_file_name(+sourcename,+atm,+atm,+atm,-atm,-atm,-atm).
+
+% TODO: define a data types for module spec, slash paths, etc.
+
+% (called from stream_basic:absolute_file_name/7)
+:- export('$absolute_file_name_checked'/7).
+'$absolute_file_name_checked'(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir) :-
+    absolute_file_name_(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir).
+
+absolute_file_name_(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir) :-
+    % Test Spec to be an alias (e.g., library(a/b/c)).
+    nonvar(Spec),
+    functor(Spec, Alias, 1),
+    arg(1,Spec,Name0),
+    slash_to_path(Name0, Name),
+    atom(Name), !,
+    ( file_search_path(Alias, Dir),
+      atom(Dir),
+      '$find_file'(Dir, Name, Opt, Suffix, true, AbsFile, AbsBase, AbsDir) ->
+        true
+    ; file_not_found_error(Spec)
+    ).
+absolute_file_name_(Name, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir) :-
+    atom(Name), !,
+    '$find_file'(CurrDir, Name, Opt, Suffix, _, AbsFile, AbsBase, AbsDir).
+absolute_file_name_(X, _, _, _, _, _, _) :-
+    throw(error(domain_error(source_sink, X), absolute_file_name/7-1)).
+
+file_not_found_error(Spec) :-
+    ( '$ferror_flag'(on, on) ->
+        throw(error(existence_error(source_sink,Spec), absolute_file_name/7-1))
+    ; fail
+    ).
+
+% Get (relative) pathname from term notation (e.g., a/b/c -> 'a/b/c').
+% (see pathnames:pathname/1)
+slash_to_path((SubName/Name), Flat) :- !,
+    slash_to_path(SubName, SubFlat),
+    atom_concat(SubFlat, '/', SubFlat1),
+    atom_concat(SubFlat1, Name, Flat).
+slash_to_path(Spec, Flat) :-
+    atom(Spec),
+    !,
+    Flat = Spec.
+slash_to_path(Spec, _Flat) :-
+    % TODO: define a right type for Spec (module_spec does not exist) (perhaps sourcename/1)
+    throw(error(domain_error(module_spec, Spec), slash_to_path/2-1)).
 
 %! ## Path initialization
 
@@ -1373,54 +1423,6 @@ find_pl_filename(File, PlName, Base, Dir) :-
 % :- export(find_c_filename/4).
 % find_c_filename(File, CName, Base, Dir) :- 
 %       absolute_file_name_(File, [], '.c', '.', CName, Base, Dir).
-
-%:- pred absolute_file_name(+sourcename,+atm,+atm,+atm,-atm,-atm,-atm).
-
-% TODO: define a data types for module spec, slash paths, etc.
-
-% (called from stream_basic:absolute_file_name/7)
-:- export('$absolute_file_name_checked'/7).
-'$absolute_file_name_checked'(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir) :-
-    absolute_file_name_(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir).
-
-absolute_file_name_(Spec, Opt, Suffix, _CurrDir, AbsFile, AbsBase, AbsDir) :-
-    % Test Spec to be an alias (e.g., library(a/b/c)).
-    nonvar(Spec),
-    functor(Spec, Alias, 1),
-    arg(1,Spec,Name0),
-    slash_to_path(Name0, Name),
-    atom(Name), !,
-    ( file_search_path(Alias, Dir),
-      atom(Dir),
-      '$find_file'(Dir, Name, Opt, Suffix, true, AbsFile, AbsBase, AbsDir) ->
-        true
-    ; file_not_found_error(Spec)
-    ).
-absolute_file_name_(Name, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir) :-
-    atom(Name), !,
-    '$find_file'(CurrDir, Name, Opt, Suffix, _, AbsFile, AbsBase, AbsDir).
-absolute_file_name_(X, _, _, _, _, _, _) :-
-    throw(error(domain_error(source_sink, X), absolute_file_name/7-1)).
-
-file_not_found_error(Spec) :-
-    ( '$ferror_flag'(on, on) ->
-        throw(error(existence_error(source_sink,Spec), absolute_file_name/7-1))
-    ; fail
-    ).
-
-% Get (relative) pathname from term notation (e.g., a/b/c -> 'a/b/c').
-% (see pathnames:pathname/1)
-slash_to_path((SubName/Name), Flat) :- !,
-    slash_to_path(SubName, SubFlat),
-    atom_concat(SubFlat, '/', SubFlat1),
-    atom_concat(SubFlat1, Name, Flat).
-slash_to_path(Spec, Flat) :-
-    atom(Spec),
-    !,
-    Flat = Spec.
-slash_to_path(Spec, _Flat) :-
-    % TODO: define a right type for Spec (module_spec does not exist) (perhaps sourcename/1)
-    throw(error(domain_error(module_spec, Spec), slash_to_path/2-1)).
 
 % TODO: engine(internals) should not import lib/ or library/ modules
 %

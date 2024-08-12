@@ -1,16 +1,4 @@
-:- module(stream_basic, [
-    open/3, open/4, open_option_list/1, close/1,
-    set_input/1, current_input/1,
-    set_output/1, current_output/1,
-    character_count/2, line_count/2, line_position/2,
-    flush_output/1, flush_output/0, clearerr/1,
-    current_stream/3, stream_code/2,
-    absolute_file_name/2, absolute_file_name/7,
-    pipe/2,
-    sourcename/1, stream/1, stream_alias/1, io_mode/1, 
-    atm_or_int/1
-    ],
-    [assertions, nortchecks, isomodes]).
+:- module(stream_basic, [], [noprelude, assertions, nortchecks, isomodes]).
 
 :- doc(title, "Basic file/stream handling").
 
@@ -20,27 +8,45 @@
 :- doc(module,"This module provides basic predicates for handling
    files and streams, in order to make input/output on them.").
 
-:- use_module(engine(internals), ['$open'/3, '$absolute_file_name_checked'/7]).
+:- use_module(engine(basiccontrol)).
+:- use_module(engine(term_basic)).
+:- use_module(engine(term_typing)).
+:- use_module(engine(exceptions)).
+:- use_module(engine(atomic_basic)).
+:- use_module(engine(term_compare)).
 
+:- if(defined(optim_comp)).
+:- '$native_include_c_source'(.(stream_basic)).
+:- endif.
+
+:- if(defined(optim_comp)).
+:- export('$open'/3). % internal predicate, really export?
+:- '$props'('$open'/3, [impnat=cbool(prolog_open)]).
+:- else.
+:- use_module(engine(internals), ['$open'/3]).
+:- endif.
+:- use_module(engine(internals), ['$absolute_file_name_checked'/7]).
+
+% ---------------------------------------------------------------------------
+:- export(open/3).
 :- doc(open(File, Mode, Stream), "Open @var{File} with mode
    @var{Mode} and return in @var{Stream} the stream associated with the
    file.  No extension is implicit in @var{File}.").
 
-
 :- pred open(+sourcename, +io_mode, ?stream) + (iso, native)
-    # "Normal use.".
+   # "Normal use.".
 
 :- pred open(+int, +io_mode, ?stream) # "In the special case that
-    @var{File} is an integer, it is assumed to be a file
-    descriptor passed to Prolog from a foreign function call. The
-    file descriptor is connected to a Prolog stream (invoking the
-    C POSIX function @tt{fdopen()}) which is unified with
-    @var{Stream}.".
+   @var{File} is an integer, it is assumed to be a file descriptor
+   passed to Prolog from a foreign function call. The file descriptor
+   is connected to a Prolog stream (invoking the C POSIX function
+   @tt{fdopen()}) which is unified with @var{Stream}.".
 
+% ---------------------------------------------------------------------------
+:- export(open/4).
 :- doc(open(File, Mode, Stream, Options), "Same as
    @tt{open(@var{File}, @var{Mode}, @var{Stream})} with options @var{Options}.
    See the definition of @pred{open_option_list/1} for details.").
-
 
 :- pred open(+sourcename, +io_mode, ?stream, +open_option_list) + native.
 
@@ -90,19 +96,21 @@ codif_opt(lock, _, b) :- !.
 codif_opt(lock_nb, _, l) :- !.
 /* SWI options */
 codif_opt(lock(Mode), _, Codif) :- !,
-    lock_mode(Mode, M),
+    open_lock_mode(Mode, M),
     atom_concat(b,M,Codif).
 codif_opt(lock_nb(Mode), _, Codif) :- !,
-    lock_mode(Mode, M),
+    open_lock_mode(Mode, M),
     atom_concat(l,M,Codif).
 codif_opt(_Opt, _Codif, _Codif) :- fail. % (caller will throw exception)
     % message(warning, ['Open option ',Opt,' not yet implemented']).
 
-lock_mode(read, r).
-lock_mode(shared, r).
-lock_mode(write, w).
-lock_mode(exclusive, w).
+open_lock_mode(read, r).
+open_lock_mode(shared, r).
+open_lock_mode(write, w).
+open_lock_mode(exclusive, w).
 
+% ---------------------------------------------------------------------------
+:- export(io_mode/1).
 :- doc(io_mode/1, "Can have the following values:
    @begin{description}
 
@@ -124,11 +132,19 @@ io_mode(read).
 io_mode(write).
 io_mode(append).
 
+% ---------------------------------------------------------------------------
+:- export(close/1).
 :- doc(close(Stream), "Close the stream @var{Stream}.").
 
 :- trust pred close(+stream) => stream + (iso, native).
+:- if(defined(optim_comp)).
+:- '$props'(close/1, [impnat=cbool(prolog_close)]).
+:- else.
 :- impl_defined(close/1).
+:- endif.
 
+% ---------------------------------------------------------------------------
+:- export(set_input/1).
 :- doc(set_input(Stream), "Set the current input stream to
    @var{Stream}.  A notion of @index{current input stream} is maintained
    by the system, so that input predicates with no explicit stream
@@ -136,16 +152,28 @@ io_mode(append).
    @tt{user_input}.").
 
 :- trust pred set_input(+stream) => stream + (iso, native).
+:- if(defined(optim_comp)).
+:- '$props'(set_input/1, [impnat=cbool(prolog_set_input)]).
+:- else.
 :- impl_defined(set_input/1).
+:- endif.
 
+% ---------------------------------------------------------------------------
+:- export(current_input/1).
 :- doc(current_input(Stream), "Unify @var{Stream} with the
-@concept{current input stream}.  In addition to the ISO behavior,
-stream aliases are allowed.  This is useful for most applications
-checking whether a stream is the standard input or output.").
+   @concept{current input stream}.  In addition to the ISO behavior,
+   stream aliases are allowed.  This is useful for most applications
+   checking whether a stream is the standard input or output.").
 
 :- trust pred current_input(?stream) + (iso, native).
+:- if(defined(optim_comp)).
+:- '$props'(current_input/1, [impnat=cbool(prolog_current_input)]).
+:- else.
 :- impl_defined(current_input/1).
+:- endif.
 
+% ---------------------------------------------------------------------------
+:- export(set_output/1).
 :- doc(set_output(Stream), "Set the current output stream to
    @var{Stream}.  A notion of @index{current output stream} is maintained
    by the system, so that output predicates with no explicit stream
@@ -153,51 +181,99 @@ checking whether a stream is the standard input or output.").
    @tt{user_output}.").
 
 :- trust pred set_output(+stream) + (iso, native).
+:- if(defined(optim_comp)).
+:- '$props'(set_output/1, [impnat=cbool(prolog_set_output)]).
+:- else.
 :- impl_defined(set_output/1).
+:- endif.
 
+% ---------------------------------------------------------------------------
+:- export(current_output/1).
 :- doc(current_output(Stream), "Unify @var{Stream} with the
-@concept{current output stream}.  The same comment as for
-@pred{current_input/1} applies.").
+   @concept{current output stream}.  The same comment as for
+   @pred{current_input/1} applies.").
 
 :- trust pred current_output(?stream) + (iso, native).
+:- if(defined(optim_comp)).
+:- '$props'(current_output/1, [impnat=cbool(prolog_current_output)]).
+:- else.
 :- impl_defined(current_output/1).
+:- endif.
 
+% ---------------------------------------------------------------------------
+:- export(character_count/2).
 :- doc(character_count(Stream,Count), "@var{Count} characters have
    been read from or written to @var{Stream}.").
 
 :- trust pred character_count(+stream,?int) + native.
+:- if(defined(optim_comp)).
+:- '$props'(character_count/2, [impnat=cbool(character_count)]).
+:- else.
 :- impl_defined(character_count/2).
+:- endif.
 
+% ---------------------------------------------------------------------------
+:- export(line_count/2).
 :- doc(line_count(Stream,Count), "@var{Count} lines have been read
    from or written to @var{Stream}.").
 
 :- trust pred line_count(+stream,?int) + native.
+:- if(defined(optim_comp)).
+:- '$props'(line_count/2, [impnat=cbool(line_count)]).
+:- else.
 :- impl_defined(line_count/2).
+:- endif.
 
+% ---------------------------------------------------------------------------
+:- export(line_position/2).
 :- doc(line_position(Stream,Count), "@var{Count} characters have
    been read from or written to the current line of @var{Stream}.").
 
 :- trust pred line_position(+stream,?int) + native.
+:- if(defined(optim_comp)).
+:- '$props'(line_position/2, [impnat=cbool(line_position)]).
+:- else.
 :- impl_defined(line_position/2).
+:- endif.
 
+% ---------------------------------------------------------------------------
+:- export(flush_output/1).
 :- doc(flush_output(Stream), "Flush any buffered data to output
    stream @var{Stream}.").
 
 :- trust pred flush_output(+stream) => stream + (iso, native).
+:- if(defined(optim_comp)).
+:- '$props'(flush_output/1, [impnat=cbool(flush_output1)]).
+:- else.
 :- impl_defined(flush_output/1).
+:- endif.
 
+% ---------------------------------------------------------------------------
+:- export(flush_output/0).
 :- doc(flush_output, "Behaves like @tt{current_output(S),
    flush_output(S)}").
 
 :- trust pred flush_output + iso.
+:- if(defined(optim_comp)).
+:- '$props'(flush_output/0, [impnat=cbool(flush_output)]).
+:- else.
 :- impl_defined(flush_output/0).
+:- endif.
 
+% ---------------------------------------------------------------------------
+:- export(clearerr/1).
 :- doc(clearerr(Stream), "Clear the end-of-file and error indicators
-       for input stream @var{Stream}.").
+   for input stream @var{Stream}.").
 
 :- trust pred clearerr(+stream) => stream.
+:- if(defined(optim_comp)).
+:- '$props'(clearerr/1, [impnat=cbool(prolog_clearerr)]).
+:- else.
 :- impl_defined(clearerr/1).
+:- endif.
 
+% ---------------------------------------------------------------------------
+:- export(current_stream/3).
 :- doc(current_stream(Filename,Mode,Stream), "@var{Stream} is a
    stream which was opened in mode @var{Mode} and which is connected to
    the absolute file name @var{Filename} (an atom) or to the file
@@ -205,23 +281,34 @@ checking whether a stream is the standard input or output.").
    for enumerating all currently open streams through backtracking.").
 
 :- trust pred current_stream(?atm_or_int,?io_mode,?stream) + native.
+:- if(defined(optim_comp)).
+:- '$props'(current_stream/3, [impnat=cbool(current_stream)]).
+:- else.
 :- impl_defined(current_stream/3).
+:- endif.
 
+% ---------------------------------------------------------------------------
+:- export(atm_or_int/1).
 :- prop atm_or_int/1 + regtype.
 
-atm_or_int(X):- atm(X).
-atm_or_int(X):- int(X).
+atm_or_int(X) :- atm(X).
+atm_or_int(X) :- int(X).
 
-
+% ---------------------------------------------------------------------------
+:- export(stream_code/2).
 :- doc(stream_code(Stream,StreamCode), "@var{StreamCode} is the file
    descriptor (an integer) corresponding to the Prolog stream
    @var{Stream}.").
 
 :- trust pred stream_code(+stream,?int).
 :- trust pred stream_code(-stream,+int).
+:- if(defined(optim_comp)).
+:- '$props'(stream_code/2, [impnat=cbool(prolog_stream_code)]).
+:- else.
 :- impl_defined(stream_code/2).
+:- endif.
 
-
+% ---------------------------------------------------------------------------
 :- doc(file_search_path(Alias, Path), "The @concept{path alias}
    @var{Alias} is linked to path @var{Path}.  Both arguments must be
    atoms.  New facts (or clauses) of this predicate can be asserted to
@@ -239,20 +326,21 @@ atm_or_int(X):- int(X).
 @end{description}
 ").
 
-
 :- trust success file_search_path(X,Y) => (gnd(X), gnd(Y)).
 :- multifile file_search_path/2.
-:- dynamic(file_search_path/2). % (just declaration, dynamic not needed in this module)
+:- dynamic(file_search_path/2).
 
-:- doc(library_directory(Path), "@var{Path} is a library path (a
-   path represented by the @concept{path alias} @tt{library}). More
-   library paths can be defined by asserting new facts (or clauses) of
-   this predicate.").
+:- doc(library_directory(Path), "@var{Path} is a library path (a path
+   represented by the @concept{path alias} @tt{library}). More library
+   paths can be defined by asserting new facts (or clauses) of this
+   predicate.").
 
 :- trust success library_directory(X) => gnd(X).
 :- multifile library_directory/1.
-:- dynamic(library_directory/1). % (just declaration, dynamic not needed in this module)
+:- dynamic(library_directory/1).
 
+% ---------------------------------------------------------------------------
+:- export(absolute_file_name/2).
 % TODO: Default behavior of this predicate may not be standard, fix
 %   (see fixed_absolute_file_name/3)
 :- doc(absolute_file_name(RelFileSpec, AbsFileSpec), "If
@@ -276,8 +364,9 @@ absolute_file_name(File, Abs) :-
 absolute_file_name(File, Abs) :-
     absolute_file_name(File, '_opt', '.pl', '.', Abs, _, _).
 
-:- doc(
-   absolute_file_name(Spec, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir),
+% ---------------------------------------------------------------------------
+:- export(absolute_file_name/7).
+:- doc(absolute_file_name(Spec, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir),
    "@var{AbsFile} is the absolute name (with full path) of @var{Spec},
    which has an optional first suffix @var{Opt} and an optional second
    suffix @var{Suffix}, when the current directory is @var{CurrDir}.
@@ -286,7 +375,6 @@ absolute_file_name(File, Abs) :-
    @var{AbsFile} is.  The Ciao compiler invokes this predicate with
    @var{Opt}=@tt{'_opt'} and @var{Suffix}=@tt{'.pl'} when searching
    source files.").
-
 
 :- pred absolute_file_name(+sourcename,+atm,+atm,+atm,-atm,-atm,-atm)
     + native.
@@ -302,9 +390,9 @@ absolute_file_name(Spec, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir) :-
     abs_file_name_check_atom(Opt, 2),
     abs_file_name_check_atom(Suffix, 3),
     abs_file_name_check_atom(CurrDir, 4),
-    '$absolute_file_name_checked'(Spec, Opt, Suffix, CurrDir, 
-                                  AbsFile, AbsBase, AbsDir).
+    '$absolute_file_name_checked'(Spec, Opt, Suffix, CurrDir, AbsFile, AbsBase, AbsDir).
 
+% ---------------------------------------------------------------------------
 :- export(fixed_absolute_file_name/3).
 % TODO: There is a problem with absolute_file_name/?, reported by
 % Paulo Moura (it duplicates the last name -- this is necessary for
@@ -315,6 +403,8 @@ fixed_absolute_file_name(X, CurrDir, Y) :-
     absolute_file_name(X1, '_opt', '.pl', CurrDir, Y1, _, _),
     atom_concat(Y, Dummy, Y1).
 
+% ---------------------------------------------------------------------------
+:- export(stream/1).
 :- doc(stream/1, "Streams correspond to the file pointers used at
    the operating system level, and usually represent opened files.
    There are four special streams which correspond with the operating
@@ -332,17 +422,6 @@ fixed_absolute_file_name(X, CurrDir, Y) :-
 @end{description}
 
 ").
-
-:- prop stream_alias(S) + regtype # "@var{S} is the alias of an
-open stream, i.e., an atom which represents a stream at Prolog
-level.".
-
-%  This does not capture the "not closed" fact
-stream_alias(user_input).
-stream_alias(user_output).
-stream_alias(user_error).
-
-
 :- prop stream(S) + regtype # "@var{S} is an open stream.".
 
 %  This does not capture the "not closed" fact
@@ -351,9 +430,21 @@ stream(user).    %% 'user' is special: its mode depends on context!
 stream('$stream'(X,Y)) :- 
     int(X), int(Y).
 
+% ---------------------------------------------------------------------------
+:- export(stream_alias/1).
+:- prop stream_alias(S) + regtype # "@var{S} is the alias of an open
+   stream, i.e., an atom which represents a stream at Prolog level.".
+
+%  This does not capture the "not closed" fact
+stream_alias(user_input).
+stream_alias(user_output).
+stream_alias(user_error).
+
+% ---------------------------------------------------------------------------
 % TODO: We need to distinguish sourcename from plain pathnames. Most
 %   of those expansions are applied to all pathnames in system.c
 
+:- export(sourcename/1).
 :- doc(sourcename/1, "A source name is a flexible way of referring
    to a concrete file. A source name is either a relative or absolute
    filename given as:
@@ -414,6 +505,8 @@ is equivalent to @tt{'/usr/local/src/utilities/sample.pl'}, if
 sourcename(S) :- atm(S).
 sourcename(S) :- struct(S).
 
+% ---------------------------------------------------------------------------
+:- export(open_option_list/1).
 :- doc(open_option_list/1, "A list of options for @pred{open/4},
    currently the meaningful options are:
 
@@ -443,7 +536,7 @@ sourcename(S) :- struct(S).
    Please refer to its manual page for details.").
 
 :- prop open_option_list(L) + regtype
-    # "@var{L} is a list of options for @pred{open/4}.".
+   # "@var{L} is a list of options for @pred{open/4}.".
 
 open_option_list(L) :- list(open_option, L).
 
@@ -455,17 +548,17 @@ open_option(lock_nb).
 open_option(lock(Lock_Mode)) :- lock_mode(Lock_Mode).
 open_option(lock_nb(Lock_Mode)) :- lock_mode(Lock_Mode).
 
-:- push_prolog_flag(multi_arity_warnings,off).
-
 :- prop lock_mode(M) + regtype.
-
 lock_mode(read).
 lock_mode(shared).
 lock_mode(write).
 lock_mode(exclusive).
 
-:- pop_prolog_flag(multi_arity_warnings).
-
-
+% ---------------------------------------------------------------------------
+:- export(pipe/2).
 :- trust pred pipe(-stream, -stream) + (iso, native).
+:- if(defined(optim_comp)).
+:- '$props'(pipe/2, [impnat=indefinable]). % TODO: backport
+:- else.
 :- impl_defined([pipe/2]).
+:- endif.
