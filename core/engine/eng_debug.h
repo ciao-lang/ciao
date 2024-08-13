@@ -10,6 +10,49 @@
 #define _CIAO_ENG_DEBUG_H
 
 /* ------------------------------------------------------------------------- */
+/* Stream for debug trace */
+
+/* Stream for tracing (statistics, predicate trace, etc.) */
+
+#if defined(OPTIM_COMP)
+
+#if defined(USE_DEBUG_INSCOUNT) || \
+    defined(USE_LOWRTCHECKS) || \
+    defined(DEBUG_TRACE) || \
+    defined(PROFILE_STATS) || \
+    defined(PROFILE_EVENTFREQ) || \
+    defined(PROFILE_BLOCKFREQ) || \
+    defined(USE_GC_STATS)
+#if !defined(USE_TRACE_OUTPUT)
+#define USE_TRACE_OUTPUT 1
+#endif
+#endif
+
+#if defined(USE_TRACE_OUTPUT)
+// #include <ciao/io_basic.h> /* StreamPrintf */
+extern stream_node_t *stream_trace; /* Shared */
+#define TraceFile stream_trace->streamfile
+// TODO: StreamPrintf requires 'w' (in order to throw IO exceptions) which is not always available, use fprintf instead
+// #define TRACE_PRINTF(...) ({ \
+//   StreamPrintf(stream_trace, __VA_ARGS__); \
+//   fflush(stream_trace_file); \
+// })
+#define TRACE_PRINTF(...) ({ \
+  fprintf(TraceFile, __VA_ARGS__); \
+  fflush(TraceFile); \
+})
+#endif
+
+#else
+#define TraceFile stderr
+#define TRACE_PRINTF(...) do { \
+  fprintf(stderr, __VA_ARGS__); \
+  fflush(stderr); \
+} while(0)
+
+#endif
+
+/* ------------------------------------------------------------------------- */
 /* INSCOUNT (instruction-level profiler) */
 
 #if defined(OPTIM_COMP)
@@ -59,13 +102,6 @@ CVOID__PROTO(dump_call, char *s, definition_t *func);
 
 /* ------------------------------------------------------------------------- */
 /* Debug trace */
-
-#if !defined(OPTIM_COMP)
-#define TRACE_PRINTF(...) do { \
-  fprintf(stderr, __VA_ARGS__); \
-  fflush(stderr); \
-} while(0)
-#endif
 
 #if defined(DEBUG_TRACE)
 #define DEBUG__TRACE(COND, ...) do { \

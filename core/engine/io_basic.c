@@ -6,31 +6,24 @@
  *  See Copyright Notice in ciaoengine.pl
  */
 
-#include <stdio.h>
+#include <ciao/eng.h>
+#include <ciao/eng_registry.h> /* GET_ATOM */
+#include <ciao/eng_interrupt.h> /* int_address */
+#include <ciao/atomic_basic.h> /* number_to_string, string_to_number */
+#include <ciao/io_basic.h> /* CheckGetRune, rune.h */
+#include <ciao/stream_basic.h> /* stream_to_ptr_check, stream aliases */
+#include <ciao/eng_bignum.h> /* StringToInt */
+#include <ciao/eng_gc.h> /* explicit_heap_overflow */
+
 #include <errno.h>
-#include <unistd.h>
-#include <stdlib.h>  /* for atoi MCL */
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <strings.h>
+#include <unistd.h>
 #if defined(_WIN32) || defined(_WIN64) /* MinGW */
 #else
 #include <sys/select.h> /* select() */ 
 #endif
-
-#include <ciao/eng.h>
-#include <ciao/eng_registry.h>
-#include <ciao/eng_interrupt.h>
-
-#include <ciao/rune.h>
-#include <ciao/atomic_basic.h>
-#include <ciao/io_basic.h>
-#include <ciao/stream_basic.h>
-#include <ciao/internals.h>
-#include <ciao/eng_start.h>
-#include <ciao/eng_bignum.h>
-#include <ciao/eng_gc.h>
-
-#include <string.h>
 
 /* TODO: improve stream abstraction and separate generic code */
 

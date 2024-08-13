@@ -21,9 +21,12 @@
 
 #include <string.h>
 
-/* TODO: COMPLETE THE DOCUMENTATION OF THIS FILE
-   -- jfran
-*/
+#if defined(USE_TRACE_OUTPUT)
+#include <ciao/os_defs.h> /* MAXPATHLEN */
+#endif
+
+/* TODO:[oc-merge] document all the tracing and debugging options
+   (inscount intervals, etc.) */
 
 /* TODO:[oc] backport
 
@@ -83,6 +86,35 @@ bool_t debug_trace__get_opt(const char *arg) {
     return FALSE;
   }
   return TRUE;
+}
+#endif
+
+/* ------------------------------------------------------------------------- */
+
+#if defined(USE_TRACE_OUTPUT) /* currently only if defined(OPTIM_COMP) */ 
+#define TRACE_TO_FILE 1
+
+stream_node_t *stream_trace; /* Shared */
+
+void init_stream_trace(void) {
+  FILE *stream_trace_file;
+#if defined(TRACE_TO_FILE)
+  char trace_filename[MAXPATHLEN]; /* problem with buffer overflow */
+  strcpy(trace_filename, getenv("CIAOCACHE"));
+  strcat(trace_filename, "/tmp/ciao__trace.txt");
+  stream_trace_file = fopen(trace_filename, "w");
+  if (stream_trace_file == NULL) {
+    fprintf(stderr, "{error: cannot open trace file %s}\n", trace_filename);
+    abort();
+  }
+#else
+  stream_trace_file = stderr;
+#endif
+  stream_trace = new_stream(ERRORTAG, "a", stream_trace_file);
+}
+
+void finish_stream_trace(void) {
+  if (TraceFile != stderr) fclose(TraceFile);
 }
 #endif
 
@@ -453,22 +485,16 @@ static void wr_functor_1(definition_t *func) {
   TRACE_PRINTF("%s/%ld", GetString(FuncName(func)), (long)FuncArity(func));
 #else
   if (!(func->printname & 1)) {
-    printf("%s/%d", GetString(func->printname), func->arity);
+    TRACE_PRINTF("%s/%d", GetString(func->printname), func->arity);
   } else {
-    printf("(?)"); // TODO: deprecate subdef or generalize for modules
+    TRACE_PRINTF("(?)"); // TODO: deprecate subdef or generalize for modules
   }
 #endif
 } 
 void wr_functor(char *s, definition_t *func) {
-#if defined(OPTIM_COMP)
   TRACE_PRINTF("%s: ",s);
   wr_functor_1(func);
   putc('\n', TraceFile);
-#else
-  printf("%s: ",s);
-  wr_functor_1(func);
-  putchar('\n');
-#endif
 }
 #endif
 
@@ -480,32 +506,32 @@ void wr_functor(char *s, definition_t *func) {
 CVOID__PROTO(wr_call, char *s, definition_t *func) {
   int i;
 
-  printf("%s: ",s);
+  fprintf(TraceFile, "%s: ",s);
 
   if (!(func->printname & 1)) {
 #if defined(TRACE_CALLS_SHOW_ARG1) || defined(TRACE_CALLS_SHOW_ARGS) /* display args */
-    printf("%s", GetString(func->printname));
+    fprintf(TraceFile, "%s", GetString(func->printname));
     if (func->arity > 0) {
-      putchar('(');
+      putc('(', TraceFile);
       DerefDisplayTerm(X(0), Output_Stream_Ptr, TRUE);
 #if defined(TRACE_CALLS_SHOW_ARGS) /* display all args */
       for (i = 1; i < func->arity; i++) {
-        printf(",");
+        fprintf(TraceFile, ",");
         DerefDisplayTerm(X(i), Output_Stream_Ptr, TRUE);
       }
 #else
-      for (i = 1; i < func->arity; i++) printf(",_");
+      for (i = 1; i < func->arity; i++) fprintf(TraceFile, ",_");
 #endif
-      putchar(')');
+      putc(')', TraceFile);
     }
 #else /* only display functor */
-    printf("%s/%d", GetString(func->printname), func->arity);
+    fprintf(TraceFile, "%s/%d", GetString(func->printname), func->arity);
 #endif
   } else {
-    printf("(?)"); // TODO: deprecate subdef?
+    fprintf(TraceFile, "(?)"); // TODO: deprecate subdef?
   }
 
-  putchar('\n');
+  putc('\n', TraceFile);
 }
 
 #else
