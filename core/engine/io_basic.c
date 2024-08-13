@@ -7,13 +7,16 @@
  */
 
 #include <ciao/eng.h>
+#include <ciao/io_basic.h> /* CheckGetRune, rune.h */
+
+#if !defined(OPTIM_COMP)
 #include <ciao/eng_registry.h> /* GET_ATOM */
 #include <ciao/eng_interrupt.h> /* int_address */
 #include <ciao/atomic_basic.h> /* number_to_string, string_to_number */
-#include <ciao/io_basic.h> /* CheckGetRune, rune.h */
 #include <ciao/stream_basic.h> /* stream_to_ptr_check, stream aliases */
 #include <ciao/eng_bignum.h> /* StringToInt */
 #include <ciao/eng_gc.h> /* explicit_heap_overflow */
+#endif
 
 #include <errno.h>
 #include <stdio.h>
