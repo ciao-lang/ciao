@@ -99,6 +99,7 @@ stream_node_t *new_stream(tagged_t streamname,
   s->streamname = streamname;
   s->streammode = streammode[0];
   s->pending_rune = RUNE_VOID;
+  s->previous_rune = RUNE_VOID;
   s->socket_eof = FALSE;
   update_stream(s,streamfile);
 
