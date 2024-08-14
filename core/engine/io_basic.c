@@ -99,13 +99,13 @@ int writemb(int fildes, c_rune_t c);
   }                                                                     \
 })
 
-#define CheckGetByte(X,C,ArgNo) ({               \
-  if (!TaggedIsSmall((X))) {                     \
-    ERROR_IN_ARG((X), (ArgNo), (TY_BYTE));       \
-  }                                              \
-  C = GetSmall((X));                             \
-  if ((C) < 0 || (C) > 255) {                    \
-    ERROR_IN_ARG((X), (ArgNo), (TY_BYTE));       \
+#define CheckGetByte(X,C,ArgNo) ({             \
+  if (!TaggedIsSmall((X))) {                   \
+    ERROR_IN_ARG((X), (ArgNo), TY_BYTE);       \
+  }                                            \
+  C = GetSmall((X));                           \
+  if ((C) < 0 || (C) > 255) {                  \
+    ERROR_IN_ARG((X), (ArgNo), TY_BYTE);       \
   } \
 })
 
