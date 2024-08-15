@@ -1073,6 +1073,9 @@ CFUN__PROTO(fu1_sqrt, tagged_t, tagged_t x0);
 CFUN__PROTO(fu1_sin, tagged_t, tagged_t x0);
 CFUN__PROTO(fu1_cos, tagged_t, tagged_t x0);
 CFUN__PROTO(fu1_atan, tagged_t, tagged_t x0);
+CBOOL__PROTO(prolog_lsb);
+CBOOL__PROTO(prolog_msb);
+CBOOL__PROTO(prolog_popcount);
 /* term_compare.c */
 CBOOL__PROTO(bu2_lexeq, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_lexge, tagged_t x0, tagged_t x1);
@@ -1770,6 +1773,11 @@ void init_once(void)
   define_c_mod_predicate("attr_rt","put_attr",3,put_attr__3);
   define_c_mod_predicate("attr_rt","del_attr",2,del_attr__2);
 #endif
+
+  /* arithmetic.c */
+  define_c_mod_predicate("arithmetic","$lsb",2,prolog_lsb);
+  define_c_mod_predicate("arithmetic","$msb",2,prolog_msb);
+  define_c_mod_predicate("arithmetic","$popcount",2,prolog_popcount);
 
   /* concurrency.c */
   define_c_mod_predicate("concurrency","$eng_call",6,prolog_eng_call);

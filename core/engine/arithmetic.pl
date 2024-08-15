@@ -487,3 +487,31 @@ intexpression([X]) :- intexpression(X).
 '$internal_error_where_term'('arithmetic:$sin', 2, _, 'arithmetic:is'/2-2).
 '$internal_error_where_term'('arithmetic:$cos', 2, _, 'arithmetic:is'/2-2).
 '$internal_error_where_term'('arithmetic:$atan', 2, _, 'arithmetic:is'/2-2).
+
+% ---------------------------------------------------------------------------
+% TODO:[JF] New arithmetic functions, integrated into is/2 !
+
+% NOTE: lsb makes sense only for positive integer
+:- export('$lsb'/2).
+:- if(defined(optim_comp)).
+:- '$props'('$lsb'/2, [impnat=cbool(prolog_lsb)]).
+:- else.
+:- impl_defined('$lsb'/2).
+:- endif.
+
+% NOTE: msb makes sense only for positive integer
+:- export('$msb'/2).
+:- if(defined(optim_comp)).
+:- '$props'('$msb'/2, [impnat=cbool(prolog_msb)]).
+:- else.
+:- impl_defined('$msb'/2).
+:- endif.
+
+% NOTE: popcount makes sense only for positive integer
+:- export('$popcount'/2).
+:- if(defined(optim_comp)).
+:- '$props'('$popcount'/2, [impnat=cbool(prolog_popcount)]).
+:- else.
+:- impl_defined('$popcount'/2).
+:- endif.
+

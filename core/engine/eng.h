@@ -1012,6 +1012,37 @@ typedef struct sw_on_key_ sw_on_key_t;
 #define TaggedToBignum(X) ((bignum_t *)TagpPtr(STR,(X)))
 
 /* --------------------------------------------------------------------------- */
+/* Bit manipulation operations */
+
+/* TODO:[JF] use generic __builtin_ctzg, etc.? (simpler code) */
+
+/* operations for uint32_t ('unsigned int') */
+#define LSB32(x) (__builtin_ctz(x))
+#define MSB32(x) (31 - __builtin_clz(x))
+#define POPCOUNT32(x) (__builtin_popcount(x))
+#if tagged__size == 64 /* assume LP64 */
+/* operations for uint64_t ('unsigned long' or 'unsigned long long') */
+#define LSB64(x) (__builtin_ctzl(x))
+#define MSB64(x) (63 - __builtin_clzl(x))
+#define POPCOUNT64(x) (__builtin_popcountl(x))
+#elif tagged__size == 32 /* assume ILP32 */
+/* operations for uint64_t ('unsigned long long') */
+#define LSB64(x) (__builtin_ctzll(x))
+#define MSB64(x) (63 - __builtin_clzll(x))
+#define POPCOUNT64(x) (__builtin_popcountll(x))
+#endif
+
+#if tagged__size == 64 /* 64 bit intval_t */
+#define intval_LSB LSB64
+#define intval_MSB MSB64
+#define intval_POPCOUNT POPCOUNT64
+#elif tagged__size == 32 /* 32 bit intval_t */
+#define intval_LSB LSB32
+#define intval_MSB MSB32
+#define intval_POPCOUNT POPCOUNT32
+#endif
+
+/* --------------------------------------------------------------------------- */
 
 #if defined(TABLING)
 typedef struct node_tr_ node_tr_t;
@@ -2682,6 +2713,7 @@ derefsw_end: {} \
   } \
 })
 
+// TODO:[oc-merge] use SwStruct
 #define SwEval(V, HeadFunctor, NUMCode, LSTCode, BlobCode, STRCode, OtherCode) ({ \
   switch (TagOf((V))) { \
   case NUM: NUMCode; break; \

@@ -139,6 +139,9 @@ bignum_size_t bn_compare(bignum_t *x, bignum_t *y);
 bignum_size_t bn_multiply(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);
 bignum_size_t bn_quotient_remainder_quot_wanted(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);
 bignum_size_t bn_quotient_remainder_quot_not_wanted(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax);
+int bn_lsb(bignum_t *x);
+int bn_msb(bignum_t *x);
+int bn_popcount(bignum_t *x);
 bignum_size_t bn_from_float(flt64_t f, bignum_t *z, bignum_t *zmax);
 #if defined(OPTIM_COMP)
 flt64_t bn_to_float(bignum_t *bn);

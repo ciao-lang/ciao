@@ -19,6 +19,16 @@
 #define LOG2_bignum_size 5
 #endif
 
+#if LOG2_bignum_size == 5 /* 32 bit bignum_t */
+#define bignum_LSB LSB32
+#define bignum_MSB MSB32
+#define bignum_POPCOUNT POPCOUNT32
+#elif LOG2_bignum_size == 6 /* 64 bit bignum_t */
+#define bignum_LSB LSB64
+#define bignum_MSB MSB64
+#define bignum_POPCOUNT POPCOUNT64
+#endif
+
 #if !defined(OPTIM_COMP)
 typedef int bnlen_t; /* TODO: which one is better? */
 #else
@@ -116,6 +126,8 @@ bignum_size_t bn_length(bignum_t *x) {
   return BignumLength(x);
 }
 
+/* --------------------------------------------------------------------------- */
+
 bool_t bn_positive(bignum_t *x) {
   return BignumPositive(x);
 }
@@ -206,6 +218,8 @@ static void bn_canonize(bignum_t *x) {
 #else
 #define BignumLarger(x,y) BignumLength(x) > BignumLength(y)
 #endif
+
+/* --------------------------------------------------------------------------- */
 
 bignum_size_t bn_add(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax) {
   bnlen_t i;
@@ -302,6 +316,8 @@ bignum_size_t bn_incr(bignum_t *x, bignum_t *z, bignum_t *zmax) {
 //   return 0;
 // }
 
+/* --------------------------------------------------------------------------- */
+
 bignum_size_t bn_subtract(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax) {
   bnlen_t i;
   bignum_t *w, xi;
@@ -394,6 +410,8 @@ bignum_size_t bn_decr(bignum_t *x, bignum_t *z, bignum_t *zmax) {
   return 0;
 }
 
+/* --------------------------------------------------------------------------- */
+
 bignum_size_t bn_minus(bignum_t *x, bignum_t *z, bignum_t *zmax) {
   bnlen_t xlen = BignumLength(x);
   bnlen_t i;
@@ -414,6 +432,8 @@ bignum_size_t bn_minus(bignum_t *x, bignum_t *z, bignum_t *zmax) {
   bn_canonize(z);
   return 0;
 }
+
+/* --------------------------------------------------------------------------- */
 
 bignum_size_t bn_and(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax) {
   bnlen_t i;
@@ -528,6 +548,8 @@ bignum_size_t bn_not(bignum_t *x, bignum_t *z, bignum_t *zmax) {
   return 0;
 }
 
+/* --------------------------------------------------------------------------- */
+
 /* This was used to communicate a value from lsh_internal and rsh_internal to
    bn_lshift and bn_rshift, but cannot be passed through bn_call */
 
@@ -615,6 +637,8 @@ bignum_size_t bn_rshift(bignum_t *x, bignum_t *dist, bignum_t *z, bignum_t *zmax
   return 0;
 }
 
+/* --------------------------------------------------------------------------- */
+
 bignum_size_t bn_compare(bignum_t *x, bignum_t *y) {
   bnlen_t xlen = BignumLength(x);
   bnlen_t ylen = BignumLength(y);
@@ -635,6 +659,8 @@ bignum_size_t bn_compare(bignum_t *x, bignum_t *y) {
     return 0;
   }
 }
+
+/* --------------------------------------------------------------------------- */
 
 /* y is shorter than x */
 static void bn_mult_knuth(bignum_t *x, bnlen_t xlen,
@@ -691,6 +717,8 @@ bignum_size_t bn_multiply(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax)
 //   }
 //   fprintf(stderr, "]\n");
 // }
+
+/* --------------------------------------------------------------------------- */
 
 static bignum_size_t bn_div_mod_quot_wanted(bignum_t *x, bignum_t *y, bignum_t *z, bignum_t *zmax) {
   bnlen_t d;
@@ -962,6 +990,54 @@ bignum_size_t bn_quotient_remainder_quot_not_wanted(bignum_t *x, bignum_t *y, bi
   }
   return value;
 }
+
+/* --------------------------------------------------------------------------- */
+/* Bit manipulation operations */
+
+/* bignum_t as bits */
+#define BIGNUM_BITSIZE (sizeof(bignum_t)*8)
+#define BIGNUM_BITEMPTY ((bignum_t)0)
+#define BIGNUM_BITFULL (~(bignum_t)0)
+
+/* Compute the least significant bit of a bignum_t */
+int bn_lsb(bignum_t *x) {
+  bnlen_t len = BignumLength(x);
+  int k = 0;
+  for (int i=1; i <= len; i++) {
+    if (Bn(x,i) != BIGNUM_BITEMPTY) return (k + bignum_LSB(Bn(x,i)));
+    k += BIGNUM_BITSIZE;
+  }
+  return 0;
+}
+
+/* Compute the most significant bit of a bignum_t */
+int bn_msb(bignum_t *x) {
+  bnlen_t len = BignumLength(x);
+  int k = len*BIGNUM_BITSIZE;
+  for (int i=len; i > 0; i--) {
+    k -= BIGNUM_BITSIZE;
+    if (Bn(x,i) != BIGNUM_BITFULL) {
+      if (Bn(x,i) == BIGNUM_BITEMPTY) {
+        return (k - 1); 
+      } else {
+        return (k + bignum_MSB(Bn(x,i)));
+      }
+    }
+  }
+  return 0;
+}
+
+/* Compute the number of bits set in a bignum_t */
+int bn_popcount(bignum_t *x) {
+  bnlen_t len = BignumLength(x);
+  int k = 0;
+  for (int i=1; i <= len; i++) {
+    k += bignum_POPCOUNT(Bn(x,i));
+  }
+  return k;
+}
+
+/* --------------------------------------------------------------------------- */
 
 #define FLTBITS 64
 
