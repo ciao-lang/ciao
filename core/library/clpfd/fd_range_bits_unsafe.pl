@@ -73,7 +73,6 @@
 :- doc(title, "Range handling").
 
 :- use_module(library(clpfd/fd_utils), [min/3, max/3, clpfd_error/2]).
-:- use_module(library(clpfd/int_extra), [lsb/2, msb/2, bits_set/2]).
 
 :- use_module(library(lists), [last/2, append/3]).
 :- use_module(library(between), [between/3]).
@@ -98,10 +97,9 @@ default := -1.
 new(sup, sup, 0) :- !, fail.
 new(I, I, X) :- !, 
     X is 1 << I.
-new(Min, sup, X) :-!,
+new(Min, sup, X) :- !,
     X is  \ ((1 << ~mymax(Min,0)) - 1). 
-new(Min, Max, X) 
-    :- Min =< Max, !,
+new(Min, Max, X) :- Min =< Max, !,
     X is (((1 << (~mymax(Max,-1) +1)) -1) # ((1 << ~mymax(Min,0)) - 1)).
 new(_, _, 0).
 
@@ -124,14 +122,14 @@ non_empty(X):-
 
 min(X, M):-
     X \= 0,
-    int_extra:lsb(X, M).
+    '$lsb'(X, M).
 
 max(X, M):-
     X < 0, !,
     M = sup.
 max(X, M):-
     X \= 0,
-    int_extra:msb(X, M).
+    '$msb'(X, M).
 
 %% Gets the size of the range.
 size(0, M) :- !, M = 0.
@@ -140,7 +138,7 @@ size(X, M):-
     M = 999. % Emilio: use this hack for optim.
 % TODO:% M = sup.
 size(X, M):-
-    int_extra:bits_set(X, M).
+    '$popcount'(X, M).
 
 
 bound_add(sup, _, sup) :- !.
