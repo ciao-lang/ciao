@@ -263,10 +263,8 @@ int killing_threads = FALSE;  /* Set to TRUE when killing other threads to
 #define TermToGoalDesc(term) TermToPointer(goal_descriptor_t, term)
 #define GoalDescToTerm(goal) PointerToTerm(goal)
 
-#define NOT_CALLABLE(What) (IsVar((What)) || IsNumber((What)))
-
 #define ENSURE_CALLABLE(What, ArgNum)                   \
-  if (NOT_CALLABLE(What)) {                             \
+  if (!TermIsCallable(What)) {                          \
     BUILTIN_ERROR(TYPE_ERROR(CALLABLE), What, ArgNum);  \
   }
 

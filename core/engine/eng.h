@@ -900,6 +900,9 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 /* TODO:[oc-merge] remove IsString */
 #define IsString(X)     TaggedIsATM(X)
 
+/* (variables or numbers are not callable in Prolog) */
+#define TermIsCallable(X) (!(IsVar((X)) || IsNumber((X))))
+
 /* TODO:[oc-merge] merge */
 #define FuncName(Func) (SetArity((Func)->printname, 0))
 //#define FuncArity(Func) (Arity((Func)->printname))
