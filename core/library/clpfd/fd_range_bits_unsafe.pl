@@ -176,9 +176,11 @@ complement(X, Z) :-
     Z is \ X.
 
 remove(X, I, Y) :-
+    % TODO: check if "in place" modifications make sense ($setbit ?)
     Y is  X /\ \(1 << I).
 
 in_range(I, X) :-
+    % TODO: use '$getbit'/3 (or optimize arithmetic for this case)
     (X /\ (1<< I)) =\= 0.
 
 get_domain(_X) := _ :- 
