@@ -87,13 +87,13 @@ int writemb(int fildes, c_rune_t c);
 #endif // USE_MULTIBYTES
 
 #define CheckGetRune(X,C,ArgNo) ({                                      \
-  if (TaggedIsSmall((X))) {                                             \
+  Sw_NUM_Large_Other((X), {                                             \
     C = GetSmall((X));                                                  \
-  } else if (TaggedIsLarge((X)) && !LargeIsFloat((X))) { /* bigint */      \
+  }, { /* bigint */      \
     BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo));  \
-  } else {                                                              \
+  }, {                                                              \
     ERROR_IN_ARG((X), (ArgNo), INTEGER);                                \
-  }                                                                     \
+  });                                                                     \
   if (!isValidRune((C))) {                                              \
     BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo));  \
   }                                                                     \

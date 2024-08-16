@@ -740,13 +740,13 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
   DerefSw_HVAorCVAorSVA_Other(number, BUILTIN_ERROR(INSTANTIATION_ERROR, number, 1);,{});
   DerefSw_HVAorCVAorSVA_Other(complex, BUILTIN_ERROR(INSTANTIATION_ERROR, complex, 2);,{});
 
-  if (TaggedIsSmall(number)) {
+  Sw_NUM_Large_Other(number, {
     i = GetSmall(number);
-  } else if (TaggedIsLarge(number) && !LargeIsFloat(number)) {
+  }, {
     return FALSE;
-  } else {
+  }, {
     BUILTIN_ERROR(TYPE_ERROR(INTEGER), number, 1);
-  }
+  });
 
   if (i < 0) {
     BUILTIN_ERROR(DOMAIN_ERROR(NOT_LESS_THAN_ZERO), number, 1);

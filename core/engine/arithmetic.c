@@ -1294,27 +1294,11 @@ CFUN__PROTO(fu1_atan, tagged_t, tagged_t x0) {
 /* --------------------------------------------------------------------------- */
 /* TODO:[JF] New arithmetic functions, integrated into is/2 ! */
 
-#define DerefSw_NUM_Large_Other(X, CODE_NUM, CODE_Large, CODE_Other) ({ \
-  __label__ derefsw_num; \
-  __label__ derefsw_large; \
-  __label__ derefsw_other; \
-  __label__ derefsw_end; \
-  DEREF((X),(X)); \
-  if (TaggedIsSmall((X))) { goto derefsw_num; \
-  } else if (TaggedIsSTR((X))) { \
-    SwStruct(f, (X), { if (!FunctorIsFloat(f)) { goto derefsw_large; } }, {}); \
-  } \
-  goto derefsw_other; \
- derefsw_num: CODE_NUM; goto derefsw_end; \
- derefsw_large: CODE_Large; goto derefsw_end; \
- derefsw_other: CODE_Other; goto derefsw_end; \
- derefsw_end: {} \
-})
-
 CBOOL__PROTO(prolog_lsb) {
   ERR__FUNCTOR("arithmetic:$lsb", 2);
   int r;
-  DerefSw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
+  DEREF(X(0),X(0));
+  Sw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
   ERROR_IN_ARG(X(0),1,INTEGER);
  small: r = intval_LSB(GetSmall(X(0))); goto ok;
  nonsmall: r = bn_lsb(TaggedToBignum(X(0))); goto ok;
@@ -1324,7 +1308,8 @@ CBOOL__PROTO(prolog_lsb) {
 CBOOL__PROTO(prolog_msb) {
   ERR__FUNCTOR("arithmetic:$msb", 2);
   int r;
-  DerefSw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
+  DEREF(X(0),X(0));
+  Sw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
   ERROR_IN_ARG(X(0),1,INTEGER);
  small: r = intval_MSB(GetSmall(X(0))); goto ok;
  nonsmall: r = bn_msb(TaggedToBignum(X(0))); goto ok;
@@ -1334,7 +1319,8 @@ CBOOL__PROTO(prolog_msb) {
 CBOOL__PROTO(prolog_popcount) {
   ERR__FUNCTOR("arithmetic:$popcount", 2);
   int r;
-  DerefSw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
+  DEREF(X(0),X(0));
+  Sw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
   ERROR_IN_ARG(X(0),1,INTEGER);
  small: r = intval_POPCOUNT(GetSmall(X(0))); goto ok;
  nonsmall: r = bn_popcount(TaggedToBignum(X(0))); goto ok;
@@ -1351,7 +1337,8 @@ CBOOL__PROTO(prolog_getbit) {
   int i = GetSmall(X(1));
   if (i < 0) goto zero;
   //
-  DerefSw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
+  DEREF(X(0),X(0));
+  Sw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
   ERROR_IN_ARG(X(0),1,INTEGER);
  small: r = (GetSmall(X(0)) >> i) & 1; goto ok;
  nonsmall: r = bn_getbit(TaggedToBignum(X(0)), i); goto ok;

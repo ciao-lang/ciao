@@ -2716,6 +2716,22 @@ derefsw_end: {} \
   } \
 })
 
+#define Sw_NUM_Large_Other(X, CODE_NUM, CODE_Large, CODE_Other) ({ \
+  __label__ sw_num; \
+  __label__ sw_large; \
+  __label__ sw_other; \
+  __label__ sw_end; \
+  if (TaggedIsSmall((X))) { goto sw_num; \
+  } else if (TaggedIsSTR((X))) { \
+    SwStruct(f, (X), { if (!FunctorIsFloat(f)) { goto sw_large; } }, {}); \
+  } \
+  goto sw_other; \
+ sw_num: CODE_NUM; goto sw_end; \
+ sw_large: CODE_Large; goto sw_end; \
+ sw_other: CODE_Other; goto sw_end; \
+ sw_end: {} \
+})
+
 // TODO:[oc-merge] use SwStruct
 #define SwEval(V, HeadFunctor, NUMCode, LSTCode, BlobCode, STRCode, OtherCode) ({ \
   switch (TagOf((V))) { \
