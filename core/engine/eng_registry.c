@@ -1076,6 +1076,7 @@ CFUN__PROTO(fu1_atan, tagged_t, tagged_t x0);
 CBOOL__PROTO(prolog_lsb);
 CBOOL__PROTO(prolog_msb);
 CBOOL__PROTO(prolog_popcount);
+CBOOL__PROTO(prolog_getbit);
 /* term_compare.c */
 CBOOL__PROTO(bu2_lexeq, tagged_t x0, tagged_t x1);
 CBOOL__PROTO(bu2_lexge, tagged_t x0, tagged_t x1);
@@ -1778,6 +1779,7 @@ void init_once(void)
   define_c_mod_predicate("arithmetic","$lsb",2,prolog_lsb);
   define_c_mod_predicate("arithmetic","$msb",2,prolog_msb);
   define_c_mod_predicate("arithmetic","$popcount",2,prolog_popcount);
+  define_c_mod_predicate("arithmetic","$getbit",3,prolog_getbit);
 
   /* concurrency.c */
   define_c_mod_predicate("concurrency","$eng_call",6,prolog_eng_call);

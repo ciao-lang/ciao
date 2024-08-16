@@ -1037,6 +1037,16 @@ int bn_popcount(bignum_t *x) {
   return k;
 }
 
+/* Compute (x>>i)/\1 (the ith bit of a bignum_t) */
+int bn_getbit(bignum_t *x, int i) {
+  if (i < 0) return 0;
+  bnlen_t len = BignumLength(x);
+  int k = (i/BIGNUM_BITSIZE)+1;
+  if (k > len) return 0;
+  int j = i & (BIGNUM_BITSIZE-1); /* mask: BIGNUM_BITSIZE must be a power of 2 */
+  return (Bn(x,k) >> j) & 1;
+}
+
 /* --------------------------------------------------------------------------- */
 
 #define FLTBITS 64

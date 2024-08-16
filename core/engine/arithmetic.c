@@ -1340,3 +1340,21 @@ CBOOL__PROTO(prolog_popcount) {
  nonsmall: r = bn_popcount(TaggedToBignum(X(0))); goto ok;
  ok: CBOOL__LASTUNIFY(X(1), MakeSmall(r)); /* TODO:[JF] assume 'r' is small */
 }
+
+// '$getbit'(V,I,R) :- R is (V>>I)/\1
+CBOOL__PROTO(prolog_getbit) {
+  ERR__FUNCTOR("arithmetic:$getbit", 3);
+  int r;
+  // TODO: use "EvalArith2(Integer, t, u);"
+  DEREF(X(1),X(1));
+  if (!TaggedIsSmall(X(1))) goto zero; // TODO: 0 if large, errors if not integer
+  int i = GetSmall(X(1));
+  if (i < 0) goto zero;
+  //
+  DerefSw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
+  ERROR_IN_ARG(X(0),1,INTEGER);
+ small: r = (GetSmall(X(0)) >> i) & 1; goto ok;
+ nonsmall: r = bn_getbit(TaggedToBignum(X(0)), i); goto ok;
+ ok: CBOOL__LASTUNIFY(X(2), MakeSmall(r));
+ zero: CBOOL__LASTUNIFY(X(2), MakeSmall(0));
+}

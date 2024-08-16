@@ -515,3 +515,12 @@ intexpression([X]) :- intexpression(X).
 :- impl_defined('$popcount'/2).
 :- endif.
 
+% NOTE: getbit makes sense only for positive integer
+:- export('$getbit'/3).
+% '$getbit'(V,I,R) :- R is (V>>I)/\1
+:- if(defined(optim_comp)).
+:- '$props'('$getbit'/3, [impnat=cbool(prolog_getbit)]).
+:- else.
+:- impl_defined('$getbit'/3).
+:- endif.
+
