@@ -305,7 +305,7 @@ static CBOOL__PROTO(c_cyclic_term, tagged_t t) {
   case STR:
     ptr = TagpPtr(STR,t);
     t = *ptr;
-    if (t&QMask) return FALSE; /* large number */
+    if (t&QTAGMASK) return FALSE; /* large number */
     i = Arity(t);
     ptr++;
     goto args;
@@ -343,7 +343,7 @@ CBOOL__PROTO(c_cyclic_ptr, tagged_t *pt) {
     if (gc_IsMarked(t)) goto cyclic;
     ptr1 = TagpPtr(STR,t);
     t = *ptr1;
-    if (t&QMask) goto acyclic;  /* large number */
+    if (t&QTAGMASK) goto acyclic;  /* large number */
     i = Arity(t);
     ptr1++;
     goto args;
@@ -754,7 +754,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
 
   if (TaggedIsSTR(complex)) {
     tagged_t f = TaggedToHeadfunctor(complex);
-    if (i == 0 || i > Arity(f) || f&QMask) {
+    if (i == 0 || i > Arity(f) || f&QTAGMASK) {
       return FALSE;
     }
     return *TaggedToArg(complex,i);
@@ -784,7 +784,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
   if (TaggedIsSTR(complex)) {
     intmach_t i = GetSmall(number);
     tagged_t f = TaggedToHeadfunctor(complex);
-    if (i<=0 || i>Arity(f) || f&QMask) {
+    if (i<=0 || i>Arity(f) || f&QTAGMASK) {
       goto barf1;
     }
     return *TaggedToArg(complex,i);

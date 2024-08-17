@@ -596,7 +596,7 @@ CBOOL__PROTO(current_key) {
       instance_t *inst =
         ACTIVE_INSTANCE(hnode->value.instp,use_clock,FALSE);
 
-      if (inst && !(hnode->key & QMask)) {
+      if (inst && !(hnode->key & QTAGMASK)) {
         MakeLST(X(4),make_structure(Arg,hnode->key),X(4));
       } else
         while (inst){
@@ -629,7 +629,7 @@ CBOOL__PROTO(current_key) {
     instance_t *inst =
       ACTIVE_INSTANCE(hnode->value.instp,use_clock,FALSE);
 
-    if (!(hnode->key & QMask)){
+    if (!(hnode->key & QTAGMASK)){
       if (inst && (hnode->key & mask) == (X(2) & mask)) {
         if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD+ARITYLIMIT*sizeof(tagged_t)+3*sizeof(tagged_t)) {
           explicit_heap_overflow(Arg,CALLPAD*2,5);

@@ -143,38 +143,36 @@ static CBOOL__PROTO(cinstance_aux,
               { BindSVA(v,u); goto win; },
               ;);
 
-                                /* two non variables */
-  if (u == v)                   /* are they equal? */
+  /* two non variables */
+  if (u == v) { /* are they equal? */
     goto win;
-  else if (!TaggedSameTag(u, v))            /* not the same type? */
+  } else if (!TaggedSameTag(u, v)) { /* not the same type? */
     goto lose;
-  else if (!(u & TagBitComplex)) /* atomic? (& not LNUM)*/
+  } else if (!(u & TagBitComplex)) { /* atomic? (& not LNUM)*/
     goto lose;
-  else if (!(u & TagBitFunctor)) /* list? */
-    {
-      if (cinstance_args_aux(Arg,2,TaggedToCar(u),TaggedToCar(v),&x1,&x2,n))
-        goto in;
-      else
-        goto lose;
+  } else if (!(u & TagBitFunctor)) { /* list? */
+    if (cinstance_args_aux(Arg,2,TaggedToCar(u),TaggedToCar(v),&x1,&x2,n)) {
+      goto in;
+    } else {
+      goto lose;
     }
-  else                          /* structure. */
-    {
-      tagged_t t1;
-      if (TaggedToHeadfunctor(u) != (t1=TaggedToHeadfunctor(v)))
-        goto lose;
-      else if (t1&QMask)        /* large number */
-        {
-          intmach_t i;
-        
-          for (i = LargeArity(t1)-1; i>0; i--)
-            if (*TaggedToArg(u,i) != *TaggedToArg(v,i)) goto lose;
-          goto win;
-        }
-      if (cinstance_args_aux(Arg,Arity(t1),TaggedToArg(u,1),TaggedToArg(v,1),&x1,&x2,n))
-        goto in;
-      else
-        goto lose;
+  } else { /* structure. */
+    tagged_t f = TaggedToHeadfunctor(u);
+    tagged_t t1 = TaggedToHeadfunctor(v);
+    if (f != t1) {
+      goto lose;
+    } else if (FunctorIsBlob(t1)) { /* blob */
+      for (intmach_t i = LargeArity(t1)-1; i>0; i--) {
+        if (*TaggedToArg(u,i) != *TaggedToArg(v,i)) goto lose;
+      }
+      goto win;
     }
+    if (cinstance_args_aux(Arg,Arity(t1),TaggedToArg(u,1),TaggedToArg(v,1),&x1,&x2,n)) {
+      goto in;
+    } else {
+      goto lose;
+    }
+  }
 
  win:
   CBOOL__PROCEED;

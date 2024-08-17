@@ -1842,7 +1842,7 @@ CBOOL__PROTO(setarg)
     intmach_t i = GetSmall(number);
     tagged_t f = TaggedToHeadfunctor(complex);
     
-    if (i<=0 || i>Arity(f) || f&QMask)
+    if (i<=0 || i>Arity(f) || f&QTAGMASK)
       goto barf1;
     
     ptr = TaggedToArg(complex,i);
@@ -2046,7 +2046,7 @@ CFUN__PROTO(find_constraints, intmach_t, tagged_t *limit)
             {
               tagged_t v = *h++;
               
-              if (v&QMask) h += LargeArity(v);
+              if (v&QTAGMASK) h += LargeArity(v);
               else if (TaggedIsATM(v)) h += Arity(v);
               else if (v==Tagp(CVA,h-1))
                 {

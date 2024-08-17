@@ -547,7 +547,7 @@ static CVOID__PROTO(c_term_trail_push, tagged_t t, tagged_t **trail_origo) {
     reloc = (char *)w->trail_top - (char *)tr;
     *trail_origo = (tagged_t *)((char *)*trail_origo + reloc);
     tr = w->trail_top;
-    while (TrailGetTop(tr) & QMask) {
+    while (TrailGetTop(tr) & QTAGMASK) {
       TrailDec(tr);
       *tr += reloc; // (tr points to the popped element)
     }
@@ -574,7 +574,7 @@ static CVOID__PROTO(c_term_mark,
   DerefSw_HVAorCVAorSVA_Other(t,{goto var_size;},{});
   /* nonvar */
   if (!(t & TagBitComplex)) { /* NUM or ATM */
-    if (t&QMask && t&TagBitFunctor) { /* ATM with QMask mark */
+    if (t&QTAGMASK && t&TagBitFunctor) { /* ATM with QTAGMASK mark */
       if (!(t&3)) {
         /* unify_variable */
         Tr("m:x");
@@ -650,7 +650,7 @@ static CVOID__PROTO(c_term_mark,
   }
  var_size:
   if (t & TagBitCVA) { /* CVA */
-    *TaggedToPointer(t) = Tagp(ATM,w->trail_top)|QMask|2;
+    *TaggedToPointer(t) = Tagp(ATM,w->trail_top)|QTAGMASK|2;
     c_term_trail_push(Arg,t,trail_origo);
     /* unify_variable + xi + get_constraint + xj + 2*u */
     Tr("m:x");
@@ -668,7 +668,7 @@ static CVOID__PROTO(c_term_mark,
     t = Tagp(LST,TaggedToGoal(t));
     goto start;
   } else { /* HVA */
-    *TaggedToPointer(t) = Tagp(ATM,w->trail_top)|QMask;
+    *TaggedToPointer(t) = Tagp(ATM,w->trail_top)|QTAGMASK;
     c_term_trail_push(Arg,t,trail_origo);
     /* unify_variable + xi */
     Tr("m:x");
@@ -738,7 +738,7 @@ static CBOOL__PROTO(c_term,
       break;
     }
   case ATM:
-    if (t & QMask) {
+    if (t & QTAGMASK) {
       goto term_is_var;
     } else if (t==atom_nil) {
       Tr("e:o+x");
@@ -822,7 +822,7 @@ static CBOOL__PROTO(c_term,
       }
       break;
     case ATM:
-      if (t & QMask) {
+      if (t & QTAGMASK) {
         goto arg_is_var;
       } else if (t==atom_nil) {
         Tr("e:o");
@@ -1065,7 +1065,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
     if (!CBOOL__SUCCEED(c_term,body,1,reg_bank_size-1,x_variables,&trail_origo,&current_insn)) goto sizebomb;
   }
 
-  while (TrailGetTop(Arg->trail_top) & QMask) {
+  while (TrailGetTop(Arg->trail_top) & QTAGMASK) {
     bcp_t P = current_insn;
 
     if (!TrailYounger(Arg->trail_top,Trail_Start))
@@ -1390,7 +1390,7 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
       tagged_t t1;
       if (TaggedToHeadfunctor(u) != (t1=TaggedToHeadfunctor(v)))
         goto lose;
-      else if (t1&QMask)        /* large number */
+      else if (t1&QTAGMASK)        /* large number */
         {
           intmach_t i;
         

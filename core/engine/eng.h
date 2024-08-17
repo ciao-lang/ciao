@@ -396,6 +396,11 @@
  }
 #endif
 
+#if defined(DEBUG_TRACE) || defined(ABSMACH_OPT__profilecc)
+/* Adds functor information in choicepoints (for debugging or profiling) */
+#define DEBUG_NODE 1
+#endif
+
 #if defined(TABLING)
 #define ON_TABLING(X) X
 #else
@@ -656,6 +661,14 @@ typedef struct try_node_ try_node_t; /* defined in dynamic_rt.h */
 typedef struct definition_ definition_t; /* defined in dynamic_rt.h */
 typedef struct module_ module_t; /* defined in dynamic_rt.h */
 
+/* Prepare a mask like: */
+/*    <-bits-><--offset--> */
+/* 00011111111000000000000 */
+#define MakeMask(Type, Bits, Offset) ((((Type)1<<(Bits))-1)<<(Offset))
+
+/* Deposit Source into Mask:ed portion of Dest */
+#define Deposit(Source,Mask,Dest) (((Source)&(Mask))|((Dest)& ~(Mask)))
+
 /* ------------------------------------------------------------------------- */
 
 /* (memory management constants for 4 reserved upper bits in pointers;
@@ -683,32 +696,47 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 /* ------------------------------------------------------------------------- */
 /*** tagged_t DATATYPES --------------------------------***/
 
-#if defined(DEBUG_TRACE) || defined(ABSMACH_OPT__profilecc)
-/* Adds functor information in choicepoints (for debugging or profiling) */
-#define DEBUG_NODE 1
-#endif
+/* tagged_t scheme:
+
+   TAGMASK:     E000...0000
+   QTAGMASK:    1000...0000
+   POINTERMASK: 0FFF...FFFC
+   INDEXMASK:   000F...FFFF
+   ZMASK:       0800...0000
+ */
+
+#define tagged__tag_size 3
+#define tagged__tag_offset (tagged__size-tagged__tag_size)
+#define tagged__qtag_size 1
+#define tagged__qtag_offset (tagged__tag_offset-1)
+
+#define tagged__gc_marked_size 1
+#define tagged__gc_marked_offset 1
+#define tagged__gc_reversed_size 1
+#define tagged__gc_reversed_offset 0
 
 #define tagged__num_offset SMALLPTR_LOWERBITS 
 #define tagged__atm_offset SMALLPTR_LOWERBITS 
 #define tagged__ptr_offset SMALLPTR_LOWERBITS 
-#define TAGSIZE 3
 #define ARITYSIZE 8
-#define TAGOFFSET (tagged__size-TAGSIZE)
-#define ARITYOFFSET (tagged__size-TAGSIZE-1-ARITYSIZE)
+#define ARITYOFFSET (tagged__size-tagged__tag_size-1-ARITYSIZE)
 #define ARITYLIMIT (1<<ARITYSIZE) /* 256 */
 
-#define tagged__num_size (tagged__size - TAGSIZE - 1 - tagged__num_offset)
+#define tagged__num_size (tagged__size - tagged__tag_size - 1 - tagged__num_offset)
 
-#define TAGMASK         ((((tagged_t)1<<TAGSIZE)-1)<<TAGOFFSET) /* E000...0000 */
-#define QMask           ((tagged_t)1<<TAGOFFSET>>1) /* 1000...0000 */
-#define ZMask           ((tagged_t)1<<TAGOFFSET>>2) /* 0800...0000 */
+#define TAGMASK MakeMask(tagged_t, tagged__tag_size, tagged__tag_offset)
+#define QTAGMASK MakeMask(tagged_t, tagged__qtag_size, tagged__qtag_offset)
  
-#define INDEXMASK       (((tagged_t)1<<ARITYOFFSET)-1) /* 000F...FFFF */
-#define TagIndex(T,P)   (((T)<<TAGOFFSET)+((tagged_t)((P)<<tagged__atm_offset)))
+#define GC_MARKMASK MakeMask(tagged_t, tagged__gc_marked_size, tagged__gc_marked_offset)
+#define GC_REVERSEDMASK MakeMask(tagged_t, tagged__gc_reversed_size, tagged__gc_reversed_offset)
+#define GC_ANYMASK (GC_MARKMASK|GC_REVERSEDMASK)
+
+#define INDEXMASK       (((tagged_t)1<<ARITYOFFSET)-1)
+#define TagIndex(T,P)   (Tagt((T))+((tagged_t)((P)<<tagged__atm_offset)))
 #define TagIndexDiff(P) ((tagged_t)((P)<<tagged__atm_offset))
 #define IndexPart(T)    (((T)&INDEXMASK)>>tagged__atm_offset)
 
-#define POINTERMASK     (QMask-(1<<tagged__ptr_offset)) /* 0FFF...FFFC */
+#define POINTERMASK     (QTAGMASK-(1<<tagged__ptr_offset))
 #define PointerPart(T)  ((intmach_t)((T)&POINTERMASK))  
 #if SMALLPTR_BASE
 #define TaggedToPointer(T) ((tagged_t *)(((tagged_t)(T)&POINTERMASK)+SMALLPTR_BASE))
@@ -716,82 +744,28 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define TaggedToPointer(T) ((tagged_t *)((tagged_t)(T)&POINTERMASK))
 #endif
 
+#define Tagt(T) (((tagged_t)(T)<<tagged__tag_offset))
+
 /* Tagp(T,P) creates tagged_t from tag T and pointer P */
 #if SMALLPTR_BASE
-#define Tagp(T,P)        (((T)<<TAGOFFSET)+((tagged_t)(P) & POINTERMASK))
+#define Tagp(T,P) (Tagt((T))+((tagged_t)(P) & POINTERMASK))
 #else
-#define Tagp(T,P)        (((T)<<TAGOFFSET)+((tagged_t)(P)))
+#define Tagp(T,P) (Tagt((T))+((tagged_t)(P)))
 #endif
+
+/* todo[ts]: add a macro that uses tagged__qval_offset, for atoms */
+#define Tagn(T,P) (Tagt((T))+(((tagged_t)(P)<<tagged__num_offset)))
 
 // #define MaxAtomCount (INDEXMASK>>tagged__atm_offset)
-#define MaxAtomCount (((tagged_t)1<<(tagged__size-TAGSIZE-1-ARITYSIZE-tagged__atm_offset))-1)
+#define MaxAtomCount (((tagged_t)1<<(tagged__size-tagged__tag_size-1-ARITYSIZE-tagged__atm_offset))-1)
 
-#define HasTag(X,T)     (((X) & TAGMASK) == ((T)<<TAGOFFSET))
-#define TagOf(P)        ((P)>>TAGOFFSET)  /* collects tag */
-#define CT(T1,T2)       ((T1)<<TAGSIZE|(T2)) /* for concatenating tags     */
+// TODO:[oc-merge] this one seems a bit faster?
+// #define HasTag(X,T) (TagOf((X)) == (T))
+#define HasTag(X,T)     (((X) & TAGMASK) == Tagt((T)))
+#define TagOf(P)        ((P)>>tagged__tag_offset)  /* collects tag */
+#define CT(T1,T2)       ((T1)<<tagged__tag_size|(T2)) /* for concatenating tags     */
 
-#define TaggedSameTag(U,V) (((U)^(V)) < QMask)
-
-#define IsVar(A)        ((stagged_t)(A)>=0)        /* variable tags begin with 0 */
-
-#define TaggedIsHVA(X)     ((X) < CVA<<TAGOFFSET)
-#define TaggedIsCVA(X)     HasTag(X,CVA)
-#define TaggedIsSVA(X)     ((stagged_t)(X) >= (stagged_t)(SVA<<TAGOFFSET))
-#define TaggedIsSmall(X)   ((stagged_t)(X) < (stagged_t)(TaggedLow+QMask))
-#define TaggedIsLarge(X)   (TaggedIsSTR(X) && STRIsLarge(X))
-#define TaggedIsNUM(X)     ((stagged_t)(X) < (stagged_t)(ATM<<TAGOFFSET)) 
-#define TaggedIsATM(X)  HasTag(X,ATM)
-#define TaggedIsLST(X)     HasTag(X,LST)
-#define TaggedIsSTR(X)     ((X) >= (STR<<TAGOFFSET))
-
-#define TaggedIsStructure(X) (TaggedIsSTR(X) && !STRIsLarge(X))
-#define STRIsLarge(X)   (FunctorIsBlob(TaggedToHeadfunctor(X)))
-
-/* Term<->pointer conversion */
-/* NOTE: pointers must be in the SMALLPTR_BASE range and they must be
-   aligned to 1<<tagged__num_offset (32-bits) */
-#if SMALLPTR_BASE
-#define TermToPointer(T, X)        ((T *)((X) ^ (TaggedZero^SMALLPTR_BASE)))
-#define TermToPointerOrNull(T, X)  ((T *)((X)==TaggedZero ? 0 : \
-                                            (X) ^ (TaggedZero^SMALLPTR_BASE)))
-#define PointerToTerm(X)        ((tagged_t)(X) ^ (TaggedZero^SMALLPTR_BASE))
-#define PointerToTermOrZero(X)  (!(X) ? TaggedZero : \
-                                 (tagged_t)(X) ^ (TaggedZero^SMALLPTR_BASE))
-#else
-#define TermToPointer(T, X)        ((T *)((X) ^ TaggedZero))
-#define TermToPointerOrNull(T, X)  ((T *)((X) ^ TaggedZero))
-#define PointerToTerm(X)        ((tagged_t)(X) ^ TaggedZero)
-#define PointerToTermOrZero(X)  ((tagged_t)(X) ^ TaggedZero)
-#endif
-
-/* Assuming IsVar(X): */
-#define VarIsCVA(X)     ((stagged_t)(X<<1) >= (stagged_t)(CVA<<1<<TAGOFFSET))
-
-/* Assuming !IsVar(X): */
-#define IsNonvarAtom(X)    ((stagged_t)(X<<1) >= (stagged_t)(ATM<<1<<TAGOFFSET))
-#define TermIsLST(X)    ((stagged_t)(X<<1) < (stagged_t)(STR<<1<<TAGOFFSET))
-
-#define IsNonvarAtomic(X) (!(x0 & TagBitComplex) || TaggedIsLarge(x0))
-
-/* Test for HVA, CVA, LST, STR i.e. 0, 1, 6, 7 (and LNUM)*/
-/* This works for some machines, but not for others...
-   #define IsHeapPtr(A)        ((stagged_t)(A)+(SVA<<TAGOFFSET)>=0)
-*/
-#define IsHeapPtr(A)   ((tagged_t)(A)+(SVA<<TAGOFFSET) < (NUM<<TAGOFFSET))
-
-#define IsHeapVar(X)    ((X) < (SVA<<TAGOFFSET))
-#define IsStackVar(X)   ((stagged_t)(X) >= (stagged_t)(SVA<<TAGOFFSET))
-#define IsAtomic(X)     ((stagged_t)(X) < (stagged_t)(LST<<TAGOFFSET))
-#define IsComplex(X)    ((X) >= (LST<<TAGOFFSET))
-
-#define TermIsAtomic(X) (IsAtomic(X) || TaggedIsLarge(X))
-#define TermIsComplex(X) (IsComplex(X) && !TaggedIsLarge(X))
-
-#define TagBitFunctor  ((tagged_t)1<<TAGOFFSET)       /* ATM or STR or large NUM */
-#define TagBitComplex  ((tagged_t)2<<TAGOFFSET)       /* LST or STR or large NUM */
-
-#define TagBitCVA ((tagged_t)1<<TAGOFFSET) /* CVA (or UBV) */
-#define TagBitSVA ((tagged_t)2<<TAGOFFSET) /* SVA (or UBV) */
+#define TaggedSameTag(U,V) (((U)^(V)) < QTAGMASK)
 
 /* If this ordering ever changes, must update other macros */
 
@@ -805,11 +779,50 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define LST ((tagged_t)6)               /* list */
 #define STR ((tagged_t)7)               /* structure */
 
-#define MAXTAG 7
-#define NOTAG 8
+#define IsVar(A)        ((stagged_t)(A)>=0)        /* variable tags begin with 0 */
 
-#define ERRORTAG   ((tagged_t)0)        /* ERRORTAG is a tagged_t pointer guaranteed 
-                                   to be different from all tagged_t objects */
+#define TaggedIsHVA(X)     ((X) < Tagt(CVA))
+#define TaggedIsCVA(X)     HasTag(X,CVA)
+#define TaggedIsSVA(X)     ((stagged_t)(X) >= (stagged_t)Tagt(SVA))
+/* TODO:[oc-merge] <0x900...000 vs <0xA00...000 TaggedIsNUM? */
+#define TaggedIsSmall(X)   ((stagged_t)(X) < (stagged_t)(TaggedLow+QTAGMASK))
+#define TaggedIsLarge(X)   (TaggedIsSTR(X) && STRIsLarge(X))
+#define TaggedIsNUM(X)     ((stagged_t)(X) < (stagged_t)Tagt(ATM)) 
+#define TaggedIsATM(X)     HasTag(X,ATM)
+#define TaggedIsLST(X)     HasTag(X,LST)
+#define TaggedIsSTR(X)     ((X) >= Tagt(STR))
+
+#define TaggedIsStructure(X) (TaggedIsSTR(X) && !STRIsLarge(X))
+#define STRIsLarge(X)   (FunctorIsBlob(TaggedToHeadfunctor(X)))
+
+/* Assuming IsVar(X): */
+#define VarIsCVA(X)     ((stagged_t)(X<<1) >= (stagged_t)(CVA<<1<<tagged__tag_offset))
+
+/* Assuming !IsVar(X): */
+#define IsNonvarAtom(X)    ((stagged_t)(X<<1) >= (stagged_t)(ATM<<1<<tagged__tag_offset))
+#define TermIsLST(X)    ((stagged_t)(X<<1) < (stagged_t)(STR<<1<<tagged__tag_offset))
+
+#define IsNonvarAtomic(X) (!(x0 & TagBitComplex) || TaggedIsLarge(x0))
+
+/* Test for HVA, CVA, LST, STR i.e. 0, 1, 6, 7 (and LNUM)*/
+/* This works for some machines, but not for others...
+   #define IsHeapPtr(A)        ((stagged_t)(A)+(SVA<<tagged__tag_offset)>=0)
+*/
+#define IsHeapPtr(A)   ((tagged_t)(A)+Tagt(SVA) < Tagt(NUM))
+
+#define IsHeapVar(X)    ((X) < Tagt(SVA))
+#define IsStackVar(X)   ((stagged_t)(X) >= (stagged_t)Tagt(SVA))
+#define IsAtomic(X)     ((stagged_t)(X) < (stagged_t)Tagt(LST))
+#define IsComplex(X)    ((X) >= Tagt(LST))
+
+#define TermIsAtomic(X) (IsAtomic(X) || TaggedIsLarge(X))
+#define TermIsComplex(X) (IsComplex(X) && !TaggedIsLarge(X))
+
+#define TagBitFunctor  ((tagged_t)1<<tagged__tag_offset)       /* ATM or STR or large NUM */
+#define TagBitComplex  ((tagged_t)2<<tagged__tag_offset)       /* LST or STR or large NUM */
+
+#define TagBitCVA ((tagged_t)1<<tagged__tag_offset) /* CVA (or UBV) */
+#define TagBitSVA ((tagged_t)2<<tagged__tag_offset) /* SVA (or UBV) */
 
 /* SMall Integer Values */
 
@@ -828,6 +841,21 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 
 #define IntvalIsInSmiValRange(X) IsInSmiValRange(X)
 
+/* Term<->pointer conversion */
+/* NOTE: pointers must be in the SMALLPTR_BASE range and they must be
+   aligned to 1<<tagged__num_offset (32-bits) */
+#if SMALLPTR_BASE
+#define TermToPointer(T, X) ((T *)((X) ^ (TaggedZero^SMALLPTR_BASE)))
+#define TermToPointerOrNull(T, X) ((T *)((X)==TaggedZero ? 0 : (X) ^ (TaggedZero^SMALLPTR_BASE)))
+#define PointerToTerm(X) ((tagged_t)(X) ^ (TaggedZero^SMALLPTR_BASE))
+#define PointerToTermOrZero(X)  (!(X) ? TaggedZero : (tagged_t)(X) ^ (TaggedZero^SMALLPTR_BASE))
+#else
+#define TermToPointer(T, X) ((T *)((X) ^ TaggedZero))
+#define TermToPointerOrNull(T, X) ((T *)((X) ^ TaggedZero))
+#define PointerToTerm(X) ((tagged_t)(X) ^ TaggedZero)
+#define PointerToTermOrZero(X)  ((tagged_t)(X) ^ TaggedZero)
+#endif
+
 /* Tags + one more bit: 
    Funny objects are represented as small ints.
 
@@ -838,15 +866,21 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
    ATM = atom as index in atmtab.
 */
 
-#define TaggedLow       Tagp(NUM,0)
-#define TaggedZero      (TaggedLow+ZMask)
+/* ERRORTAG is a tagged_t pointer guaranteed to be different from all
+   tagged_t objects */
+/* todo[ts]: check 0 is never used as a synonym of ERRORTAG (so that
+   HVA can change) */
+#define ERRORTAG Tagn(HVA,0)
 
-#define TaggedIntMax (TaggedLow+QMask-MakeSmallDiff(1))
+#define TaggedLow Tagp(NUM,0)
+#define ZMask ((tagged_t)1<<(tagged__num_offset+tagged__num_size-1))
+#define TaggedZero (TaggedLow+ZMask)
+#define TaggedIntMax MakeSmall(SmiValMax)
 
 /* A small integer */
-#define MakeSmall(X)    (((tagged_t)((intmach_t)(X)<<tagged__num_offset))+TaggedZero)
+#define MakeSmall(X) (((tagged_t)((intmach_t)(X)<<tagged__num_offset))+TaggedZero)
 /* Get integer from small integer */
-#define GetSmall(X)     ((intmach_t)(((X)>>tagged__num_offset)-(TaggedZero>>tagged__num_offset)))
+#define GetSmall(X) ((intmach_t)(((X)>>tagged__num_offset)-(TaggedZero>>tagged__num_offset)))
 /* Difference between integer and TaggedZero */  
 #define MakeSmallDiff(X) ((intmach_t)(X)<<tagged__num_offset)
 
@@ -872,15 +906,15 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 #define LargeSize(X)    ((PointerPart(X)>>tagged__atm_offset)*sizeof(tagged_t))
 
 /* Pre: a functor; Post: a functor for STR(blob(bignum)) or STR(blob(float)) */
-#define FunctorIsBlob(F) ((F) & QMask)
+#define FunctorIsBlob(F) ((F) & QTAGMASK)
 /* Pre: any tagged; Post: a functor for STR(blob(bignum)) or STR(blob(float)) */
-#define BlobHF(F) ((F) & QMask)
+#define BlobHF(F) ((F) & QTAGMASK)
 
-#define BlobFunctorBignum(L) ((bignum_t)(TagIndexDiff((L))+TagIndex(ATM,1)+QMask))
+#define BlobFunctorBignum(L) ((bignum_t)(TagIndexDiff((L))+TagIndex(ATM,1)+QTAGMASK))
 #define FunctorBignumValue(T) (((T) - BlobFunctorBignum(0))>>tagged__atm_offset)
 
 #define MakeFunctorFix   BlobFunctorBignum(1)
-#define BlobFunctorFlt64 (TagIndex(NUM,3) + QMask)
+#define BlobFunctorFlt64 (TagIndex(NUM,3) + QTAGMASK)
 #define LargeIsFloat(X)  FunctorIsFloat(TaggedToHeadfunctor(X))
 #define FunctorIsFloat(X) (!((X)&TagBitFunctor))
 
@@ -912,7 +946,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 /* SmiVal for BC32 (for BC_SCALE==2) */
 #define tagged__size_BC32 32
 #define tagged__num_offset_BC32 2
-#define tagged__num_size_BC32 (tagged__size_BC32 - TAGSIZE - 1 - tagged__num_offset_BC32)
+#define tagged__num_size_BC32 (tagged__size_BC32 - tagged__tag_size - 1 - tagged__num_offset_BC32)
 #define SmiValMax_BC32 ((intval_t)(((uintval_t)1<<(tagged__num_size_BC32-1))-1))
 #define SmiValMin_BC32 ((intval_t)((uintval_t)(-1)<<(tagged__num_size_BC32-1)))
 #define IsInSmiValRange_BC32(X) ((X) >= SmiValMin_BC32 && (X) <= SmiValMax_BC32)
@@ -976,7 +1010,7 @@ CBOOL__PROTO(bc_eq_blob, tagged_t t, tagged_t *ptr);
 /* manipulating tagged_t objects removing tag and getting correct type of
    pointer  */
 
-#define TagpPtr(T,X) ((tagged_t*)((X)-(T<<TAGOFFSET)+SMALLPTR_BASE))
+#define TagpPtr(T,X) ((tagged_t*)((X)-(T<<tagged__tag_offset)+SMALLPTR_BASE))
 
 /* Functor hackery. --MC */
 /*-----------------------*/
@@ -1656,26 +1690,19 @@ struct marker_ {
 /* ------------------------------------------------------------------------- */
 /* Pointers to tagged words with GC marks */
 
-/* Deposit Source into Mask:ed portion of Dest */
-#define Deposit(Source,Mask,Dest) (((Source)&(Mask))|((Dest)& ~(Mask)))
-
-#define GC_MARKMASK  ((tagged_t)2)
-#define GC_FIRSTMASK ((tagged_t)1)
-#define GC_ANYMASK (GC_MARKMASK|GC_FIRSTMASK)
-
 /* Get a tagged ensuring that it does not have gc marks */
 #define GC_UNMARKED(X) ((X)&(~(GC_ANYMASK)))
 #define GC_UNMARKED_M(X) ((X)&(~(GC_MARKMASK)))
 
 #define gc_IsMarked(x)  ((x)&GC_MARKMASK)
-#define gc_IsFirst(x)   ((x)&GC_FIRSTMASK)
-#define gc_IsForM(x)   ((x)&(GC_FIRSTMASK|GC_MARKMASK))
+#define gc_IsFirst(x)   ((x)&GC_REVERSEDMASK)
+#define gc_IsForM(x)   ((x)&(GC_REVERSEDMASK|GC_MARKMASK))
 #define gc_MarkM(x)  ((x)|= GC_MARKMASK)
-#define gc_MarkF(x)  ((x)|= GC_FIRSTMASK)
+#define gc_MarkF(x)  ((x)|= GC_REVERSEDMASK)
 #define gc_UnmarkM(x)  ((x)&=(~GC_MARKMASK))
-#define gc_UnmarkF(x)  ((x)&=(~GC_FIRSTMASK))
+#define gc_UnmarkF(x)  ((x)&=(~GC_REVERSEDMASK))
 #define gc_PutValue(p,x) Deposit(p,POINTERMASK,x)
-#define gc_PutValueFirst(p,x) Deposit(p,POINTERMASK|GC_FIRSTMASK,x)
+#define gc_PutValueFirst(p,x) Deposit(p,POINTERMASK|GC_REVERSEDMASK,x)
 
 #if !defined(OPTIM_COMP)
 #define TG_Let(X, Ptr) tagged_t *X=(Ptr); tagged_t X##val
@@ -1684,8 +1711,8 @@ struct marker_ {
 //
 #define TG_Put(V,X) ({ *(X) = (V); })
 #define TG_PutPtr(p,dest) TG_Put(gc_PutValue((tagged_t)p,TG_Val(dest)), dest)
-#define TG_PutPtr_SetR(curr,j) TG_Put(gc_PutValueFirst((tagged_t)curr|GC_FIRSTMASK,TG_Val(j)), j)
-#define TG_PutPtr_UnsetR(dest,j) TG_Put(Deposit((tagged_t)dest,POINTERMASK|GC_FIRSTMASK,TG_Val(j)), j)
+#define TG_PutPtr_SetR(curr,j) TG_Put(gc_PutValueFirst((tagged_t)curr|GC_REVERSEDMASK,TG_Val(j)), j)
+#define TG_PutPtr_UnsetR(dest,j) TG_Put(Deposit((tagged_t)dest,POINTERMASK|GC_REVERSEDMASK,TG_Val(j)), j)
 
 #define TG_SetR(X) gc_MarkF(*(X))
 #define TG_UnsetR(X) gc_UnmarkF(*(X))
@@ -1701,8 +1728,43 @@ struct marker_ {
   TG_Put(src, dest); \
 })
 #define TG_MoveValue_MoveR(val,curr) TG_Put(gc_PutValueFirst(val,TG_Val(curr)), curr)
-#define TG_MoveValue_UnsetR(c1,A) TG_Put(Deposit(c1,POINTERMASK|GC_FIRSTMASK,TG_Val(A)), A)
+#define TG_MoveValue_UnsetR(c1,A) TG_Put(Deposit(c1,POINTERMASK|GC_REVERSEDMASK,TG_Val(A)), A)
 #endif
+
+/* --------------------------------------------------------------------------- */
+/* TagNested is a special atom used temporarily only during term
+   compilation.
+   
+   Free variables are unified with a TagNested. It contains:
+   - an index, that identifies both the assigned X register
+   - a mark
+*/
+#define IsATM_TagNested(F) TaggedATMIsATMQ((F))
+#if defined(ABSMACH_OPT__qtag)
+#define IsTagNested(F) ((F) & QTAGMASK)
+#else
+#define IsTagNested(F) TaggedIsATMQ((F))
+#endif
+
+#define NestedGetMark(V) ((V) & NESTEDMARK__MASK)
+/* Pre: NestedGetMark(V) == NESTEDMARK__SINGLEVAR */
+#define NestedSetMark__USEDVARCVA(V) ((V) | NESTEDMARK__USEDVARCVA)
+/* Pre: NestedGetMark(V) == NESTEDMARK__SINGLEVAR */
+#define NestedSetMark__USEDVAR(X) ((X) | NESTEDMARK__USEDVAR)
+#define NestedSetMark__VAL(V) ((V) | NESTEDMARK__VAL)
+
+#define NESTEDMARK__SINGLEVAR ((intval_t)0<<tagged__nestedmark_offset)
+#define NESTEDMARK__USEDVARCVA  ((intval_t)2<<tagged__nestedmark_offset)
+#define NESTEDMARK__USEDVAR ((intval_t)1<<tagged__nestedmark_offset)
+#define NESTEDMARK__VAL ((intval_t)3<<tagged__nestedmark_offset)
+#define NESTEDMARK__MASK ((intval_t)3<<tagged__nestedmark_offset)
+
+/* Get the value of a TagNested */
+#define NestedValue(T) (((intval_t)((T)&MakeMask(tagged_t, tagged__nestedval_size, tagged__nestedval_offset)))>>tagged__nestedval_offset)
+/* Add I to the value of a TagNested */
+#define NestedAdd(X,I) ((X)+((I)<<tagged__nestedval_offset))
+/* Special atom with value X, and mark NESTEDMARK__SINGLEVAR */
+#define TagNested(X) (Tagn(ATM,(X))|QTAGMASK)
 
 /* ------------------------------------------------------------------------- */
 /* Alignment operations */
