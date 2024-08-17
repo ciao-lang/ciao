@@ -62,6 +62,7 @@ typedef uintptr_t intp_t; /* integer that can contain pointers */
 typedef double flt64_t;
 
 /* ------------------------------------------------------------------------- */
+/* TODO:[oc-merge] generated in basiccontrol.native.h from eng_predef.pl */
 
 #if defined(x86_64) || defined(Sparc64) || defined(ppc64) || defined(ppc64le) || defined(aarch64) /* 64-bit */
 /* Definitions for 64-bit tag scheme */
@@ -93,35 +94,12 @@ typedef int32_t bool_t; /* TODO: Make it like 'char' */
 #define TRUE 1
 #endif
 
-/* Sizes */
-#if tagged__size == 64
-#define INTMACH_MAX INT64_MAX
-#define INTMACH_MIN INT64_MIN
-#elif tagged__size == 32
-#define INTMACH_MAX INT32_MAX
-#define INTMACH_MIN INT32_MIN
-#endif
-
 /* Type to hold time values (ticks, etc.) */
 typedef int64_t inttime_t;
 
 typedef tagged_t blob_unit_t; // TODO:[oc-merge] make OC use this def?
 
 typedef int arity_t; /* type for arity */ // TODO:[oc-merge] intmach_t in OC
-
-/* ------------------------------------------------------------------------- */
-/* Macros for formatting integers */
-
-#include <inttypes.h> /* for PRI* macros */
-#if tagged__size == 64
-#define PRIum PRIu64 /* intmach_t using %u */
-#define PRIdm PRId64 /* intmach_t using %d */
-#define PRIxm PRIx64 /* intmach_t using %x */
-#elif tagged__size == 32
-#define PRIum PRIu32 /* intmach_t using %u */
-#define PRIdm PRId32 /* intmach_t using %d */
-#define PRIxm PRIx32 /* intmach_t using %x */
-#endif
 
 /* ------------------------------------------------------------------------- */
 /* Worker argument abstraction (from optim_comp) */
