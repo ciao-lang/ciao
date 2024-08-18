@@ -1299,7 +1299,7 @@ CBOOL__PROTO(prolog_lsb) {
   int r;
   DEREF(X(0),X(0));
   Sw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
-  ERROR_IN_ARG(X(0),1,INTEGER);
+  ERROR_IN_ARG(X(0),1,TYPE_ERROR(INTEGER));
  small: r = intval_LSB(GetSmall(X(0))); goto ok;
  nonsmall: r = bn_lsb(TaggedToBignum(X(0))); goto ok;
  ok: CBOOL__LASTUNIFY(X(1), MakeSmall(r)); /* TODO:[JF] assume 'r' is small */
@@ -1310,7 +1310,7 @@ CBOOL__PROTO(prolog_msb) {
   int r;
   DEREF(X(0),X(0));
   Sw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
-  ERROR_IN_ARG(X(0),1,INTEGER);
+  ERROR_IN_ARG(X(0),1,TYPE_ERROR(INTEGER));
  small: r = intval_MSB(GetSmall(X(0))); goto ok;
  nonsmall: r = bn_msb(TaggedToBignum(X(0))); goto ok;
  ok: CBOOL__LASTUNIFY(X(1), MakeSmall(r)); /* TODO:[JF] assume 'r' is small */
@@ -1321,7 +1321,7 @@ CBOOL__PROTO(prolog_popcount) {
   int r;
   DEREF(X(0),X(0));
   Sw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
-  ERROR_IN_ARG(X(0),1,INTEGER);
+  ERROR_IN_ARG(X(0),1,TYPE_ERROR(INTEGER));
  small: r = intval_POPCOUNT(GetSmall(X(0))); goto ok;
  nonsmall: r = bn_popcount(TaggedToBignum(X(0))); goto ok;
  ok: CBOOL__LASTUNIFY(X(1), MakeSmall(r)); /* TODO:[JF] assume 'r' is small */
@@ -1339,7 +1339,7 @@ CBOOL__PROTO(prolog_getbit) {
   //
   DEREF(X(0),X(0));
   Sw_NUM_Large_Other(X(0), { goto small; }, { goto nonsmall; }, {});
-  ERROR_IN_ARG(X(0),1,INTEGER);
+  ERROR_IN_ARG(X(0),1,TYPE_ERROR(INTEGER));
  small: r = (GetSmall(X(0)) >> i) & 1; goto ok;
  nonsmall: r = bn_getbit(TaggedToBignum(X(0)), i); goto ok;
  ok: CBOOL__LASTUNIFY(X(2), MakeSmall(r));

@@ -92,8 +92,8 @@ int writemb(int fildes, c_rune_t c);
   }, { /* bigint */      \
     BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo));  \
   }, {                                                              \
-    ERROR_IN_ARG((X), (ArgNo), INTEGER);                                \
-  });                                                                     \
+    ERROR_IN_ARG((X), (ArgNo), TYPE_ERROR(INTEGER));                    \
+  });                                                                   \
   if (!isValidRune((C))) {                                              \
     BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo));  \
   }                                                                     \
@@ -101,11 +101,11 @@ int writemb(int fildes, c_rune_t c);
 
 #define CheckGetByte(X,C,ArgNo) ({             \
   if (!TaggedIsSmall((X))) {                   \
-    ERROR_IN_ARG((X), (ArgNo), TY_BYTE);       \
+    ERROR_IN_ARG((X), (ArgNo), TYPE_ERROR(TY_BYTE)); \
   }                                            \
   C = GetSmall((X));                           \
   if ((C) < 0 || (C) > 255) {                  \
-    ERROR_IN_ARG((X), (ArgNo), TY_BYTE);       \
+    ERROR_IN_ARG((X), (ArgNo), TYPE_ERROR(TY_BYTE)); \
   } \
 })
 
@@ -915,7 +915,7 @@ CBOOL__PROTO(tab) {
   ERR__FUNCTOR("io_basic:tab", 1);
   DEREF(X(0),X(0));
   if (!IsInteger(X(0))) {
-    ERROR_IN_ARG(X(0),1,INTEGER);
+    ERROR_IN_ARG(X(0),1,TYPE_ERROR(INTEGER));
   }
 
   CVOID__CALL(writerunen, ' ', TaggedToIntmach(X(0)), Output_Stream_Ptr);
@@ -937,7 +937,7 @@ CBOOL__PROTO(tab2) {
 
   DEREF(X(1),X(1));
   if (!IsInteger(X(1))) {
-    ERROR_IN_ARG(X(1),2,INTEGER);
+    ERROR_IN_ARG(X(1),2,TYPE_ERROR(INTEGER));
   }
 
   CVOID__CALL(writerunen, ' ', TaggedToIntmach(X(1)), s);

@@ -584,7 +584,7 @@ CBOOL__PROTO(prolog_unix_mktemp) {
   if (IsVar(X(0))) BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
 
   /* check type argument */
-  if (!TaggedIsATM(X(0))) ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+  if (!TaggedIsATM(X(0))) ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
 
   strcpy(template, GetString(X(0)));
 
@@ -609,12 +609,12 @@ CBOOL__PROTO(prolog_unix_access) {
   /* check argument instantiation error */
   if (IsVar(X(0))) BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   /* check type argument */
-  if (!TaggedIsATM(X(0))) ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+  if (!TaggedIsATM(X(0))) ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
 
   DEREF(X(1), X(1));
 
   if (!TaggedIsSmall(X(1)) || (mode = GetSmall(X(1))) & ~255) /* Not a byte */
-    ERROR_IN_ARG(X(1), 2, TY_BYTE);
+    ERROR_IN_ARG(X(1), 2, TYPE_ERROR(TY_BYTE));
 
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf))
     return FALSE;
@@ -642,7 +642,7 @@ CBOOL__PROTO(prolog_directory_files) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
   }
   /* check domain argument */
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
@@ -718,7 +718,7 @@ CBOOL__PROTO(prolog_file_properties) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
   }
   /* check argument domain error */
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
@@ -811,7 +811,7 @@ CBOOL__PROTO(prolog_touch) {
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   /* check type argument */
   if (!TaggedIsATM(X(0)))
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
 
   if (!expand_file_name(GetString(X(0)), TRUE, file))
     return FALSE;
@@ -860,7 +860,7 @@ CBOOL__PROTO(prolog_unix_chmod) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
   }
   /* check domain argument */
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
@@ -931,7 +931,7 @@ CBOOL__PROTO(prolog_unix_delete) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
   }
   /* check argument domain error */
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
@@ -1003,7 +1003,7 @@ CBOOL__PROTO(prolog_unix_rename) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
   }
 
   DEREF(X(1), X(1));
@@ -1013,7 +1013,7 @@ CBOOL__PROTO(prolog_unix_rename) {
   }
   /* check type the other argument*/
   if (!TaggedIsATM(X(1))) {
-    ERROR_IN_ARG(X(1), 2, STRICT_ATOM);
+    ERROR_IN_ARG(X(1), 2, TYPE_ERROR(STRICT_ATOM));
   }
   /* check domain of the two arguments */
   if (!expand_file_name(GetString(X(0)), TRUE, orig_name)) {
@@ -1056,7 +1056,7 @@ CBOOL__PROTO(prolog_unix_mkdir) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
   }
   /* check domain argument */
   if (!expand_file_name(GetString(X(0)), TRUE, dirname)) {
@@ -1115,7 +1115,7 @@ CBOOL__PROTO(prolog_unix_rmdir) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
   }
   /* Check domain error */
   if (!expand_file_name(GetString(X(0)), TRUE, dirname)) {
@@ -1403,7 +1403,7 @@ CBOOL__PROTO(prolog_c_copy_file) {
 /*   /\* check type argument*\/ */
 /*   /\* */
 /*   if (!TaggedIsATM(X(0))) */
-/*     ERROR_IN_ARG(X(0), 1, STRICT_ATOM); */
+/*     ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM)); */
 /*   *\/ */
 /*   if ((s = getenv(GetString(X(0)))) == NULL) return FALSE; */
 
@@ -1873,7 +1873,7 @@ CBOOL__PROTO(prolog_path_is_absolute) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
   }
   path = GetString(X(0));
 
@@ -2094,7 +2094,7 @@ CBOOL__PROTO(prolog_extract_paths) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
   }
   pathlist = GetString(X(0));
 
@@ -3043,7 +3043,7 @@ CBOOL__PROTO(prolog_exec_shell) {
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   /* check type argument*/
   if (!TaggedIsATM(X(0)))
-    ERROR_IN_ARG(X(0), 1, STRICT_ATOM);
+    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
 
   char *shellcmd = GetString(X(0));
   if (strcmp(shellcmd, "") == 0) shellcmd = NULL;

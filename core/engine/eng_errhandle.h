@@ -112,6 +112,7 @@
 #define PERMISSION_OBJECTS__past_end_of_stream 6
 #define PERMISSION_OBJECTS__private_procedure 7
 #define PERMISSION_OBJECTS__static_procedure 8
+
 /* REPRESENTATION_ERROR */
 /* CHARACTER_CODE_LIST already defined */
 #define REPRESENTATION_ERRORS(KEY) REPRESENTATION_ERRORS__##KEY
@@ -149,10 +150,7 @@
 #define STRICT_ATOM TYPE_ERRORS(atom)
 #define ATOMIC TYPE_ERRORS(atomic)
 #define TY_BYTE TYPE_ERRORS(byte)
-#if !defined(OPTIM_COMP)
-/* TODO:[oc-merge] used? */
 #define CHARACTER TYPE_ERRORS(character)
-#endif
 #define COMPOUND TYPE_ERRORS(compound)
 #define EVALUABLE TYPE_ERRORS(evaluable)
 #define IN_BYTE TYPE_ERRORS(in_byte)
@@ -162,10 +160,7 @@
 #define PREDICATE_INDICATOR TYPE_ERRORS(predicate_indicator)
 #define CALLABLE TYPE_ERRORS(callable)
 
-#if !defined(OPTIM_COMP)
-/* TODO:[oc-merge] not in optim-comp */
 #define CHARACTER_CODE_LIST     DOMAIN_ERRORS(character_code_list)
-#endif
 #define SOURCE_SINK             DOMAIN_ERRORS(source_sink)
 #if !defined(OPTIM_COMP)
 #define STREAM                  DOMAIN_ERRORS(stream)

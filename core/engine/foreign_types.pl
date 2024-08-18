@@ -8,7 +8,7 @@
     ctype_decl  = short,
     ctype_call  = short,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_short_s ]).
 :- ttr_def(go_c_short, [
     ctype_decl  = short,
@@ -23,7 +23,7 @@
     ctype_decl  = int,
     ctype_call  = int,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_int_s ]).
 :- ttr_def(go_c_int, [
     ctype_decl  = int,
@@ -38,7 +38,7 @@
     ctype_decl  = long,
     ctype_call  = long,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_long_s ]).
 :- ttr_def(go_c_long, [
     ctype_decl  = long,
@@ -53,7 +53,7 @@
     ctype_decl  = unsigned+short,
     ctype_call  = unsigned+short,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_ushort_s ]).
 :- ttr_def(go_c_ushort, [
     ctype_decl  = unsigned+short,
@@ -68,7 +68,7 @@
     ctype_decl  = unsigned+int,
     ctype_call  = unsigned+int,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_uint_s ]).
 :- ttr_def(go_c_uint, [
     ctype_decl  = unsigned+int,
@@ -83,7 +83,7 @@
     ctype_decl  = unsigned+long,
     ctype_call  = unsigned+long,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_ulong_s ]).
 :- ttr_def(go_c_ulong, [
     ctype_decl  = unsigned+long,
@@ -98,7 +98,7 @@
     ctype_decl  = float,
     ctype_call  = float,
     check       = ciao_is_number_s,
-    exception   = error_in_arg('NUMBER'),
+    exception   = error_in_arg('TYPE_ERROR(NUMBER)'),
     to_c        = ciao_get_c_float_s ]).
 :- ttr_def(go_c_float, [
     ctype_decl  = float,
@@ -113,7 +113,7 @@
     ctype_decl  = double,
     ctype_call  = double,
     check       = ciao_is_number_s,
-    exception   = error_in_arg('NUMBER'),
+    exception   = error_in_arg('TYPE_ERROR(NUMBER)'),
     to_c        = ciao_get_c_double_s ]).
 :- ttr_def(go_c_double, [
     ctype_decl  = double,
@@ -128,7 +128,7 @@
     ctype_decl  = uintptr_t,
     ctype_call  = uintptr_t,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_uintptr_s ]).
 :- ttr_def(go_c_uintptr, [
     ctype_decl  = uintptr_t,
@@ -143,7 +143,7 @@
     ctype_decl  = size_t,
     ctype_call  = size_t,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_size_s ]).
 :- ttr_def(go_c_size, [
     ctype_decl  = size_t,
@@ -158,7 +158,7 @@
     ctype_decl  = int8_t,
     ctype_call  = int8_t,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_int8_s ]).
 :- ttr_def(go_c_int8, [
     ctype_decl  = int8_t,
@@ -173,7 +173,7 @@
     ctype_decl  = int16_t,
     ctype_call  = int16_t,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_int16_s ]).
 :- ttr_def(go_c_int16, [
     ctype_decl  = int16_t,
@@ -188,7 +188,7 @@
     ctype_decl  = int32_t,
     ctype_call  = int32_t,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_int32_s ]).
 :- ttr_def(go_c_int32, [
     ctype_decl  = int32_t,
@@ -203,7 +203,7 @@
     ctype_decl  = int64_t,
     ctype_call  = int64_t,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_int64_s ]).
 :- ttr_def(go_c_int64, [
     ctype_decl  = int64_t,
@@ -218,7 +218,7 @@
     ctype_decl  = uint8_t,
     ctype_call  = uint8_t,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_uint8_s ]).
 :- ttr_def(go_c_uint8, [
     ctype_decl  = uint8_t,
@@ -233,7 +233,7 @@
     ctype_decl  = uint16_t,
     ctype_call  = uint16_t,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_uint16_s ]).
 :- ttr_def(go_c_uint16, [
     ctype_decl  = uint16_t,
@@ -248,7 +248,7 @@
     ctype_decl  = uint32_t,
     ctype_call  = uint32_t,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_uint32_s ]).
 :- ttr_def(go_c_uint32, [
     ctype_decl  = uint32_t,
@@ -263,7 +263,7 @@
     ctype_decl  = uint64_t,
     ctype_call  = uint64_t,
     check       = ciao_is_integer_s,
-    exception   = error_in_arg('INTEGER'),
+    exception   = error_in_arg('TYPE_ERROR(INTEGER)'),
     to_c        = ciao_get_c_uint64_s ]).
 :- ttr_def(go_c_uint64, [
     ctype_decl  = uint64_t,
@@ -278,7 +278,7 @@
     ctype_decl  = pointer(char),
     ctype_call  = pointer(char),
     check       = ciao_is_atom_s,
-    exception   = error_in_arg('STRICT_ATOM'),
+    exception   = error_in_arg('TYPE_ERROR(STRICT_ATOM)'),
     to_c        = ciao_atom_name_dup_s,
     free        = ciao_free ]).
 :- ttr_def(go_atm, [
@@ -295,7 +295,7 @@
     ctype_decl  = pointer(char),
     ctype_call  = pointer(char),
     check       = ciao_is_char_code_list,
-    exception   = error_in_arg('LIST'), % representation error: 'CHARACTER_CODE_LIST'
+    exception   = error_in_arg('TYPE_ERROR(LIST)'), % TODO: on skel, REPRESENTATION_ERROR(CHARACTER_CODE_LIST) on contents?
     to_c        = ciao_list_to_str,
     free        = ciao_free ]).
 :- ttr_def(go_string, [

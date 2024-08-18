@@ -2306,10 +2306,8 @@ void failc(char *mesg);
   EXCEPTION__THROW; \
 })
 
-#define ERROR_IN_ARG(Arg,ArgNo,ReqType) ({ \
-  BUILTIN_ERROR(IsVar(Arg) ? INSTANTIATION_ERROR : TYPE_ERROR(ReqType), \
-                Arg, ArgNo); \
-})
+#define ERROR_IN_ARG(Arg,ArgNo,Err) \
+  BUILTIN_ERROR(IsVar(Arg) ? INSTANTIATION_ERROR : Err, Arg, ArgNo)
 
 /* =========================================================================== */
 

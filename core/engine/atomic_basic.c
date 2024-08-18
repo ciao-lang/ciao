@@ -357,7 +357,7 @@ CBOOL__PROTO(prolog_atom_length) {
 
   DEREF(X(0),X(0));
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0),1,STRICT_ATOM);
+    ERROR_IN_ARG(X(0),1,TYPE_ERROR(STRICT_ATOM));
   }
 
   DEREF(X(1),X(1));
@@ -376,15 +376,15 @@ CBOOL__PROTO(prolog_sub_atom) {
 
   DEREF(X(0),X(0));
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0),1,STRICT_ATOM);
+    ERROR_IN_ARG(X(0),1,TYPE_ERROR(STRICT_ATOM));
   }
   DEREF(X(1),X(1));
   if (!IsInteger(X(1))) {
-    ERROR_IN_ARG(X(1),2,INTEGER);
+    ERROR_IN_ARG(X(1),2,TYPE_ERROR(INTEGER));
   }
   DEREF(X(2),X(2));
   if (!IsInteger(X(2))) {
-    ERROR_IN_ARG(X(2),3,INTEGER);
+    ERROR_IN_ARG(X(2),3,TYPE_ERROR(INTEGER));
   }
 
   s = GetString(X(0));
@@ -447,7 +447,7 @@ CBOOL__PROTO(prolog_atom_concat) {
       *s = '\0';
       CBOOL__LASTUNIFY(GET_ATOM(Atom_Buffer),X(2));
     } else if (IsVar(X(1))) {
-      if (!TaggedIsATM(X(2))) { ERROR_IN_ARG(X(2),3,STRICT_ATOM); }
+      if (!TaggedIsATM(X(2))) { ERROR_IN_ARG(X(2),3,TYPE_ERROR(STRICT_ATOM)); }
       /* atom_concat(+, -, +) */
       s2 = GetString(X(2));
 
@@ -467,7 +467,7 @@ CBOOL__PROTO(prolog_atom_concat) {
       BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(1),2);
     }
   } else if (IsVar(X(0))) {
-    if (!TaggedIsATM(X(2))) { ERROR_IN_ARG(X(2),3,STRICT_ATOM); }
+    if (!TaggedIsATM(X(2))) { ERROR_IN_ARG(X(2),3,TYPE_ERROR(STRICT_ATOM)); }
 
     if (TaggedIsATM(X(1))) {
       /* atom_concat(-, +, +) */

@@ -97,7 +97,7 @@ check_code(arg(N, TTr, _, _)) := call(Check, [ctx, ~t(N)]) :- Check = ~ttr_check
 exception_code(arg(N, TTr, _, _)) := X :- X = ~exception_code_2(N, ~ttr_exception(TTr)), !.
 exception_code(_) := return('FALSE') :- !.
 
-exception_code_2(N, error_in_arg(Type)) := call('ERROR_IN_ARG', [~x(N), N + 1, Type]) :- !.
+exception_code_2(N, error_in_arg(Err)) := call('ERROR_IN_ARG', [~x(N), N + 1, Err]) :- !.
 exception_code_2(_, usage_fault(Msg)) := call('USAGE_FAULT', [Msg]) :- !.
 
 param_apply_to_c(arg(N, TTr, single, _)) --> { ToC = ~ttr_to_c(TTr) }, !,
