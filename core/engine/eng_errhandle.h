@@ -9,8 +9,9 @@
 #ifndef _CIAO_ENG_ERRHANDLE_H
 #define _CIAO_ENG_ERRHANDLE_H
 
-/* TODO:[oc-merge] generate automatically, update */
-
+#if defined(OPTIM_COMP)
+/* (generated from eng_errhandle.pl) */
+#else
 /* Errors identifiers cannot be zero (as 0 = -0) */
 #define INSTANTIATION_ERROR     1
 #define UNINSTANTIATION_ERROR   2
@@ -58,24 +59,6 @@
 #define TYPE_ERRORS__predicate_indicator 10
 #define TYPE_ERRORS__variable 11
 #define TYPE_ERRORS__callable 12
-//--
-/* TODO:[oc-merge] unfold */
-#define STRICT_ATOM TYPE_ERRORS(atom)
-#define ATOMIC TYPE_ERRORS(atomic)
-/* TODO:[oc-merge] renamed from BYTE, backport to optim-comp */
-#define TY_BYTE TYPE_ERRORS(byte)
-/* TODO:[oc-merge] used? */
-#define CHARACTER TYPE_ERRORS(character)
-#define COMPOUND TYPE_ERRORS(compound)
-#define EVALUABLE TYPE_ERRORS(evaluable)
-#define IN_BYTE TYPE_ERRORS(in_byte)
-#define INTEGER TYPE_ERRORS(integer)
-#define LIST TYPE_ERRORS(list)
-#define NUMBER TYPE_ERRORS(number)
-#define PREDICATE_INDICATOR TYPE_ERRORS(predicate_indicator)
-/* RH: Not ISO anymore (from corrigendum 2) */
-/* #define VARIABLE TYPE_ERRORS(variable) */
-#define CALLABLE TYPE_ERRORS(callable)
 
 /* DOMAIN_ERRORS */
 #define DOMAIN_ERRORS(KEY) DOMAIN_ERRORS__##KEY
@@ -96,38 +79,13 @@
 #define DOMAIN_ERRORS__stream_property 14
 #define DOMAIN_ERRORS__write_option 15
 #define DOMAIN_ERRORS__operator_specifier 16
-//--
-/* TODO:[oc-merge] unfold */
-/* TODO:[oc-merge] not in optim-comp */
-#define CHARACTER_CODE_LIST     DOMAIN_ERRORS(character_code_list)
-/* TODO:[oc-merge] not in optim-comp */
-#define SOURCE_SINK             DOMAIN_ERRORS(source_sink)
-/* TODO:[oc-merge] not in optim-comp */
-#define STREAM                  DOMAIN_ERRORS(stream)
-#define IO_MODE DOMAIN_ERRORS(io_mode)
-/* TODO:[oc-merge] not renamed in optim-comp */
-#define NON_EMPTY_LIST DOMAIN_ERRORS(non_empty_list)
-#define NOT_LESS_THAN_ZERO DOMAIN_ERRORS(not_less_than_zero)
-#define OPERATOR_PRIORITY DOMAIN_ERRORS(operator_priority)
-#define PROLOG_FLAG DOMAIN_ERRORS(prolog_flag)
-#define READ_OPTION DOMAIN_ERRORS(read_option)
-#define FLAG_VALUE DOMAIN_ERRORS(flag_value)
-#define CLOSE_OPTION DOMAIN_ERRORS(close_option)
-#define STREAM_OPTION DOMAIN_ERRORS(stream_option)
-#define STREAM_OR_ALIAS DOMAIN_ERRORS(stream_or_alias)
-#define STREAM_POSITION DOMAIN_ERRORS(stream_position)
-#define STREAM_PROPERTY DOMAIN_ERRORS(stream_property)
-#define WRITE_OPTION DOMAIN_ERRORS(write_option)
-#define OPERATOR_SPECIFIER DOMAIN_ERRORS(operator_specifier)
 
 /* EXISTENCE_ERRORS */
 #define EXISTENCE_ERRORS(KEY) EXISTENCE_ERRORS__##KEY
 #define EXISTENCE_ERRORS__procedure 0
 #define EXISTENCE_ERRORS__source_sink 1
 #define EXISTENCE_ERRORS__stream 2
-//--
-#define PROCEDURE EXISTENCE_ERRORS(procedure)
-/* TODO:[oc-merge] unfold */
+
 /* SOURCE_SINK and STREAM already defined */
 /* #define SOURCE_SINK EXISTENCE_ERRORS(source_sink) */
 /* #define STREAM EXISTENCE_ERRORS(stream) */
@@ -144,15 +102,6 @@
 #define PERMISSION_TYPES__open 4
 #define PERMISSION_TYPES__output 5
 #define PERMISSION_TYPES__reposition 6
-//--
-/* TODO:[oc-merge] unfold */
-#define ACCESS PERMISSION_TYPES(access)
-#define CREATE PERMISSION_TYPES(create)
-#define INPUT PERMISSION_TYPES(input)
-#define MODIFY PERMISSION_TYPES(modify)
-#define OPEN PERMISSION_TYPES(open)
-#define OUTPUT PERMISSION_TYPES(output)
-#define REPOSITION PERMISSION_TYPES(reposition)
 
 /* OBJECTS */
 #define PERMISSION_OBJECTS(KEY) PERMISSION_OBJECTS__##KEY
@@ -165,21 +114,7 @@
 #define PERMISSION_OBJECTS__past_end_of_stream 6
 #define PERMISSION_OBJECTS__private_procedure 7
 #define PERMISSION_OBJECTS__static_procedure 8
-//--
-/* TODO:[oc-merge] unfold */
-#define BINARY_STREAM PERMISSION_OBJECTS(binary_stream)
-/* SOURCE_SINK and STREAM already defined */
-/* #define SOURCE_SINK PERMISSION_OBJECTS(binary_stream) */
-/* #define STREAM PERMISSION_OBJECTS(binary_stream) */
-#define TEXT_STREAM PERMISSION_OBJECTS(text_stream)
-#define FLAG PERMISSION_OBJECTS(flag)
-#define OPERATOR PERMISSION_OBJECTS(operator)
-#define PAST_END_OF_STREAM PERMISSION_OBJECTS(past_end_of_stream)
-#define PRIVATE_PROCEDURE PERMISSION_OBJECTS(private_procedure)
-#define STATIC_PROCEDURE PERMISSION_OBJECTS(static_procedure)
-
 /* REPRESENTATION_ERROR */
-
 /* CHARACTER_CODE_LIST already defined */
 #define REPRESENTATION_ERRORS(KEY) REPRESENTATION_ERRORS__##KEY
 #define REPRESENTATION_ERRORS__character_code_list 0
@@ -191,18 +126,6 @@
 #define REPRESENTATION_ERRORS__character_code 6
 #define REPRESENTATION_ERRORS__nan_or_inf_to_integer 7
 #define REPRESENTATION_ERRORS__max_atom_length 8
-//--
-/* TODO:[oc-merge] unfold */
-/* #define CHARACTER_CODE_LIST REPRESENTATION_ERRORS(character_code_list) */
-#define IN_CHARACTER_CODE REPRESENTATION_ERRORS(in_character_code)
-#define MAX_ARITY REPRESENTATION_ERRORS(max_arity)
-/* #define CHARACTER REPRESENTATION_ERRORS(character) */
-#define MAX_INTEGER REPRESENTATION_ERRORS(max_integer)
-#define MIN_INTEGER REPRESENTATION_ERRORS(min_integer)
-#define CHARACTER_CODE REPRESENTATION_ERRORS(character_code)
-/* TODO:[oc-merge] new */
-#define NAN_OR_INF_TO_INTEGER REPRESENTATION_ERRORS(nan_or_inf_to_integer)
-#define MAX_ATOM_LENGTH       REPRESENTATION_ERRORS(max_atom_length)  /* Unneeded with dynamic atom sizes */
 
 /* EVALUATION_ERROR */
 #define EVALUATION_ERRORS(KEY) EVALUATION_ERRORS__##KEY
@@ -211,57 +134,105 @@
 #define EVALUATION_ERRORS__e_undefined 2
 #define EVALUATION_ERRORS__e_underflow 3
 #define EVALUATION_ERRORS__zero_divisor 4
-//--
-/* TODO:[oc-merge] unfold */
-#define FLOAT_OVERFLOW EVALUATION_ERRORS(float_overflow)
-#define INT_OVERFLOW EVALUATION_ERRORS(int_overflow)
-#define E_UNDEFINED EVALUATION_ERRORS(e_undefined)
-#define E_UNDERFLOW EVALUATION_ERRORS(e_underflow)
-#define ZERO_DIVISOR EVALUATION_ERRORS(zero_divisor)
 
 /* TODO:[oc-merge] new */
 /* RESOURCE_ERROR */
 #define RESOURCE_ERRORS(KEY) RESOURCE_ERRORS__##KEY
 #define RESOURCE_ERRORS__r_undefined 0
 #define RESOURCE_ERRORS__r_stack 1
-//--
-/* TODO:[oc-merge] unfold */
+
+#endif /* !defined(OPTIM_COMP) */ 
+
+/* --------------------------------------------------------------------------- */
+
+/* TODO:[oc-merge] unfold definitions */
+
+#define STRICT_ATOM TYPE_ERRORS(atom)
+#define ATOMIC TYPE_ERRORS(atomic)
+#define TY_BYTE TYPE_ERRORS(byte)
+#if !defined(OPTIM_COMP)
+/* TODO:[oc-merge] used? */
+#define CHARACTER TYPE_ERRORS(character)
+#endif
+#define COMPOUND TYPE_ERRORS(compound)
+#define EVALUABLE TYPE_ERRORS(evaluable)
+#define IN_BYTE TYPE_ERRORS(in_byte)
+#define INTEGER TYPE_ERRORS(integer)
+#define LIST TYPE_ERRORS(list)
+#define NUMBER TYPE_ERRORS(number)
+#define PREDICATE_INDICATOR TYPE_ERRORS(predicate_indicator)
+#if defined(OPTIM_COMP)
+#define VARIABLE TYPE_ERRORS(variable)
+#else
+/* RH: Not ISO anymore (from corrigendum 2) */
+/* #define VARIABLE TYPE_ERRORS(variable) */
+#endif
+#define CALLABLE TYPE_ERRORS(callable)
+
+#if !defined(OPTIM_COMP)
+/* TODO:[oc-merge] not in optim-comp */
+#define CHARACTER_CODE_LIST     DOMAIN_ERRORS(character_code_list)
+#endif
+#define SOURCE_SINK             DOMAIN_ERRORS(source_sink)
+#if !defined(OPTIM_COMP)
+#define STREAM                  DOMAIN_ERRORS(stream)
+#endif
+#define IO_MODE DOMAIN_ERRORS(io_mode)
+/* TODO:[oc-merge] not renamed in optim-comp (fixed?) */
+#define NON_EMPTY_LIST DOMAIN_ERRORS(non_empty_list)
+#define NOT_LESS_THAN_ZERO DOMAIN_ERRORS(not_less_than_zero)
+#define OPERATOR_PRIORITY DOMAIN_ERRORS(operator_priority)
+#define PROLOG_FLAG DOMAIN_ERRORS(prolog_flag)
+#define READ_OPTION DOMAIN_ERRORS(read_option)
+#define FLAG_VALUE DOMAIN_ERRORS(flag_value)
+#define CLOSE_OPTION DOMAIN_ERRORS(close_option)
+#define STREAM_OPTION DOMAIN_ERRORS(stream_option)
+#define STREAM_OR_ALIAS DOMAIN_ERRORS(stream_or_alias)
+#define STREAM_POSITION DOMAIN_ERRORS(stream_position)
+#define STREAM_PROPERTY DOMAIN_ERRORS(stream_property)
+#define WRITE_OPTION DOMAIN_ERRORS(write_option)
+#define OPERATOR_SPECIFIER DOMAIN_ERRORS(operator_specifier)
+
+#define PROCEDURE EXISTENCE_ERRORS(procedure)
+#if defined(OPTIM_COMP)
+#define STREAM EXISTENCE_ERRORS(stream)
+#endif
+
+#define ACCESS PERMISSION_TYPES(access)
+#define CREATE PERMISSION_TYPES(create)
+#define INPUT PERMISSION_TYPES(input)
+#define MODIFY PERMISSION_TYPES(modify)
+#define OPEN PERMISSION_TYPES(open)
+#define OUTPUT PERMISSION_TYPES(output)
+#define REPOSITION PERMISSION_TYPES(reposition)
+
+#define BINARY_STREAM PERMISSION_OBJECTS(binary_stream)
+/* SOURCE_SINK and STREAM already defined */
+/* #define SOURCE_SINK PERMISSION_OBJECTS(binary_stream) */
+/* #define STREAM PERMISSION_OBJECTS(binary_stream) */
+#define TEXT_STREAM PERMISSION_OBJECTS(text_stream)
+#define FLAG PERMISSION_OBJECTS(flag)
+#define OPERATOR PERMISSION_OBJECTS(operator)
+#define PAST_END_OF_STREAM PERMISSION_OBJECTS(past_end_of_stream)
+#define PRIVATE_PROCEDURE PERMISSION_OBJECTS(private_procedure)
+#define STATIC_PROCEDURE PERMISSION_OBJECTS(static_procedure)
+
+#define IN_CHARACTER_CODE REPRESENTATION_ERRORS(in_character_code)
+#define MAX_ARITY REPRESENTATION_ERRORS(max_arity)
+#define MAX_INTEGER REPRESENTATION_ERRORS(max_integer)
+#define MIN_INTEGER REPRESENTATION_ERRORS(min_integer)
+#define CHARACTER_CODE REPRESENTATION_ERRORS(character_code)
+/* TODO:[oc-merge] new */
+#define NAN_OR_INF_TO_INTEGER REPRESENTATION_ERRORS(nan_or_inf_to_integer)
+#define MAX_ATOM_LENGTH       REPRESENTATION_ERRORS(max_atom_length)  /* Unneeded with dynamic atom sizes */
+
+#define FLOAT_OVERFLOW EVALUATION_ERRORS(float_overflow)
+#define INT_OVERFLOW EVALUATION_ERRORS(int_overflow)
+#define E_UNDEFINED EVALUATION_ERRORS(e_undefined)
+#define E_UNDERFLOW EVALUATION_ERRORS(e_underflow)
+#define ZERO_DIVISOR EVALUATION_ERRORS(zero_divisor)
+
 #define R_UNDEFINED RESOURCE_ERRORS(r_undefined)
 #define R_STACK RESOURCE_ERRORS(r_stack)
-
-/* =========================================================================== */
-
-/* OGRAMA: OLD VERSION ---------------------------------------------------- */ 
-/* #define TYPE_ERROR(Type) (32+Type) */ /* includes also domain errors */ 
-
-/* #define INSTANTIATION_ERROR 1
-#define READ_PAST_EOS_ERROR 2
-#define NO_READ_PERMISSION 3
-#define NO_WRITE_PERMISSION 4
-#define NO_SUCH_FILE 5
-#define NO_OPEN_PERMISSION 6
-#define NO_ACCESS_PERMISSION 7
-#define SYSTEM_ERROR 8 OGRAMA */
-
-/* Type codes for TYPE_ERROR  //) */
-/* #define STRICT_ATOM 0
-#define ATOMIC 1
-#define TY_BYTE 2
-#define CALLABLE 3
-#define COMPOUND 4
-#define EVALUABLE 5
-#define IN_BYTE 6
-#define INTEGER 7
-#define LIST 8
-#define NUMBER 9
-#define PREDICATE_INDICATOR 10
-#define VARIABLE 11 
-*/
-
-/*
-#define CHARACTER_CODE_LIST 32 First domain code 
-#define STREAM_OR_ALIAS 33
-#define SOURCE_SINK 34  OGRAMA */
-/* END OLD VERSION ----------------------------------------------------------- */
 
 #endif /* _CIAO_ENG_ERRHANDLE_H */
