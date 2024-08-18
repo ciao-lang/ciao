@@ -22,6 +22,8 @@
 
 :- '$native_include_c_source'('basiccontrol.c').
 
+:- '$native_include_c_header'('eng_errhandle.h').
+
 :- '$native_include_c_header'('io_basic.h').
 :- '$native_include_c_source'('io_basic.c').
 
