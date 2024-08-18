@@ -102,6 +102,23 @@ typedef tagged_t blob_unit_t; // TODO:[oc-merge] make OC use this def?
 typedef int arity_t; /* type for arity */ // TODO:[oc-merge] intmach_t in OC
 
 /* ------------------------------------------------------------------------- */
+/* Some helper integer and pointer functions */
+
+/* Prepare a mask like: */
+/*    <-bits-><--offset--> */
+/* 00011111111000000000000 */
+#define MakeMask(Type, Bits, Offset) ((((Type)1<<(Bits))-1)<<(Offset))
+
+/* Deposit Source into Mask:ed portion of Dest */
+#define Deposit(Source,Mask,Dest) (((Source)&(Mask))|((Dest)& ~(Mask)))
+
+/* Alignment */
+#define ALIGN_TO(A,X) ((((X)-1) & -(A))+(A))
+
+/* Byte-based offsets for tagged_t */
+#define CharOffset(X,O) ((tagged_t *)((char *)(X) + (O)))
+
+/* ------------------------------------------------------------------------- */
 /* Worker argument abstraction (from optim_comp) */
 
 #define CHANGE_WORKER(NEW_WORKER, CODE) { \

@@ -93,6 +93,11 @@ void checkdealloc(tagged_t *ptr, intmach_t decr);
   checkdealloc((tagged_t *)(Ptr), \
                (ArrayLen) * sizeof(ArrayType))
 
+/* Memory management for raw binary buffers (e.g., for stacks) */
+
+#define ALLOC_AREA(I) ((tagged_t *)checkalloc_ARRAY(char, (I)))
+#define REALLOC_AREA(START, OLDCOUNT, NEWCOUNT) ((tagged_t *)checkrealloc_ARRAY(char, (OLDCOUNT), (NEWCOUNT), (char *)(START)))
+
 /* --------------------------------------------------------------------------- */
 /* TODO: move somewhere else? */
 

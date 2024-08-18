@@ -36,7 +36,20 @@
 #include <ciao/qread.h>
 #include <ciao/modload.h>
 
-/* local declarations */
+/* ------------------------------------------------------------------------- */
+/* User-defined external configuration parameters */
+
+intmach_t eng_cfg_getenv(char *name, intmach_t default_value) {
+  char *value_string;
+  value_string = getenv(name);
+  if (value_string != NULL) {
+    return atol(value_string);
+  } else {
+    return default_value;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
 
 static CBOOL__PROTO(prolog_atom_mode);
 static definition_t *define_builtin(char *pname, int instr, int arity);
@@ -1269,21 +1282,8 @@ static void define_functions(void)
   deffunction("COMPARE FUNCTION",2,(void *)fu2_compare,42);
 }
 
-/* The ...STKSIZE constants may be overridden by env. variables.
-   This macro first looks for one, and if not found, uses the default. */
-#define GETENV(VALUE,WORK,STRING,VAR) \
-  if ((WORK = getenv(STRING))) \
-    VALUE = atoi(WORK); \
-  else \
-    VALUE = VAR;
-
-void init_once(void)
-{
-  int i;
-#if defined(ATOMGC)
-  int j;
-#endif
-  char *cp;
+void init_once(void) {
+  intmach_t i;
 
   /* Init time variables */
   reset_timing();
@@ -1292,14 +1292,15 @@ void init_once(void)
   INIT_THREADS;
 #endif
 
-  GETENV(i,cp,"ATMTABSIZE",ATMTABSIZE);
+  i = eng_cfg_getenv("ATMTABSIZE",ATMTABSIZE);
   atmtab = checkalloc_ARRAY(sw_on_key_node_t *, i);
 
   ciao_atoms = new_switch_on_key(2*i,NULL);
 
 #if defined(ATOMGC)
-  for (j=0; j < i; j++)
+  for (intmach_t j=0; j < i; j++) {
     atmtab[j] = NULL;
+  }
 #endif
 
   /* Predicate and module database initialization */
@@ -2077,10 +2078,8 @@ worker_t *create_wam_storage(void) {
   return w;
 }
 
-CVOID__PROTO(create_wam_areas)
-{
-  int i, j;
-  char *cp;
+CVOID__PROTO(create_wam_areas) {
+  intmach_t i, j;
 
   Atom_Buffer_Length = STATICMAXATOM;
   Atom_Buffer = checkalloc_ARRAY(char, Atom_Buffer_Length);
@@ -2145,23 +2144,23 @@ CVOID__PROTO(create_wam_areas)
 #endif
 
   /* heap pointer is first free cell, grows ++ */
-  GETENV(i,cp,"GLOBALSTKSIZE",GLOBALSTKSIZE);
-  Heap_Start = checkalloc_ARRAY(tagged_t, i);
-  Heap_End =  HeapOffset(Heap_Start,i);
+  i = eng_cfg_getenv("GLOBALSTKSIZE",GLOBALSTKSIZE) * sizeof(tagged_t);
+  Heap_Start = ALLOC_AREA(i);
+  Heap_End = (tagged_t *)HeapCharOffset(Heap_Start,i);
   UnsetEvent();
 
   /* stack pointer is first free cell, grows ++ */
-  GETENV(i,cp,"LOCALSTKSIZE",LOCALSTKSIZE);
-  Stack_Start  = checkalloc_ARRAY(tagged_t, i);
-  Stack_End =  StackOffset(Stack_Start,i);
+  i = eng_cfg_getenv("LOCALSTKSIZE",LOCALSTKSIZE) * sizeof(tagged_t);
+  Stack_Start = ALLOC_AREA(i);
+  Stack_End = (tagged_t *)StackCharOffset(Stack_Start,i);
 
   /* trail pointer is first free cell, grows ++ */
   /* choice pointer is last busy cell, grows -- */
-  GETENV(i,cp,"CHOICESTKSIZE",CHOICESTKSIZE);
-  GETENV(j,cp,"TRAILSTKSIZE",TRAILSTKSIZE);
+  i = eng_cfg_getenv("CHOICESTKSIZE",CHOICESTKSIZE) * sizeof(tagged_t);
+  j = eng_cfg_getenv("TRAILSTKSIZE",TRAILSTKSIZE) * sizeof(tagged_t);
   i += j;
-  Choice_End = Trail_Start = checkalloc_ARRAY(tagged_t, i);
-  Choice_Start = Trail_End = TrailOffset(Trail_Start, i);
+  Choice_End = Trail_Start = ALLOC_AREA(i);
+  Choice_Start = Trail_End = (tagged_t *)TrailCharOffset(Trail_Start, i);
 #if defined(USE_TAGGED_CHOICE_START)
   /*  Do not touch the (tagged_t) type casting! Or the emulator will break! */
   Tagged_Choice_Start = (tagged_t *)((tagged_t)Choice_Start + TaggedZero);
@@ -2169,27 +2168,28 @@ CVOID__PROTO(create_wam_areas)
 }
 
 /* Cleanup after abort: shrink stacks to initial sizes. */
-CVOID__PROTO(reinitialize_wam_areas)
-{
-  int i, j;
-  char *cp;
+CVOID__PROTO(reinitialize_wam_areas) {
+  intmach_t i, j;
 
-  GETENV(i,cp,"GLOBALSTKSIZE",GLOBALSTKSIZE);
-  if ((j=HeapDifference(Heap_Start,Heap_End)) != i) {
-    Heap_Start = checkrealloc_ARRAY(tagged_t, j, i, Heap_Start);
-    Heap_End = HeapOffset(Heap_Start,i);
+  i = eng_cfg_getenv("GLOBALSTKSIZE",GLOBALSTKSIZE) * sizeof(tagged_t);
+  j = HeapCharSize();
+  if (j != i) {
+    Heap_Start = REALLOC_AREA(Heap_Start, j, i);
+    Heap_End = (tagged_t *)HeapCharOffset(Heap_Start, i);
   }
-  GETENV(i,cp,"LOCALSTKSIZE",LOCALSTKSIZE);
-  if ((j=StackDifference(Stack_Start,Stack_End)) != i) {
-    Stack_Start = checkrealloc_ARRAY(tagged_t, j, i, Stack_Start);
-    Stack_End = StackOffset(Stack_Start,i);
+  i = eng_cfg_getenv("LOCALSTKSIZE",LOCALSTKSIZE) * sizeof(tagged_t);
+  j = StackCharSize();
+  if (j != i) {
+    Stack_Start = REALLOC_AREA(Stack_Start, j, i);
+    Stack_End = (tagged_t *)StackCharOffset(Stack_Start, i);
   }
-  GETENV(i,cp,"CHOICESTKSIZE",CHOICESTKSIZE);
-  GETENV(j,cp,"TRAILSTKSIZE",TRAILSTKSIZE);
+  i = eng_cfg_getenv("CHOICESTKSIZE",CHOICESTKSIZE) * sizeof(tagged_t);
+  j = eng_cfg_getenv("TRAILSTKSIZE",TRAILSTKSIZE) * sizeof(tagged_t);
   i += j;
-  if ((j=TrailDifference(Trail_Start,Trail_End)) != i) {
-    Choice_End = Trail_Start = checkrealloc_ARRAY(tagged_t, j, i, Trail_Start);
-    Choice_Start = Trail_End = TrailOffset(Trail_Start,i);
+  j = TrailCharDifference(Trail_Start,Trail_End);
+  if (j != i) {
+    Choice_End = Trail_Start = REALLOC_AREA(Trail_Start, j, i);
+    Choice_Start = Trail_End = (tagged_t *)TrailCharOffset(Trail_Start,i);
 #if defined(USE_TAGGED_CHOICE_START)
     /*  Do not touch the (tagged_t) type casting! Or the emulator will break! */
     Tagged_Choice_Start = (tagged_t *)((tagged_t)Choice_Start + TaggedZero);
