@@ -34,6 +34,8 @@ syntax_error := ~range_per_error * ~error_start(~'$ccons'(syntax, unknown)).
 %:- pred system_error :: intmach + lowentrymacrocons('SYSTEM_ERROR').
 :- pred system_error/1 + lowentrymacrocons(intmach, 'SYSTEM_ERROR').
 system_error := ~range_per_error * ~error_start(~'$ccons'(system, unknown)).
+:- pred foreign_error/1 + lowentrymacrocons(intmach, 'FOREIGN_ERROR').
+foreign_error := ~range_per_error * ~error_start(~'$ccons'(foreign, unknown)).
 :- pred user_exception/1 + lowentrymacrocons(intmach, 'USER_EXCEPTION').
 user_exception := ~range_per_error * ~error_start(~'$ccons'(user, unknown)).
 
@@ -53,7 +55,8 @@ error_start(X) := ~'$keytable'(X, [
     case(res, 7),
     case(syntax, 8),
     case(system, 9),
-    case(user, 10)
+    case(foreign, 10),
+    case(user, 11)
 ]).
 
 :- pred type_errors/2 + lowentrymacrofuncons([iany], intmach, 'TYPE_ERRORS').

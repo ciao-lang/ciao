@@ -295,7 +295,7 @@
     ctype_decl  = pointer(char),
     ctype_call  = pointer(char),
     check       = ciao_is_char_code_list,
-    exception   = error_in_arg('CHARACTER_CODE_LIST'),
+    exception   = error_in_arg('LIST'), % representation error: 'CHARACTER_CODE_LIST'
     to_c        = ciao_list_to_str,
     free        = ciao_free ]).
 :- ttr_def(go_string, [

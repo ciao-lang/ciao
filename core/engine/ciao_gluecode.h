@@ -26,11 +26,6 @@
 /* TODO: decide which exception should be raised when an exception happens in
    the C code */
 
-#if defined(OPTIM_COMP)
-/* TODO:[oc-merge] add FOREIGN_ERROR in optim-comp */
-#define FOREIGN_ERROR SYSTEM_ERROR
-#endif
-
 extern jmp_buf ciao_gluecode_jmpbuf;
 #define GLUECODE_TRY(Call) ({ \
   if (setjmp(ciao_gluecode_jmpbuf)) { \

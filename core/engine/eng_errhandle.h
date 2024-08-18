@@ -24,7 +24,6 @@
 #define RESOURCE_ERROR(D)       (RANGE_PER_ERROR*error_start(res)+D)
 #define SYNTAX_ERROR            (RANGE_PER_ERROR*error_start(syntax))
 #define SYSTEM_ERROR            (RANGE_PER_ERROR*error_start(system))
-/* TODO:[oc-merge] add FOREIGN_ERROR in optim-comp */
 #define FOREIGN_ERROR           (RANGE_PER_ERROR*error_start(foreign))
 #define USER_EXCEPTION          (RANGE_PER_ERROR*error_start(user))
 
@@ -40,7 +39,6 @@
 #define error_start__res     7
 #define error_start__syntax  8
 #define error_start__system  9
-/* TODO:[oc-merge] add error_start(foreign) in optim-comp */
 #define error_start__foreign 10
 #define error_start__user    11
 
@@ -145,7 +143,8 @@
 
 /* --------------------------------------------------------------------------- */
 
-/* TODO:[oc-merge] unfold definitions */
+/* TODO:[oc-merge] unfold definitions, use keys in TYPE_ERROR(D),
+   etc. so that we do not have conflicts! e.g, ErrCode_type(atom) */
 
 #define STRICT_ATOM TYPE_ERRORS(atom)
 #define ATOMIC TYPE_ERRORS(atomic)
@@ -216,9 +215,8 @@
 #define MAX_INTEGER REPRESENTATION_ERRORS(max_integer)
 #define MIN_INTEGER REPRESENTATION_ERRORS(min_integer)
 #define CHARACTER_CODE REPRESENTATION_ERRORS(character_code)
-/* TODO:[oc-merge] new */
 #define NAN_OR_INF_TO_INTEGER REPRESENTATION_ERRORS(nan_or_inf_to_integer)
-#define MAX_ATOM_LENGTH       REPRESENTATION_ERRORS(max_atom_length)  /* Unneeded with dynamic atom sizes */
+#define MAX_ATOM_LENGTH REPRESENTATION_ERRORS(max_atom_length)  /* Unneeded with dynamic atom sizes */
 
 #define FLOAT_OVERFLOW EVALUATION_ERRORS(float_overflow)
 #define INT_OVERFLOW EVALUATION_ERRORS(int_overflow)

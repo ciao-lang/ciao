@@ -22,12 +22,8 @@ error_term(1, _, instantiation_error) :- !.
 error_term(2, Culprit, uninstantiation_error(Culprit)) :- !.
 error_term(Code, _, system_error) :- in_range(system, Code, _), !.
 error_term(Code, _, syntax_error) :- in_range(syntax, Code, _), !.
-:- if(defined(optim_comp)).
-error_term(Code, _, resource_error) :- in_range(res, Code, _), !.
-:- else.
 error_term(N, _, resource_error(Res)) :- in_range(res, N, Code), !, 
     resource_code(Code, Res).
-:- endif.
 error_term(Code, _, user_error) :- in_range(user, Code, _), !.
 error_term(N, _Culprit, evaluation_error(Type)) :- in_range(eval, N, Code), !,
     evaluation_code(Code, Type).
@@ -80,12 +76,8 @@ error_start(eval,   6).
 error_start(res,    7).
 error_start(syntax, 8).
 error_start(system, 9).
-:- if(defined(optim_comp)).
-error_start(user,   10).
-:- else.
 error_start(foreign, 10).
 error_start(user,   11).
-:- endif.
 
 type_code(0, atom).
 type_code(1, atomic).
@@ -148,11 +140,8 @@ representation_code(3, character).
 representation_code(4, max_integer).
 representation_code(5, min_integer).
 representation_code(6, character_code).
-:- if(defined(optim_comp)).
-:- else.
 representation_code(7, nan_or_inf_to_integer).
 representation_code(8, max_atom_length).
-:- endif.
 
 evaluation_code(0, float_overflow).
 evaluation_code(1, int_overflow).
