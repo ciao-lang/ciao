@@ -169,11 +169,7 @@ CBOOL__PROTO(prolog_lock_atom_state) {
       Release_slock(atomptr->counter_lock);
       CBOOL__LASTUNIFY(X(1), MakeSmall(lock_value));
     } else {
-#if defined(OPTIM_COMP)
-      BUILTIN_ERROR(TYPE_ERROR(VARIABLE),X(1),2);
-#else
       BUILTIN_ERROR(UNINSTANTIATION_ERROR,X(1),2);
-#endif
     }
   } else {
     BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(0),1);

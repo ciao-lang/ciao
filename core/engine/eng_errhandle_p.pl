@@ -19,10 +19,7 @@ in_range(Type, Code, WhichWithinType):-
     WhichWithinType is Code - Start.
 
 error_term(1, _, instantiation_error) :- !.
-:- if(defined(optim_comp)).
-:- else.
 error_term(2, Culprit, uninstantiation_error(Culprit)) :- !.
-:- endif.
 error_term(Code, _, system_error) :- in_range(system, Code, _), !.
 error_term(Code, _, syntax_error) :- in_range(syntax, Code, _), !.
 :- if(defined(optim_comp)).
@@ -101,9 +98,7 @@ type_code(7, integer).
 type_code(8, list).
 type_code(9, number).
 type_code(10, predicate_indicator).
-:- if(defined(optim_comp)).
-type_code(11, variable). % TODO:[oc-merge] removed in core
-:- endif.
+% type_code(11, variable). % (deprecated, corr2, use uninstantiation)
 type_code(12, callable).
 
 domain_code(0, character_code_list).

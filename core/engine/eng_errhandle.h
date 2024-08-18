@@ -57,7 +57,7 @@
 #define TYPE_ERRORS__list 8
 #define TYPE_ERRORS__number 9
 #define TYPE_ERRORS__predicate_indicator 10
-#define TYPE_ERRORS__variable 11
+// #define TYPE_ERRORS__variable 11 // (deprecated, corr2, use uninstantiation)
 #define TYPE_ERRORS__callable 12
 
 /* DOMAIN_ERRORS */
@@ -161,12 +161,6 @@
 #define LIST TYPE_ERRORS(list)
 #define NUMBER TYPE_ERRORS(number)
 #define PREDICATE_INDICATOR TYPE_ERRORS(predicate_indicator)
-#if defined(OPTIM_COMP)
-#define VARIABLE TYPE_ERRORS(variable)
-#else
-/* RH: Not ISO anymore (from corrigendum 2) */
-/* #define VARIABLE TYPE_ERRORS(variable) */
-#endif
 #define CALLABLE TYPE_ERRORS(callable)
 
 #if !defined(OPTIM_COMP)

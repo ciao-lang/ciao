@@ -1,16 +1,20 @@
 % (included from absmach_def.pl -- ImProlog part)
 %! \title Error code classification (ISO Prolog)
+%
+% (see eng_errhandle_p.pl for documentation)
 
 :- lowinclude(postdef_h, engine(eng_errhandle)).
 
-% TODO: xref errhandle.pl, internals.pl -> unify in a single file!
+% Encoding of error terms as integers.
 
-% TODO: this entangled code is indeed a box/unbox operation of the error data type!!!
-% TODO: use the machinery to represent tagged words to do this automatically
+% TODO: This code is too complicated. Use the box/unbox machinery used
+%   to represent tagged words to simplify it?
 
 % Errors identifiers cannot be zero (as 0 = -0)
 :- pred instantiation_error/1 + lowentrymacrocons(intmach, 'INSTANTIATION_ERROR').
 instantiation_error := 1.
+:- pred uninstantiation_error/1 + lowentrymacrocons(intmach, 'UNINSTANTIATION_ERROR').
+uninstantiation_error := 2.
 :- pred type_error/2 + lowentrymacrofun([intmach], intmach, 'TYPE_ERROR').
 type_error(D) := ~range_per_error * ~error_start(~'$ccons'(type, unknown)) + D.
 :- pred domain_error/2 + lowentrymacrofun([intmach], intmach, 'DOMAIN_ERROR').
@@ -65,7 +69,7 @@ type_errors(X) := ~'$keytable'(X, [
     case(list, 8),
     case(number, 9),
     case(predicate_indicator, 10),
-    case(variable, 11),
+    % case(variable, 11), % (deprecated, corr2, use uninstantiation)
     case(callable, 12)
 ]).
 
