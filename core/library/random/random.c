@@ -58,12 +58,12 @@ CBOOL__PROTO(prolog_random3)
   ERR__FUNCTOR("random:random", 3);
   DEREF(X(0),X(0));
   if (!IsNumber(X(0))) {
-    ERROR_IN_ARG(X(0),1,TYPE_ERROR(NUMBER));
+    ERROR_IN_ARG(X(0),1,ERR_type_error(number));
   }
 
   DEREF(X(1),X(1));
   if (!IsNumber(X(1))) {
-    ERROR_IN_ARG(X(1),1,TYPE_ERROR(NUMBER));
+    ERROR_IN_ARG(X(1),2,ERR_type_error(number));
   }
 
   DEREF(X(2),X(2));
@@ -96,7 +96,7 @@ CBOOL__PROTO(prolog_srandom) {
   } else if (IsInteger(X(0))) {
     srandom((int)GetSmall(X(0)));
   } else {
-    ERROR_IN_ARG(X(1),1,TYPE_ERROR(INTEGER));
+    ERROR_IN_ARG(X(1),1,ERR_type_error(integer));
   }
 
   return TRUE;

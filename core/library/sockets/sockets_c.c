@@ -85,12 +85,12 @@ CBOOL__PROTO(prolog_connect_to_socket_type) {
 
   DEREF(host_deref, X(0));
   if (!TaggedIsATM(host_deref))
-    BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(atom), X(0), 1);
     // "connect_to_socket_type/[3,4]: 1st argument must be an atom");
 
   DEREF(X(1), X(1));
   if (!TaggedIsSmall(X(1)))
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
+    BUILTIN_ERROR(ERR_type_error(integer), X(1), 2);
     //    USAGE_FAULT("connect_to_socket_type/[3,4]: 2nd argument must be a port number");
 
  if ((port_number = TaggedToIntmach(X(1))) > MAX_SOCK_NUMBER)
@@ -99,7 +99,7 @@ CBOOL__PROTO(prolog_connect_to_socket_type) {
 
   DEREF(socket_atm, X(2));
   if (!TaggedIsATM(socket_atm))
-    BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(2), 3);
+    BUILTIN_ERROR(ERR_type_error(atom), X(2), 3);
 // USAGE_FAULT("connect_to_socket_type/[3,4]: 3rd argument must be an atom");
 
   if (socket_atm == atom_stream)
@@ -170,7 +170,7 @@ CBOOL__PROTO(prolog_bind_socket)
   DEREF(X(1), X(1));
   if (!TaggedIsSmall(X(1)))
     //    USAGE_FAULT("bind_socket: 2nd argument must be a (small) number");
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
+    BUILTIN_ERROR(ERR_type_error(integer), X(1), 2);
 
   if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     //    MAJOR_FAULT("bind_socket/3: socket creation failed");
@@ -226,7 +226,7 @@ CBOOL__PROTO(prolog_socket_accept) {
   
   DEREF(X(0), X(0));
   if (!TaggedIsSmall(X(0)))
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(integer), X(0), 1);
   socket = GetSmall(X(0));
 
   isalen = sizeof(struct sockaddr);
@@ -310,7 +310,7 @@ CBOOL__PROTO(prolog_select_socket) {
 
   DEREF(X(3), X(3));                      /* Get list of streams to watch */
   if (!TaggedIsLST(X(3)) && !(atom_nil == X(3)))
-    BUILTIN_ERROR(TYPE_ERROR(LIST), X(3), 4);
+    BUILTIN_ERROR(ERR_type_error(list), X(3), 4);
   
   DEREF(cdr,X(3));
   while (cdr!=atom_nil) {
@@ -362,7 +362,7 @@ static CFUN__PROTO(bytelist_to_atmbuf, intmach_t, intmach_t ci,
     if (IsVar(cdr)) {
       BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,ci+1);
     } else if (!TaggedIsLST(cdr)) {
-      BUILTIN_ERROR(TYPE_ERROR(CHARACTER_CODE_LIST),X(ci),ci+1);
+      BUILTIN_ERROR(ERR_type_error(list),X(ci),ci+1);
     } else if (msglen == Atom_Buffer_Length) {                   /* realloc */
       Atom_Buffer = checkrealloc_ARRAY(char,
                                        msglen,
@@ -376,7 +376,7 @@ static CFUN__PROTO(bytelist_to_atmbuf, intmach_t, intmach_t ci,
     }
 
     if (!TaggedIsSmall(car) || (car<TaggedZero) || (car>=MakeSmall(256))) {
-      BUILTIN_ERROR(TYPE_ERROR(CHARACTER_CODE_LIST),X(ci),ci+1);
+      BUILTIN_ERROR(ERR_type_error(byte),X(ci),ci+1); // TODO:[JF] list element, is it right?
     }
     
     *buffpt++ = GetSmall(car);

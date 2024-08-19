@@ -701,12 +701,9 @@ int_list3([I1,I2,I3]) :- int(I1), int(I2), int(I3).
 :- entry error/5.
 :- endif.
 
-:- if(defined(optim_comp)).
-:- else.
 error(Type, _, _, _, ErrorTerm) :-
     in_range(foreign, Type, _), !, % foreign error, throw the term
     throw(ErrorTerm).
-:- endif.
 error(Type, PredName, PredArity, Arg, Culprit) :-
     % display('In Error'(Type, Culprit)), nl,
     error_term(Type, Culprit, ErrorTerm),

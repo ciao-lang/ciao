@@ -78,7 +78,7 @@ type_errors(X) := ~'$keytable'(X, [
 
 :- pred domain_errors/2 + lowentrymacrofuncons([iany], intmach, 'DOMAIN_ERRORS').
 domain_errors(X) := ~'$keytable'(X, [
-    case(character_code_list, 0),
+    case(character_code_list, 0), % TODO:[JF] not ISO, remove
     case(source_sink, 1),
     case(stream, 2),
     case(io_mode, 3),
@@ -133,7 +133,7 @@ permission_objects(X) := ~'$keytable'(X, [
 
 :- pred representation_errors/2 + lowentrymacrofuncons([iany], intmach, 'REPRESENTATION_ERRORS').
 representation_errors(X) := ~'$keytable'(X, [
-    case(character_code_list, 0),
+    case(character_code_list, 0), % TODO:[JF] not ISO, remove
     case(in_character_code, 1),
     case(max_arity, 2),
     case(character, 3),

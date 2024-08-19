@@ -60,7 +60,7 @@
 
 /* DOMAIN_ERRORS */
 #define DOMAIN_ERRORS(KEY) DOMAIN_ERRORS__##KEY
-#define DOMAIN_ERRORS__character_code_list 0
+#define DOMAIN_ERRORS__character_code_list 0 // TODO:[JF] not ISO, remove
 #define DOMAIN_ERRORS__source_sink 1
 #define DOMAIN_ERRORS__stream 2
 #define DOMAIN_ERRORS__io_mode 3
@@ -114,9 +114,8 @@
 #define PERMISSION_OBJECTS__static_procedure 8
 
 /* REPRESENTATION_ERROR */
-/* CHARACTER_CODE_LIST already defined */
 #define REPRESENTATION_ERRORS(KEY) REPRESENTATION_ERRORS__##KEY
-#define REPRESENTATION_ERRORS__character_code_list 0
+#define REPRESENTATION_ERRORS__character_code_list 0 // TODO:[JF] not ISO, remove
 #define REPRESENTATION_ERRORS__in_character_code 1
 #define REPRESENTATION_ERRORS__max_arity 2
 #define REPRESENTATION_ERRORS__character 3
@@ -144,23 +143,12 @@
 
 /* --------------------------------------------------------------------------- */
 
+#define ERR_type_error(X) TYPE_ERROR(TYPE_ERRORS(X))
+#define ERR_representation_error(X) REPRESENTATION_ERROR(REPRESENTATION_ERRORS(X))
+
 /* TODO:[oc-merge] unfold definitions, use keys in TYPE_ERROR(D),
    etc. so that we do not have conflicts! e.g, ErrCode_type(atom) */
 
-#define STRICT_ATOM TYPE_ERRORS(atom)
-#define ATOMIC TYPE_ERRORS(atomic)
-#define TY_BYTE TYPE_ERRORS(byte)
-#define CHARACTER TYPE_ERRORS(character)
-#define COMPOUND TYPE_ERRORS(compound)
-#define EVALUABLE TYPE_ERRORS(evaluable)
-#define IN_BYTE TYPE_ERRORS(in_byte)
-#define INTEGER TYPE_ERRORS(integer)
-#define LIST TYPE_ERRORS(list)
-#define NUMBER TYPE_ERRORS(number)
-#define PREDICATE_INDICATOR TYPE_ERRORS(predicate_indicator)
-#define CALLABLE TYPE_ERRORS(callable)
-
-#define CHARACTER_CODE_LIST     DOMAIN_ERRORS(character_code_list)
 #define SOURCE_SINK             DOMAIN_ERRORS(source_sink)
 #if !defined(OPTIM_COMP)
 #define STREAM                  DOMAIN_ERRORS(stream)

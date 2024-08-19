@@ -123,7 +123,7 @@ CBOOL__PROTO(prolog_lock_atom) {
     if (atomptr->atom_lock_counter > 0)
       Release_lock(atomptr->atom_lock_l);
     Release_slock(atomptr->counter_lock);
-  } else BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(0),1);
+  } else BUILTIN_ERROR(ERR_type_error(atom),X(0),1);
 
   CBOOL__PROCEED;
 }
@@ -142,7 +142,7 @@ CBOOL__PROTO(prolog_unlock_atom) {
     if (atomptr->atom_lock_counter == 1)
       Release_lock(atomptr->atom_lock_l);
     Release_slock(atomptr->counter_lock);
-  } else BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(0),1);
+  } else BUILTIN_ERROR(ERR_type_error(atom),X(0),1);
 
   CBOOL__PROCEED;
 }
@@ -172,7 +172,7 @@ CBOOL__PROTO(prolog_lock_atom_state) {
       BUILTIN_ERROR(UNINSTANTIATION_ERROR,X(1),2);
     }
   } else {
-    BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(0),1);
+    BUILTIN_ERROR(ERR_type_error(atom),X(0),1);
   }
 }
 
@@ -261,7 +261,7 @@ int killing_threads = FALSE;  /* Set to TRUE when killing other threads to
 
 #define ENSURE_CALLABLE(What, ArgNum)                   \
   if (!TermIsCallable(What)) {                          \
-    BUILTIN_ERROR(TYPE_ERROR(CALLABLE), What, ArgNum);  \
+    BUILTIN_ERROR(ERR_type_error(callable), What, ArgNum);  \
   }
 
 CBOOL__PROTO(prolog_eng_call) {
@@ -354,7 +354,7 @@ CBOOL__PROTO(prolog_eng_backtrack) {
 
   DEREF(X(0), X(0)); /* Make sure we have a number */
   if (!IsNumber(X(0))) {
-    BUILTIN_ERROR(TYPE_ERROR(NUMBER), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(number), X(0), 1);
   }
   goal = TermToGoalDesc(X(0));
 
@@ -416,7 +416,7 @@ CBOOL__PROTO(prolog_eng_cut) {
 
   DEREF(X(0), X(0));
   if (!IsNumber(X(0))) {
-    BUILTIN_ERROR(TYPE_ERROR(NUMBER), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(number), X(0), 1);
   }
   goal_desc = TermToGoalDesc(X(0));
 
@@ -485,7 +485,7 @@ CBOOL__PROTO(prolog_eng_release) {
   DEREF(X(0), X(0));
 
   if (!IsNumber(X(0))) {
-    BUILTIN_ERROR(TYPE_ERROR(NUMBER), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(number), X(0), 1);
   }
 
   goal = TermToGoalDesc(X(0));
@@ -506,7 +506,7 @@ CBOOL__PROTO(prolog_eng_wait) {
 
   DEREF(X(0), X(0));
   if (!IsNumber(X(0))) {
-    BUILTIN_ERROR(TYPE_ERROR(NUMBER), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(number), X(0), 1);
   } else {
     this_goal = TermToGoalDesc(X(0));
     DEBUG__TRACE(debug_threads, "About to join goal %p\n", this_goal);
@@ -539,7 +539,7 @@ CBOOL__PROTO(prolog_eng_kill) {
 
   DEREF(X(0), X(0));
   if (!IsNumber(X(0))) {
-    BUILTIN_ERROR(TYPE_ERROR(NUMBER), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(number), X(0), 1);
   } else {
     goal_to_kill = TermToGoalDesc(X(0));
 

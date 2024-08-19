@@ -647,7 +647,7 @@ CBOOL__PROTO(prolog_stream_code)
   else if (IsInteger(X(1)))
     return FALSE;
   else
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(1),2);
+    BUILTIN_ERROR(ERR_type_error(integer),X(1),2);
 }
 
 

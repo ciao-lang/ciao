@@ -233,7 +233,7 @@ static CBOOL__PROTO(prolog_constant_codes,
   for (i=0; cdr!=atom_nil; i++) {
     if (IsVar(cdr)) goto construct_list;
     if (!TaggedIsLST(cdr)) {
-      BUILTIN_ERROR(TYPE_ERROR(LIST),X(ci),ci+1);
+      BUILTIN_ERROR(ERR_type_error(list),X(ci),ci+1);
     }
     ENSURE_ATOM_BUFFER(i, { s = Atom_Buffer+i; });
     DerefCar(car,cdr);
@@ -242,7 +242,7 @@ static CBOOL__PROTO(prolog_constant_codes,
       if (IsInteger(car)) { /* bigint */
         BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), car, ci+1);
       }
-      BUILTIN_ERROR(TYPE_ERROR(INTEGER), car, ci+1);
+      BUILTIN_ERROR(ERR_type_error(integer), car, ci+1);
     }
     rune = GetSmall(car);
     if (!isValidRune(rune)) {
@@ -266,15 +266,15 @@ static CBOOL__PROTO(prolog_constant_codes,
   if(!IsVar(X(0))){
     if (!numberp) {
       if(!TaggedIsATM(X(0))) {
-        BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(0), 1);
+        BUILTIN_ERROR(ERR_type_error(atom), X(0), 1);
       }
     } else if (!atomp) {
       if (!IsNumber(X(0))) {
-        BUILTIN_ERROR(TYPE_ERROR(NUMBER), X(0), 1);
+        BUILTIN_ERROR(ERR_type_error(number), X(0), 1);
       }
     } else {
       if (!IsAtomic(X(0))) {
-        BUILTIN_ERROR(TYPE_ERROR(ATOMIC),X(0),1);
+        BUILTIN_ERROR(ERR_type_error(atomic),X(0),1);
       }
     }
   }
@@ -287,7 +287,7 @@ static CBOOL__PROTO(prolog_constant_codes,
       } else if (IsInteger(X(1))) { /* bigint */
         base = 0;  // forces SOURCE_SINK error
       } else {
-        BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(1),2);
+        BUILTIN_ERROR(ERR_type_error(integer),X(1),2);
       }
     } else { // if (ci==1)
       base = GetSmall(current_radix);
@@ -314,7 +314,7 @@ static CBOOL__PROTO(prolog_constant_codes,
       } else if (IsInteger(X(1))) { /* bigint */
         base = 0; // forces SOURCE_SINK error
       } else {
-        BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(1),2);
+        BUILTIN_ERROR(ERR_type_error(integer),X(1),2);
       }
     } else { // if (ci==1)
       base = GetSmall(current_radix);
@@ -330,12 +330,12 @@ static CBOOL__PROTO(prolog_constant_codes,
   } else {
     if (numberp) {
       if (atomp) {
-        BUILTIN_ERROR(TYPE_ERROR(ATOMIC),X(0),1);
+        BUILTIN_ERROR(ERR_type_error(atomic),X(0),1);
       } else {
-        BUILTIN_ERROR(TYPE_ERROR(NUMBER),X(0),1);
+        BUILTIN_ERROR(ERR_type_error(number),X(0),1);
       }
     } else {
-      BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(0),1);
+      BUILTIN_ERROR(ERR_type_error(atom),X(0),1);
     }
   }
 
@@ -357,12 +357,12 @@ CBOOL__PROTO(prolog_atom_length) {
 
   DEREF(X(0),X(0));
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0),1,TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0),1,ERR_type_error(atom));
   }
 
   DEREF(X(1),X(1));
   if (!IsInteger(X(1)) && !IsVar(X(1))) {
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(1),2);
+    BUILTIN_ERROR(ERR_type_error(integer),X(1),2);
   }
 
   CBOOL__LASTUNIFY(MakeSmall(GetAtomLen(X(0))),X(1));
@@ -376,15 +376,15 @@ CBOOL__PROTO(prolog_sub_atom) {
 
   DEREF(X(0),X(0));
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0),1,TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0),1,ERR_type_error(atom));
   }
   DEREF(X(1),X(1));
   if (!IsInteger(X(1))) {
-    ERROR_IN_ARG(X(1),2,TYPE_ERROR(INTEGER));
+    ERROR_IN_ARG(X(1),2,ERR_type_error(integer));
   }
   DEREF(X(2),X(2));
   if (!IsInteger(X(2))) {
-    ERROR_IN_ARG(X(2),3,TYPE_ERROR(INTEGER));
+    ERROR_IN_ARG(X(2),3,ERR_type_error(integer));
   }
 
   s = GetString(X(0));
@@ -424,7 +424,7 @@ CBOOL__PROTO(prolog_atom_concat) {
 
     if (TaggedIsATM(X(1))) {
       if (!TaggedIsATM(X(2)) && !IsVar(X(2))) {
-        BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(2),3);
+        BUILTIN_ERROR(ERR_type_error(atom),X(2),3);
       }
       /* atom_concat(+, +, ?) */
       s2 = GetString(X(1));
@@ -447,7 +447,7 @@ CBOOL__PROTO(prolog_atom_concat) {
       *s = '\0';
       CBOOL__LASTUNIFY(GET_ATOM(Atom_Buffer),X(2));
     } else if (IsVar(X(1))) {
-      if (!TaggedIsATM(X(2))) { ERROR_IN_ARG(X(2),3,TYPE_ERROR(STRICT_ATOM)); }
+      if (!TaggedIsATM(X(2))) { ERROR_IN_ARG(X(2),3,ERR_type_error(atom)); }
       /* atom_concat(+, -, +) */
       s2 = GetString(X(2));
 
@@ -464,10 +464,10 @@ CBOOL__PROTO(prolog_atom_concat) {
 
       CBOOL__LASTUNIFY(GET_ATOM(Atom_Buffer),X(1));
     } else {
-      BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(1),2);
+      BUILTIN_ERROR(ERR_type_error(atom),X(1),2);
     }
   } else if (IsVar(X(0))) {
-    if (!TaggedIsATM(X(2))) { ERROR_IN_ARG(X(2),3,TYPE_ERROR(STRICT_ATOM)); }
+    if (!TaggedIsATM(X(2))) { ERROR_IN_ARG(X(2),3,ERR_type_error(atom)); }
 
     if (TaggedIsATM(X(1))) {
       /* atom_concat(-, +, +) */
@@ -497,10 +497,10 @@ CBOOL__PROTO(prolog_atom_concat) {
       CVOID__CALL(push_choicept,address_nd_atom_concat);
       CBOOL__LASTCALL(nd_atom_concat);
     } else {
-      BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(1),2);
+      BUILTIN_ERROR(ERR_type_error(atom),X(1),2);
     }
   } else {
-    BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM),X(0),1);
+    BUILTIN_ERROR(ERR_type_error(atom),X(0),1);
   }
 }
 

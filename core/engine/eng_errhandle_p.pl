@@ -93,7 +93,7 @@ type_code(10, predicate_indicator).
 % type_code(11, variable). % (deprecated, corr2, use uninstantiation)
 type_code(12, callable).
 
-domain_code(0, character_code_list).
+domain_code(0, character_code_list). % TODO:[JF] not ISO, remove
 domain_code(1, source_sink).
 domain_code(2, stream).
 domain_code(3, io_mode).
@@ -133,7 +133,7 @@ permission_object_code(6, past_end_of_stream).
 permission_object_code(7, private_procedure).
 permission_object_code(8, static_procedure).
 
-representation_code(0, character_code_list).
+representation_code(0, character_code_list). % TODO:[JF] not ISO, remove
 representation_code(1, in_character_code).
 representation_code(2, max_arity).
 representation_code(3, character).

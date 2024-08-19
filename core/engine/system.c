@@ -433,7 +433,7 @@ CBOOL__PROTO(prolog_unix_cd) {
 
   /* check type argument*/
   if (!TaggedIsATM(X(1))) {
-    BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(1), 2);
+    BUILTIN_ERROR(ERR_type_error(atom), X(1), 2);
   }
   /* check argument domain error */
   if (!expand_file_name(GetString(X(1)), TRUE, pathBuf)) {
@@ -584,7 +584,7 @@ CBOOL__PROTO(prolog_unix_mktemp) {
   if (IsVar(X(0))) BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
 
   /* check type argument */
-  if (!TaggedIsATM(X(0))) ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+  if (!TaggedIsATM(X(0))) ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
 
   strcpy(template, GetString(X(0)));
 
@@ -609,12 +609,12 @@ CBOOL__PROTO(prolog_unix_access) {
   /* check argument instantiation error */
   if (IsVar(X(0))) BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   /* check type argument */
-  if (!TaggedIsATM(X(0))) ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+  if (!TaggedIsATM(X(0))) ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
 
   DEREF(X(1), X(1));
 
   if (!TaggedIsSmall(X(1)) || (mode = GetSmall(X(1))) & ~255) /* Not a byte */
-    ERROR_IN_ARG(X(1), 2, TYPE_ERROR(TY_BYTE));
+    ERROR_IN_ARG(X(1), 2, ERR_type_error(byte));
 
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf))
     return FALSE;
@@ -642,7 +642,7 @@ CBOOL__PROTO(prolog_directory_files) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
   }
   /* check domain argument */
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
@@ -718,7 +718,7 @@ CBOOL__PROTO(prolog_file_properties) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
   }
   /* check argument domain error */
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
@@ -811,7 +811,7 @@ CBOOL__PROTO(prolog_touch) {
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   /* check type argument */
   if (!TaggedIsATM(X(0)))
-    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
 
   if (!expand_file_name(GetString(X(0)), TRUE, file))
     return FALSE;
@@ -860,7 +860,7 @@ CBOOL__PROTO(prolog_unix_chmod) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
   }
   /* check domain argument */
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
@@ -873,7 +873,7 @@ CBOOL__PROTO(prolog_unix_chmod) {
   }
   /* and check type argument again */
   if (!TaggedIsSmall(X(1))) {
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
+    BUILTIN_ERROR(ERR_type_error(integer), X(1), 2);
   }
 
   /* make call to chmod, if there is any problem, raise a system error */
@@ -915,7 +915,7 @@ CBOOL__PROTO(prolog_unix_umask) {
   } else {
     /* check type argument*/
     if (!TaggedIsSmall(X(1)))
-      BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
+      BUILTIN_ERROR(ERR_type_error(integer), X(1), 2);
     CBOOL__LASTUNIFY(MakeSmall(umask(GetSmall(X(1)))), X(0));
   }
 }
@@ -931,7 +931,7 @@ CBOOL__PROTO(prolog_unix_delete) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
   }
   /* check argument domain error */
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
@@ -1003,7 +1003,7 @@ CBOOL__PROTO(prolog_unix_rename) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
   }
 
   DEREF(X(1), X(1));
@@ -1013,7 +1013,7 @@ CBOOL__PROTO(prolog_unix_rename) {
   }
   /* check type the other argument*/
   if (!TaggedIsATM(X(1))) {
-    ERROR_IN_ARG(X(1), 2, TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(1), 2, ERR_type_error(atom));
   }
   /* check domain of the two arguments */
   if (!expand_file_name(GetString(X(0)), TRUE, orig_name)) {
@@ -1056,7 +1056,7 @@ CBOOL__PROTO(prolog_unix_mkdir) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
   }
   /* check domain argument */
   if (!expand_file_name(GetString(X(0)), TRUE, dirname)) {
@@ -1069,7 +1069,7 @@ CBOOL__PROTO(prolog_unix_mkdir) {
   }
   /* check type argument*/
   if (!TaggedIsSmall(X(1))) {
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
+    BUILTIN_ERROR(ERR_type_error(integer), X(1), 2);
   }
 #if !(defined(_WIN32) || defined(_WIN64))
   int mode = GetSmall(X(1));
@@ -1115,7 +1115,7 @@ CBOOL__PROTO(prolog_unix_rmdir) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
   }
   /* Check domain error */
   if (!expand_file_name(GetString(X(0)), TRUE, dirname)) {
@@ -1403,7 +1403,7 @@ CBOOL__PROTO(prolog_c_copy_file) {
 /*   /\* check type argument*\/ */
 /*   /\* */
 /*   if (!TaggedIsATM(X(0))) */
-/*     ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM)); */
+/*     ERROR_IN_ARG(X(0), 1, ERR_type_error(atom)); */
 /*   *\/ */
 /*   if ((s = getenv(GetString(X(0)))) == NULL) return FALSE; */
 
@@ -1552,7 +1552,7 @@ CBOOL__PROTO(prolog_pause) {
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   /* check type argument*/
   if (!TaggedIsSmall(x0))
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(integer), X(0), 1);
   time = GetSmall(x0);
 
   sleep(time);
@@ -1873,7 +1873,7 @@ CBOOL__PROTO(prolog_path_is_absolute) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
   }
   path = GetString(X(0));
 
@@ -2094,7 +2094,7 @@ CBOOL__PROTO(prolog_extract_paths) {
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
-    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
   }
   pathlist = GetString(X(0));
 
@@ -2146,7 +2146,7 @@ CBOOL__PROTO(prolog_wait) {
 
   DEREF(X(0), X(0));
   if (!TaggedIsSmall(X(0))) {
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(integer), X(0), 1);
   }
 
   waited_pid = c_waitpid(GetSmall(X(0)), &status);
@@ -2200,7 +2200,7 @@ CBOOL__PROTO(prolog_kill) {
   }
   /* and check type argument again */
   if (!TaggedIsSmall(X(0))) {
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(integer), X(0), 1);
   }
 
   DEREF(X(1), X(1));
@@ -2210,7 +2210,7 @@ CBOOL__PROTO(prolog_kill) {
   }
   /* and check type argument again */
   if (!TaggedIsSmall(X(1))) {
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(1), 2);
+    BUILTIN_ERROR(ERR_type_error(integer), X(1), 2);
   }
 
   /* sends the signal specified by X(1) to X(0) process (pid) */
@@ -2877,7 +2877,7 @@ CBOOL__PROTO(prolog_exec) {
   /* Get command */
   DEREF(X(0), X(0));
   if (!TaggedIsATM(X(0))) {
-    BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(atom), X(0), 1);
   }
   command = GetString(X(0));
 
@@ -2888,14 +2888,14 @@ CBOOL__PROTO(prolog_exec) {
     args_n++;
     DEREF(head, *TaggedToCar(list));
     if (!TaggedIsATM(head)) { /* We only allow atoms */
-      BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), head, 2);
+      BUILTIN_ERROR(ERR_type_error(atom), head, 2);
     }
     list = *TaggedToCdr(list);
     DEREF(list, list);
   }
   /* Make sure we had a real list */
   if (!(!IsVar(list) && TaggedIsATM(list) && (list == atom_nil))) {
-    BUILTIN_ERROR(TYPE_ERROR(LIST), X(1), 2);
+    BUILTIN_ERROR(ERR_type_error(list), X(1), 2);
   }
   
   /* Get (optional) child execution directory */
@@ -2909,7 +2909,7 @@ CBOOL__PROTO(prolog_exec) {
   /* Get flags */
   DEREF(X(7), X(7));
   if (!TaggedIsSmall(X(7))) {
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(7), 8);
+    BUILTIN_ERROR(ERR_type_error(integer), X(7), 8);
   }
   flags = GetSmall(X(7));
   
@@ -3043,7 +3043,7 @@ CBOOL__PROTO(prolog_exec_shell) {
     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
   /* check type argument*/
   if (!TaggedIsATM(X(0)))
-    ERROR_IN_ARG(X(0), 1, TYPE_ERROR(STRICT_ATOM));
+    ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
 
   char *shellcmd = GetString(X(0));
   if (strcmp(shellcmd, "") == 0) shellcmd = NULL;
@@ -3111,7 +3111,7 @@ CBOOL__PROTO(prolog_fd_dup) {
   /* Get source fd */
   DEREF(X(0), X(0));
   if (!TaggedIsSmall(X(0))) {
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(integer), X(0), 1);
   }
   i = GetSmall(X(0));
 
@@ -3139,7 +3139,7 @@ CBOOL__PROTO(prolog_fd_close) {
   /* Get fd */
   DEREF(X(0), X(0));
   if (!TaggedIsSmall(X(0))) {
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), X(0), 1);
+    BUILTIN_ERROR(ERR_type_error(integer), X(0), 1);
   }
   i = GetSmall(X(0));
 
@@ -3213,7 +3213,7 @@ CBOOL__PROTO(prolog_datime) {
     } else if (IsInteger(X(0))) {
       inputtime = TaggedToIntmach(X(0));
     } else {
-      BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(0),1);
+      BUILTIN_ERROR(ERR_type_error(integer),X(0),1);
     }
     
     datime = localtime(&inputtime);

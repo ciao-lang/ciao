@@ -224,7 +224,7 @@ CBOOL__PROTO(c_setarg, intmach_t, tagged_t, tagged_t, bool_t);
   if (!TaggedIsATM((KEY))) {                                        \
     if ((!TaggedIsSTR((KEY))) ||                                    \
         (TaggedToHeadfunctor((KEY)) != SetArity(atom_user, 1)))        \
-      { BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), (KEY), 2); }         \
+      { BUILTIN_ERROR(ERR_type_error(atom), (KEY), 2); }         \
     (KEY) = atom_user;                                              \
   }                                                                 \
 })

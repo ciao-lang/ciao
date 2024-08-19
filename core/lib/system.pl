@@ -205,7 +205,8 @@ getenvstr(Name, Value) :-
 setenvstr(Name, _Value) :- \+ atom(Name), !,
     throw(error(domain_error(atom,Name),setenvstr/2-1)).
 setenvstr(_Name, Value) :- \+ ( Value = [_|_] ; Value = [] ), !,
-    throw(error(domain_error(character_code_list,Value),setenvstr/2-2)).
+    % TODO:[JF] this is only a shallow check
+    throw(error(type_error(list,Value),setenvstr/2-2)).
 setenvstr(Name, Value) :-
     atom_codes(Value2, Value),
     c_set_env(Name, Value2).

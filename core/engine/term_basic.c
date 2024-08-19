@@ -745,7 +745,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
   }, {
     return FALSE;
   }, {
-    BUILTIN_ERROR(TYPE_ERROR(INTEGER), number, 1);
+    BUILTIN_ERROR(ERR_type_error(integer), number, 1);
   });
 
   if (i < 0) {
@@ -774,7 +774,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
     if (TaggedIsATM(complex)) { // TODO: comment this case for full ISO compliance
       return FALSE;      
     } else {
-      BUILTIN_ERROR(TYPE_ERROR(COMPOUND), complex, 2);
+      BUILTIN_ERROR(ERR_type_error(compound), complex, 2);
     }
   }
 #else
@@ -852,18 +852,18 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
           } else if (IsInteger(arity)) {
             BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ARITY), arity, 3);
           } else {
-            BUILTIN_ERROR(TYPE_ERROR(INTEGER),arity, 3);
+            BUILTIN_ERROR(ERR_type_error(integer),arity, 3);
           }
         } else if (IsInteger(arity)) {
-          BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), name, 2);
+          BUILTIN_ERROR(ERR_type_error(atom), name, 2);
         } else {
-          BUILTIN_ERROR(TYPE_ERROR(INTEGER), arity, 3);
+          BUILTIN_ERROR(ERR_type_error(integer), arity, 3);
         }
       } else {
         BUILTIN_ERROR(DOMAIN_ERROR(NOT_LESS_THAN_ZERO), arity, 3);
       }
     } else {
-      BUILTIN_ERROR(TYPE_ERROR(ATOMIC), name, 2);
+      BUILTIN_ERROR(ERR_type_error(atomic), name, 2);
     }
   }
 #else
@@ -953,7 +953,7 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
     if (cdr == atom_nil) {
       BUILTIN_ERROR(DOMAIN_ERROR(NON_EMPTY_LIST), list, 2); 
     } else {
-      BUILTIN_ERROR(TYPE_ERROR(LIST), list, 2); 
+      BUILTIN_ERROR(ERR_type_error(list), list, 2); 
     }
 #else
     MINOR_FAULT("=../2: incorrect 2nd argument");
@@ -966,12 +966,12 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
     if (TermIsAtomic(f)) {
       CBOOL__LASTUNIFY(f,term);
     } else {
-      BUILTIN_ERROR(TYPE_ERROR(ATOMIC), f, 2); 
+      BUILTIN_ERROR(ERR_type_error(atomic), f, 2); 
     }
   } else if (IsVar(f)) {
     goto bomb;
   } else if (!TaggedIsATM(f)) {
-    BUILTIN_ERROR(TYPE_ERROR(STRICT_ATOM), f, 2); 
+    BUILTIN_ERROR(ERR_type_error(atom), f, 2); 
   }
 #else
   if (TermIsAtomic(f) && (cdr==atom_nil)) {
@@ -997,7 +997,7 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
     BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ARITY), list, 2);
   }
   if (cdr!=atom_nil) {
-    BUILTIN_ERROR(TYPE_ERROR(LIST), list, 2);
+    BUILTIN_ERROR(ERR_type_error(list), list, 2);
   }
 #else
   if (cdr!=atom_nil || arity==ARITYLIMIT) {
