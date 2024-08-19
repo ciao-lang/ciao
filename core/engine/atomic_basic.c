@@ -240,13 +240,13 @@ static CBOOL__PROTO(prolog_constant_codes,
     if (IsVar(car)) goto construct_list;
     if (!TaggedIsSmall(car)) {
       if (IsInteger(car)) { /* bigint */
-        BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), car, ci+1);
+        BUILTIN_ERROR(ERR_representation_error(character_code), car, ci+1);
       }
       BUILTIN_ERROR(ERR_type_error(integer), car, ci+1);
     }
     rune = GetSmall(car);
     if (!isValidRune(rune)) {
-      BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), car, ci+1);
+      BUILTIN_ERROR(ERR_representation_error(character_code), car, ci+1);
     }
     *s++ = rune;
     DerefCdr(cdr,cdr);
@@ -259,7 +259,7 @@ static CBOOL__PROTO(prolog_constant_codes,
   // TODO: add some limit? (JFMC)
   // #if !defined(USE_DYNAMIC_ATOM_SIZE)
   // if (i>=MAXATOM) {
-  //   BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ATOM_LENGTH), X(0), 1);
+  //   BUILTIN_ERROR(ERR_representation_error(max_atom_length), X(0), 1);
   // }
   // #endif
 
@@ -285,7 +285,7 @@ static CBOOL__PROTO(prolog_constant_codes,
       if (TaggedIsSmall(X(1))) {
         base = GetSmall(X(1));
       } else if (IsInteger(X(1))) { /* bigint */
-        base = 0;  // forces SOURCE_SINK error
+        base = 0; // forces radix error
       } else {
         BUILTIN_ERROR(ERR_type_error(integer),X(1),2);
       }
@@ -294,7 +294,7 @@ static CBOOL__PROTO(prolog_constant_codes,
     }
     if ((base < 2)||(base > 36)) {
       //printf("--9--\n");
-      BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK),X(1),2);
+      BUILTIN_ERROR(ERR_domain_error(source_sink),X(1),2); // TODO:[JF] add new radix error
     }
     if (CBOOL__SUCCEED(string_to_number, Atom_Buffer, base, &result, ci+1)) {
       CBOOL__LASTUNIFY(result, X(0));
@@ -305,14 +305,14 @@ static CBOOL__PROTO(prolog_constant_codes,
 
  construct_list:
   if (IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR,X(0),2);
+    BUILTIN_ERROR(ERR_instantiation_error,X(0),2);
   }
   if (numberp && IsNumber(X(0))) {
     if (ci==2) {
       if (TaggedIsSmall(X(1))) {
         base = GetSmall(X(1));
       } else if (IsInteger(X(1))) { /* bigint */
-        base = 0; // forces SOURCE_SINK error
+        base = 0; // forces radix error
       } else {
         BUILTIN_ERROR(ERR_type_error(integer),X(1),2);
       }
@@ -321,7 +321,7 @@ static CBOOL__PROTO(prolog_constant_codes,
     }
     if ((base < 2)||(base > 36)||
         (base != 10 && IsFloat(X(0)))) {
-      BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK),X(1),2);
+      BUILTIN_ERROR(ERR_domain_error(source_sink),X(1),2); // TODO:[JF] add new radix error
     }
     CVOID__CALL(number_to_string,X(0),base);
     s = Atom_Buffer;
@@ -434,7 +434,7 @@ CBOOL__PROTO(prolog_atom_concat) {
       // TODO: add some limit? (JFMC)
       // #if !defined(USE_DYNAMIC_ATOM_SIZE)
       // if (new_atom_length > MAXATOM) {
-      //   BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ATOM_LENGTH), X(2), 3);
+      //   BUILTIN_ERROR(ERR_representation_error(max_atom_length), X(2), 3);
       // }
       // #endif
       GET_ATOM_BUFFER(s, new_atom_length);

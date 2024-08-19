@@ -737,8 +737,8 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
   ERR__FUNCTOR("term_basic:arg", 3);
   intmach_t i;
 
-  DerefSw_HVAorCVAorSVA_Other(number, BUILTIN_ERROR(INSTANTIATION_ERROR, number, 1);,{});
-  DerefSw_HVAorCVAorSVA_Other(complex, BUILTIN_ERROR(INSTANTIATION_ERROR, complex, 2);,{});
+  DerefSw_HVAorCVAorSVA_Other(number, BUILTIN_ERROR(ERR_instantiation_error, number, 1);,{});
+  DerefSw_HVAorCVAorSVA_Other(complex, BUILTIN_ERROR(ERR_instantiation_error, complex, 2);,{});
 
   Sw_NUM_Large_Other(number, {
     i = GetSmall(number);
@@ -749,7 +749,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t complex) {
   });
 
   if (i < 0) {
-    BUILTIN_ERROR(DOMAIN_ERROR(NOT_LESS_THAN_ZERO), number, 1);
+    BUILTIN_ERROR(ERR_domain_error(not_less_than_zero), number, 1);
   }
 
   if (TaggedIsSTR(complex)) {
@@ -839,8 +839,8 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
   }
  construct:
   {
-    DerefSw_HVAorCVAorSVA_Other(name, BUILTIN_ERROR(INSTANTIATION_ERROR, name, 2);,{});
-    DerefSw_HVAorCVAorSVA_Other(arity, BUILTIN_ERROR(INSTANTIATION_ERROR, arity, 3);,{});
+    DerefSw_HVAorCVAorSVA_Other(name, BUILTIN_ERROR(ERR_instantiation_error, name, 2);,{});
+    DerefSw_HVAorCVAorSVA_Other(arity, BUILTIN_ERROR(ERR_instantiation_error, arity, 3);,{});
 
     if (TermIsAtomic(name)) {
       if (arity == TaggedZero) {
@@ -850,7 +850,7 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
           if (arity < MakeSmall(ARITYLIMIT)) {
             return cunify(Arg, make_structure(Arg, SetArity(name,GetSmall(arity))), term);
           } else if (IsInteger(arity)) {
-            BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ARITY), arity, 3);
+            BUILTIN_ERROR(ERR_representation_error(max_arity), arity, 3);
           } else {
             BUILTIN_ERROR(ERR_type_error(integer),arity, 3);
           }
@@ -860,7 +860,7 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
           BUILTIN_ERROR(ERR_type_error(integer), arity, 3);
         }
       } else {
-        BUILTIN_ERROR(DOMAIN_ERROR(NOT_LESS_THAN_ZERO), arity, 3);
+        BUILTIN_ERROR(ERR_domain_error(not_less_than_zero), arity, 3);
       }
     } else {
       BUILTIN_ERROR(ERR_type_error(atomic), name, 2);
@@ -941,7 +941,7 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
  construct:
   cdr = list;
 #if defined(USE_BU2_UNIV_EXCEPTIONS)
-  DerefSw_HVAorCVAorSVA_Other(cdr, BUILTIN_ERROR(INSTANTIATION_ERROR, list, 2);,{});
+  DerefSw_HVAorCVAorSVA_Other(cdr, BUILTIN_ERROR(ERR_instantiation_error, list, 2);,{});
 #else
   DerefSw_HVAorCVAorSVA_Other(cdr,;,{});
 #endif
@@ -951,7 +951,7 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
   if (!TaggedIsLST(cdr)) {
 #if defined(USE_BU2_UNIV_EXCEPTIONS)
     if (cdr == atom_nil) {
-      BUILTIN_ERROR(DOMAIN_ERROR(NON_EMPTY_LIST), list, 2); 
+      BUILTIN_ERROR(ERR_domain_error(non_empty_list), list, 2); 
     } else {
       BUILTIN_ERROR(ERR_type_error(list), list, 2); 
     }
@@ -994,7 +994,7 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
   if (IsVar(cdr)) goto bomb;
 #if defined(USE_BU2_UNIV_EXCEPTIONS)
   if (arity==ARITYLIMIT) {
-    BUILTIN_ERROR(REPRESENTATION_ERROR(MAX_ARITY), list, 2);
+    BUILTIN_ERROR(ERR_representation_error(max_arity), list, 2);
   }
   if (cdr!=atom_nil) {
     BUILTIN_ERROR(ERR_type_error(list), list, 2);
@@ -1021,7 +1021,7 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
 
  bomb:
 #if defined(USE_BU2_UNIV_EXCEPTIONS)
-  BUILTIN_ERROR(INSTANTIATION_ERROR,list, 2);
+  BUILTIN_ERROR(ERR_instantiation_error,list, 2);
 #else
   USAGE_FAULT("=../2: illegal arguments");
 #endif

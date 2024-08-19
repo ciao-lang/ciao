@@ -6,6 +6,7 @@
 :- lowinclude(postdef_h, engine(eng_errhandle)).
 
 % Encoding of error terms as integers.
+% TODO:[oc-merge] use ERR_ macros instead, define them here?
 
 % TODO: This code is too complicated. Use the box/unbox machinery used
 %   to represent tagged words to simplify it?

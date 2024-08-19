@@ -9,10 +9,26 @@
 #ifndef _CIAO_ENG_ERRHANDLE_H
 #define _CIAO_ENG_ERRHANDLE_H
 
+/* NOTE: Errors identifiers cannot be zero (as 0 = -0) */
+
+#define ERR_instantiation_error INSTANTIATION_ERROR
+#define ERR_uninstantiation_error UNINSTANTIATION_ERROR
+#define ERR_type_error(X) TYPE_ERROR(TYPE_ERRORS(X))
+#define ERR_representation_error(X) REPRESENTATION_ERROR(REPRESENTATION_ERRORS(X))
+#define ERR_existence_error(X) EXISTENCE_ERROR(EXISTENCE_ERRORS(X))
+#define ERR_permission_error(X,Y) PERMISSION_ERROR(PERMISSION_TYPES(X), PERMISSION_OBJECTS(Y))
+#define ERR_domain_error(X) DOMAIN_ERROR(DOMAIN_ERRORS(X))
+#define ERR_evaluation_error(X) EVALUATION_ERROR(EVALUATION_ERRORS(X))
+#define ERR_resource_error(X) RESOURCE_ERROR(RESOURCE_ERRORS(X))
+#define ERR_syntax_error SYNTAX_ERROR
+#define ERR_system_error SYSTEM_ERROR
+#define ERR_foreign_error FOREIGN_ERROR
+#define ERR_user_exception USER_EXCEPTION
+
+/* NOTE: Do not use directly, use ERR_ macros */
 #if defined(OPTIM_COMP)
 /* (generated from eng_errhandle.pl) */
 #else
-/* Errors identifiers cannot be zero (as 0 = -0) */
 #define INSTANTIATION_ERROR     1
 #define UNINSTANTIATION_ERROR   2
 #define TYPE_ERROR(D)           (RANGE_PER_ERROR*error_start(type)+D)
@@ -84,14 +100,7 @@
 #define EXISTENCE_ERRORS__source_sink 1
 #define EXISTENCE_ERRORS__stream 2
 
-/* SOURCE_SINK and STREAM already defined */
-/* #define SOURCE_SINK EXISTENCE_ERRORS(source_sink) */
-/* #define STREAM EXISTENCE_ERRORS(stream) */
-
-/* PERMISION_ERRORS: composed of type of action + object on which the action
-   is defined */
-
-/* PERMISSION_TYPE */
+/* PERMISION_ERRORS (permission type + permission object) */
 #define PERMISSION_TYPES(KEY) PERMISSION_TYPES__##KEY
 #define PERMISSION_TYPES__access 0
 #define PERMISSION_TYPES__create 1
@@ -100,8 +109,7 @@
 #define PERMISSION_TYPES__open 4
 #define PERMISSION_TYPES__output 5
 #define PERMISSION_TYPES__reposition 6
-
-/* OBJECTS */
+// Note: cannot be >=10!
 #define PERMISSION_OBJECTS(KEY) PERMISSION_OBJECTS__##KEY
 #define PERMISSION_OBJECTS__binary_stream 0
 #define PERMISSION_OBJECTS__source_sink 1
@@ -133,81 +141,11 @@
 #define EVALUATION_ERRORS__e_underflow 3
 #define EVALUATION_ERRORS__zero_divisor 4
 
-/* TODO:[oc-merge] new */
 /* RESOURCE_ERROR */
 #define RESOURCE_ERRORS(KEY) RESOURCE_ERRORS__##KEY
 #define RESOURCE_ERRORS__r_undefined 0
 #define RESOURCE_ERRORS__r_stack 1
 
 #endif /* !defined(OPTIM_COMP) */ 
-
-/* --------------------------------------------------------------------------- */
-
-#define ERR_type_error(X) TYPE_ERROR(TYPE_ERRORS(X))
-#define ERR_representation_error(X) REPRESENTATION_ERROR(REPRESENTATION_ERRORS(X))
-
-/* TODO:[oc-merge] unfold definitions, use keys in TYPE_ERROR(D),
-   etc. so that we do not have conflicts! e.g, ErrCode_type(atom) */
-
-#define SOURCE_SINK             DOMAIN_ERRORS(source_sink)
-#if !defined(OPTIM_COMP)
-#define STREAM                  DOMAIN_ERRORS(stream)
-#endif
-#define IO_MODE DOMAIN_ERRORS(io_mode)
-/* TODO:[oc-merge] not renamed in optim-comp (fixed?) */
-#define NON_EMPTY_LIST DOMAIN_ERRORS(non_empty_list)
-#define NOT_LESS_THAN_ZERO DOMAIN_ERRORS(not_less_than_zero)
-#define OPERATOR_PRIORITY DOMAIN_ERRORS(operator_priority)
-#define PROLOG_FLAG DOMAIN_ERRORS(prolog_flag)
-#define READ_OPTION DOMAIN_ERRORS(read_option)
-#define FLAG_VALUE DOMAIN_ERRORS(flag_value)
-#define CLOSE_OPTION DOMAIN_ERRORS(close_option)
-#define STREAM_OPTION DOMAIN_ERRORS(stream_option)
-#define STREAM_OR_ALIAS DOMAIN_ERRORS(stream_or_alias)
-#define STREAM_POSITION DOMAIN_ERRORS(stream_position)
-#define STREAM_PROPERTY DOMAIN_ERRORS(stream_property)
-#define WRITE_OPTION DOMAIN_ERRORS(write_option)
-#define OPERATOR_SPECIFIER DOMAIN_ERRORS(operator_specifier)
-
-#define PROCEDURE EXISTENCE_ERRORS(procedure)
-#if defined(OPTIM_COMP)
-#define STREAM EXISTENCE_ERRORS(stream)
-#endif
-
-#define ACCESS PERMISSION_TYPES(access)
-#define CREATE PERMISSION_TYPES(create)
-#define INPUT PERMISSION_TYPES(input)
-#define MODIFY PERMISSION_TYPES(modify)
-#define OPEN PERMISSION_TYPES(open)
-#define OUTPUT PERMISSION_TYPES(output)
-#define REPOSITION PERMISSION_TYPES(reposition)
-
-#define BINARY_STREAM PERMISSION_OBJECTS(binary_stream)
-/* SOURCE_SINK and STREAM already defined */
-/* #define SOURCE_SINK PERMISSION_OBJECTS(binary_stream) */
-/* #define STREAM PERMISSION_OBJECTS(binary_stream) */
-#define TEXT_STREAM PERMISSION_OBJECTS(text_stream)
-#define FLAG PERMISSION_OBJECTS(flag)
-#define OPERATOR PERMISSION_OBJECTS(operator)
-#define PAST_END_OF_STREAM PERMISSION_OBJECTS(past_end_of_stream)
-#define PRIVATE_PROCEDURE PERMISSION_OBJECTS(private_procedure)
-#define STATIC_PROCEDURE PERMISSION_OBJECTS(static_procedure)
-
-#define IN_CHARACTER_CODE REPRESENTATION_ERRORS(in_character_code)
-#define MAX_ARITY REPRESENTATION_ERRORS(max_arity)
-#define MAX_INTEGER REPRESENTATION_ERRORS(max_integer)
-#define MIN_INTEGER REPRESENTATION_ERRORS(min_integer)
-#define CHARACTER_CODE REPRESENTATION_ERRORS(character_code)
-#define NAN_OR_INF_TO_INTEGER REPRESENTATION_ERRORS(nan_or_inf_to_integer)
-#define MAX_ATOM_LENGTH REPRESENTATION_ERRORS(max_atom_length)  /* Unneeded with dynamic atom sizes */
-
-#define FLOAT_OVERFLOW EVALUATION_ERRORS(float_overflow)
-#define INT_OVERFLOW EVALUATION_ERRORS(int_overflow)
-#define E_UNDEFINED EVALUATION_ERRORS(e_undefined)
-#define E_UNDERFLOW EVALUATION_ERRORS(e_underflow)
-#define ZERO_DIVISOR EVALUATION_ERRORS(zero_divisor)
-
-#define R_UNDEFINED RESOURCE_ERRORS(r_undefined)
-#define R_STACK RESOURCE_ERRORS(r_stack)
 
 #endif /* _CIAO_ENG_ERRHANDLE_H */

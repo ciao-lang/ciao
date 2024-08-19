@@ -169,7 +169,7 @@ CBOOL__PROTO(prolog_lock_atom_state) {
       Release_slock(atomptr->counter_lock);
       CBOOL__LASTUNIFY(X(1), MakeSmall(lock_value));
     } else {
-      BUILTIN_ERROR(UNINSTANTIATION_ERROR,X(1),2);
+      BUILTIN_ERROR(ERR_uninstantiation_error,X(1),2);
     }
   } else {
     BUILTIN_ERROR(ERR_type_error(atom),X(0),1);
@@ -190,7 +190,9 @@ CBOOL__PROTO(prolog_lock_atom_bin) {
   if (TaggedIsATM(term)) {                                    /* Atom -- lock */
     atomptr = TaggedToAtom(term);
     Wait_Acquire_lock(atomptr->atom_lock_l);
-  } else BUILTIN_ERROR(TYPE_ERROR(ATOM),X(0),1);
+  } else {
+    BUILTIN_ERROR(ERR_type_error(atom),X(0),1);
+  }
 
   CBOOL__PROCEED;
 }
@@ -205,7 +207,9 @@ CBOOL__PROTO(prolog_unlock_atom_bin) {
   if (TaggedIsATM(term)) {
     atomptr = TaggedToAtom(term);
     Release_lock(atomptr->atom_lock_l);
-  } else BUILTIN_ERROR(TYPE_ERROR(ATOM),X(0),1);
+  } else {
+    BUILTIN_ERROR(ERR_type_error(atom),X(0),1);
+  }
 
   CBOOL__PROCEED;
 }

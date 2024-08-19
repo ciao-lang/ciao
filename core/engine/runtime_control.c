@@ -115,7 +115,7 @@ CBOOL__PROTO(prolog_new_atom) {
 
   DEREF(X(0), X(0));
   if (!IsVar(X(0))) {
-    BUILTIN_ERROR(UNINSTANTIATION_ERROR,X(0),1);
+    BUILTIN_ERROR(ERR_uninstantiation_error,X(0),1);
   }
 
   Wait_Acquire_slock(atom_id_l);

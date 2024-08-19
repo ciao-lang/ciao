@@ -43,7 +43,7 @@ CBOOL__PROTO(prolog_random) {
   DEREF(X(0),X(0));
 
   if (!IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,1);
+    BUILTIN_ERROR(ERR_instantiation_error,atom_nil,1);
   }
   
   CBOOL__LASTUNIFY(BoxFloat(RANDOM),X(0));
@@ -63,7 +63,7 @@ CBOOL__PROTO(prolog_random3) {
 
   DEREF(X(2),X(2));
   if (!IsVar(X(2))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,3);
+    BUILTIN_ERROR(ERR_instantiation_error,atom_nil,3);
   }
 
   if (IsInteger(X(0)) && IsInteger(X(1))) {

@@ -95,7 +95,7 @@ CBOOL__PROTO(prolog_connect_to_socket_type) {
 
  if ((port_number = TaggedToIntmach(X(1))) > MAX_SOCK_NUMBER)
 // USAGE_FAULT("connect_to_socket/[3,4]: port number greater than 65535");
-   BUILTIN_ERROR(SYSTEM_ERROR,X(1),2);
+   BUILTIN_ERROR(ERR_system_error,X(1),2);
 
   DEREF(socket_atm, X(2));
   if (!TaggedIsATM(socket_atm))
@@ -112,17 +112,17 @@ CBOOL__PROTO(prolog_connect_to_socket_type) {
     socket_type = SOCK_SEQPACKET;
   else if (socket_atm == atom_rdm)
     socket_type = SOCK_RDM;
-  else BUILTIN_ERROR(DOMAIN_ERROR(FLAG_VALUE),X(2),3);
+  else BUILTIN_ERROR(ERR_domain_error(flag_value),X(2),3); // TODO:[JF] incorrect, this is for prolog_flags, define a new error
 //USAGE_FAULT("connect_to_socket_type/[3,4]: unrecognized connection type");
 
 
   if ((host = gethostbyname(GetString(host_deref))) == NULL)
     //    MAJOR_FAULT("connect_to_socket/[3,4]: gethostbyname() failed");
-    BUILTIN_ERROR(SYSTEM_ERROR,X(0),1);
+    BUILTIN_ERROR(ERR_system_error,X(0),1);
 
   if ((sock = socket(AF_INET, socket_type, 0)) < 0)
     //    MAJOR_FAULT("connect_to_socket/[3,4]: socket creation failed");
-    BUILTIN_ERROR(SYSTEM_ERROR,X(0),1);
+    BUILTIN_ERROR(ERR_system_error,X(0),1);
 
 
  /* Specify that we may want to reuse the address  */
@@ -144,7 +144,7 @@ CBOOL__PROTO(prolog_connect_to_socket_type) {
               sizeof(struct sockaddr)) < 0){
     //    perror("connect() in prolog_connect_to_socket");
     //    MAJOR_FAULT("connect_to_socket_type/[3,4]: cannot connect()");
-    BUILTIN_ERROR(SYSTEM_ERROR,X(0),1);
+    BUILTIN_ERROR(ERR_system_error,X(0),1);
   }
   
   sprintf(socket_name, "<%s:%d>", GetString(host_deref), port_number);
@@ -165,7 +165,7 @@ CBOOL__PROTO(prolog_bind_socket)
   DEREF(X(2), X(2));
   if (!IsVar(X(2)))
     //"bind_socket: 3rd argument must be a variable");
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(2), 3);
+    BUILTIN_ERROR(ERR_instantiation_error, X(2), 3);
 
   DEREF(X(1), X(1));
   if (!TaggedIsSmall(X(1)))
@@ -174,7 +174,7 @@ CBOOL__PROTO(prolog_bind_socket)
 
   if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     //    MAJOR_FAULT("bind_socket/3: socket creation failed");
-    BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_system_error, X(0), 1);
 
   DEREF(X(0), X(0));
   if (IsVar(X(0)))
@@ -191,11 +191,11 @@ CBOOL__PROTO(prolog_bind_socket)
   if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, 
                  (void *)&reuse_address, sizeof(int)))
     // MAJOR_FAULT("connect_to_socket/[3,4]: error setting option");
-    BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_system_error, X(0), 1);
 
   if (bind(sock, (struct sockaddr *)&sa, sizeof(sa)) < 0)
     // MAJOR_FAULT("bind_socket: cannot bind");
-    BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_system_error, X(0), 1);
 
 
   if (IsVar(X(0))){
@@ -203,14 +203,14 @@ CBOOL__PROTO(prolog_bind_socket)
 
     if (getsockname(sock, (struct sockaddr *)&sa, &length) < 0)
       // MAJOR_FAULT("bind_socket: cannot get socket name");
-    BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_system_error, X(0), 1);
 
     port = ntohs(sa.sin_port);
     CBOOL__UNIFY(MakeSmall(port), X(0));
   }
 
   if (listen(sock, GetSmall(X(1)))) { // Error
-    BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_system_error, X(0), 1);
   }
 
   CBOOL__LASTUNIFY(MakeSmall(sock), X(2));
@@ -231,7 +231,7 @@ CBOOL__PROTO(prolog_socket_accept) {
 
   isalen = sizeof(struct sockaddr);
   if ((new_s = accept(socket, &isa, &isalen)) == -1)
-    BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_system_error, X(0), 1);
 
   sprintf(new_s_name, "<socket %d>", new_s);
 
@@ -329,13 +329,13 @@ CBOOL__PROTO(prolog_select_socket) {
   }
 
   if (select(max_fd+1, &ready, (fd_set *)NULL, (fd_set *)NULL, timeoutptr) < 0)
-    BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_system_error, X(0), 1);
     //MAJOR_FAULT("select_socket/5: select() call failed");
 
   if (watch_connections && FD_ISSET(listen_sock, &ready)) {
 
     if ((newsock = accept(listen_sock, NULL, 0)) < 0)
-      BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+      BUILTIN_ERROR(ERR_system_error, X(0), 1);
     //      MAJOR_FAULT("select_socket/5: accept() call failed");
     
     sprintf(new_s_name, "<socket %d>", newsock);
@@ -360,7 +360,7 @@ static CFUN__PROTO(bytelist_to_atmbuf, intmach_t, intmach_t ci,
   buffpt = (unsigned char *)Atom_Buffer;
   for (msglen=0; cdr!=atom_nil; msglen++) {
     if (IsVar(cdr)) {
-      BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,ci+1);
+      BUILTIN_ERROR(ERR_instantiation_error,atom_nil,ci+1);
     } else if (!TaggedIsLST(cdr)) {
       BUILTIN_ERROR(ERR_type_error(list),X(ci),ci+1);
     } else if (msglen == Atom_Buffer_Length) {                   /* realloc */
@@ -372,7 +372,7 @@ static CFUN__PROTO(bytelist_to_atmbuf, intmach_t, intmach_t ci,
     }
     DerefCar(car,cdr);
     if (IsVar(car)) {
-      BUILTIN_ERROR(INSTANTIATION_ERROR,atom_nil,ci+1);
+      BUILTIN_ERROR(ERR_instantiation_error,atom_nil,ci+1);
     }
 
     if (!TaggedIsSmall(car) || (car<TaggedZero) || (car>=MakeSmall(256))) {
@@ -417,7 +417,7 @@ CBOOL__PROTO(prolog_socket_send) {
   bytes_sent = send(GetSmall(s->label), buffpt, msglen, 0);
   if (bytes_sent < 0)
     MAJOR_FAULT("socket_send/3: send() call failed");
-    //BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+    //BUILTIN_ERROR(ERR_system_error, X(0), 1);
 
   CBOOL__LASTUNIFY(MakeSmall(bytes_sent), X(2));
 }
@@ -441,7 +441,7 @@ CBOOL__PROTO(prolog_socket_sendall) {
   bytes_sent = sendall(GetSmall(s->label), buffpt, msglen);
   if (bytes_sent < 0)
     MAJOR_FAULT("socket_sendall/2: send() call failed");
-    //BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+    //BUILTIN_ERROR(ERR_system_error, X(0), 1);
 
   return TRUE;
 }

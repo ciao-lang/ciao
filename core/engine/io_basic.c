@@ -90,12 +90,12 @@ int writemb(int fildes, c_rune_t c);
   Sw_NUM_Large_Other((X), {                                             \
     C = GetSmall((X));                                                  \
   }, { /* bigint */      \
-    BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo));  \
+    BUILTIN_ERROR(ERR_representation_error(character_code), (X), (ArgNo));  \
   }, {                                                              \
     ERROR_IN_ARG((X), (ArgNo), ERR_type_error(integer));                    \
   });                                                                   \
   if (!isValidRune((C))) {                                              \
-    BUILTIN_ERROR(REPRESENTATION_ERROR(CHARACTER_CODE), (X), (ArgNo));  \
+    BUILTIN_ERROR(ERR_representation_error(character_code), (X), (ArgNo));  \
   }                                                                     \
 })
 
@@ -112,7 +112,7 @@ int writemb(int fildes, c_rune_t c);
 /* TODO: throw better exception */
 #define IO_ERROR(Message) ({                    \
   perror((Message));                          \
-  UNLOCATED_EXCEPTION(RESOURCE_ERROR(R_UNDEFINED)); \
+  UNLOCATED_EXCEPTION(ERR_resource_error(r_undefined)); \
 })
 
 /* UTF8 Support */
@@ -677,7 +677,7 @@ CBOOL__PROTO(get) {
 
   r = CFUN__EVAL(readrune,Input_Stream_Ptr,GET,address_get);
   if (r == RUNE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),atom_nil,0);
   }
 
   CBOOL__LASTUNIFY(X(0),MakeSmall(r));
@@ -698,7 +698,7 @@ CBOOL__PROTO(get2) {
 
   r = CFUN__EVAL(readrune,s,GET,address_get2);
   if (r == RUNE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),X(0),1);
   }
 
   CBOOL__LASTUNIFY(X(1),MakeSmall(r));
@@ -712,7 +712,7 @@ CBOOL__PROTO(get1) {
   
   r = CFUN__EVAL(readrune,Input_Stream_Ptr,GET1,address_get1); /* skip whitespace */
   if (r == RUNE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),atom_nil,0);
   }
 
   CBOOL__LASTUNIFY(X(0),MakeSmall(r));
@@ -733,7 +733,7 @@ CBOOL__PROTO(get12) {
 
   r = CFUN__EVAL(readrune,s,GET1,address_get12); /* skip whitespace */
   if (r == RUNE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),X(0),1);
   }
 
   CBOOL__LASTUNIFY(X(1),MakeSmall(r));
@@ -747,7 +747,7 @@ CBOOL__PROTO(peek) {
 
   r = CFUN__EVAL(readrune,Input_Stream_Ptr,PEEK,address_peek);
   if (r == RUNE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),atom_nil,0);
   }
 
   CBOOL__LASTUNIFY(X(0),MakeSmall(r));
@@ -768,7 +768,7 @@ CBOOL__PROTO(peek2) {
 
   r = CFUN__EVAL(readrune,s,PEEK,address_peek2);
   if (r == RUNE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),X(0),1);
   }
 
   CBOOL__LASTUNIFY(X(1),MakeSmall(r));
@@ -834,7 +834,7 @@ CBOOL__PROTO(getct) {
   int typ;
   r = CFUN__EVAL(readrune_mb,Input_Stream_Ptr,GET,address_getct,&typ);
   if (r == RUNE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),atom_nil,0);
   }
   CBOOL__UNIFY(X(0),MakeSmall(r));
   CBOOL__LASTUNIFY(X(1),MakeSmall(typ));
@@ -846,7 +846,7 @@ CBOOL__PROTO(getct1) {
   int typ;
   r = CFUN__EVAL(readrune_mb,Input_Stream_Ptr,GET1,address_getct1,&typ);
   if (r == RUNE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),atom_nil,0);
   }
   CBOOL__UNIFY(X(0),MakeSmall(r));
   CBOOL__LASTUNIFY(X(1),MakeSmall(typ));
@@ -956,7 +956,7 @@ CBOOL__PROTO(skip) {
   for (r1=r+1; r1!=r;) {
     r1 = CFUN__EVAL(readrune,Input_Stream_Ptr,r,address_skip);
     if (r1 == RUNE_PAST_EOF) {
-      BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+      BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),atom_nil,0);
     }
   }
 
@@ -982,7 +982,7 @@ CBOOL__PROTO(skip2) {
   for (r1=r+1; r1!=r;) {
     r1 = CFUN__EVAL(readrune,s,r,address_skip2);
     if (r1 == RUNE_PAST_EOF) {
-      BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
+      BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),X(0),1);
     }
   }
 
@@ -1038,7 +1038,7 @@ CBOOL__PROTO(get_byte1) {
 
   i = CFUN__EVAL(readbyte,Input_Stream_Ptr,GET,address_get_byte1);
   if (i == BYTE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),atom_nil,0);
   }
 
   CBOOL__LASTUNIFY(X(0),MakeSmall(i));
@@ -1058,7 +1058,7 @@ CBOOL__PROTO(get_byte2) {
 
   i = CFUN__EVAL(readbyte,s,GET,address_get_byte2);
   if (i == BYTE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),X(0),1);
   }
 
   CBOOL__LASTUNIFY(X(1),MakeSmall(i));
@@ -1072,7 +1072,7 @@ CBOOL__PROTO(peek_byte1) {
 
   i = CFUN__EVAL(readbyte,Input_Stream_Ptr,PEEK,address_peek_byte1);
   if (i == BYTE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),atom_nil,0);
   }
 
   CBOOL__LASTUNIFY(X(0),MakeSmall(i));
@@ -1092,7 +1092,7 @@ CBOOL__PROTO(peek_byte2) {
 
   i = CFUN__EVAL(readbyte,s,PEEK,address_peek_byte2);
   if (i == BYTE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),X(0),1);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),X(0),1);
   }
 
   CBOOL__LASTUNIFY(X(1),MakeSmall(i));
@@ -1493,7 +1493,7 @@ CBOOL__PROTO(prolog_fast_read_in_c) {
 
   i = CFUN__EVAL(readbyte, Input_Stream_Ptr, GET, NULL);
   if (i == BYTE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),atom_nil,0);
   }
   CBOOL__TEST(i == FASTRW_VERSION);
 
@@ -1520,7 +1520,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
   
   k = CFUN__EVAL(readbyte, Input_Stream_Ptr, GET, NULL);
   if (k == BYTE_PAST_EOF) {
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+    BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),atom_nil,0);
   }
 
   switch(k) {
@@ -1548,7 +1548,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
       ENSURE_ATOM_BUFFER(i, { s = (unsigned char *)Atom_Buffer+i; });
       j = CFUN__EVAL(readbyte, Input_Stream_Ptr, GET, NULL);
       if (j == BYTE_PAST_EOF) {
-        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+        BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),atom_nil,0);
       }
       *s++ = j;
     }
@@ -1589,7 +1589,7 @@ CBOOL__PROTO(prolog_fast_read_in_c_aux,
     case 'S':
       i = CFUN__EVAL(readbyte, Input_Stream_Ptr, GET, NULL);
       if (i == BYTE_PAST_EOF) {
-        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, PAST_END_OF_STREAM),atom_nil,0);
+        BUILTIN_ERROR(ERR_permission_error(access, past_end_of_stream),atom_nil,0);
       }
       {
         tagged_t *h = w->heap_top;
@@ -1806,7 +1806,7 @@ CBOOL__PROTO(prolog_input_wait) {
   rv = select(fd + 1, &set, NULL, NULL, &timeout);
     
   if (rv < 0) {
-    BUILTIN_ERROR(SYSTEM_ERROR, TaggedZero, 0);
+    BUILTIN_ERROR(ERR_system_error, TaggedZero, 0);
   }
 
   CBOOL__LASTTEST(rv != 0);

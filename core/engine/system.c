@@ -428,7 +428,7 @@ CBOOL__PROTO(prolog_unix_cd) {
 
   DEREF(X(1), X(1));
   if (IsVar(X(1))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(1), 2);
+    BUILTIN_ERROR(ERR_instantiation_error, X(1), 2);
   }
 
   /* check type argument*/
@@ -437,20 +437,20 @@ CBOOL__PROTO(prolog_unix_cd) {
   }
   /* check argument domain error */
   if (!expand_file_name(GetString(X(1)), TRUE, pathBuf)) {
-    BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(1), 2);
+    BUILTIN_ERROR(ERR_domain_error(source_sink), X(1), 2);
   }
   /* If there is another problem ...*/
   if (chdir(pathBuf)) {
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case ENOENT: /* File does not exists */ 
-        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(1), 2);
+        BUILTIN_ERROR(ERR_existence_error(source_sink), X(1), 2);
         break ;
       case EACCES: /* We dont have permissions in the directory */
-        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(1), 2);
+        BUILTIN_ERROR(ERR_permission_error(access, source_sink), X(1), 2);
         break ;
       default: /* Who knows */
-        BUILTIN_ERROR(SYSTEM_ERROR, X(1), 2);
+        BUILTIN_ERROR(ERR_system_error, X(1), 2);
         break ;
       }
     } else {
@@ -504,28 +504,28 @@ CBOOL__PROTO(check_errno, int index)
   case EFAULT:
     /* TODO: This is not a domain error error, leave it such as until
              we find a better solution */
-    BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(index), index + 1);
+    BUILTIN_ERROR(ERR_domain_error(source_sink), X(index), index + 1);
     break;
   case EPERM:
   case EACCES:
   case EROFS:
-    BUILTIN_ERROR(PERMISSION_ERROR(OPEN, SOURCE_SINK), X(index), index + 1);
+    BUILTIN_ERROR(ERR_permission_error(open, source_sink), X(index), index + 1);
     break;
   case ENOENT:
-    BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(index), index + 1);
+    BUILTIN_ERROR(ERR_existence_error(source_sink), X(index), index + 1);
     break;
   case EMFILE:
   case ENFILE:
   case ENOMEM:
   case ELOOP:
   case ENOSPC:
-    BUILTIN_ERROR(RESOURCE_ERROR(R_UNDEFINED), X(index), index + 1);
+    BUILTIN_ERROR(ERR_resource_error(r_undefined), X(index), index + 1);
     break;
   case EEXIST:
-    BUILTIN_ERROR(SYSTEM_ERROR, X(index), index + 1);
+    BUILTIN_ERROR(ERR_system_error, X(index), index + 1);
     break;
   default:
-    BUILTIN_ERROR(SYSTEM_ERROR, X(index), index + 1);
+    BUILTIN_ERROR(ERR_system_error, X(index), index + 1);
     break;
   }
 }
@@ -581,7 +581,7 @@ CBOOL__PROTO(prolog_unix_mktemp) {
   DEREF(X(0), X(0));
 
   /* check argument instantiation error */
-  if (IsVar(X(0))) BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+  if (IsVar(X(0))) BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
 
   /* check type argument */
   if (!TaggedIsATM(X(0))) ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
@@ -607,7 +607,7 @@ CBOOL__PROTO(prolog_unix_access) {
   DEREF(X(0), X(0));
 
   /* check argument instantiation error */
-  if (IsVar(X(0))) BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+  if (IsVar(X(0))) BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   /* check type argument */
   if (!TaggedIsATM(X(0))) ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
 
@@ -638,7 +638,7 @@ CBOOL__PROTO(prolog_directory_files) {
 
   /* check argument instantiation error */
   if (IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
@@ -646,7 +646,7 @@ CBOOL__PROTO(prolog_directory_files) {
   }
   /* check domain argument */
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
-    BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(0), 1);
+    BUILTIN_ERROR(ERR_domain_error(source_sink), X(0), 1);
   }
 
   /* Check for system errors */
@@ -655,21 +655,21 @@ CBOOL__PROTO(prolog_directory_files) {
       /* First, identifying the error type: */
       switch(errno) {
       case EACCES:
-        BUILTIN_ERROR(PERMISSION_ERROR(OPEN, SOURCE_SINK), X(0), 1);
+        BUILTIN_ERROR(ERR_permission_error(open, source_sink), X(0), 1);
         break;
       case ENOENT:
-        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1);
+        BUILTIN_ERROR(ERR_existence_error(source_sink), X(0), 1);
         break;
       case ENOTDIR:
-        BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(0), 1);
+        BUILTIN_ERROR(ERR_domain_error(source_sink), X(0), 1);
         break;
       case EMFILE:
       case ENFILE:
       case ENOMEM:
-        BUILTIN_ERROR(RESOURCE_ERROR(R_UNDEFINED), X(0), 1);
+        BUILTIN_ERROR(ERR_resource_error(r_undefined), X(0), 1);
         break;
       default:
-        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        BUILTIN_ERROR(ERR_system_error, X(0), 1);
         break;
       }
     } else {
@@ -714,7 +714,7 @@ CBOOL__PROTO(prolog_file_properties) {
   DEREF(X(0), X(0));
   /* check argument instantiation error */
   if (IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
@@ -722,7 +722,7 @@ CBOOL__PROTO(prolog_file_properties) {
   }
   /* check argument domain error */
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
-    BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(0), 1);
+    BUILTIN_ERROR(ERR_domain_error(source_sink), X(0), 1);
   }
   DEREF(X(2), X(2));
   if (X(2) != atom_nil) { /* Link wanted */
@@ -750,13 +750,13 @@ CBOOL__PROTO(prolog_file_properties) {
       if (current_ferror_flag==atom_on) {
         switch (errno) {
         case ENOENT: /* File does not exists */ 
-          BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1);
+          BUILTIN_ERROR(ERR_existence_error(source_sink), X(0), 1);
           break;
         case EACCES: /* We dont have permissions in the directory */
-          BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+          BUILTIN_ERROR(ERR_permission_error(access, source_sink), X(0), 1);
           break;
         default: /* Who knows */
-          BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);                   
+          BUILTIN_ERROR(ERR_system_error, X(0), 1);                   
           break;
         }
       } else {
@@ -808,7 +808,7 @@ CBOOL__PROTO(prolog_touch) {
 
   /* check argument instantiation error */
   if (IsVar(X(0)))
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   /* check type argument */
   if (!TaggedIsATM(X(0)))
     ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));
@@ -828,7 +828,7 @@ CBOOL__PROTO(prolog_touch) {
   if (fd == -1) open_errno = errno;
 
   if (fd != -1 && close(fd) < 0) {
-    BUILTIN_ERROR(PERMISSION_ERROR(OPEN, SOURCE_SINK), X(0), 1);
+    BUILTIN_ERROR(ERR_permission_error(open, source_sink), X(0), 1);
   }
 
   /* If we have write access to the file, but do not own it, we will
@@ -839,10 +839,10 @@ CBOOL__PROTO(prolog_touch) {
   if (status) {
     if (open_errno) {
       /* TODO: open_errno is not used */
-      BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+      BUILTIN_ERROR(ERR_permission_error(access, source_sink), X(0), 1);
     } else {
       /* TODO: errno is not used */
-      BUILTIN_ERROR(PERMISSION_ERROR(MODIFY, SOURCE_SINK), X(0), 1);
+      BUILTIN_ERROR(ERR_permission_error(modify, source_sink), X(0), 1);
     }
   }
 
@@ -856,7 +856,7 @@ CBOOL__PROTO(prolog_unix_chmod) {
   DEREF(X(0), X(0));
   /* check argument instantiation error */
   if (IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
@@ -864,12 +864,12 @@ CBOOL__PROTO(prolog_unix_chmod) {
   }
   /* check domain argument */
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
-    BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(0), 1);
+    BUILTIN_ERROR(ERR_domain_error(source_sink), X(0), 1);
   }
   DEREF(X(1), X(1));
   /* check instatiation error to the other argument*/
   if (IsVar(X(1))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(1), 2);
+    BUILTIN_ERROR(ERR_instantiation_error, X(1), 2);
   }
   /* and check type argument again */
   if (!TaggedIsSmall(X(1))) {
@@ -881,13 +881,13 @@ CBOOL__PROTO(prolog_unix_chmod) {
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case ENOENT: /* File does not exists */ 
-        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1);
+        BUILTIN_ERROR(ERR_existence_error(source_sink), X(0), 1);
         break ;
       case EACCES: /* We dont have permissions in the directory */
-        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+        BUILTIN_ERROR(ERR_permission_error(access, source_sink), X(0), 1);
         break ;
       default: /* Who knows */
-        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        BUILTIN_ERROR(ERR_system_error, X(0), 1);
         break ;
       }
     } else {
@@ -910,7 +910,7 @@ CBOOL__PROTO(prolog_unix_umask) {
       (void)umask(i);
       CBOOL__LASTUNIFY(MakeSmall(i),X(0));
     } else {
-      BUILTIN_ERROR(INSTANTIATION_ERROR, X(1), 2);
+      BUILTIN_ERROR(ERR_instantiation_error, X(1), 2);
     }
   } else {
     /* check type argument*/
@@ -927,7 +927,7 @@ CBOOL__PROTO(prolog_unix_delete) {
   DEREF(X(0), X(0));
   /* check argument instantiation error */
   if (IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
@@ -935,20 +935,20 @@ CBOOL__PROTO(prolog_unix_delete) {
   }
   /* check argument domain error */
   if (!expand_file_name(GetString(X(0)), TRUE, pathBuf)) {
-    BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(0), 1);
+    BUILTIN_ERROR(ERR_domain_error(source_sink), X(0), 1);
   }
   /* Try to unlink, if anything go wrong, raise an error */
   if (unlink(pathBuf)) {
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case ENOENT: /* File does not exists */ 
-        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1); 
+        BUILTIN_ERROR(ERR_existence_error(source_sink), X(0), 1); 
         break ;
       case EACCES: /* We dont have permissions in the directory */
-        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+        BUILTIN_ERROR(ERR_permission_error(access, source_sink), X(0), 1);
         break ;
       default: /* Who knows */
-        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        BUILTIN_ERROR(ERR_system_error, X(0), 1);
         break ;
       }
     } else {
@@ -999,7 +999,7 @@ CBOOL__PROTO(prolog_unix_rename) {
   DEREF(X(0), X(0));
   /* check instantiation error */
   if (IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
@@ -1009,7 +1009,7 @@ CBOOL__PROTO(prolog_unix_rename) {
   DEREF(X(1), X(1));
   /* check instantiation error to the other argument */
   if (IsVar(X(1))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(1), 2);
+    BUILTIN_ERROR(ERR_instantiation_error, X(1), 2);
   }
   /* check type the other argument*/
   if (!TaggedIsATM(X(1))) {
@@ -1017,23 +1017,23 @@ CBOOL__PROTO(prolog_unix_rename) {
   }
   /* check domain of the two arguments */
   if (!expand_file_name(GetString(X(0)), TRUE, orig_name)) {
-    BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(0), 1);
+    BUILTIN_ERROR(ERR_domain_error(source_sink), X(0), 1);
   }
   if (!expand_file_name(GetString(X(1)), TRUE, new_name)) {
-    BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(1), 2);
+    BUILTIN_ERROR(ERR_domain_error(source_sink), X(1), 2);
   }
   /* if anything fails, raise and exception */
   if (unix_replace(orig_name, new_name)) {
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case ENOENT: /* File does not exists */ 
-        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(1), 2); 
+        BUILTIN_ERROR(ERR_existence_error(source_sink), X(1), 2); 
         break ;
       case EACCES: /* We dont have permissions in the directory */
-        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(1), 2);
+        BUILTIN_ERROR(ERR_permission_error(access, source_sink), X(1), 2);
         break ;
       default: /* Who knows */
-        BUILTIN_ERROR(SYSTEM_ERROR, X(1), 2);
+        BUILTIN_ERROR(ERR_system_error, X(1), 2);
         break ;
       }
     } else {
@@ -1052,7 +1052,7 @@ CBOOL__PROTO(prolog_unix_mkdir) {
   DEREF(X(0), X(0));
   /* check instantiation error */
   if (IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
@@ -1060,12 +1060,12 @@ CBOOL__PROTO(prolog_unix_mkdir) {
   }
   /* check domain argument */
   if (!expand_file_name(GetString(X(0)), TRUE, dirname)) {
-    BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(0), 1);
+    BUILTIN_ERROR(ERR_domain_error(source_sink), X(0), 1);
   }
   DEREF(X(1), X(1));
   /* check instantiation error */
   if (IsVar(X(1))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(1), 2);
+    BUILTIN_ERROR(ERR_instantiation_error, X(1), 2);
   }
   /* check type argument*/
   if (!TaggedIsSmall(X(1))) {
@@ -1086,13 +1086,13 @@ CBOOL__PROTO(prolog_unix_mkdir) {
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case EACCES: /* We dont have permissions in the directory */
-        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+        BUILTIN_ERROR(ERR_permission_error(access, source_sink), X(0), 1);
         break ;
       case ENOENT: /* Path does not exists */ 
-        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1); 
+        BUILTIN_ERROR(ERR_existence_error(source_sink), X(0), 1); 
         break ;
       default: /* Who knows */
-        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        BUILTIN_ERROR(ERR_system_error, X(0), 1);
         break ;
       }
     } else {
@@ -1111,7 +1111,7 @@ CBOOL__PROTO(prolog_unix_rmdir) {
   DEREF(X(0), X(0));
   /* check instantiation error */
   if (IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
@@ -1119,7 +1119,7 @@ CBOOL__PROTO(prolog_unix_rmdir) {
   }
   /* Check domain error */
   if (!expand_file_name(GetString(X(0)), TRUE, dirname)) {
-    BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(0), 1);
+    BUILTIN_ERROR(ERR_domain_error(source_sink), X(0), 1);
   }
   /* check that file exists */
 
@@ -1128,13 +1128,13 @@ CBOOL__PROTO(prolog_unix_rmdir) {
     if (current_ferror_flag==atom_on) {
       switch (errno) {
       case ENOENT: /* File does not exists */ 
-        BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1); 
+        BUILTIN_ERROR(ERR_existence_error(source_sink), X(0), 1); 
         break ;
       case EACCES: /* We dont have permissions in the directory */
-        BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+        BUILTIN_ERROR(ERR_permission_error(access, source_sink), X(0), 1);
         break ;
       default: /* Who knows */
-        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        BUILTIN_ERROR(ERR_system_error, X(0), 1);
         break ;
       }
     } else {
@@ -1154,7 +1154,7 @@ CBOOL__PROTO(prolog_current_host) {
   char hostname[MAXHOSTNAMELEN*4];
 
   if (gethostname(hostname, sizeof(hostname)) < 0) {
-    BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_system_error, X(0), 1);
   }
 
   if (!strchr(hostname, '.')) {
@@ -1166,7 +1166,7 @@ CBOOL__PROTO(prolog_current_host) {
     hints.ai_flags = AI_CANONNAME;
 
     if (getaddrinfo(hostname, NULL, &hints, &res) != 0) {
-      BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+      BUILTIN_ERROR(ERR_system_error, X(0), 1);
     }
     strcpy(hostname, res->ai_canonname);
     freeaddrinfo(res);
@@ -1179,7 +1179,7 @@ CBOOL__PROTO(prolog_current_host) {
     char **aliases;
 
     if ((host_entry = gethostbyname(hostname)) == NULL) {
-      BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+      BUILTIN_ERROR(ERR_system_error, X(0), 1);
     }
     strcpy(hostname, host_entry->h_name);
 
@@ -1200,7 +1200,7 @@ CBOOL__PROTO(prolog_current_host) {
       char domain[MAXHOSTNAMELEN*3];
 
       if (getdomainname(domain, sizeof(domain)) < 0)
-        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        BUILTIN_ERROR(ERR_system_error, X(0), 1);
       strcat(hostname, ".");
       strcat(hostname, domain);
     }
@@ -1362,12 +1362,12 @@ CBOOL__PROTO(prolog_c_copy_file) {
       if (s==-1) {
         close(fd_source);
         close(fd_destination);
-        BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+        BUILTIN_ERROR(ERR_system_error, X(0), 1);
       } else {
         if (write(fd_destination, buffer, s)==-1){
           close(fd_source);
           close(fd_destination);
-          BUILTIN_ERROR(SYSTEM_ERROR, X(1), 2);
+          BUILTIN_ERROR(ERR_system_error, X(1), 2);
         }
       }
     }
@@ -1398,7 +1398,7 @@ CBOOL__PROTO(prolog_c_copy_file) {
 /*   /\* check instantiation error *\/ */
 /*   /\* */
 /*   if (IsVar(X(0))) */
-/*     BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1); */
+/*     BUILTIN_ERROR(ERR_instantiation_error, X(0), 1); */
 /*   *\/ */
 /*   /\* check type argument*\/ */
 /*   /\* */
@@ -1490,7 +1490,7 @@ CBOOL__PROTO(prolog_c_set_env) {
   name = GetString(X(0));
   value = GetString(X(1));
   if (setenv(name, value, 1) != 0) {
-    BUILTIN_ERROR(RESOURCE_ERROR(R_UNDEFINED), X(0), 1);
+    BUILTIN_ERROR(ERR_resource_error(r_undefined), X(0), 1);
   }
   CBOOL__PROCEED;
 }
@@ -1549,7 +1549,7 @@ CBOOL__PROTO(prolog_pause) {
   DEREF(x0, X(0));
   /* check instantiation_error */
   if (IsVar(x0))
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   /* check type argument*/
   if (!TaggedIsSmall(x0))
     BUILTIN_ERROR(ERR_type_error(integer), X(0), 1);
@@ -1869,7 +1869,7 @@ CBOOL__PROTO(prolog_path_is_absolute) {
   DEREF(X(0), X(0));
   /* check argument instantiation error */
   if (IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
@@ -2090,7 +2090,7 @@ CBOOL__PROTO(prolog_extract_paths) {
   DEREF(X(0), X(0));
   /* check argument instantiation error */
   if (IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   }
   /* check type argument*/
   if (!TaggedIsATM(X(0))) {
@@ -2196,7 +2196,7 @@ CBOOL__PROTO(prolog_kill) {
   DEREF(X(0), X(0));
   /* check argument instantiation error */
   if (IsVar(X(0))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   }
   /* and check type argument again */
   if (!TaggedIsSmall(X(0))) {
@@ -2206,7 +2206,7 @@ CBOOL__PROTO(prolog_kill) {
   DEREF(X(1), X(1));
   /* check instatiation error to the other argument*/
   if (IsVar(X(1))) {
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(1), 2);
+    BUILTIN_ERROR(ERR_instantiation_error, X(1), 2);
   }
   /* and check type argument again */
   if (!TaggedIsSmall(X(1))) {
@@ -2218,7 +2218,7 @@ CBOOL__PROTO(prolog_kill) {
   if (kill(GetSmall(X(0)), GetSmall(X(1)))) {
     if (current_ferror_flag==atom_on) {
       /* TODO: more detailed handling of errors? (EINVAL, EPERM, ESRCH) */
-      BUILTIN_ERROR(SYSTEM_ERROR, X(0), 1);
+      BUILTIN_ERROR(ERR_system_error, X(0), 1);
     } else {
       return FALSE;
     }   
@@ -2921,11 +2921,11 @@ CBOOL__PROTO(prolog_exec) {
   if (path_exec) {
     command = c_find_exec(command);
     if (command == NULL) {
-      BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1);
+      BUILTIN_ERROR(ERR_existence_error(source_sink), X(0), 1);
     }
   }
   if (!pr.eng_fork && access(command, X_OK) != 0) { /* TODO: right error? */
-    BUILTIN_ERROR(PERMISSION_ERROR(ACCESS, SOURCE_SINK), X(0), 1);
+    BUILTIN_ERROR(ERR_permission_error(access, source_sink), X(0), 1);
   }
 
   /* Allocate and fill array of command+arguments */
@@ -3040,7 +3040,7 @@ CBOOL__PROTO(prolog_exec_shell) {
 
   /* check argument instantiation error */
   if (IsVar(X(0)))
-    BUILTIN_ERROR(INSTANTIATION_ERROR, X(0), 1);
+    BUILTIN_ERROR(ERR_instantiation_error, X(0), 1);
   /* check type argument*/
   if (!TaggedIsATM(X(0)))
     ERROR_IN_ARG(X(0), 1, ERR_type_error(atom));

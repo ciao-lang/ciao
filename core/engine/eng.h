@@ -2307,7 +2307,7 @@ void failc(char *mesg);
 })
 
 #define ERROR_IN_ARG(Arg,ArgNo,Err) \
-  BUILTIN_ERROR(IsVar(Arg) ? INSTANTIATION_ERROR : Err, Arg, ArgNo)
+  BUILTIN_ERROR(IsVar(Arg) ? ERR_instantiation_error : Err, Arg, ArgNo)
 
 /* =========================================================================== */
 

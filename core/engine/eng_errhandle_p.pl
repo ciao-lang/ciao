@@ -1,8 +1,13 @@
 % (included from internals.pl -- Prolog part)
 %! \title Error code classification (ISO Prolog)
 %
-%  Error messages are given by core/lib/errhandle.pl .
-%  Learn how these work before updating anything here.
+%  Error codes (ISO Prolog and some extensions) are represented as
+%  (most of the time) compound Prolog terms. In order to throw errors
+%  from C code easily, these definitions provide bidirectional
+%  encoding between those terms and integer representation.
+%
+%  See core/lib/errhandle.pl to learn how these work before updating
+%  anything here.
 %
 %  This file provides the Prolog-side definition for error codes.
 %  Check eng_errhandle.pl for the ImProlog side (generate C defs).
@@ -10,6 +15,9 @@
 %
 %  **NOTE**: Keep all files synchronized!
 
+% TODO: alternative: great ground (non-backtrackable) terms on the heap, keep global pointers
+
+% TODO: optimize (divide by range to get section)
 in_range(Type, Code, WhichWithinType):-
     range_per_error(Range),
     error_start(Type, Section),

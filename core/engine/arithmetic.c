@@ -71,7 +71,7 @@ static inline bool_t float_is_finite(flt64_t f) {
 #define GetFiniteFloat(F, U, ArgNo) ({ \
   F = blob_to_flt64(U); \
   if (!float_is_finite(F)) { \
-    BUILTIN_ERROR(REPRESENTATION_ERROR(NAN_OR_INF_TO_INTEGER), U, ArgNo); \
+    BUILTIN_ERROR(ERR_representation_error(nan_or_inf_to_integer), U, ArgNo); \
   } \
 })
 
@@ -122,7 +122,7 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
 /* --------------------------------------------------------------------------- */
 
 #define DerefCheckNonvar(U,ArgNo) \
-  DerefSw_HVAorCVAorSVA_Other((U), {BUILTIN_ERROR(INSTANTIATION_ERROR, (U), (ArgNo));}, {})
+  DerefSw_HVAorCVAorSVA_Other((U), {BUILTIN_ERROR(ERR_instantiation_error, (U), (ArgNo));}, {})
 
 #define CheckNumber(U,ArgNo) ({ \
   if (!IsNumber(U)) { \
@@ -814,14 +814,14 @@ CFUN__PROTO(fu2_idivide, tagged_t, tagged_t x0, tagged_t x1) {
 #if tagged__num_size == 32 /* Only needed for this case */
     if (GetSmall(u) == MakeSmall(-1) && GetSmall(t) == INT_MIN) goto nonsmall;
 #endif
-    if (u == TaggedZero) BUILTIN_ERROR(EVALUATION_ERROR(ZERO_DIVISOR), u, 1);
+    if (u == TaggedZero) BUILTIN_ERROR(ERR_evaluation_error(zero_divisor), u, 1);
     intval_t r = (intval_t)(t-TaggedZero)/(intval_t)(u-TaggedZero);
     if (!IntvalIsInSmiValRange(r)) goto nonsmall;//CFUN__LASTCALL(SmiVal1ToTagged_GC, r);
     CFUN__PROCEED(MakeSmall(r));
   }
 
  nonsmall:
-  if (u == TaggedZero) BUILTIN_ERROR(EVALUATION_ERROR(ZERO_DIVISOR), u, 1);
+  if (u == TaggedZero) BUILTIN_ERROR(ERR_evaluation_error(zero_divisor), u, 1);
   /*bn_quotient_wanted = TRUE;*/
   CFUN__LASTCALL(bn_call2,bn_quotient_remainder_quot_wanted,t,u);
 }
@@ -832,11 +832,11 @@ CFUN__PROTO(fu2_rem, tagged_t, tagged_t x0, tagged_t x1) {
   EvalArith2Sw(Integer, t, u, small, nonsmall);
 
  small:
-  if (u == TaggedZero) BUILTIN_ERROR(EVALUATION_ERROR(ZERO_DIVISOR), u, 1);  
+  if (u == TaggedZero) BUILTIN_ERROR(ERR_evaluation_error(zero_divisor), u, 1);  
   CFUN__PROCEED((intval_t)(t-TaggedZero)%(intval_t)(u-TaggedZero)+TaggedZero);
 
  nonsmall:
-  if (u == TaggedZero) BUILTIN_ERROR(EVALUATION_ERROR(ZERO_DIVISOR), u, 1);
+  if (u == TaggedZero) BUILTIN_ERROR(ERR_evaluation_error(zero_divisor), u, 1);
   /*bn_quotient_wanted = FALSE;*/
   CFUN__LASTCALL(bn_call2,bn_quotient_remainder_quot_not_wanted,t,u);
 }
@@ -851,7 +851,7 @@ CFUN__PROTO(fu2_mod, tagged_t, tagged_t x0, tagged_t x1) {
  small:
   {
     intval_t rem, denom;
-    if (u == TaggedZero) BUILTIN_ERROR(EVALUATION_ERROR(ZERO_DIVISOR), u, 1);
+    if (u == TaggedZero) BUILTIN_ERROR(ERR_evaluation_error(zero_divisor), u, 1);
     denom = (intval_t)(u-TaggedZero);
     rem = (intval_t)(t-TaggedZero)%denom;
     if ((denom > 0 && rem < 0) || (denom < 0 && rem > 0)) {
@@ -864,7 +864,7 @@ CFUN__PROTO(fu2_mod, tagged_t, tagged_t x0, tagged_t x1) {
  nonsmall:
   {
     tagged_t T_rem;
-    if (u == TaggedZero) BUILTIN_ERROR(EVALUATION_ERROR(ZERO_DIVISOR), u, 1);
+    if (u == TaggedZero) BUILTIN_ERROR(ERR_evaluation_error(zero_divisor), u, 1);
     /*bn_quotient_wanted = FALSE;*/
     PROT_GC(T_rem = CFUN__EVAL(bn_call2,bn_quotient_remainder_quot_not_wanted,t,u), u);
     if (T_rem != TaggedZero && CFUN__EVAL(fu1_sign,u) != CFUN__EVAL(fu1_sign,T_rem)) {
@@ -1101,7 +1101,7 @@ CFUN__PROTO(fu2_lsh, tagged_t, tagged_t x0, tagged_t x1) {
   } else {
     if (dist == INTMACH_MAX) {
       if (t == TaggedZero) CFUN__PROCEED(TaggedZero);
-      BUILTIN_ERROR(RESOURCE_ERROR(R_STACK), u, 2); 
+      BUILTIN_ERROR(ERR_resource_error(r_stack), u, 2); 
     }
     CFUN__LASTCALL(lsh_internal,t,dist);
   }
@@ -1117,7 +1117,7 @@ CFUN__PROTO(fu2_rsh, tagged_t, tagged_t x0, tagged_t x1) {
     dist = (dist == INTMACH_MIN) ? INTMACH_MAX : (-dist); /* saturated negation */
     if (dist == INTMACH_MAX) {
       if (t == TaggedZero) CFUN__PROCEED(TaggedZero);
-      BUILTIN_ERROR(RESOURCE_ERROR(R_STACK), u, 2); 
+      BUILTIN_ERROR(ERR_resource_error(r_stack), u, 2); 
     }
     CFUN__LASTCALL(lsh_internal,t,dist);
   } else {

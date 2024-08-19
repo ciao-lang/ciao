@@ -29,7 +29,7 @@
 extern jmp_buf ciao_gluecode_jmpbuf;
 #define GLUECODE_TRY(Call) ({ \
   if (setjmp(ciao_gluecode_jmpbuf)) { \
-    BUILTIN_ERROR(FOREIGN_ERROR, X(0), -1); \
+    BUILTIN_ERROR(ERR_foreign_error, X(0), -1); \
   } else { \
     Call; \
   } \

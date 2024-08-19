@@ -229,7 +229,7 @@ stream_node_t *stream_to_ptr_check(tagged_t t,
   stream_node_t *n = NULL;
   tagged_t x1, x2;
 
-  DerefSw_HVAorCVAorSVA_Other(t,{*errcode = INSTANTIATION_ERROR; return NULL;},{});
+  DerefSw_HVAorCVAorSVA_Other(t,{*errcode = ERR_instantiation_error; return NULL;},{});
 
   if (TaggedIsATM(t))
     {
@@ -242,7 +242,7 @@ stream_node_t *stream_to_ptr_check(tagged_t t,
       else if (t==atom_user_error)
         n = stream_user_error;
       else {
-            *errcode = DOMAIN_ERROR(STREAM_OR_ALIAS);
+            *errcode = ERR_domain_error(stream_or_alias);
             return NULL;
       }
     }
@@ -251,22 +251,22 @@ stream_node_t *stream_to_ptr_check(tagged_t t,
       DerefArg(x2,t,2);
       if (!TaggedIsSmall(x1) || !TaggedIsSmall(x2) ||
           (n = TaggedToStream(x1), n->label != x2)) {
-            *errcode = EXISTENCE_ERROR(STREAM);
+            *errcode = ERR_existence_error(stream);
             return NULL;
       }
     } else {
-        *errcode = DOMAIN_ERROR(STREAM_OR_ALIAS);
+        *errcode = ERR_domain_error(stream_or_alias);
         return NULL;
     }
 
   if (mode=='r') {
     if (n->streammode=='w'||n->streammode=='a') {
-      *errcode = PERMISSION_ERROR(ACCESS,STREAM);  
+      *errcode = ERR_permission_error(access,stream);  
       return NULL;
     }
   } else if (mode=='w') {
     if (n->streammode=='r') {
-      *errcode = PERMISSION_ERROR(MODIFY,STREAM); 
+      *errcode = ERR_permission_error(modify,stream); 
       return NULL;
     }
   }
@@ -362,16 +362,16 @@ CBOOL__PROTO(prolog_open)
   if (current_ferror_flag == atom_on) {
     switch (what_happened) {
     case STRANGE_SOURCE_SINK:
-      BUILTIN_ERROR(DOMAIN_ERROR(SOURCE_SINK), X(0), 1); break;
+      BUILTIN_ERROR(ERR_domain_error(source_sink), X(0), 1); break;
     case INEXISTENT_SOURCE_SINK:
-      BUILTIN_ERROR(EXISTENCE_ERROR(SOURCE_SINK), X(0), 1); break;
+      BUILTIN_ERROR(ERR_existence_error(source_sink), X(0), 1); break;
     case CANNOT_OPEN:
-      BUILTIN_ERROR(PERMISSION_ERROR(OPEN, SOURCE_SINK),X(0),1); break;
+      BUILTIN_ERROR(ERR_permission_error(open, source_sink),X(0),1); break;
    case FINISHED_RESOURCES:
-      BUILTIN_ERROR(RESOURCE_ERROR(R_UNDEFINED),X(0),1); break;
+      BUILTIN_ERROR(ERR_resource_error(r_undefined),X(0),1); break;
     case SYS_ERROR:
     default:
-      BUILTIN_ERROR(SYSTEM_ERROR,X(0),1); break;
+      BUILTIN_ERROR(ERR_system_error,X(0),1); break;
     } 
   } else {
     return FALSE;
@@ -462,7 +462,7 @@ CBOOL__PROTO(prolog_pipe)
           cunify(Arg,ptr_to_stream(Arg, new_stream((tagged_t)0, "w", out)), X(1)));
 
  bombit:
-  BUILTIN_ERROR(RESOURCE_ERROR(R_UNDEFINED),X(0),1) ;
+  BUILTIN_ERROR(ERR_resource_error(r_undefined),X(0),1) ;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -480,7 +480,7 @@ CBOOL__PROTO(prolog_current_input)
   if (is_var_or_alias_or_stream(Arg, X(0))) {
     CBOOL__LASTUNIFY(ptr_to_stream(Arg,Input_Stream_Ptr), X(0));
   } else {
-    BUILTIN_ERROR(DOMAIN_ERROR(STREAM_OR_ALIAS), X(0), 1);
+    BUILTIN_ERROR(ERR_domain_error(stream_or_alias), X(0), 1);
   }
 }
 
@@ -512,7 +512,7 @@ CBOOL__PROTO(prolog_current_output)
   if (is_var_or_alias_or_stream(Arg, X(0))) {
     CBOOL__LASTUNIFY(ptr_to_stream(Arg,Output_Stream_Ptr), X(0));
   } else {
-    BUILTIN_ERROR(DOMAIN_ERROR(STREAM_OR_ALIAS), X(0), 1);
+    BUILTIN_ERROR(ERR_domain_error(stream_or_alias), X(0), 1);
   }
 }
 
@@ -555,7 +555,7 @@ CBOOL__PROTO(prolog_replace_stream) {
     node = stream_to_ptr_check(which_stream, 'r', &errcode);    
   } else {
     /* Not exactly: should be "alias"*/
-    BUILTIN_ERROR(DOMAIN_ERROR(STREAM_OR_ALIAS),X(0),1);
+    BUILTIN_ERROR(ERR_domain_error(stream_or_alias),X(0),1);
   }
   
   if (node == NULL) BUILTIN_ERROR(errcode,X(0),1);
@@ -586,7 +586,7 @@ CBOOL__PROTO(prolog_get_stream) {
   } else if (which_atom == atom_user_error) {
     node = stream_user_error;
   } else {
-    BUILTIN_ERROR(DOMAIN_ERROR(STREAM_OR_ALIAS),X(0),1);
+    BUILTIN_ERROR(ERR_domain_error(stream_or_alias),X(0),1);
   }
    
   CBOOL__LASTUNIFY(X(1), CFUN__EVAL(ptr_to_stream_noalias, node));

@@ -220,7 +220,7 @@ CBOOL__PROTO(c_setarg, intmach_t, tagged_t, tagged_t, bool_t);
 
 #define DEREF_AND_ENSURE_ATOM_MODKEY(KEY) ({                        \
   DerefSw_HVAorCVAorSVA_Other((KEY),                                \
-           BUILTIN_ERROR(INSTANTIATION_ERROR, (KEY), 2);,{});       \
+           BUILTIN_ERROR(ERR_instantiation_error, (KEY), 2);,{});       \
   if (!TaggedIsATM((KEY))) {                                        \
     if ((!TaggedIsSTR((KEY))) ||                                    \
         (TaggedToHeadfunctor((KEY)) != SetArity(atom_user, 1)))        \
@@ -278,7 +278,7 @@ CBOOL__PROTO(put_attr__3) {
   var=X(0); 
   DerefSw_HVAorCVAorSVA_Other(var, goto put_attr__3__var;, {});
   
-  BUILTIN_ERROR(UNINSTANTIATION_ERROR, var, 1);
+  BUILTIN_ERROR(ERR_uninstantiation_error, var, 1);
 
  put_attr__3__var:
 
