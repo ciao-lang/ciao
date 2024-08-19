@@ -2260,7 +2260,7 @@ void failc(char *mesg);
 
 /* =========================================================================== */
 
-#include <ciao/eng_errhandle.h>
+#include <ciao/eng_errcodes.h>
 
 /* =========================================================================== */
 /* Exceptions (backport from optim_comp) */

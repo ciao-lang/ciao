@@ -1,5 +1,5 @@
 % (included from internals.pl -- Prolog part)
-%! \title Error code classification (ISO Prolog)
+%! \title Error codes for Prolog exceptions
 %
 %  Error codes (ISO Prolog and some extensions) are represented as
 %  (most of the time) compound Prolog terms. In order to throw errors
@@ -10,8 +10,8 @@
 %  anything here.
 %
 %  This file provides the Prolog-side definition for error codes.
-%  Check eng_errhandle.pl for the ImProlog side (generate C defs).
-%  Check eng_errhandle.h for the C header side.
+%  Check eng_errcodes.pl for the ImProlog side (generate C defs).
+%  Check eng_errcodes.h for the C header side.
 %
 %  **NOTE**: Keep all files synchronized!
 
@@ -69,8 +69,6 @@ get_obj_perm(Code, Obj, Perm) :-
 
  %% culprit_stream([], S) :- !, current_input(S).
  %% culprit_stream(S,S).
-
-% NOTE: Keep in sync with defs in ciao/eng.h or ciao/eng_errhandle.h (oc)
 
 range_per_error(100).
 

@@ -1,7 +1,7 @@
 /*
- *  eng_errhandle.h
+ *  eng_errcodes.h
  *
- *  Read eng_errhandle_p.pl for documentation.
+ *  Error codes for Prolog exceptions (see eng_errcodes_p.pl for documentation).
  *
  *  See Copyright Notice in ciaoengine.pl
  */
@@ -27,7 +27,7 @@
 
 /* NOTE: Do not use directly, use ERR_ macros */
 #if defined(OPTIM_COMP)
-/* (generated from eng_errhandle.pl) */
+/* (generated from eng_errcodes.pl) */
 #else
 #define INSTANTIATION_ERROR     1
 #define UNINSTANTIATION_ERROR   2

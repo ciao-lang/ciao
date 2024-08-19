@@ -689,7 +689,7 @@ int_list3([I1,I2,I3]) :- int(I1), int(I2), int(I3).
 :- doc(section, "Internal builtin errors").
 
 % (in_range/3, error_term/3)
-:- include('.'(eng_errhandle_p)).
+:- include('.'(eng_errcodes_p)).
 
 % NOTE: error/5 is called from basiccontrol.c:wam, used to decode the
 %   C exception and throw an error

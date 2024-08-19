@@ -1,9 +1,9 @@
 % (included from absmach_def.pl -- ImProlog part)
-%! \title Error code classification (ISO Prolog)
+%! \title Error codes for Prolog exceptions
 %
-% (see eng_errhandle_p.pl for documentation)
+% (see eng_errcodes_p.pl for documentation)
 
-:- lowinclude(postdef_h, engine(eng_errhandle)).
+:- lowinclude(postdef_h, engine(eng_errcodes)).
 
 % Encoding of error terms as integers.
 % TODO:[oc-merge] use ERR_ macros instead, define them here?
