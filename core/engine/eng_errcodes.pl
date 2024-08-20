@@ -6,46 +6,52 @@
 :- lowinclude(postdef_h, engine(eng_errcodes)).
 
 % Encoding of error terms as integers.
-% TODO:[oc-merge] use ERR_ macros instead, define them here?
 
-% TODO: This code is too complicated. Use the box/unbox machinery used
-%   to represent tagged words to simplify it?
+% TODO: Simplify, share with eng_errcodes_p tables, reuse tagged box/unbox machinery?
+
+% TODO: ~'$ccons'('A0',unknown) is a horrible hack! ImProlog compiler
+%   generates '(...)' around macro params and this is incorrect for '##'
 
 % Errors identifiers cannot be zero (as 0 = -0)
-:- pred instantiation_error/1 + lowentrymacrocons(intmach, 'INSTANTIATION_ERROR').
-instantiation_error := 1.
-:- pred uninstantiation_error/1 + lowentrymacrocons(intmach, 'UNINSTANTIATION_ERROR').
-uninstantiation_error := 2.
-:- pred type_error/2 + lowentrymacrofun([intmach], intmach, 'TYPE_ERROR').
-type_error(D) := ~range_per_error * ~error_start(~'$ccons'(type, unknown)) + D.
-:- pred domain_error/2 + lowentrymacrofun([intmach], intmach, 'DOMAIN_ERROR').
-domain_error(D) := ~range_per_error * ~error_start(~'$ccons'(dom, unknown)) + D.
-:- pred existence_error/2 + lowentrymacrofun([intmach], intmach, 'EXISTENCE_ERROR').
-existence_error(D) := ~range_per_error * ~error_start(~'$ccons'(exist, unknown)) + D.
-:- pred permission_error/3 + lowentrymacrofun([intmach, intmach], intmach, 'PERMISSION_ERROR').
-permission_error(D, F) := ~range_per_error * ~error_start(~'$ccons'(perm, unknown)) + D*10 + F.
-:- pred representation_error/2 + lowentrymacrofun([intmach], intmach, 'REPRESENTATION_ERROR').
-representation_error(D) := ~range_per_error * ~error_start(~'$ccons'(repres, unknown)) + D.
-:- pred evaluation_error/2 + lowentrymacrofun([intmach], intmach, 'EVALUATION_ERROR').
-evaluation_error(D) := ~range_per_error * ~error_start(~'$ccons'(eval, unknown)) + D.
-:- pred resource_error/2 + lowentrymacrofun([intmach], intmach, 'RESOURCE_ERROR').
-resource_error(D) := ~range_per_error * ~error_start(~'$ccons'(res, unknown)) + D.
-:- pred syntax_error/1 + lowentrymacrocons(intmach, 'SYNTAX_ERROR').
-syntax_error := ~range_per_error * ~error_start(~'$ccons'(syntax, unknown)).
-%:- pred system_error :: intmach + lowentrymacrocons('SYSTEM_ERROR').
-:- pred system_error/1 + lowentrymacrocons(intmach, 'SYSTEM_ERROR').
-system_error := ~range_per_error * ~error_start(~'$ccons'(system, unknown)).
-:- pred foreign_error/1 + lowentrymacrocons(intmach, 'FOREIGN_ERROR').
-foreign_error := ~range_per_error * ~error_start(~'$ccons'(foreign, unknown)).
-:- pred user_exception/1 + lowentrymacrocons(intmach, 'USER_EXCEPTION').
-user_exception := ~range_per_error * ~error_start(~'$ccons'(user, unknown)).
+:- pred err_instantiation_error/1 + lowentrymacrocons(intmach, 'ERR_instantiation_error').
+err_instantiation_error := 1.
+:- pred err_uninstantiation_error/1 + lowentrymacrocons(intmach, 'ERR_uninstantiation_error').
+err_uninstantiation_error := 2.
+:- pred err_type_error/2 + lowentrymacrofun([iany], intmach, 'ERR_type_error').
+err_type_error(D) := ~enc_errcode(type, ~type_err(~'$ccons'('A0',unknown))).
+:- pred err_domain_error/2 + lowentrymacrofun([iany], intmach, 'ERR_domain_error').
+err_domain_error(D) := ~enc_errcode(dom, ~domain_err(~'$ccons'('A0',unknown))).
+:- pred err_existence_error/2 + lowentrymacrofun([iany], intmach, 'ERR_existence_error').
+err_existence_error(D) := ~enc_errcode(exist, ~existence_err(~'$ccons'('A0',unknown))).
+:- pred err_permission_error/3 + lowentrymacrofun([iany, iany], intmach, 'ERR_permission_error').
+err_permission_error(D, F) := ~enc_errcode(perm, ~permission_perm(~'$ccons'('A0',unknown))*0x10 + ~permission_obj(~'$ccons'('A1',unknown))).
+:- pred err_representation_error/2 + lowentrymacrofun([iany], intmach, 'ERR_representation_error').
+err_representation_error(D) := ~enc_errcode(repres, ~representation_err(~'$ccons'('A0',unknown))).
+:- pred err_evaluation_error/2 + lowentrymacrofun([iany], intmach, 'ERR_evaluation_error').
+err_evaluation_error(D) := ~enc_errcode(eval, ~evaluation_err(~'$ccons'('A0',unknown))).
+:- pred err_resource_error/2 + lowentrymacrofun([iany], intmach, 'ERR_resource_error').
+err_resource_error(D) := ~enc_errcode(res, ~resource_err(~'$ccons'('A0',unknown))).
+:- pred err_syntax_error/1 + lowentrymacrocons(intmach, 'ERR_syntax_error').
+err_syntax_error := ~enc_errcode(syntax, 0).
+:- pred err_system_error/1 + lowentrymacrocons(intmach, 'ERR_system_error').
+err_system_error := ~enc_errcode(system, 0).
+:- pred err_foreign_error/1 + lowentrymacrocons(intmach, 'ERR_foreign_error').
+err_foreign_error := ~enc_errcode(foreign, 0).
+:- pred err_user_exception/1 + lowentrymacrocons(intmach, 'ERR_user_exception').
+err_user_exception := ~enc_errcode(user, 0).
+
+%:- pred enc_errcode/3 + lowentrymacrofun([iany, intmach], intmach, '_enc_errcode').
+:- pred enc_errcode/3 + prop(unfold).
+enc_errcode(Type,Arg) := ~err_range * ~err_base(~'$ccons'(Type, unknown)) + Arg.
 
 % Enough number of errors
-:- pred range_per_error/1 + lowentrymacrocons(intmach, 'RANGE_PER_ERROR').
-range_per_error := 100.
+%:- pred err_range/1 + lowentrymacrocons(intmach, 'ERR_RANGE').
+:- pred err_range/1 + prop(unfold).
+err_range := 0x100.
 
-:- pred error_start/2 + lowentrymacrofuncons([iany], intmach, 'error_start').
-error_start(X) := ~'$keytable'(X, [
+% :- pred err_base/2 + prop(unfold).
+:- pred err_base/2 + lowentrymacrofuncons([iany], intmach, '_err_base').
+err_base(X) := ~'$keytable'(X, [
     case(inst, 0),
     case(type, 1),
     case(dom, 2),
@@ -60,8 +66,8 @@ error_start(X) := ~'$keytable'(X, [
     case(user, 11)
 ]).
 
-:- pred type_errors/2 + lowentrymacrofuncons([iany], intmach, 'TYPE_ERRORS').
-type_errors(X) := ~'$keytable'(X, [
+:- pred type_err/2 + lowentrymacrofuncons([iany], intmach, '_type_err').
+type_err(X) := ~'$keytable'(X, [
     case(atom, 0),
     case(atomic, 1),
     case(byte, 2),
@@ -77,8 +83,8 @@ type_errors(X) := ~'$keytable'(X, [
     case(callable, 12)
 ]).
 
-:- pred domain_errors/2 + lowentrymacrofuncons([iany], intmach, 'DOMAIN_ERRORS').
-domain_errors(X) := ~'$keytable'(X, [
+:- pred domain_err/2 + lowentrymacrofuncons([iany], intmach, '_domain_err').
+domain_err(X) := ~'$keytable'(X, [
     case(character_code_list, 0), % TODO:[JF] not ISO, remove
     case(source_sink, 1),
     case(stream, 2),
@@ -98,18 +104,17 @@ domain_errors(X) := ~'$keytable'(X, [
     case(operator_specifier, 16)
 ]).
 
-:- pred existence_errors/2 + lowentrymacrofuncons([iany], intmach, 'EXISTENCE_ERRORS').
-existence_errors(X) := ~'$keytable'(X, [
+:- pred existence_err/2 + lowentrymacrofuncons([iany], intmach, '_existence_err').
+existence_err(X) := ~'$keytable'(X, [
     case(procedure, 0),
     case(source_sink, 1),
     case(stream, 2)
 ]).
 
-% PERMISION_ERRORS: composed of type of action + object on which the action
-% is defined
+% PERMISION_ERRORS: composed of action + object on which the action is defined
 
-:- pred permission_types/2 + lowentrymacrofuncons([iany], intmach, 'PERMISSION_TYPES').
-permission_types(X) := ~'$keytable'(X, [
+:- pred permission_perm/2 + lowentrymacrofuncons([iany], intmach, '_permission_perm').
+permission_perm(X) := ~'$keytable'(X, [
     case(access, 0),
     case(create, 1),
     case(input, 2),
@@ -119,8 +124,8 @@ permission_types(X) := ~'$keytable'(X, [
     case(reposition, 6)
 ]).
 
-:- pred permission_objects/2 + lowentrymacrofuncons([iany], intmach, 'PERMISSION_OBJECTS').
-permission_objects(X) := ~'$keytable'(X, [
+:- pred permission_obj/2 + lowentrymacrofuncons([iany], intmach, '_permission_obj').
+permission_obj(X) := ~'$keytable'(X, [
     case(binary_stream, 0),
     case(source_sink, 1),
     case(stream, 2),
@@ -132,8 +137,8 @@ permission_objects(X) := ~'$keytable'(X, [
     case(static_procedure, 8)
 ]).
 
-:- pred representation_errors/2 + lowentrymacrofuncons([iany], intmach, 'REPRESENTATION_ERRORS').
-representation_errors(X) := ~'$keytable'(X, [
+:- pred representation_err/2 + lowentrymacrofuncons([iany], intmach, '_representation_err').
+representation_err(X) := ~'$keytable'(X, [
     case(character_code_list, 0), % TODO:[JF] not ISO, remove
     case(in_character_code, 1),
     case(max_arity, 2),
@@ -145,8 +150,8 @@ representation_errors(X) := ~'$keytable'(X, [
     case(max_atom_length, 8)
 ]).
 
-:- pred evaluation_errors/2 + lowentrymacrofuncons([iany], intmach, 'EVALUATION_ERRORS').
-evaluation_errors(X) := ~'$keytable'(X, [
+:- pred evaluation_err/2 + lowentrymacrofuncons([iany], intmach, '_evaluation_err').
+evaluation_err(X) := ~'$keytable'(X, [
     case(float_overflow, 0),
     case(int_overflow, 1),
     case(e_undefined, 2),
@@ -154,8 +159,8 @@ evaluation_errors(X) := ~'$keytable'(X, [
     case(zero_divisor, 4)
 ]).
 
-:- pred resource_errors/2 + lowentrymacrofuncons([iany], intmach, 'RESOURCE_ERRORS').
-resource_errors(X) := ~'$keytable'(X, [
+:- pred resource_err/2 + lowentrymacrofuncons([iany], intmach, '_resource_err').
+resource_err(X) := ~'$keytable'(X, [
     case(r_undefined, 0),
     case(r_stack, 1)
 ]).

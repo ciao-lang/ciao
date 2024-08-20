@@ -688,7 +688,7 @@ int_list3([I1,I2,I3]) :- int(I1), int(I2), int(I3).
 % ---------------------------------------------------------------------------
 :- doc(section, "Internal builtin errors").
 
-% (in_range/3, error_term/3)
+% (decode_errcode/3)
 :- include('.'(eng_errcodes_p)).
 
 % NOTE: error/5 is called from basiccontrol.c:wam, used to decode the
@@ -701,15 +701,12 @@ int_list3([I1,I2,I3]) :- int(I1), int(I2), int(I3).
 :- entry error/5.
 :- endif.
 
-error(Type, _, _, _, ErrorTerm) :-
-    in_range(foreign, Type, _), !, % foreign error, throw the term
-    throw(ErrorTerm).
-error(Type, PredName, PredArity, Arg, Culprit) :-
-    % display('In Error'(Type, Culprit)), nl,
-    error_term(Type, Culprit, ErrorTerm),
-    % display(error_term_is(ErrorTerm)), nl,
-    where_term(PredName, PredArity, Arg, WhereError),
-    throw(error(ErrorTerm, WhereError)).
+error(ErrCode, PredName, PredArity, Arg, Culprit) :-
+    decode_errcode(ErrCode, Culprit, ErrorTerm),
+    ( ErrorTerm = foreign_error(Term) -> throw(Term) % (no location)
+    ; where_term(PredName, PredArity, Arg, WhereError),
+      throw(error(ErrorTerm, WhereError))
+    ).
 
 :- multifile('$internal_error_where_term'/4).
 

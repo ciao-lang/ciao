@@ -4,86 +4,64 @@
 %  Error codes (ISO Prolog and some extensions) are represented as
 %  (most of the time) compound Prolog terms. In order to throw errors
 %  from C code easily, these definitions provide bidirectional
-%  encoding between those terms and integer representation.
+%  encoding between those terms and integer representation. This file
+%  provides the Prolog-side decoding of error codes.
 %
 %  See core/lib/errhandle.pl to learn how these work before updating
 %  anything here.
 %
-%  This file provides the Prolog-side definition for error codes.
 %  Check eng_errcodes.pl for the ImProlog side (generate C defs).
-%  Check eng_errcodes.h for the C header side.
+%  Check eng_errcodes.h for the C header side (encoder).
 %
 %  **NOTE**: Keep all files synchronized!
 
 % TODO: alternative: great ground (non-backtrackable) terms on the heap, keep global pointers
 
-% TODO: optimize (divide by range to get section)
-in_range(Type, Code, WhichWithinType):-
-    range_per_error(Range),
-    error_start(Type, Section),
-    Start is Section * Range,
-    Code >= Start,
-    Code < Start + Range,
-    WhichWithinType is Code - Start.
+% (exported)
+% decode_errcode(+Code, +Culprit, -ErrTerm)
+decode_errcode(1, _, ErrTerm) :- !, ErrTerm = instantiation_error.
+decode_errcode(2, Culprit, ErrTerm) :- !, ErrTerm = uninstantiation_error(Culprit).
+decode_errcode(Code, Culprit, ErrTerm) :-
+    split_errcode(Code, ErrType, ErrArg),
+    decode_errcode_(ErrType, ErrArg, Culprit, ErrTerm).
 
-error_term(1, _, instantiation_error) :- !.
-error_term(2, Culprit, uninstantiation_error(Culprit)) :- !.
-error_term(Code, _, system_error) :- in_range(system, Code, _), !.
-error_term(Code, _, syntax_error) :- in_range(syntax, Code, _), !.
-error_term(N, _, resource_error(Res)) :- in_range(res, N, Code), !, 
-    resource_code(Code, Res).
-error_term(Code, _, user_error) :- in_range(user, Code, _), !.
-error_term(N, _Culprit, evaluation_error(Type)) :- in_range(eval, N, Code), !,
-    evaluation_code(Code, Type).
-error_term(N, _Culprit, representation_error(Type)) :- in_range(repres, N, Code), !,
-    representation_code(Code, Type).
-error_term(N, Culprit, type_error(Type, Culprit)) :- in_range(type, N, Code), !,
-    type_code(Code, Type).
-error_term(N, Culprit, domain_error(Type, Culprit)) :- in_range(dom, N, Code), !,
-    domain_code(Code, Type).
-error_term(N, Culprit, existence_error(Type, Culprit)) :- in_range(exist, N, Code), !,
-    existence_code(Code, Type).
-error_term(N, Culprit, permission_error(Permission, Object, Culprit)) :- in_range(perm, N, Code), !,
-    get_obj_perm(Code,Obj,Per),
-    permission_type_code(Per, Permission),
-    permission_object_code(Obj, Object).
+decode_errcode_(foreign, _, Culprit, foreign_error(Culprit)).
+decode_errcode_(system, _, _, system_error).
+decode_errcode_(syntax, _, _, syntax_error).
+decode_errcode_(res, Arg, _, resource_error(Res)) :- resource_code(Arg, Res).
+decode_errcode_(user, _, _, user_error).
+decode_errcode_(eval, Arg, _, evaluation_error(Type)) :- evaluation_code(Arg, Type).
+decode_errcode_(repres, Arg, _, representation_error(Type)) :- representation_code(Arg, Type).
+decode_errcode_(type, Arg, Culprit, type_error(Type, Culprit)) :- type_code(Arg, Type).
+decode_errcode_(dom, Arg, Culprit, domain_error(Type, Culprit)) :- domain_code(Arg, Type).
+decode_errcode_(exist, Arg, Culprit, existence_error(Type, Culprit)) :- existence_code(Arg, Type).
+decode_errcode_(perm, Arg, Culprit, permission_error(Perm, Obj, Culprit)) :-
+    split_perm_obj(Arg, Obj0, Perm0),
+    permission_type_code(Perm0, Perm),
+    permission_object_code(Obj0, Obj).
 
-%% Check error type and return get Code for every class of error.  This should
-%% be made more modularly (i.e., with an C interface - but is it worth?)
+% split_errcode(+Code, -ErrType, -ErrArg)
+split_errcode(Code, ErrType, ErrArg) :-
+    ErrType0 is Code // 0x100,
+    ErrArg is Code mod 0x100,
+    error_start(ErrType0, ErrType).
 
- %% is_evaluation_error(N,Code) :-     N>120, N<126, Code is N-121.
- %% 
- %% is_representation_error(N,Code) :- N>114, N<121, Code is N-115.
- %% 
- %% is_type_error(N,Code) :-           N>1, N<15, Code is N-2.
- %% 
- %% is_domain_error(N,Code) :-         N>14, N<32, Code is N-15.
- %% 
- %% is_existence_error(N,Code) :-      N>31, N<35, Code is N-32.
- %% 
- %% is_permission_error(N,Code) :-     N>34, N<115, Code is N-35.
+split_perm_obj(PermObj, Obj, Perm) :-
+    Obj is PermObj mod 0x10,
+    Perm is PermObj // 0x10.
 
-get_obj_perm(Code, Obj, Perm) :-
-    Obj is Code mod 10,
-    Perm is Code // 10.
-
- %% culprit_stream([], S) :- !, current_input(S).
- %% culprit_stream(S,S).
-
-range_per_error(100).
-
-error_start(inst,   0).
-error_start(type,   1).
-error_start(dom,    2).
-error_start(exist,  3).
-error_start(perm,   4).
-error_start(repres, 5).
-error_start(eval,   6).
-error_start(res,    7).
-error_start(syntax, 8).
-error_start(system, 9).
-error_start(foreign, 10).
-error_start(user,   11).
+error_start(0, inst).
+error_start(1, type).
+error_start(2, dom).
+error_start(3, exist).
+error_start(4, perm).
+error_start(5, repres).
+error_start(6, eval).
+error_start(7, res).
+error_start(8, syntax).
+error_start(9, system).
+error_start(10, foreign).
+error_start(11, user).
 
 type_code(0, atom).
 type_code(1, atomic).

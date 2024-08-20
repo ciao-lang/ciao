@@ -11,140 +11,121 @@
 
 /* NOTE: Errors identifiers cannot be zero (as 0 = -0) */
 
-#define ERR_instantiation_error INSTANTIATION_ERROR
-#define ERR_uninstantiation_error UNINSTANTIATION_ERROR
-#define ERR_type_error(X) TYPE_ERROR(TYPE_ERRORS(X))
-#define ERR_representation_error(X) REPRESENTATION_ERROR(REPRESENTATION_ERRORS(X))
-#define ERR_existence_error(X) EXISTENCE_ERROR(EXISTENCE_ERRORS(X))
-#define ERR_permission_error(X,Y) PERMISSION_ERROR(PERMISSION_TYPES(X), PERMISSION_OBJECTS(Y))
-#define ERR_domain_error(X) DOMAIN_ERROR(DOMAIN_ERRORS(X))
-#define ERR_evaluation_error(X) EVALUATION_ERROR(EVALUATION_ERRORS(X))
-#define ERR_resource_error(X) RESOURCE_ERROR(RESOURCE_ERRORS(X))
-#define ERR_syntax_error SYNTAX_ERROR
-#define ERR_system_error SYSTEM_ERROR
-#define ERR_foreign_error FOREIGN_ERROR
-#define ERR_user_exception USER_EXCEPTION
-
-/* NOTE: Do not use directly, use ERR_ macros */
 #if defined(OPTIM_COMP)
 /* (generated from eng_errcodes.pl) */
 #else
-#define INSTANTIATION_ERROR     1
-#define UNINSTANTIATION_ERROR   2
-#define TYPE_ERROR(D)           (RANGE_PER_ERROR*error_start(type)+D)
-#define DOMAIN_ERROR(D)         (RANGE_PER_ERROR*error_start(dom)+D)
-#define EXISTENCE_ERROR(D)      (RANGE_PER_ERROR*error_start(exist)+D)
-#define PERMISSION_ERROR(D,F)   (RANGE_PER_ERROR*error_start(perm)+D*10+F)
-#define REPRESENTATION_ERROR(D) (RANGE_PER_ERROR*error_start(repres)+D)
-#define EVALUATION_ERROR(D)     (RANGE_PER_ERROR*error_start(eval)+D)
-#define RESOURCE_ERROR(D)       (RANGE_PER_ERROR*error_start(res)+D)
-#define SYNTAX_ERROR            (RANGE_PER_ERROR*error_start(syntax))
-#define SYSTEM_ERROR            (RANGE_PER_ERROR*error_start(system))
-#define FOREIGN_ERROR           (RANGE_PER_ERROR*error_start(foreign))
-#define USER_EXCEPTION          (RANGE_PER_ERROR*error_start(user))
+#define ERR_instantiation_error 1
+#define ERR_uninstantiation_error 2
+#define ERR_type_error(X) _enc_error(type,_type_err(D))
+#define ERR_domain_error(X) _enc_error(dom,_domain_err(D))
+#define ERR_existence_error(X) _enc_error(exist,_existence_err(D))
+#define ERR_permission_error(X,Y) _enc_error(perm, _permission_perm(D)*0x10+_permission_obj(F))
+#define ERR_representation_error(X) _enc_error(repres, _representation_err(D))
+#define ERR_evaluation_error(X) _enc_error(eval,_evaluation_err(D))
+#define ERR_resource_error(X) _enc_error(res,_resource_err(D))
+#define ERR_syntax_error _enc_error(syntax,0)
+#define ERR_system_error _enc_error(system,0)
+#define ERR_foreign_error _enc_error(foreign,0)
+#define ERR_user_exception _enc_error(user,0)
 
-#define RANGE_PER_ERROR 100                    /* Enough number of errors */
-#define error_start(KEY) error_start__##KEY
-#define error_start__inst    0
-#define error_start__type    1
-#define error_start__dom     2
-#define error_start__exist   3
-#define error_start__perm    4
-#define error_start__repres  5
-#define error_start__eval    6
-#define error_start__res     7
-#define error_start__syntax  8
-#define error_start__system  9
-#define error_start__foreign 10
-#define error_start__user    11
+#define _enc_error(Type,Arg) (_err_range*_err_base(Type)+Arg)
 
-/* TYPE_ERRORS */
-#define TYPE_ERRORS(KEY) TYPE_ERRORS__##KEY
-#define TYPE_ERRORS__atom 0
-#define TYPE_ERRORS__atomic 1
-#define TYPE_ERRORS__byte 2
-#define TYPE_ERRORS__character 3
-#define TYPE_ERRORS__compound 4
-#define TYPE_ERRORS__evaluable 5
-#define TYPE_ERRORS__in_byte 6
-#define TYPE_ERRORS__integer 7
-#define TYPE_ERRORS__list 8
-#define TYPE_ERRORS__number 9
-#define TYPE_ERRORS__predicate_indicator 10
-// #define TYPE_ERRORS__variable 11 // (deprecated, corr2, use uninstantiation)
-#define TYPE_ERRORS__callable 12
+#define _err_range 0x100 /* 8-bit arg per error */
 
-/* DOMAIN_ERRORS */
-#define DOMAIN_ERRORS(KEY) DOMAIN_ERRORS__##KEY
-#define DOMAIN_ERRORS__character_code_list 0 // TODO:[JF] not ISO, remove
-#define DOMAIN_ERRORS__source_sink 1
-#define DOMAIN_ERRORS__stream 2
-#define DOMAIN_ERRORS__io_mode 3
-#define DOMAIN_ERRORS__non_empty_list 4
-#define DOMAIN_ERRORS__not_less_than_zero 5
-#define DOMAIN_ERRORS__operator_priority 6
-#define DOMAIN_ERRORS__prolog_flag 7
-#define DOMAIN_ERRORS__read_option 8
-#define DOMAIN_ERRORS__flag_value 9
-#define DOMAIN_ERRORS__close_option 10
-#define DOMAIN_ERRORS__stream_option 11
-#define DOMAIN_ERRORS__stream_or_alias 12
-#define DOMAIN_ERRORS__stream_position 13
-#define DOMAIN_ERRORS__stream_property 14
-#define DOMAIN_ERRORS__write_option 15
-#define DOMAIN_ERRORS__operator_specifier 16
+#define _err_base(KEY) _err_base__##KEY
+#define _err_base__inst    0
+#define _err_base__type    1
+#define _err_base__dom     2
+#define _err_base__exist   3
+#define _err_base__perm    4
+#define _err_base__repres  5
+#define _err_base__eval    6
+#define _err_base__res     7
+#define _err_base__syntax  8
+#define _err_base__system  9
+#define _err_base__foreign 10
+#define _err_base__user    11
 
-/* EXISTENCE_ERRORS */
-#define EXISTENCE_ERRORS(KEY) EXISTENCE_ERRORS__##KEY
-#define EXISTENCE_ERRORS__procedure 0
-#define EXISTENCE_ERRORS__source_sink 1
-#define EXISTENCE_ERRORS__stream 2
+#define _type_err(KEY) _type_err__##KEY
+#define _type_err__atom 0
+#define _type_err__atomic 1
+#define _type_err__byte 2
+#define _type_err__character 3
+#define _type_err__compound 4
+#define _type_err__evaluable 5
+#define _type_err__in_byte 6
+#define _type_err__integer 7
+#define _type_err__list 8
+#define _type_err__number 9
+#define _type_err__predicate_indicator 10
+// #define _type_err__variable 11 // (deprecated, corr2, use uninstantiation)
+#define _type_err__callable 12
 
-/* PERMISION_ERRORS (permission type + permission object) */
-#define PERMISSION_TYPES(KEY) PERMISSION_TYPES__##KEY
-#define PERMISSION_TYPES__access 0
-#define PERMISSION_TYPES__create 1
-#define PERMISSION_TYPES__input 2
-#define PERMISSION_TYPES__modify 3
-#define PERMISSION_TYPES__open 4
-#define PERMISSION_TYPES__output 5
-#define PERMISSION_TYPES__reposition 6
-// Note: cannot be >=10!
-#define PERMISSION_OBJECTS(KEY) PERMISSION_OBJECTS__##KEY
-#define PERMISSION_OBJECTS__binary_stream 0
-#define PERMISSION_OBJECTS__source_sink 1
-#define PERMISSION_OBJECTS__stream 2
-#define PERMISSION_OBJECTS__text_stream 3
-#define PERMISSION_OBJECTS__flag 4
-#define PERMISSION_OBJECTS__operator 5
-#define PERMISSION_OBJECTS__past_end_of_stream 6
-#define PERMISSION_OBJECTS__private_procedure 7
-#define PERMISSION_OBJECTS__static_procedure 8
+#define _domain_err(KEY) _domain_err__##KEY
+#define _domain_err__character_code_list 0 // TODO:[JF] not ISO, remove
+#define _domain_err__source_sink 1
+#define _domain_err__stream 2
+#define _domain_err__io_mode 3
+#define _domain_err__non_empty_list 4
+#define _domain_err__not_less_than_zero 5
+#define _domain_err__operator_priority 6
+#define _domain_err__prolog_flag 7
+#define _domain_err__read_option 8
+#define _domain_err__flag_value 9
+#define _domain_err__close_option 10
+#define _domain_err__stream_option 11
+#define _domain_err__stream_or_alias 12
+#define _domain_err__stream_position 13
+#define _domain_err__stream_property 14
+#define _domain_err__write_option 15
+#define _domain_err__operator_specifier 16
 
-/* REPRESENTATION_ERROR */
-#define REPRESENTATION_ERRORS(KEY) REPRESENTATION_ERRORS__##KEY
-#define REPRESENTATION_ERRORS__character_code_list 0 // TODO:[JF] not ISO, remove
-#define REPRESENTATION_ERRORS__in_character_code 1
-#define REPRESENTATION_ERRORS__max_arity 2
-#define REPRESENTATION_ERRORS__character 3
-#define REPRESENTATION_ERRORS__max_integer 4
-#define REPRESENTATION_ERRORS__min_integer 5
-#define REPRESENTATION_ERRORS__character_code 6
-#define REPRESENTATION_ERRORS__nan_or_inf_to_integer 7
-#define REPRESENTATION_ERRORS__max_atom_length 8
+#define _existence_err(KEY) _existence_err__##KEY
+#define _existence_err__procedure 0
+#define _existence_err__source_sink 1
+#define _existence_err__stream 2
 
-/* EVALUATION_ERROR */
-#define EVALUATION_ERRORS(KEY) EVALUATION_ERRORS__##KEY
-#define EVALUATION_ERRORS__float_overflow 0
-#define EVALUATION_ERRORS__int_overflow 1
-#define EVALUATION_ERRORS__e_undefined 2
-#define EVALUATION_ERRORS__e_underflow 3
-#define EVALUATION_ERRORS__zero_divisor 4
+#define _permission_perm(KEY) _permission_perm__##KEY
+#define _permission_perm__access 0
+#define _permission_perm__create 1
+#define _permission_perm__input 2
+#define _permission_perm__modify 3
+#define _permission_perm__open 4
+#define _permission_perm__output 5
+#define _permission_perm__reposition 6
 
-/* RESOURCE_ERROR */
-#define RESOURCE_ERRORS(KEY) RESOURCE_ERRORS__##KEY
-#define RESOURCE_ERRORS__r_undefined 0
-#define RESOURCE_ERRORS__r_stack 1
+#define _permission_obj(KEY) _permission_obj__##KEY
+#define _permission_obj__binary_stream 0
+#define _permission_obj__source_sink 1
+#define _permission_obj__stream 2
+#define _permission_obj__text_stream 3
+#define _permission_obj__flag 4
+#define _permission_obj__operator 5
+#define _permission_obj__past_end_of_stream 6
+#define _permission_obj__private_procedure 7
+#define _permission_obj__static_procedure 8
+
+#define _representation_err(KEY) _representation_err__##KEY
+#define _representation_err__character_code_list 0 // TODO:[JF] not ISO, remove
+#define _representation_err__in_character_code 1
+#define _representation_err__max_arity 2
+#define _representation_err__character 3
+#define _representation_err__max_integer 4
+#define _representation_err__min_integer 5
+#define _representation_err__character_code 6
+#define _representation_err__nan_or_inf_to_integer 7
+#define _representation_err__max_atom_length 8
+
+#define _evaluation_err(KEY) _evaluation_err__##KEY
+#define _evaluation_err__float_overflow 0
+#define _evaluation_err__int_overflow 1
+#define _evaluation_err__e_undefined 2
+#define _evaluation_err__e_underflow 3
+#define _evaluation_err__zero_divisor 4
+
+#define _resource_err(KEY) _resource_err__##KEY
+#define _resource_err__r_undefined 0
+#define _resource_err__r_stack 1
 
 #endif /* !defined(OPTIM_COMP) */ 
 
