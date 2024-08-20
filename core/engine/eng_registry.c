@@ -1497,6 +1497,9 @@ void init_once(void) {
   define_c_mod_predicate("stream_basic","current_output",1,prolog_current_output);
   define_c_mod_predicate("stream_basic","set_output",1,prolog_set_output);
   define_c_mod_predicate("stream_basic","pipe",2,prolog_pipe);
+  define_c_mod_predicate("stream_basic","flush_output",0,flush_output);
+  define_c_mod_predicate("stream_basic","flush_output",1,flush_output1);
+  define_c_mod_predicate("stream_basic","clearerr",1,prolog_clearerr);
 
   define_c_mod_predicate("io_alias_redirection", "replace_stream",2, prolog_replace_stream);
   define_c_mod_predicate("io_alias_redirection", "get_stream",2, prolog_get_stream);
@@ -1570,8 +1573,6 @@ void init_once(void) {
   /* io_basic.c */
   
   define_c_mod_predicate("io_basic","code_class",2,code_class);
-  define_c_mod_predicate("stream_basic","flush_output",0,flush_output);
-  define_c_mod_predicate("stream_basic","flush_output",1,flush_output1);
   address_getct = define_c_mod_predicate("io_basic","getct",2,getct);
   address_getct1 = define_c_mod_predicate("io_basic","getct1",2,getct1);
   address_get = define_c_mod_predicate("io_basic","get_code",1,get);
@@ -1602,16 +1603,16 @@ void init_once(void) {
   define_c_mod_predicate("io_basic","display",2,prolog_display2);
   define_c_mod_predicate("io_basic","displayq",1,prolog_displayq);
   define_c_mod_predicate("io_basic","displayq",2,prolog_displayq2);
-  define_c_mod_predicate("stream_basic","clearerr",1,prolog_clearerr);
   define_c_mod_predicate("fastrw","fast_read",1,prolog_fast_read_in_c);
   define_c_mod_predicate("fastrw","fast_write",1,prolog_fast_write_in_c);
   define_c_mod_predicate("compressed_bytecode","copyLZ",1,raw_copy_stdout); /* TODO: remove on next bootstrap promotion */
   define_c_mod_predicate("io_basic","$raw_copy_stdout",1,raw_copy_stdout);
   define_c_mod_predicate("io_basic","$set_unbuf",1,prolog_set_unbuf);
   define_c_mod_predicate("io_basic","$input_wait",3,prolog_input_wait);
-  
-  define_c_mod_predicate("internals","$format_print_float",3,prolog_format_print_float);
-  define_c_mod_predicate("internals","$format_print_integer",3,prolog_format_print_integer);
+  define_c_mod_predicate("io_basic","$format_print_float",3,prolog_format_print_float);
+  define_c_mod_predicate("io_basic","$format_print_integer",3,prolog_format_print_integer);
+  define_c_mod_predicate("internals","$format_print_float",3,prolog_format_print_float); /* TODO: remove on next bootstrap promotion */
+  define_c_mod_predicate("internals","$format_print_integer",3,prolog_format_print_integer); /* TODO: remove on next bootstrap promotion */
 
                                 /* bc_aux.h */
   

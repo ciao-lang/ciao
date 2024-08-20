@@ -1,26 +1,11 @@
-:- module(format, 
-    [
-        format/2, 
-        format/3,
-        sformat/3,
-        format_to_string/3,
-        format_control/1],
-    [dcg,assertions,isomodes,datafacts]).
+:- module(format, [
+    format/2, 
+    format/3,
+    sformat/3,
+    format_to_string/3,
+    format_control/1
+], [dcg,assertions,isomodes,datafacts]).
 
-
-:- use_module(library(streams)).
-:- use_module(library(write)).
-:- use_module(library(system)).
-% :- use_module(library(dcg/dcg_tr)). % This is not at all needed!!
-% >> take '$format_print_float' & '$format_print_integer' out of emulator!DCG
-:- use_module(engine(internals)).
-
-%% FOR TEMPORARILY PARTIALLY DOCUMENTING:
-:- use_module(library(assertions/doc_props)).
-
-:- set_prolog_flag(multi_arity_warnings, off).
-
-% ------------------------------------------------------------------------
 :- doc(title,"Formatted output").
 
 :- doc(author, "The Ciao Development Team").
@@ -351,6 +336,13 @@ position movement to @var{N}, where @var{N} defaults to @key{SPC}.
 
 ").
 
+:- use_module(library(streams)).
+:- use_module(library(write)).
+:- use_module(library(system)).
+:- use_module(engine(io_basic), ['$format_print_float'/3, '$format_print_integer'/3]).
+
+%% FOR TEMPORARILY PARTIALLY DOCUMENTING:
+:- use_module(library(assertions/doc_props)).
 
 % ------------------------------------------------------------------------
 
@@ -415,6 +407,8 @@ format1(Control, Arguments) :-
     fmt_parse(ArgumentList, SpecList, ControlList, []), !,
     current_output(Stream),
     fmt_print(SpecList, 0, 0' , Stream).
+
+:- push_prolog_flag(multi_arity_warnings, off).
 
 fmt_print([], _, _, _).
 fmt_print([X|Xs], Tab, Fill, Stream) :- fmt_print(X, Xs, Tab, Fill, Stream).
@@ -532,6 +526,8 @@ fmt_parse(0'R, [A|Args], [spec(0'R, V, N)|Specs], _, N, 8) -->
 fmt_parse(0's, [A|Args], [spec(0's, A, N)|Specs], _, N, Len) -->
     {is_ascii_list(A, 0, Len)},
     fmt_parse(Args, Specs).
+
+:- pop_prolog_flag(multi_arity_warnings).
 
 is_ascii_list(X, _, _) :- var(X), !, fail.
 is_ascii_list([], N, N).

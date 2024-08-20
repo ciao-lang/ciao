@@ -812,21 +812,6 @@ true_fail(fail).
 :- endif.
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Internal for format.pl").
-
-:- if(defined(optim_comp)).
-:- else.
- :- export('$format_print_float'/3).
-:- trust pred '$format_print_float'(Format,Arg,Prec) : (int(Format), flt(Arg), int(Prec)).
-:- impl_defined('$format_print_float'/3).
-
-:- export('$format_print_integer'/3).
-:- trust pred '$format_print_integer'(Format,Arg,Prec) : (int(Format), flt(Arg), int(Prec)).
-:- trust pred '$format_print_integer'(Format,Arg,Prec) : (int(Format), int(Arg), int(Prec)).
-:- impl_defined('$format_print_integer'/3). 
-:- endif.
-
-% ---------------------------------------------------------------------------
 :- doc(section, "Module initialization (both static and dynamic)").
 % (as part the 'module' object operations)
 

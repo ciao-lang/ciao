@@ -466,16 +466,28 @@ is_ascii([C|Cs]) :- integer(C), C>=0, C<0x80, is_ascii(Cs).
 :- impl_defined(displayq/1).
 :- endif.
 
-:- if(defined(optim_comp)).
 :- export('$format_print_float'/3). % internal predicate
+:- if(defined(optim_comp)).
 :- '$props'('$format_print_float'/3, [impnat=cbool(prolog_format_print_float)]).
-%
+:- else.
+:- impl_defined('$format_print_float'/3).
+:- endif.
+
 :- export('$format_print_integer'/3). % internal predicate
+:- if(defined(optim_comp)).
 :- '$props'('$format_print_integer'/3, [impnat=cbool(prolog_format_print_integer)]).
-%
+:- else.
+:- impl_defined('$format_print_integer'/3). 
+:- endif.
+
+:- if(defined(optim_comp)).
 :- export('$display_string'/1). % internal predicate
 :- '$props'('$display_string'/1, [impnat=cbool(prolog_display_string)]).
-%
-:- export('$copy_stdout'/1). % internal predicate
-:- '$props'('$copy_stdout'/1, [impnat=cbool(prolog_copy_stdout)]).
+:- endif.
+
+:- export('$raw_copy_stdout'/1). % internal predicate
+:- if(defined(optim_comp)).
+:- '$props'('$raw_copy_stdout'/1, [impnat=cbool(raw_copy_stdout)]).
+:- else.
+:- impl_defined('$raw_copy_stdout'/1).
 :- endif.

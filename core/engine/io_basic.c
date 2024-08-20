@@ -1695,8 +1695,8 @@ CVOID__PROTO(prolog_fast_write_in_c_aux,
 
 // TODO:[oc-merge] merge both versions
 #if defined(OPTIM_COMP)
-CBOOL__PROTO(prolog_copy_stdout) {
-  ERR__FUNCTOR("io_basic:$copy_stdout", 1);
+CBOOL__PROTO(raw_copy_stdout) {
+  ERR__FUNCTOR("io_basic:$raw_copy_stdout", 1);
   int i;
   stream_node_t *s;
   
