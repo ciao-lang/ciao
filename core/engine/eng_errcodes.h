@@ -16,13 +16,13 @@
 #else
 #define ERR_instantiation_error 1
 #define ERR_uninstantiation_error 2
-#define ERR_type_error(X) _enc_error(type,_type_err(D))
-#define ERR_domain_error(X) _enc_error(dom,_domain_err(D))
-#define ERR_existence_error(X) _enc_error(exist,_existence_err(D))
-#define ERR_permission_error(X,Y) _enc_error(perm, _permission_perm(D)*0x10+_permission_obj(F))
-#define ERR_representation_error(X) _enc_error(repres, _representation_err(D))
-#define ERR_evaluation_error(X) _enc_error(eval,_evaluation_err(D))
-#define ERR_resource_error(X) _enc_error(res,_resource_err(D))
+#define ERR_type_error(D) _enc_error(type,_type_err(D))
+#define ERR_domain_error(D) _enc_error(dom,_domain_err(D))
+#define ERR_existence_error(D) _enc_error(exist,_existence_err(D))
+#define ERR_permission_error(D,F) _enc_error(perm, _permission_perm(D)*0x10+_permission_obj(F))
+#define ERR_representation_error(D) _enc_error(repres, _representation_err(D))
+#define ERR_evaluation_error(D) _enc_error(eval,_evaluation_err(D))
+#define ERR_resource_error(D) _enc_error(res,_resource_err(D))
 #define ERR_syntax_error _enc_error(syntax,0)
 #define ERR_system_error _enc_error(system,0)
 #define ERR_foreign_error _enc_error(foreign,0)
