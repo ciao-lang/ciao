@@ -98,7 +98,7 @@ static CBOOL__PROTO(proofread, char *text, arity_t arity, bool_t force) {
 #define SwOnTrTagT(X, HVACode, SVACode, SetArgCode, UndoCode) do { \
   if (IsHeapVar((X))) { \
     HVACode; \
-  } else if (IsStackVar((X))) { \
+  } else if (TaggedIsSVA((X))) { \
     SVACode; \
   } else { \
     UndoCode; \

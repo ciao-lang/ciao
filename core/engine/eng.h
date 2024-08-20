@@ -304,14 +304,6 @@
 
 #define GlobReg(Which) w->misc->globalreg[Which]
 
-/* Throwing exceptions */
-
-#define ErrArgNo w->misc->errargno
-#define ErrCode w->misc->errcode
-#define ErrFuncName w->misc->errfuncname
-#define ErrFuncArity w->misc->errfuncarity
-#define Culprit w->misc->culprit
-
 /* TODO:[ec-merge] try another way and measure performance impact */
 #if defined(TABLING)
 #define NodeLocalTop(Node)                                      \
@@ -2282,32 +2274,40 @@ void failc(char *mesg);
   } \
 })
 
-#define UNLOCATED_EXCEPTION(Code) {             \
-    ErrCode = Code;                             \
+#define EXCEPTION__THROW SIGLONGJMP(*w->misc->errhandler, 1)
+
+/* ------------------------------------------------------------------------- */
+/* Throwing exceptions (from builtins) */
+
+#define ERR__FUNCTOR(NAME, ARITY) \
+  static char *const err__name = NAME; static const int err__arity = ARITY;
+
+#define ErrArgNo w->misc->errargno
+#define ErrCode w->misc->errcode
+#define ErrFuncName w->misc->errfuncname
+#define ErrFuncArity w->misc->errfuncarity
+#define Culprit w->misc->culprit
+
+#define BUILTIN_ERROR(Code,Culpr,ArgNo) ({ \
+  ErrCode = Code; \
+  ErrFuncName = err__name; \
+  ErrFuncArity = err__arity; \
+  ErrArgNo = ArgNo; \
+  Culprit = Culpr; \
+  EXCEPTION__THROW; \
+})
+
+#define ERROR_IN_ARG(Arg,ArgNo,Err) \
+  BUILTIN_ERROR(IsVar(Arg) ? ERR_instantiation_error : Err, Arg, ArgNo)
+
+#define UNLOCATED_EXCEPTION(Err) {              \
+    ErrCode = Err;                              \
     ErrFuncName = "unknown";                    \
     ErrFuncArity = -1;                          \
     ErrArgNo = 0;                               \
     Culprit = TaggedZero;                       \
     EXCEPTION__THROW;                           \
   }
-
-#define EXCEPTION__THROW SIGLONGJMP(*w->misc->errhandler, 1)
-
-/* Throwing exceptions from builtins */
-
-#define ERR__FUNCTOR(NAME, ARITY) \
-  static char *const err__name = NAME; static const int err__arity = ARITY; 
-
-#define BUILTIN_ERROR(Code,Culpr,ArgNo) ({ \
-  ErrCode = Code; \
-  ErrFuncName = err__name; \
-  ErrFuncArity = err__arity; \
-  ErrArgNo = ArgNo; Culprit = Culpr; \
-  EXCEPTION__THROW; \
-})
-
-#define ERROR_IN_ARG(Arg,ArgNo,Err) \
-  BUILTIN_ERROR(IsVar(Arg) ? ERR_instantiation_error : Err, Arg, ArgNo)
 
 /* =========================================================================== */
 

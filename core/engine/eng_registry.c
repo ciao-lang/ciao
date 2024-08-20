@@ -1001,10 +1001,11 @@ CBOOL__PROTO(prolog_stream_code);
 CBOOL__PROTO(character_count);
 CBOOL__PROTO(line_position);
 CBOOL__PROTO(line_count);
-CBOOL__PROTO(current_stream);
-/* io_basic.c */
 CBOOL__PROTO(flush_output);
 CBOOL__PROTO(flush_output1);
+CBOOL__PROTO(prolog_clearerr);
+CBOOL__PROTO(current_stream);
+/* io_basic.c */
 CBOOL__PROTO(code_class);
 CBOOL__PROTO(rune_class);
 CBOOL__PROTO(getct);
@@ -1037,7 +1038,6 @@ CBOOL__PROTO(prolog_display);
 CBOOL__PROTO(prolog_display2);
 CBOOL__PROTO(prolog_displayq);
 CBOOL__PROTO(prolog_displayq2);
-CBOOL__PROTO(prolog_clearerr);
 CBOOL__PROTO(prolog_fast_read_in_c);
 CBOOL__PROTO(prolog_fast_write_in_c);
 CBOOL__PROTO(prolog_format_print_float);

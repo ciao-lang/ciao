@@ -701,6 +701,56 @@ CBOOL__PROTO(line_count)
   CBOOL__LASTUNIFY(IntmachToTagged(stream->nl_count),X(1));
 }
 
+/*----------------------------------------------------------------*/
+
+CBOOL__PROTO(flush_output) {
+  if (Output_Stream_Ptr->streammode != 's') { /* not a socket */
+    if (fflush(Output_Stream_Ptr->streamfile)) {
+      print_syserror("fflush in flush_output/1");
+    }
+  }
+  CBOOL__PROCEED;
+}
+
+/*----------------------------------------------------------------*/
+
+CBOOL__PROTO(flush_output1) {
+  ERR__FUNCTOR("stream_basic:flush_output", 1);
+  int errcode;
+  stream_node_t *s;
+  
+  s = stream_to_ptr_check(X(0), 'w', &errcode);
+  if (!s) {
+    BUILTIN_ERROR(errcode,X(0),1);
+  }
+
+  if (s->streammode != 's') { /* not a socket */
+    if (fflush(s->streamfile)) {
+      print_syserror("fflush in flush_output/1");
+    }
+  }
+  CBOOL__PROCEED;
+}
+
+/*----------------------------------------------------------------*/
+
+CBOOL__PROTO(prolog_clearerr) {
+  ERR__FUNCTOR("stream_basic:clearerr", 1);
+  int errcode;
+  stream_node_t *s;
+  
+  s = stream_to_ptr_check(X(0), 'r', &errcode);
+  if (!s) {
+    BUILTIN_ERROR(errcode,X(0),1);
+  }
+  
+  if (s->streammode != 's') { /* not a socket */
+    clearerr(s->streamfile);
+  }
+
+  CBOOL__PROCEED;
+}
+
 /* ------------------------------------------------------------------
    THE BUILTIN C-PREDICATE       CURRENT_STREAM/3
    -----------------------------------------------------------------------*/

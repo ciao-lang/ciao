@@ -284,7 +284,6 @@
 #define IsHeapPtr(A)   ((tagged_t)(A)+Tagt(SVA) < Tagt(NUM))
 
 #define IsHeapVar(X)    ((X) < Tagt(SVA))
-#define IsStackVar(X)   ((stagged_t)(X) >= (stagged_t)Tagt(SVA))
 #define IsAtomic(X)     ((stagged_t)(X) < (stagged_t)Tagt(LST))
 #define IsComplex(X)    ((X) >= Tagt(LST))
 
@@ -748,6 +747,38 @@ derefsw_end: {} \
  sw_large: CODE_Large; goto sw_end; \
  sw_other: CODE_Other; goto sw_end; \
  sw_end: {} \
+})
+
+#define SwOnAnyTagB(Reg, HeadFunctor, CODE_HVA, CODE_SVA, CODE_CVA, CODE_NUM, CODE_ATM, CODE_LST, CODE_STRBlob, CODE_STRStruct) ({ \
+  switch (TagOf(Reg)) { \
+  case HVA: \
+    CODE_HVA; \
+    break; \
+  case SVA: \
+    CODE_SVA; \
+    break; \
+  case CVA: \
+    CODE_CVA; \
+    break; \
+  case NUM: \
+    CODE_NUM; \
+    break; \
+  case ATM: \
+    CODE_ATM; \
+    break; \
+  case LST: \
+    CODE_LST; \
+    break; \
+  case STR: \
+    { \
+      SwStruct(HeadFunctor, Reg, { \
+        CODE_STRBlob; \
+      }, { \
+        CODE_STRStruct; \
+      }); \
+      break; \
+    } \
+  } \
 })
 
 // TODO:[oc-merge] use SwStruct

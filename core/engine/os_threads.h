@@ -469,11 +469,7 @@ typedef void *(*THREAD_START)(void *);
 }
 */
 
-#if defined(OPTIM_COMP)
-void print_syserror(char *s); /* stream_basic.c */
-#else
 void print_syserror(char *s); /* io_basic.c */ 
-#endif
 
 #define Thread_Create_GoalId(Process, Arg, Id, Handle) { \
   if (pthread_create(&(Id), &joinable_thread, Process, Arg)) { \
