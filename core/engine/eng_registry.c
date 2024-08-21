@@ -130,9 +130,6 @@ SLOCK    worker_id_pool_l;
    identifiers.  */
 SLOCK    atom_id_l;
 
-/* The creation of new streams should be atomic. */
-LOCK stream_list_l;
-
 bool_t in_abort_context = FALSE;
 
 /* Event Tracing Flags etc */
@@ -917,7 +914,6 @@ void init_locks(void){
   Init_slock(ops_counter_l);
 #endif
 
-  Init_lock(stream_list_l);
   Init_slock(mem_mng_l);
   Init_slock(worker_id_pool_l);
   Init_slock(atom_id_l);

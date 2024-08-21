@@ -4,11 +4,10 @@
  *  Stream handling primitives (see engine(stream_basic))
  *
  *  Copyright (C) 1996-2002 UPM-CLIP
- *  Copyright (C) 2002-2015 The Ciao Development Team
+ *  Copyright (C) 2002-2024 The Ciao Development Team
  */
 
-/* TODO: This code should implement particular kind of streams (file,
-   sockets, etc.) */
+/* TODO: distinguish stream interface from stream implementations (file, sockets, etc.) */
 
 #include <ciao/eng.h>
 #include <ciao/io_basic.h>
@@ -23,36 +22,51 @@
 #include <sys/param.h>
 #include <errno.h>
 
-#define ENG_NOFILES 20
+#define ENG_NOFILES 20 /* TODO: make it larger? */
 
-#include <ciao/eng_registry.h>
+#if !defined(OPTIM_COMP)
+#include <ciao/eng_registry.h> /* GET_ATOM */
 #include <ciao/eng_interrupt.h> /* control_c_normal */
-#include <ciao/rt_exp.h>
+#endif
 
 /* ------------------------------------------------------------------------- */
 /* The root stream pointer (all streams are liked) */
 
 stream_node_t *root_stream_ptr; /* Shared and _locked_ */
 
+/* The creation of new streams should be atomic. */
+LOCK stream_list_l;
+
 /* ------------------------------------------------------------------------- */
 /* The table of stream aliases */
 
+#if defined(OPTIM_COMP)
+stream_node_t *stream_user_input; /* Shared */
+stream_node_t *stream_user_output; /* Shared */
+stream_node_t *stream_user_error; /* Shared */
+#else
 stream_node_t *stream_user_input  = NULL; /* Shared */
 stream_node_t *stream_user_output = NULL; /* Shared */
 stream_node_t *stream_user_error  = NULL; /* Shared */
+#endif
 
-/* ------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------- */
 
+#if !defined(OPTIM_COMP)
 tagged_t atom_user_input; /* "user_input" */ 
 tagged_t atom_user_output; /* "user_output" */
 tagged_t atom_user_error; /* "user_error" */
+#endif
 
-/* ------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------- */
 /* Initialize the streams library (only once) */
 
-void init_streams(void)
-{
-  root_stream_ptr = checkalloc_TYPE(stream_node_t); 
+void init_streams(void) {
+#if defined(USE_THREADS)
+  Init_lock(stream_list_l);
+#endif
+
+  root_stream_ptr = checkalloc_TYPE(stream_node_t);
   root_stream_ptr->label=ERRORTAG;
   root_stream_ptr->streamname=ERRORTAG;
   root_stream_ptr->forward=root_stream_ptr;
@@ -65,34 +79,32 @@ void init_streams(void)
   stream_user_output = new_stream(ERRORTAG, "a", stdout);
   stream_user_error = new_stream(ERRORTAG, "a", stderr);
 
+#if !defined(OPTIM_COMP)
   /* initialize the table of streams aliases */
   atom_user_input=GET_ATOM("user_input");
   atom_user_output=GET_ATOM("user_output");
   atom_user_error=GET_ATOM("user_error");
+#endif
 }
 
-
-/* --------------------------------------------------------*/
+/* --------------------------------------------------------------------------- */
 
 /* Protect the creation of streams: several threads might want to create
    streams at once. */
 
-stream_node_t *insert_new_stream(stream_node_t *new_stream){
-
+stream_node_t *insert_new_stream(stream_node_t *new_stream) {
   Wait_Acquire_lock(stream_list_l);
   new_stream->forward = root_stream_ptr;
   new_stream->backward = root_stream_ptr->backward;
   root_stream_ptr->backward->forward = new_stream;
   root_stream_ptr->backward = new_stream;
   Release_lock(stream_list_l);
-
   return new_stream;
 }
 
 stream_node_t *new_stream(tagged_t streamname,
                           char *streammode,
-                          FILE *streamfile)
-{
+                          FILE *streamfile) {
   stream_node_t *s;
 
   s = checkalloc_TYPE(stream_node_t);
@@ -128,21 +140,32 @@ void update_stream(stream_node_t *s, FILE *file) {
 /* ISO Prolog does not allow stream aliases to be used instead of
    stream terms in many cases.  We are relaxing this here. */
 
-CBOOL__PROTO(is_var_or_alias_or_stream, tagged_t Cell)
-{
-  if (IsVar(Cell)) {
+CBOOL__PROTO(is_var_or_alias_or_stream, tagged_t cell) {
+#if defined(OPTIM_COMP)
+  CBOOL__LASTTEST(
+                  IsVar(cell) || 
+                  (TaggedIsATM(cell) &&
+                   (cell == atom_user_input ||
+                    cell == atom_user_output ||
+                    cell == atom_user_error
+                    )
+                   ) ||
+                  (TaggedIsSTR(cell) &&
+                   TaggedToHeadfunctor(cell) == functor_Dstream));
+#else
+  if (IsVar(cell)) {
     /* a variable */
     return TRUE;
-  } else if (TaggedIsATM(Cell)) {
+  } else if (TaggedIsATM(cell)) {
     /* a stream alias */
-    return (Cell == atom_user_input ||
-            Cell == atom_user_output ||
-            Cell == atom_user_error);
+    return (cell == atom_user_input ||
+            cell == atom_user_output ||
+            cell == atom_user_error);
   } else {
     /* a Dstream functor */
-    return (TaggedIsSTR(Cell) && TaggedToHeadfunctor(Cell) == functor_Dstream);
+    return (TaggedIsSTR(cell) && TaggedToHeadfunctor(cell) == functor_Dstream);
   }
-
+#endif
 }
 
 /* ------------------------------------------------------------------------- */
@@ -151,28 +174,28 @@ CBOOL__PROTO(is_var_or_alias_or_stream, tagged_t Cell)
 CFUN__PROTO(ptr_to_stream_noalias, tagged_t, stream_node_t *n) {
   // printf("(int)n is %ud\n", (int)n);
   // printf("n->label is %ud\n", n->label);
-  tagged_t *pt1 = w->heap_top;
+  tagged_t *pt1 = G->heap_top;
   HeapPush(pt1,functor_Dstream);
   HeapPush(pt1,PointerToTerm(n));
   HeapPush(pt1,n->label);
-  w->heap_top = pt1;
-  return Tagp(STR,HeapOffset(pt1,-3));
+  G->heap_top = pt1;
+  CFUN__PROCEED(Tagp(STR,HeapCharOffset(pt1,-3*sizeof(tagged_t))));
 }
 
 /* ------------------------------------------------------------------------- */
 /* '$stream'(<address>,<id>) <-- (stream_node_t *) */
 /* or */
 /* <stream_alias> <-- (stream_node_t *) */
-CFUN__PROTO(ptr_to_stream, tagged_t, stream_node_t *n)
-{
-  if (n==stream_user_input)
-    return atom_user_input;
-  if (n==stream_user_output)
-    return atom_user_output;
-  if (n==stream_user_error)
-    return atom_user_error;
-
-  return ptr_to_stream_noalias(Arg, n);
+CFUN__PROTO(ptr_to_stream, tagged_t, stream_node_t *n) {
+  if (n==stream_user_input) {
+    CFUN__PROCEED(atom_user_input);
+  } else if (n==stream_user_output) {
+    CFUN__PROCEED(atom_user_output);
+  } else if (n==stream_user_error) {
+    CFUN__PROCEED(atom_user_error);
+  } else {
+    CFUN__LASTCALL(ptr_to_stream_noalias, n);
+  }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -182,16 +205,14 @@ CFUN__PROTO(ptr_to_stream, tagged_t, stream_node_t *n)
    'w' - write mode, streammode=[was]
    'x' - any mode,   streammode=[rwas]
    'y' - any mode but no standard streams  */
-stream_node_t *stream_to_ptr(tagged_t t,
-                             int mode)
-{
-  stream_node_t *n = NULL;
-  tagged_t x1, x2;
+stream_node_t *stream_to_ptr(tagged_t t, int mode) {
+  DerefSw_HVAorCVAorSVA_Other(t, {
+    return NULL;
+  }, {
+    stream_node_t *n = NULL;
 
-  DerefSw_HVAorCVAorSVA_Other(t,;,{});
-
-  if (TaggedIsATM(t))
-    {
+    /* TODO: optimize */
+    if (TaggedIsATM(t)) {
       if (mode=='y')
         n = NULL;
       else if (t==atom_user)
@@ -202,21 +223,29 @@ stream_node_t *stream_to_ptr(tagged_t t,
         n = stream_user_output;
       else if (t==atom_user_error)
         n = stream_user_error;
-    }
-  else if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_Dstream))
-    {
+    } else if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_Dstream)) {
+      tagged_t x1;
+      tagged_t x2;
       DerefArg(x1,t,1);
       DerefArg(x2,t,2);
-      if (!TaggedIsSmall(x1) || !TaggedIsSmall(x2) ||
-          (n=TaggedToStream(x1), n->label != x2))
+      if (!TaggedIsSmall(x1)) {
         n = NULL;
+      } else if (!TaggedIsSmall(x2)) {
+        n = NULL;
+      } else {
+        n = TaggedToStream(x1);
+        if (n->label != x2) {
+          n = NULL;
+        }
+      }
     }
 
-  if (((mode=='r') && (n!=NULL) && (n->streammode=='w'||n->streammode=='a')) ||
-      ((mode=='w') && (n!=NULL) && (n->streammode=='r')))
-    return NULL;
-  else
-    return n;
+    if (((mode=='r') && (n!=NULL) && (n->streammode=='w'||n->streammode=='a')) ||
+        ((mode=='w') && (n!=NULL) && (n->streammode=='r')))
+      return NULL;
+    else
+      return n;
+  });
 }
 
 /* ------------------------------------------------------------------------- */
@@ -224,70 +253,84 @@ stream_node_t *stream_to_ptr(tagged_t t,
 
 stream_node_t *stream_to_ptr_check(tagged_t t,
                                    int mode, /* not 'y' */
-                                   int *errcode)
-{
-  stream_node_t *n = NULL;
-  tagged_t x1, x2;
-
-  DerefSw_HVAorCVAorSVA_Other(t,{*errcode = ERR_instantiation_error; return NULL;},{});
-
-  if (TaggedIsATM(t))
-    {
-      if (t==atom_user)
+                                   int *errcode) {
+  DerefSw_HVAorCVAorSVA_Other(t,{
+    *errcode = ERR_instantiation_error;
+    return NULL;
+  }, {
+    stream_node_t *n = NULL;
+    if (TaggedIsATM(t)) {
+      if (t==atom_user) {
         n = (mode=='r' ? stream_user_input : stream_user_output);
-      else if (t==atom_user_input)
+      } else if (t==atom_user_input) {
         n = stream_user_input;
-      else if (t==atom_user_output)
+      } else if (t==atom_user_output) {
         n = stream_user_output;
-      else if (t==atom_user_error)
+      } else if (t==atom_user_error) {
         n = stream_user_error;
-      else {
-            *errcode = ERR_domain_error(stream_or_alias);
-            return NULL;
-      }
-    }
-  else if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_Dstream)) {
-      DerefArg(x1,t,1);
-      DerefArg(x2,t,2);
-      if (!TaggedIsSmall(x1) || !TaggedIsSmall(x2) ||
-          (n = TaggedToStream(x1), n->label != x2)) {
-            *errcode = ERR_existence_error(stream);
-            return NULL;
-      }
-    } else {
+      } else {
         *errcode = ERR_domain_error(stream_or_alias);
         return NULL;
-    }
-
-  if (mode=='r') {
-    if (n->streammode=='w'||n->streammode=='a') {
-      *errcode = ERR_permission_error(access,stream);  
+      }
+    } else if (TaggedIsSTR(t) && (TaggedToHeadfunctor(t) == functor_Dstream)) {
+      tagged_t x1;
+      tagged_t x2;
+      DerefArg(x1,t,1);
+      DerefArg(x2,t,2);
+      if (!TaggedIsSmall(x1)) goto existence_error;
+      if (!TaggedIsSmall(x2)) goto existence_error;
+      n = TaggedToStream(x1);
+      if (n->label != x2) goto existence_error;
+      goto dstream_ok;
+    existence_error:
+      *errcode = ERR_existence_error(stream);
+      return NULL;
+    dstream_ok:
+      {}
+    } else {
+      *errcode = ERR_domain_error(stream_or_alias);
       return NULL;
     }
-  } else if (mode=='w') {
-    if (n->streammode=='r') {
-      *errcode = ERR_permission_error(modify,stream); 
-      return NULL;
-    }
-  }
 
-  return n;
+    if (mode=='r') {
+      if (n->streammode=='w'||n->streammode=='a') {
+        *errcode = ERR_permission_error(access,stream);  
+        return NULL;
+      }
+    } else if (mode=='w') {
+      if (n->streammode=='r') {
+        *errcode = ERR_permission_error(modify,stream); 
+        return NULL;
+      }
+    }
+    return n;
+  });
 }
 
 /* ------------------------------------------------------------------------- */
 /* BUILTIN C PREDICATES */
 
 /* ------------------------------------------------------------------------- */
+
+#if defined(OPTIM_COMP)
+CBOOL__PROTO(nd_current_stream);
+
+try_node_t *address_nd_current_stream;
+
+CVOID__PROTO(init_inout) {
+  address_nd_current_stream = CFUN__EVAL(def_retry_cbool,nd_current_stream,4);
+}
+#endif
+
+/* ------------------------------------------------------------------------- */
 /* USAGE: open(+,+,-) only */
 
-CBOOL__PROTO(prolog_open)
-{
+CBOOL__PROTO(prolog_open) {
   ERR__FUNCTOR("stream_basic:$open", 3);
   struct stat statbuf;
   FILE *fileptr;
   char *modecodif;
   char modespec[3];
-
   enum {
     STRANGE_SOURCE_SINK,
     INEXISTENT_SOURCE_SINK,
@@ -295,7 +338,6 @@ CBOOL__PROTO(prolog_open)
     SYS_ERROR,
     FINISHED_RESOURCES
   } what_happened;
-
 
   DEREF(X(0),X(0));
   DEREF(X(1),X(1));
@@ -315,9 +357,9 @@ CBOOL__PROTO(prolog_open)
 
   if (fileptr==NULL) {
     what_happened = SYS_ERROR;                            /* Just in case */
-    if (errno==ENOENT || errno==ENOTDIR || errno==ENXIO ||errno==EBADF)   {
+    if (errno==ENOENT || errno==ENOTDIR || errno==ENXIO ||errno==EBADF) {
       what_happened = INEXISTENT_SOURCE_SINK;
-    } else if (errno==EEXIST || errno==EISDIR || 
+    } else if (errno==EEXIST || errno==EISDIR ||
                errno==EBADF || errno==EROFS) {
       what_happened = CANNOT_OPEN;
     } else if (errno==ENOMEM || errno==EMFILE || errno==ENFILE) {
@@ -349,44 +391,37 @@ CBOOL__PROTO(prolog_open)
          : F_WRLCK);
       if (fcntl(fileno(fileptr), cmd, &sflo) < 0) {
         fclose(fileptr);
-        return FALSE;
+        CBOOL__FAIL;
       }
     }
   }
 #endif
 
-  return
-    cunify(Arg, ptr_to_stream(Arg,new_stream(X(0),modespec,fileptr)),X(2));
+  CBOOL__LASTUNIFY(CFUN__EVAL(ptr_to_stream,new_stream(X(0),modespec,fileptr)),X(2));
 
  bombit:
-  if (current_ferror_flag == atom_on) {
-    switch (what_happened) {
-    case STRANGE_SOURCE_SINK:
-      BUILTIN_ERROR(ERR_domain_error(source_sink), X(0), 1); break;
-    case INEXISTENT_SOURCE_SINK:
-      BUILTIN_ERROR(ERR_existence_error(source_sink), X(0), 1); break;
-    case CANNOT_OPEN:
-      BUILTIN_ERROR(ERR_permission_error(open, source_sink),X(0),1); break;
-   case FINISHED_RESOURCES:
-      BUILTIN_ERROR(ERR_resource_error(r_undefined),X(0),1); break;
-    case SYS_ERROR:
-    default:
-      BUILTIN_ERROR(ERR_system_error,X(0),1); break;
-    } 
-  } else {
-    return FALSE;
+  CBOOL__TEST(current_ferror_flag == atom_on);
+  switch (what_happened) {
+  case STRANGE_SOURCE_SINK:
+    BUILTIN_ERROR(ERR_domain_error(source_sink), X(0), 1); break;
+  case INEXISTENT_SOURCE_SINK:
+    BUILTIN_ERROR(ERR_existence_error(source_sink), X(0), 1); break;
+  case CANNOT_OPEN:
+    BUILTIN_ERROR(ERR_permission_error(open, source_sink),X(0),1); break;
+  case FINISHED_RESOURCES:
+    BUILTIN_ERROR(ERR_resource_error(r_undefined),X(0),1); break;
+  case SYS_ERROR:
+  default:
+    BUILTIN_ERROR(ERR_system_error,X(0),1); break;
   }
 }
-
-
 
 /* ------------------------------------------------------------------------- */
 
 /* as Quintus closing a stream object referring to user_input,user_output */
 /*   or user_error will succeed but cause no changes */
 
-CBOOL__PROTO(prolog_close)
-{
+CBOOL__PROTO(prolog_close) {
   ERR__FUNCTOR("stream_basic:close", 1);
   int errcode;
   stream_node_t *stream;
@@ -394,7 +429,11 @@ CBOOL__PROTO(prolog_close)
   stream = stream_to_ptr_check(X(0), 'x', &errcode);
   if (stream==NULL) {
     BUILTIN_ERROR(errcode,X(0),1);
-  } else if (stream==Input_Stream_Ptr) {
+  }
+
+  /* When closing a redirected input/output stream, reset it to
+     the default value */
+  if (stream==Input_Stream_Ptr) {
     Input_Stream_Ptr = stream_user_input;
   } else if (stream==Output_Stream_Ptr) {
     Output_Stream_Ptr = stream_user_output;
@@ -402,43 +441,44 @@ CBOOL__PROTO(prolog_close)
     Error_Stream_Ptr = stream_user_error;
   }
 
-  if ((stream!=stream_user_input) &&
-      (stream!=stream_user_output) &&
-      (stream!=stream_user_error))
-    {
-      if (stream->streammode != 's')        /* Not a socket -- has FILE * */
-        fclose(stream->streamfile);  /* Releases file locks automatically */
-      else
-        close(TaggedToIntmach(stream->label));            /* Needs a lock here */
+  /* Do nothing it the stream is one of the default ones */
+  if (stream==stream_user_input) CBOOL__PROCEED;
+  if (stream==stream_user_output) CBOOL__PROCEED;
+  if (stream==stream_user_error) CBOOL__PROCEED;
 
+  /* Really close the stream */
+  if (stream->streammode != 's')        /* Not a socket -- has FILE * */
+    fclose(stream->streamfile);  /* Releases file locks automatically */
+  else
+    close(TaggedToIntmach(stream->label)); /* Needs a lock here */
 
- /* We are twiggling with a shared structure: lock the access to it */
+  /* We are twiggling with a shared structure: lock the access to it */
+  Wait_Acquire_lock(stream_list_l);
 
-      Wait_Acquire_lock(stream_list_l);
+  stream->label = ERRORTAG;
+  stream->backward->forward = stream->forward;
+  stream->forward->backward = stream->backward;
 
-      stream->label = ERRORTAG;
-      stream->backward->forward = stream->forward;
-      stream->forward->backward = stream->backward;
+  /* now ensure that no choicepoints point at the stream */
+  {
+    choice_t *b;
+    tagged_t t1, t2;
 
-      /* now ensure that no choicepoints point at the stream */
-      {
-        choice_t *B;
-        tagged_t t1, t2;
+    t1 = PointerToTerm(stream);
+    t2 = PointerToTerm(stream->forward);
 
-        t1 = PointerToTerm(stream);
-        t2 = PointerToTerm(stream->forward);
-        
-        for (B = w->choice;
-             ChoiceYounger(B,Choice_Start);
-             B = ChoiceCont(B))
-          if (B->next_alt==address_nd_current_stream && B->x[3]==t1)
-            B->x[3] = t2;
-      }
-
-      checkdealloc_TYPE(stream_node_t, stream);
-      Release_lock(stream_list_l);
+    for (b = w->choice;
+         ChoiceYounger(b,Choice_Start);
+         b = ChoiceCont(b)) {
+      if (b->next_alt == address_nd_current_stream && b->x[3] == t1)
+        b->x[3] = t2;
     }
-  return TRUE;
+  }
+
+  checkdealloc_TYPE(stream_node_t, stream);
+  Release_lock(stream_list_l);
+
+  CBOOL__PROCEED;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -447,8 +487,7 @@ CBOOL__PROTO(prolog_close)
 int pipe(int filedes[2]);
 #endif
 
-CBOOL__PROTO(prolog_pipe)
-{
+CBOOL__PROTO(prolog_pipe) {
   ERR__FUNCTOR("stream_basic:pipe", 2);
   FILE *in;
   FILE *out;
@@ -458,8 +497,8 @@ CBOOL__PROTO(prolog_pipe)
   if (!(in  = fdopen(fd[0], "r"))) goto bombit;
   if (!(out = fdopen(fd[1], "w"))) goto bombit;
 
-  return (cunify(Arg,ptr_to_stream(Arg, new_stream((tagged_t)0, "r", in)), X(0)) &&
-          cunify(Arg,ptr_to_stream(Arg, new_stream((tagged_t)0, "w", out)), X(1)));
+  CBOOL__UNIFY(CFUN__EVAL(ptr_to_stream, new_stream((tagged_t)0, "r", in)), X(0));
+  CBOOL__LASTUNIFY(CFUN__EVAL(ptr_to_stream, new_stream((tagged_t)0, "w", out)), X(1));
 
  bombit:
   BUILTIN_ERROR(ERR_resource_error(r_undefined),X(0),1) ;
@@ -472,53 +511,46 @@ CBOOL__PROTO(prolog_pipe)
    This is a bit relaxed here: we allow also for stream aliases to be passed
    in and out without raising an exception.  Same goes for current_output */ 
 
-CBOOL__PROTO(prolog_current_input)
-{
+CBOOL__PROTO(prolog_current_input) {
   ERR__FUNCTOR("stream_basic:current_input", 1);
   DEREF(X(0), X(0));
 
-  if (is_var_or_alias_or_stream(Arg, X(0))) {
-    CBOOL__LASTUNIFY(ptr_to_stream(Arg,Input_Stream_Ptr), X(0));
+  if (CFUN__EVAL(is_var_or_alias_or_stream, X(0))) {
+    CBOOL__LASTUNIFY(CFUN__EVAL(ptr_to_stream,Input_Stream_Ptr), X(0));
   } else {
     BUILTIN_ERROR(ERR_domain_error(stream_or_alias), X(0), 1);
   }
 }
 
-
-CBOOL__PROTO(prolog_set_input)
-{
+CBOOL__PROTO(prolog_set_input) {
   ERR__FUNCTOR("stream_basic:set_input", 1);
   int errcode;
   stream_node_t *stream;
 
   DEREF(X(0),X(0));
-
   stream = stream_to_ptr_check(X(0), 'r', &errcode);
   if (stream==NULL) {
     BUILTIN_ERROR(errcode,X(0),1);
   }
 
   Input_Stream_Ptr = stream;
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
 /* ------------------------------------------------------------------------- */
 
-CBOOL__PROTO(prolog_current_output)
-{
+CBOOL__PROTO(prolog_current_output) {
   ERR__FUNCTOR("stream_basic:current_output", 1);
   DEREF(X(0), X(0));
 
-  if (is_var_or_alias_or_stream(Arg, X(0))) {
-    CBOOL__LASTUNIFY(ptr_to_stream(Arg,Output_Stream_Ptr), X(0));
+  if (CFUN__EVAL(is_var_or_alias_or_stream, X(0))) {
+    CBOOL__LASTUNIFY(CFUN__EVAL(ptr_to_stream,Output_Stream_Ptr), X(0));
   } else {
     BUILTIN_ERROR(ERR_domain_error(stream_or_alias), X(0), 1);
   }
 }
 
-
-CBOOL__PROTO(prolog_set_output)
-{
+CBOOL__PROTO(prolog_set_output) {
   ERR__FUNCTOR("stream_basic:set_output", 1);
   int errcode;
   stream_node_t *stream;
@@ -526,14 +558,14 @@ CBOOL__PROTO(prolog_set_output)
   DEREF(X(0),X(0));
   stream = stream_to_ptr_check(X(0), 'w', &errcode);
   if (stream==NULL) {
+    DEBUG__TRACE(TRUE, "stream to pointer returned null, errcode is %ld\n", (long)errcode);
     BUILTIN_ERROR(errcode, X(0), 1);
   }
   Output_Stream_Ptr = stream;
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
 /* ------------------------------------------------------------------------- */
-
 /* Replacing the stream aliases pointer */
 
 /* replace_stream(StreamAlias, NewStream) */
@@ -594,9 +626,8 @@ CBOOL__PROTO(prolog_get_stream) {
 
 /* ------------------------------------------------------------------------- */
 
-CBOOL__PROTO(prolog_current_error)
-{
-  CBOOL__LASTUNIFY(ptr_to_stream(Arg,Error_Stream_Ptr),X(0));
+CBOOL__PROTO(prolog_current_error) {
+  CBOOL__LASTUNIFY(CFUN__EVAL(ptr_to_stream,stream_user_error),X(0));
 }
 
 /* ------------------------------------------------------------------------- */
@@ -612,47 +643,40 @@ CBOOL__PROTO(prolog_current_error)
  * will return the stream code associated with user_output.
  */
 
-CBOOL__PROTO(prolog_stream_code)
-{
+CBOOL__PROTO(prolog_stream_code) {
   ERR__FUNCTOR("stream_basic:stream_code", 2);
   int errcode;
   stream_node_t *s;
 
   DEREF(X(1), X(1));
-  if (IsVar(X(1)))
-    {
-      s = stream_to_ptr_check(X(0), 'x', &errcode);
-      if (!s) {
-        BUILTIN_ERROR(errcode,X(0),1);
-      }
+  if (IsVar(X(1))) {
+    s = stream_to_ptr_check(X(0), 'x', &errcode);
+    if (!s) BUILTIN_ERROR(errcode,X(0),1);
 
-      if (s->streammode != 's'){                            /* Not a socket */
-        CBOOL__UnifyCons(MakeSmall(fileno(s->streamfile)),X(1));
-      } else {                                                  /* DCG, MCL */
-        CBOOL__UnifyCons(s->label,X(1)); /* Can't be this done above as well? */
-      }
-      return TRUE;
+    if (s->streammode != 's'){                            /* Not a socket */
+      CBOOL__UnifyCons(MakeSmall(fileno(s->streamfile)),X(1));
+    } else {                                                  /* DCG, MCL */
+      CBOOL__UnifyCons(s->label,X(1)); /* Can't be this done above as well? */
     }
-  else if (X(1) >= TaggedZero && X(1) < MakeSmall(ENG_NOFILES))
-    {
-      for (s = root_stream_ptr->backward;
-           s != root_stream_ptr && s->label != X(1);
-           s = s->backward)
-        ;
-      if (s != root_stream_ptr && s->label == X(1))
-        CBOOL__LASTUNIFY(ptr_to_stream(Arg,s),X(0));
-      else
-        return FALSE;
+    CBOOL__PROCEED;
+  } else if (X(1) >= TaggedZero && X(1) < MakeSmall(ENG_NOFILES)) {
+    for (s = root_stream_ptr->backward;
+         s != root_stream_ptr && s->label != X(1);
+         s = s->backward)
+      ;
+    if (s != root_stream_ptr && s->label == X(1)) {
+      CBOOL__LASTUNIFY(CFUN__EVAL(ptr_to_stream,s),X(0));
+    } else {
+      CBOOL__FAIL;
     }
-  else if (IsInteger(X(1)))
-    return FALSE;
-  else
+  } else if (IsInteger(X(1))) {
+    CBOOL__FAIL;
+  } else {
     BUILTIN_ERROR(ERR_type_error(integer),X(1),2);
+  }
 }
 
-
-CBOOL__PROTO(character_count)
-{
+CBOOL__PROTO(character_count) {
   ERR__FUNCTOR("stream_basic:character_count", 2);
   int errcode;
   stream_node_t *stream;
@@ -667,9 +691,7 @@ CBOOL__PROTO(character_count)
   CBOOL__LASTUNIFY(IntmachToTagged(stream->rune_count),X(1));
 }
 
-
-CBOOL__PROTO(line_position)
-{
+CBOOL__PROTO(line_position) {
   ERR__FUNCTOR("stream_basic:line_position", 2);
   int errcode;
   stream_node_t *stream;
@@ -684,9 +706,7 @@ CBOOL__PROTO(line_position)
   CBOOL__LASTUNIFY(IntmachToTagged(stream->rune_count-stream->last_nl_pos),X(1));
 }
 
-
-CBOOL__PROTO(line_count)
-{
+CBOOL__PROTO(line_count) {
   ERR__FUNCTOR("stream_basic:line_count", 2);
   int errcode;
   stream_node_t *stream;
@@ -755,8 +775,7 @@ CBOOL__PROTO(prolog_clearerr) {
    THE BUILTIN C-PREDICATE       CURRENT_STREAM/3
    -----------------------------------------------------------------------*/
 
-static CBOOL__PROTO(current_stream_data, stream_node_t *streamptr)
-{
+static CBOOL__PROTO(current_stream_data, stream_node_t *streamptr) {
   CBOOL__UnifyCons(streamptr->streamname,X(0));
   switch (streamptr->streammode)
     {
@@ -773,56 +792,57 @@ static CBOOL__PROTO(current_stream_data, stream_node_t *streamptr)
       CBOOL__UnifyCons(atom_socket,X(1));
       break;
     }
-  return TRUE;
+  CBOOL__PROCEED;
 }
 
-
-CBOOL__PROTO(current_stream)
-{
+CBOOL__PROTO(current_stream) {
   stream_node_t *streamptr;
 
   DEREF(X(2),X(2));
-  if (!IsVar(X(2)) && (streamptr=stream_to_ptr(X(2),'y')))
-    return current_stream_data(Arg,streamptr);
+  if (!IsVar(X(2)) && (streamptr=stream_to_ptr(X(2),'y'))) {
+    CBOOL__LASTCALL(current_stream_data,streamptr);
+  }
 
   streamptr = root_stream_ptr->forward;
+  /* skip over system streams */
   while (streamptr!=root_stream_ptr &&
-         streamptr->streamname==ERRORTAG) /* skip over system streams */
+         streamptr->streamname==ERRORTAG) {
     streamptr = streamptr->forward;
-  if (streamptr==root_stream_ptr)
-    return FALSE;
-  else if (streamptr->forward!=root_stream_ptr)
-    {
-      X(3) = PointerToTerm(streamptr->forward);
-      push_choicept(Arg,address_nd_current_stream);
-    }
+  }
+  CBOOL__TEST(streamptr!=root_stream_ptr);
 
-  return (cunify(Arg,ptr_to_stream(Arg,streamptr),X(2)) &&
-          current_stream_data(Arg,streamptr));
+  if (streamptr->forward!=root_stream_ptr) {
+    X(3) = PointerToTerm(streamptr->forward);
+    CVOID__CALL(push_choicept,address_nd_current_stream);
+  }
+
+  CBOOL__UNIFY(CFUN__EVAL(ptr_to_stream,streamptr),X(2));
+  CBOOL__LASTCALL(current_stream_data,streamptr);
 }
 
-CBOOL__PROTO(nd_current_stream)
-{
+CBOOL__PROTO(nd_current_stream) {
   stream_node_t *streamptr = TaggedToStream(X(3));
 
-  if (streamptr==root_stream_ptr)
-    {                           /* zero alts due to close */
-      pop_choicept(Arg);
-      return FALSE;
-    }
-  else if (streamptr->forward==root_stream_ptr) /* last alt */
-    pop_choicept(Arg);
-  else
+  if (streamptr==root_stream_ptr) {
+    /* zero alts due to close */
+    CVOID__CALL(pop_choicept);
+    CBOOL__FAIL;
+  }
+
+  if (streamptr->forward==root_stream_ptr) {
+    /* last alt */
+    CVOID__CALL(pop_choicept);
+  } else {
     w->choice->x[3]=PointerToTerm(streamptr->forward);
-  return (cunify(Arg,ptr_to_stream(Arg,streamptr),X(2)) &&
-          current_stream_data(Arg,streamptr));
+  }
+  CBOOL__UNIFY(CFUN__EVAL(ptr_to_stream,streamptr),X(2));
+  CBOOL__LASTCALL(current_stream_data,streamptr);
 }
 
 /* ------------------------------------------------------------------------- */
 
 /* Force interactive mode (used by toplevel -i option) */
-CBOOL__PROTO(prolog_force_interactive)
-{
+CBOOL__PROTO(prolog_force_interactive) {
   interactive_flag_bool = TRUE;
   /* Update streams so that isatty is enabled */
   update_stream(stream_user_input,stream_user_input->streamfile);
@@ -830,5 +850,5 @@ CBOOL__PROTO(prolog_force_interactive)
   update_stream(stream_user_error,stream_user_error->streamfile);
   /* This will (re)install SIGINT handler (since it is ignored for non interactive) */
   CVOID__CALL(control_c_normal);
-  return TRUE;
+  CBOOL__PROCEED;
 }

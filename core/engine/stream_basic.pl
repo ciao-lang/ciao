@@ -558,7 +558,7 @@ lock_mode(exclusive).
 :- export(pipe/2).
 :- trust pred pipe(-stream, -stream) + (iso, native).
 :- if(defined(optim_comp)).
-:- '$props'(pipe/2, [impnat=indefinable]). % TODO: backport
+:- '$props'(pipe/2, [impnat=cbool(prolog_pipe)]).
 :- else.
 :- impl_defined([pipe/2]).
 :- endif.

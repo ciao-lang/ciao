@@ -743,7 +743,7 @@ where_term(PredName, PredArity, Arg, WhereError) :-
 
 :- export('$force_interactive'/0).
 :- if(defined(optim_comp)).
-:- '$props'('$force_interactive'/0, [impnat=cbool(prolog_force_interactive)]).
+:- '$props'('$force_interactive'/0, [impnat=cbool(prolog_force_interactive)]). % in stream_basic.c
 :- else.
 :- impl_defined('$force_interactive'/0).
 :- endif.

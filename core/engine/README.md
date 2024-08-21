@@ -77,3 +77,12 @@ ciao oc:tests mtsys ciao2 2>&1 | grep -e "\(time\|name\)"
 rm -rf build/eng/ciaoengine; touch core/engine/absmach_def.pl; time ./ciao-boot.sh build --bin core.ciaobase # default
 rm -rf build/oc-cache; time ciao oc:build # optim-comp
 ```
+
+# Promoting bootstrap
+
+```
+$ ./ciao-boot.sh build --bin core
+$ ./ciao-boot.sh boot-promote core.engine
+$ ciao oc:build-comp
+$ ciao oc:promote
+```

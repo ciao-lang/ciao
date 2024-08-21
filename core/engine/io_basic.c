@@ -30,13 +30,6 @@
 
 /* TODO: improve stream abstraction and separate generic code */
 
-#if defined(OPTIM_COMP)
-/* The creation of new streams should be atomic. */
-LOCK stream_list_l;
-
-stream_node_t *root_stream_ptr;               /* Shared and _locked_ */
-#endif
-
 /* --------------------------------------------------------------------------- */
 
 /* Own version of getc() that normalizes EOF (<0) to -1 */
@@ -2050,26 +2043,3 @@ CBOOL__PROTO(prolog_format_print_integer) {
   CVOID__CALL(print_string, Output_Stream_Ptr, Atom_Buffer);
   CBOOL__PROCEED;
 }
-
-/* --------------------------------------------------------------------------- */
-
-#if defined(OPTIM_COMP)
-void init_streams(void) {
-#if defined(USE_THREADS)
-  Init_lock(stream_list_l);
-#endif
-
-  root_stream_ptr = checkalloc_TYPE(stream_node_t);
-  root_stream_ptr->label=ERRORTAG;
-  root_stream_ptr->streamname=ERRORTAG;
-  root_stream_ptr->forward=root_stream_ptr;
-  root_stream_ptr->backward=root_stream_ptr;
-  root_stream_ptr->last_nl_pos = 0;               /* used for tty streams */
-  root_stream_ptr->nl_count = 0;
-  root_stream_ptr->rune_count = 0;
-
-  stream_user_input = new_stream(ERRORTAG, "r", stdin);
-  stream_user_output = new_stream(ERRORTAG, "a", stdout);
-  stream_user_error = new_stream(ERRORTAG, "a", stderr);
-}
-#endif
