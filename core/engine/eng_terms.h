@@ -723,10 +723,11 @@ derefsw_end: {} \
   }); \
 })
 
+/* Pre: NUM ATM LST STR(blob) STR(struct) */
 #define Sw_NUMorATM_LST_STR(Reg, CODE_NUMorATM, CODE_LST, CODE_STR) ({ \
-  if (TaggedIsATM(Reg)||TaggedIsSmall(Reg)) { \
+  if (!(u & TagBitComplex)) { /* -LST & -STR == NUM | ATM (atomic & not large) */ \
     CODE_NUMorATM; \
-  } else if (TaggedIsLST(Reg)) { \
+  } else if (!(u & TagBitFunctor)) { /* (LST|STR) & -ATM & -STR == LST */ \
     CODE_LST; \
   } else { \
     CODE_STR; \

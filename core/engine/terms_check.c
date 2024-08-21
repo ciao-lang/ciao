@@ -16,25 +16,35 @@
 /* TODO: optimize, port to improlog, make it work with cyclic terms */
 
 static CBOOL__PROTO(cinstance_args_aux,
-                    int arity, tagged_t *pt1, tagged_t *pt2,
+                    arity_t arity, tagged_t *pt1, tagged_t *pt2,
                     tagged_t *x1, tagged_t *x2, intmach_t *n);
 static CBOOL__PROTO(cinstance_aux, tagged_t x1, tagged_t x2, intmach_t *n);
 
-CBOOL__PROTO(cinstance_args, int arity, tagged_t *pt1, tagged_t *pt2, intmach_t *n) {
+CBOOL__PROTO(cinstance_args, arity_t arity, tagged_t *pt1, tagged_t *pt2, intmach_t *n) {
   tagged_t x1;
   tagged_t x2;
   CBOOL__CALL(cinstance_args_aux, arity, pt1, pt2, &x1, &x2, n);
   CBOOL__LASTCALL(cinstance_aux, x1, x2, n);
 }
 
-static CBOOL__PROTO(cinstance_args_aux, 
-                    int arity,
-                    tagged_t *pt1,
-                    tagged_t *pt2,
-                    tagged_t *x1,
-                    tagged_t *x2,
-                    intmach_t *n)
-{
+// TODO:[oc-merge] missing 2* in OC
+#if defined(OPTIM_COMP)
+#define ENSURE_CHOICE(Pad) { \
+  if (ChoiceCharDifference(w->choice,G->trail_top) < (Pad)) \
+    CVOID__CALL(choice_overflow,2*(Pad),TRUE); \
+}
+#else
+#define ENSURE_CHOICE(Pad) { \
+  if (ChoiceYounger(ChoiceOffset(w->choice,(Pad)),G->trail_top)) \
+    choice_overflow(Arg,2*(Pad)*sizeof(tagged_t),TRUE); \
+}
+#endif
+
+static CBOOL__PROTO(cinstance_args_aux,
+                    arity_t arity,
+                    tagged_t *pt1, tagged_t *pt2,
+                    tagged_t *x1, tagged_t *x2,
+                    intmach_t *n) {
   tagged_t t1 = ~0;
   tagged_t t2 = ~0;
 
@@ -42,24 +52,23 @@ static CBOOL__PROTO(cinstance_args_aux,
      args of pt1 using choice stack as value cell.  When done, reinstall
      values. */
 
-  if (ChoiceYounger(ChoiceOffset(w->choice,2*CHOICEPAD),w->trail_top))
-                                /* really: < 2*arity */
-    choice_overflow(Arg,2*2*CHOICEPAD*sizeof(tagged_t),TRUE);
+  /* really: < 2*arity */
+  ENSURE_CHOICE(2*CHOICEPAD);
+
   for (; arity>0; --arity) {
     t1 = *pt1;
     t2 = *pt2;
     if (arity>1) {
-      CBOOL__CALL(cinstance_aux,t1,t2,n);
+      CBOOL__CALL(cinstance_aux, t1, t2, n);
     }
-    (void)HeapNext(pt1);
-    (void)HeapNext(pt2);
+    pt1 = HeapCharOffset(pt1, sizeof(tagged_t));
+    pt2 = HeapCharOffset(pt2, sizeof(tagged_t));
   }
 
   *x1 = t1;
   *x2 = t2;
 
-  if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
-    choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE);
+  ENSURE_CHOICE(CHOICEPAD);
   CBOOL__PROCEED;
 }
 
@@ -68,13 +77,11 @@ CBOOL__PROTO(cinstance) {
   // tagged_t t2;
   tagged_t *pt1;
   tagged_t *pt2;
-  int result;
+  bool_t result;
   intmach_t n = 0;
 
-#if 0
-  t1 = X(0);
-  t2 = X(1);
-#endif
+  // t1 = X(0);
+  // t2 = X(1);
 
   /* create a choice point to undo temporary bindings */
   CVOID__CALL(push_choicept, fail_alt);
@@ -82,7 +89,13 @@ CBOOL__PROTO(cinstance) {
   /* check if X(0) is an instance of X(1) */
   result = CBOOL__SUCCEED(cinstance_aux, X(0), X(1), &n);
 
+  /* untrail temporary bindings */
+  /* TODO: merge with untrail in copy_it */
+#if defined(OPTIM_COMP)
+  pt1 = pt2 = w->choice->trail_top; /* untrail */
+#else
   pt1 = pt2 = TrailTopUnmark(w->choice->trail_top); /* untrail */
+#endif
   while (TrailYounger(G->trail_top,pt2)) {
     t1 = *pt2; /* old var */
     pt2++;
@@ -96,88 +109,91 @@ CBOOL__PROTO(cinstance) {
   CBOOL__LASTTEST(result);
 }
 
-static CBOOL__PROTO(cinstance_aux, 
-                    tagged_t x1,
-                    tagged_t x2,
-                    intmach_t *n)
-{
+static CBOOL__PROTO(cinstance_aux, tagged_t x1, tagged_t x2, intmach_t *n) {
   tagged_t u, v, nt;
 
  in:
-  u=x1, v=x2;
+  u=x1;
+  v=x2;
+
+  /* note that if deref(u) == deref(v), the following code must do nothing */
 
   nt = MakeSmall(*n);
-  DerefSw_HVA_CVA_SVA_Other(u,
-              { goto u_is_hva; },
-              { goto lose; }, /* CVAs are not supported */
-              { goto u_is_sva; },
-              { goto one_non_var; });
-  /* note that if deref(u) == deref(v), the following code must do nothing */
- u_is_hva:
-  DerefSw_HVA_CVA_SVA_Other(v,
-              { BindHVA(v, nt); },
-              { goto lose; }, /* CVAs are not supported */
-              { BindSVA(v, nt); },
-              { goto lose; });
-  if (u != v) BindHVA(u, nt);
-  goto var_win;
+  DerefSw_HVA_CVA_SVA_Other(u, {
+    DerefSw_HVA_CVA_SVA_Other(v, {
+      /* HVA x HVA */ BindHVA(v, nt); if (u != v) { BindHVA(u, nt); } goto var_win;
+    }, {
+      /* HVA x CVA */ goto lose; /* CVAs are not supported */
+    }, {
+      /* HVA x SVA */ BindSVA(v, nt); if (u != v) { BindHVA(u, nt); } goto var_win;
+    }, {
+      /* HVA x NVA */ goto lose;
+    });
+  }, {
+    /* CVA x _ */ goto lose; /* CVAs are not supported */
+  }, {
+    DerefSw_HVA_CVA_SVA_Other(v, {
+      /* SVA x HVA */ BindHVA(v, nt); if (u != v) { BindSVA(u, nt); } goto var_win;
+    }, {
+      /* SVA x CVA */ goto lose; /* CVAs are not supported */
+    }, {
+      /* SVA x SVA */ BindSVA(v, nt); if (u != v) { BindSVA(u, nt); } goto var_win;
+    }, {
+      /* SVA x NVA */ goto lose;
+    });
+  }, {
+    DerefSw_HVA_CVA_SVA_Other(v, {
+      /* NVA x HVA */ BindHVA(v,u); goto win;
+    }, {
+      /* NVA x CVA */ goto lose; /* CVAs are not supported */
+    }, {
+      /* NVA x SVA */ BindSVA(v,u); goto win;
+    }, { /* NVA x NVA */
+      if (u == v) { /* same NVA */
+        goto win;
+      } else if (!TaggedSameTag(u, v)) { /* not the same type? */
+        goto lose;
+      } else {
+        Sw_NUMorATM_LST_STR(u, { /* NUM ATM */
+          /* fail */
+          goto lose;
+        }, {
+          /* LST x LST */
+          CBOOL__CALL(cinstance_args_aux, 2, TaggedToCar(u), TaggedToCar(v), &x1, &x2, n);
+          goto in;
+        }, {
+          /* STR x STR */
+          tagged_t f = TaggedToHeadfunctor(u);
+          tagged_t t1 = TaggedToHeadfunctor(v);
+          if (f != t1) {
+            goto lose;
+          } else {
+            if (FunctorIsBlob(t1)) { /* STRBlob x STRBlob */
+#if defined(OPTIM_COMP)
+              CBOOL__TEST(compare_blob(TagpPtr(STR, u), TagpPtr(STR, v)));
+#else
+              for (intmach_t i = LargeArity(t1)-1; i>0; i--) {
+                if (*TaggedToArg(u,i) != *TaggedToArg(v,i)) goto lose;
+              }
+#endif
+              goto win;
+            } else { /* STRStruct x STRStruct */
+              CBOOL__CALL(cinstance_args_aux, Arity(t1), TaggedToArg(u,1), TaggedToArg(v,1), &x1, &x2, n);
+              goto in;
+            }
+          }
+        });
+      }
+    });
+  });
 
- u_is_sva:
-  DerefSw_HVA_CVA_SVA_Other(v,
-              { BindHVA(v, nt); },
-              { goto lose; }, /* CVAs are not supported */
-              { BindSVA(v, nt); },
-              { goto lose; });
-  if (u != v) BindSVA(u, nt);
-  goto var_win;
-
- var_win: 
+ var_win:
   (*n)++;
   goto win;
 
- one_non_var:
-                                /* one non variable */
-  DerefSw_HVA_CVA_SVA_Other(v,
-              { BindHVA(v,u); goto win; },
-              { BindCVA(v,u); goto win; },
-              { BindSVA(v,u); goto win; },
-              ;);
-
-  /* two non variables */
-  if (u == v) { /* are they equal? */
-    goto win;
-  } else if (!TaggedSameTag(u, v)) { /* not the same type? */
-    goto lose;
-  } else if (!(u & TagBitComplex)) { /* atomic? (& not LNUM)*/
-    goto lose;
-  } else if (!(u & TagBitFunctor)) { /* list? */
-    if (cinstance_args_aux(Arg,2,TaggedToCar(u),TaggedToCar(v),&x1,&x2,n)) {
-      goto in;
-    } else {
-      goto lose;
-    }
-  } else { /* structure. */
-    tagged_t f = TaggedToHeadfunctor(u);
-    tagged_t t1 = TaggedToHeadfunctor(v);
-    if (f != t1) {
-      goto lose;
-    } else if (FunctorIsBlob(t1)) { /* blob */
-      for (intmach_t i = LargeArity(t1)-1; i>0; i--) {
-        if (*TaggedToArg(u,i) != *TaggedToArg(v,i)) goto lose;
-      }
-      goto win;
-    }
-    if (cinstance_args_aux(Arg,Arity(t1),TaggedToArg(u,1),TaggedToArg(v,1),&x1,&x2,n)) {
-      goto in;
-    } else {
-      goto lose;
-    }
-  }
-
  win:
+  /* two non variables */
   CBOOL__PROCEED;
-
  lose:
   CBOOL__FAIL;
 }
-
