@@ -750,6 +750,33 @@ derefsw_end: {} \
  sw_end: {} \
 })
 
+/* both U and V are LST or STR (not necessarily the same) */
+#define Sw_2xLSTorSTR_Other(U, V, CODE_LSTorSTR, CODE_OTHER) ({ \
+  if (IsComplex((U)&(V))) { \
+    CODE_LSTorSTR; \
+  } else { \
+    CODE_OTHER; \
+  } \
+})
+
+/* Pre: NUM ATM STR LST */
+#define SwTagC(Reg, HeadFunctor, CODE_NUM, CODE_ATM, CODE_LST, CODE_STRFloat, CODE_STRBignum, CODE_STRStruct) ({ \
+  if ((Reg) & TagBitComplex) { \
+    if ((Reg) & TagBitFunctor) { \
+      tagged_t HeadFunctor; \
+      HeadFunctor = TaggedToHeadfunctor((Reg)); \
+      if (!(HeadFunctor&TagBitFunctor)) { CODE_STRFloat; \
+      } else if ((HeadFunctor&QTAGMASK)!=0) { CODE_STRBignum; \
+      } else { CODE_STRStruct; }; \
+    } else { \
+      CODE_LST; \
+    } \
+  } else { \
+    if (((Reg)&TagBitFunctor) != 0) { CODE_ATM; \
+    } else { CODE_NUM; }; \
+  } \
+})
+
 #define SwOnAnyTagB(Reg, HeadFunctor, CODE_HVA, CODE_SVA, CODE_CVA, CODE_NUM, CODE_ATM, CODE_LST, CODE_STRBlob, CODE_STRStruct) ({ \
   switch (TagOf(Reg)) { \
   case HVA: \
@@ -797,6 +824,15 @@ derefsw_end: {} \
     break; \
   default: \
     OtherCode; break; \
+  } \
+})
+
+/* Pre: STR(structure) LST; Post: pt1 points to the arguments, i is the arity */
+#define DecompComplex(u, pt1, i) ({ \
+  if (u & TagBitFunctor) { \
+    pt1 = TagpPtr(STR,u); u = *pt1++; i = Arity(u); \
+  } else { \
+    pt1 = TagpPtr(LST,u); u = functor_lst; i = 2; \
   } \
 })
 
