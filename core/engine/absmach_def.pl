@@ -372,7 +372,7 @@ tagged_is(hva,T), [[f]]=> '$fcall'('TaggedIsHVA', [T]).
 tagged_is(str,T), [[f]]=> '$fcall'('TaggedIsSTR', [T]).
 tagged_is(sva,T), [[f]]=> '$fcall'('TaggedIsSVA', [T]).
 
-is_atomic(T), [[f]]=> '$fcall'('IsAtomic',[T]).
+is_num_or_atm(T), [[f]]=> '$fcall'('IsNUMorATM',[T]).
 is_var(T), [[f]]=> '$fcall'('IsVar',[T]).
 
 bind(hva, T0, T1) => callstmt('BindHVA', [T0,T1]).
@@ -536,12 +536,12 @@ setmode_setH(r, NewH), [[ mode(w) ]] =>
 % ---------------------------------------------------------------------------
 %! # Terms
 
-:- rkind(sw_on_heap_var/4, []).
-sw_on_heap_var(Reg, HVACode, CVACode, NVACode) =>
-    callstmt('DerefSw_HVA_CVA_Other', [Reg, blk(HVACode), blk(CVACode), blk(NVACode)]).
+:- rkind(deref_sw_on_heap_var/4, []).
+deref_sw_on_heap_var(Reg, HVACode, CVACode, NVACode) =>
+    callstmt('HeapDerefSw_HVA_CVA_Other', [Reg, blk(HVACode), blk(CVACode), blk(NVACode)]).
 
-:- rkind(sw_on_var/5, []).
-sw_on_var(Reg, HVACode, CVACode, SVACode, NVACode) =>
+:- rkind(deref_sw_on_var/5, []).
+deref_sw_on_var(Reg, HVACode, CVACode, SVACode, NVACode) =>
     callstmt('DerefSw_HVA_CVA_SVA_Other', [Reg, blk(HVACode), blk(CVACode), blk(SVACode), blk(NVACode)]).
 
 :- rkind(deref_sw/2, []).
@@ -549,7 +549,7 @@ deref_sw(Reg, VarCode) => callstmt('DerefSw_HVAorCVAorSVA_Other', [Reg, blk(VarC
 
 unify_heap_atom(U,V) =>
     localv(tagged, T1, V),
-    sw_on_heap_var(T1,
+    deref_sw_on_heap_var(T1,
       bind(hva, T1, U),
       bind(cva, T1, U),
       if(T1 \== U, jump_fail)).
@@ -559,7 +559,7 @@ unify_heap_atom(U,V) =>
 
 u_cons(V,U) =>
     localv(tagged, T1, V),
-    sw_on_var(T1,
+    deref_sw_on_var(T1,
       bind(hva, T1, U),
       bind(cva, T1, U),
       bind(sva, T1, U),
@@ -575,7 +575,7 @@ u_cons_internal(Var,Atom) =>
 unify_heap_structure(U,V,Cont) =>
     localv(tagged, T1, V),
     [[ mode(M) ]],
-    sw_on_heap_var(T1,
+    deref_sw_on_heap_var(T1,
       ([[ update(mode(M)) ]],
        setmode(w),
        cachedreg('H', H),
@@ -597,7 +597,7 @@ unify_heap_structure(U,V,Cont) =>
 u_str0(U,V,Cont) =>
     localv(tagged, T1, V),
     [[ mode(M) ]],
-    sw_on_var(T1,
+    deref_sw_on_var(T1,
       ([[ update(mode(M)) ]],
        setmode(w),
        cachedreg('H', H),
@@ -623,7 +623,7 @@ u_str0(U,V,Cont) =>
 unify_heap_large(P, T) =>
     '{',
     localv(tagged, T1, T),
-    sw_on_heap_var(T1,
+    deref_sw_on_heap_var(T1,
       bind(hva, T1, cfun_eval('BC_MakeBlob', [P])),
       bind(cva, T1, cfun_eval('BC_MakeBlob', [P])),
       '$fcall'('BC_EqBlob', [T1, P, blk(jump_fail)])),
@@ -632,7 +632,7 @@ unify_heap_large(P, T) =>
 unify_large(P, T) =>
     '{',
     localv(tagged, T1), T1<-T,
-    sw_on_var(T1,
+    deref_sw_on_var(T1,
       bind(hva, T1, cfun_eval('BC_MakeBlob', [P])),
       bind(cva, T1, cfun_eval('BC_MakeBlob', [P])),
       bind(sva, T1, cfun_eval('BC_MakeBlob', [P])),
@@ -644,7 +644,7 @@ unify_heap_list(V,Cont) =>
     '{',
     localv(tagged, T1, V),
     [[ mode(M) ]],
-    sw_on_heap_var(T1,
+    deref_sw_on_heap_var(T1,
       ([[ update(mode(M)) ]],
        setmode(w),
        cachedreg('H', H),
@@ -667,7 +667,7 @@ unify_list(V,Cont) =>
     '{',
     localv(tagged, T1, V),
     [[ mode(M) ]],
-    sw_on_var(T1,
+    deref_sw_on_var(T1,
       ([[ update(mode(M)) ]],
        setmode(w),
        cachedreg('H', H),
@@ -1398,7 +1398,7 @@ retry_instance =>
 u_constraint(A) =>
     localv(tagged, T1, A),
     localv(tagged, T2), load(cva,T2),
-    sw_on_var(T1,
+    deref_sw_on_var(T1,
       (bind(hva,T1,T2), A <- T2),
       bind(cva,T2,T1),
       (bind(sva,T1,T2), A <- T2),
@@ -2335,7 +2335,7 @@ pred_enter_builtin_dif =>
     %[[ update(mode(w)) ]],
     if(T0==T1,
       jump_fail,
-      if(logical_and(not(~is_var(T0/\T1)), logical_or(~is_atomic(T0), ~is_atomic(T1))), (
+      if(logical_and(not(~is_var(T0/\T1)), logical_or(~is_num_or_atm(T0), ~is_num_or_atm(T1))), (
           goto_ins(proceed)
       ), (
           x(0) <- T0,

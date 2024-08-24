@@ -71,7 +71,7 @@ void enqueue_thread(THREAD_T thread);
 void unlink_wam(goal_descriptor_t *goal);
 uintmach_t num_tasks_created(void);
 
-CFUN__PROTO(cross_copy_term, tagged_t, tagged_t remote_term);
+CFUN__PROTO(cross_copy_term, tagged_t, tagged_t remote_term); /* term_basic.c */
 
 /* Support code for starting goal execution. */
 CFUN__PROTO(call_firstgoal, intmach_t, tagged_t goal, goal_descriptor_t *goal_desc);

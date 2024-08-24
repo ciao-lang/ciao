@@ -284,10 +284,10 @@
 #define IsHeapPtr(A)   ((tagged_t)(A)+Tagt(SVA) < Tagt(NUM))
 
 #define IsHeapVar(X)    ((X) < Tagt(SVA))
-#define IsAtomic(X)     ((stagged_t)(X) < (stagged_t)Tagt(LST))
+#define IsNUMorATM(X)     ((stagged_t)(X) < (stagged_t)Tagt(LST))
 #define IsComplex(X)    ((X) >= Tagt(LST))
 
-#define TermIsAtomic(X) (IsAtomic(X) || TaggedIsLarge(X))
+#define TermIsAtomic(X) (IsNUMorATM(X) || TaggedIsLarge(X))
 #define TermIsComplex(X) (IsComplex(X) && !TaggedIsLarge(X))
 
 #define TagBitFunctor  ((tagged_t)1<<tagged__tag_offset)       /* ATM or STR or large NUM */
@@ -553,7 +553,7 @@ CBOOL__PROTO(bc_eq_blob, tagged_t t, tagged_t *ptr);
 #define DerefHeapNext(Xderef,Ptr) \
 { \
   tagged_t m_i; \
-  RefHeapNext(m_i,Ptr); \
+  m_i = *(Ptr)++; \
   DerefSw_HVAorCVAorSVA_Other(m_i,{break;},{}); \
   Xderef = m_i; \
 }
@@ -637,7 +637,7 @@ derefsw_other: OtherCode; goto derefsw_end; \
 derefsw_end: {} \
 } while(0)
 
-#define DerefSw_HVA_CVA_Other(Reg,HVACode,CVACode,OtherCode) do { \
+#define HeapDerefSw_HVA_CVA_Other(Reg,HVACode,CVACode,OtherCode) do { \
   __label__ derefsw_hva; \
   __label__ derefsw_cva; \
   __label__ derefsw_other; \
@@ -723,11 +723,21 @@ derefsw_end: {} \
   }); \
 })
 
+#define HeapDerefSw_HVA_CVA_NUMorATM_LST_STR(Reg, CODE_HVA, CODE_CVA, CODE_NUMorATM, CODE_LST, CODE_STR) ({ \
+  HeapDerefSw_HVA_CVA_Other(Reg, { /* HVA */ \
+    CODE_HVA; \
+  },{ /* CVA */ \
+    CODE_CVA; \
+  },{ /* NUM ATM LST STR */ \
+    Sw_NUMorATM_LST_STR(Reg, CODE_NUMorATM, CODE_LST, CODE_STR); \
+  }); \
+})
+
 /* Pre: NUM ATM LST STR(blob) STR(struct) */
 #define Sw_NUMorATM_LST_STR(Reg, CODE_NUMorATM, CODE_LST, CODE_STR) ({ \
-  if (!(u & TagBitComplex)) { /* -LST & -STR == NUM | ATM (atomic & not large) */ \
+  if (!((Reg) & TagBitComplex)) { /* -LST & -STR == NUM | ATM (atomic & not large) */ \
     CODE_NUMorATM; \
-  } else if (!(u & TagBitFunctor)) { /* (LST|STR) & -ATM & -STR == LST */ \
+  } else if (!((Reg) & TagBitFunctor)) { /* (LST|STR) & -ATM & -STR == LST */ \
     CODE_LST; \
   } else { \
     CODE_STR; \

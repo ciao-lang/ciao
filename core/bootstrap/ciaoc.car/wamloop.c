@@ -487,7 +487,7 @@ w->structure = NULL;
 if (vr27==vr28) {
 goto fail;
     }
- else if (!IsVar(vr27&vr28)&&(IsAtomic(vr27)||IsAtomic(vr28))) {
+ else if (!IsVar(vr27&vr28)&&(IsNUMorATM(vr27)||IsNUMorATM(vr28))) {
 goto w_op64;
     }
  else {
@@ -1871,7 +1871,7 @@ r_op128:
 tagged_t vr68;
 RefHeapNext(vr68,S);
 tagged_t vr69 = vr68;
-DerefSw_HVA_CVA_Other(vr69,{
+HeapDerefSw_HVA_CVA_Other(vr69,{
 BindHVA(vr69,BcP(f_t,0));
     }
 ,{
@@ -1898,7 +1898,7 @@ r_op259:
 tagged_t vr70;
 RefHeapNext(vr70,S);
 {tagged_t vr71 = vr70;
-DerefSw_HVA_CVA_Other(vr71,{
+HeapDerefSw_HVA_CVA_Other(vr71,{
 BindHVA(vr71,BC_MakeBlob(w,&BcP(f_t,0)));
     }
 ,{
@@ -1924,7 +1924,7 @@ r_op130:
 tagged_t vr72;
 RefHeapNext(vr72,S);
 tagged_t vr73 = vr72;
-DerefSw_HVA_CVA_Other(vr73,{
+HeapDerefSw_HVA_CVA_Other(vr73,{
 H = w->heap_top;
 BindHVA(vr73,Tagp(STR,H));
 HeapPush(H,BcP(f_f,0));
@@ -1956,7 +1956,7 @@ case 131:
 tagged_t vr74;
 RefHeapNext(vr74,S);
 tagged_t vr75 = vr74;
-DerefSw_HVA_CVA_Other(vr75,{
+HeapDerefSw_HVA_CVA_Other(vr75,{
 BindHVA(vr75,atom_nil);
     }
 ,{
@@ -1979,7 +1979,7 @@ case 132:
 tagged_t vr76;
 RefHeapNext(vr76,S);
 {tagged_t vr77 = vr76;
-DerefSw_HVA_CVA_Other(vr77,{
+HeapDerefSw_HVA_CVA_Other(vr77,{
 H = w->heap_top;
 BindHVA(vr77,Tagp(LST,H));
 P+=0;
@@ -2013,7 +2013,7 @@ r_op134:
 tagged_t vr78;
 RefHeapNext(vr78,S);
 tagged_t vr79 = vr78;
-DerefSw_HVA_CVA_Other(vr79,{
+HeapDerefSw_HVA_CVA_Other(vr79,{
 BindHVA(vr79,BcP(f_t,0));
     }
 ,{
@@ -2036,7 +2036,7 @@ case 135:
 tagged_t vr80;
 RefHeapNext(vr80,S);
 tagged_t vr81 = vr80;
-DerefSw_HVA_CVA_Other(vr81,{
+HeapDerefSw_HVA_CVA_Other(vr81,{
 BindHVA(vr81,atom_nil);
     }
 ,{

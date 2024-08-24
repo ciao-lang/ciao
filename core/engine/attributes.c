@@ -104,11 +104,7 @@ CVOID__PROTO(collect_pending_unifications, intmach_t wake_count) {
   tagged_t *tr = G->trail_top;
   tagged_t *h;
   tagged_t *tr0 = NULL;
-#if defined(OPTIM_COMP)
-  tagged_t *limit = w->choice->trail_top;
-#else
   tagged_t *limit = TrailTopUnmark(w->choice->trail_top);  
-#endif
    
   h = G->heap_top;
   X(0) = atom_nil;

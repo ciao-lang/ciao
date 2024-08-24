@@ -91,11 +91,7 @@ CBOOL__PROTO(cinstance) {
 
   /* untrail temporary bindings */
   /* TODO: merge with untrail in copy_it */
-#if defined(OPTIM_COMP)
-  pt1 = pt2 = w->choice->trail_top; /* untrail */
-#else
   pt1 = pt2 = TrailTopUnmark(w->choice->trail_top); /* untrail */
-#endif
   while (TrailYounger(G->trail_top,pt2)) {
     t1 = *pt2; /* old var */
     pt2++;

@@ -272,8 +272,8 @@ static CBOOL__PROTO(prolog_constant_codes,
       if (!IsNumber(X(0))) {
         BUILTIN_ERROR(ERR_type_error(number), X(0), 1);
       }
-    } else {
-      if (!IsAtomic(X(0))) {
+    } else { // TODO:[oc-merge] reachable?
+      if (!TermIsAtomic(X(0))) {
         BUILTIN_ERROR(ERR_type_error(atomic),X(0),1);
       }
     }

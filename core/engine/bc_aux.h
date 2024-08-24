@@ -783,7 +783,7 @@ static CBOOL__PROTO(c_term,
   Treg = reg_bank_size;
 
   for (i=1; i<=ar; i++) {
-    RefHeapNext(t,s);
+    t = *s++;
     DerefSw_HVAorCVAorSVA_Other(t,{ goto arg_is_void; },{});
     switch (TagOf(t)) {
     case LST:
@@ -1405,45 +1405,52 @@ static CBOOL__PROTO(cunify_aux, tagged_t x1, tagged_t x2)
     }
 
  u_is_hva:
-  DerefSw_HVA_CVA_SVA_Other(v,
-              { if (u==v)
-                  ;
-                else if (YoungerHeapVar(TagpPtr(HVA,v),TagpPtr(HVA,u)))
-                  BindHVA(v,u)
-                else
-                  BindHVA(u,v); },
-              { BindHVA(u,v); },
-              { BindSVA(v,u); },
-              { BindHVA(u,v); });
+  DerefSw_HVA_CVA_SVA_Other(v, {
+      if (u==v) {
+      } else if (YoungerHeapVar(TagpPtr(HVA,v),TagpPtr(HVA,u))) {
+        BindHVA(v,u);
+      } else {
+        BindHVA(u,v);
+      }
+  }, {
+    BindHVA(u,v);
+  }, {
+    BindSVA(v,u);
+  }, {
+    BindHVA(u,v);
+  });
   goto win;
 
  u_is_cva:
-  DerefSw_HVA_CVA_SVA_Other(v,
-              { BindHVA(v,u); },
-              { if (u==v)
-                  ;
-                else if (YoungerHeapVar(TagpPtr(CVA,v),TagpPtr(CVA,u)))
-                  { BindCVA(v,u); }
-                else
-                  { BindCVA(u,v); } },
-              { BindSVA(v,u); },
-              { BindCVA(u,v); });
+  DerefSw_HVA_CVA_SVA_Other(v, {
+    BindHVA(v,u);
+  }, {
+    if (u==v) {
+    } else if (YoungerHeapVar(TagpPtr(CVA,v),TagpPtr(CVA,u))) {
+      BindCVA(v,u);
+    } else {
+      BindCVA(u,v);
+    }
+  }, {
+    BindSVA(v,u);
+  }, {
+    BindCVA(u,v);
+  });
   goto win;
 
  u_is_sva:
   { tagged_t t1;
     for (; TaggedIsSVA(v); v = t1) {
       RefSVA(t1,v);
-      if (v == t1)
-        {
-          if (u==v)
-            ;
-          else if (YoungerStackVar(TagpPtr(SVA,v),TagpPtr(SVA,u)))
-            BindSVA(v,u)
-          else
-            BindSVA(u,v);
-          goto win;
+      if (v == t1) {
+        if (u==v) {
+        } else if (YoungerStackVar(TagpPtr(SVA,v),TagpPtr(SVA,u))) {
+          BindSVA(v,u);
+        } else {
+          BindSVA(u,v);
         }
+        goto win;
+      }
     }
   }
   BindSVA(u,v);

@@ -2094,15 +2094,16 @@ module_t *define_c_static_mod(char *module_name);
 #define YoungerStackVar(Q,R)    StackYounger(Q,R)
 
 #if defined(PARBACK) || defined(ANDPARALLEL)
-#define CondHVA(X)              (!OffHeaptop(X,w->global_uncond) || !OnHeap(TaggedToPointer(X)))
-#define CondCVA(X)              (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond) || !OnHeap(TaggedToPointer(X)))
-#define CondSVA(X)              (!OffStacktop(X,w->local_uncond) || !OnStack(TaggedToPointer(X)))
+// TODO: why? document
+#define CondHVA(X) (!OffHeaptop(X,w->global_uncond) || !OnHeap(TaggedToPointer(X)))
+#define CondCVA(X) (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond) || !OnHeap(TaggedToPointer(X)))
+#define CondSVA(X) (!OffStacktop(X,w->local_uncond) || !OnStack(TaggedToPointer(X)))
 #else
-#define CondHVA(X)              (!OffHeaptop(X,w->global_uncond))
-#define CondCVA(X)              (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond))
-#define CondSVA(X)              (!OffStacktop(X,w->local_uncond))
+#define CondHVA(X) (!OffHeaptop(X,w->global_uncond))
+#define CondCVA(X) (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond))
+#define CondSVA(X) (!OffStacktop(X,w->local_uncond))
 #endif
-#define CondStackvar(X)         CondSVA(X)
+#define CondStackvar(X) CondSVA(X)
 
 /* segfault patch -- jf */
 CVOID__PROTO(trail_push_check, tagged_t x);
@@ -2183,6 +2184,20 @@ CVOID__PROTO(trail_push_check, tagged_t x);
   (CP)->trail_top = (DEST); \
 })
 
+/* Specialized untrail loop, only for values (no undo goals, etc.),
+   used in builtin predicates that temporarily modify the input terms
+   (like copy_term/2) */
+#define UntrailVals() ({ \
+  tagged_t *pt1, *pt2; \
+  pt1 = pt2 = TrailTopUnmark(w->choice->trail_top); \
+  while (TrailYounger(G->trail_top,pt2)) { \
+    tagged_t t1 = *pt2; /* old var */ \
+    pt2++; \
+    *TaggedToPointer(t1) = t1; \
+  } \
+  G->trail_top = pt1; \
+})
+
 /* SERIOUS_FAULT - a fault that should not occur- indicating a corruption
                   such as following the STR tag not coming to a FNT tag
                   this kind of fault may not need to be testing in final
@@ -2193,27 +2208,6 @@ CVOID__PROTO(trail_push_check, tagged_t x);
                   written somewhere, but the builtin predicate just
                   fails and is not aborted
 */
-
-/* --------------------------------------------------------------------------- */
-/* support for copy term */
-
-/* Enable copying of terms between different heaps in copy_term */
-/* (it does not have any significant impact on performance) */
-#define SAFE_CROSS_COPY 1
-
-/* assert(HVA==0) */
-/* Detect if a variable is old during copy_term */
-#if defined(SAFE_CROSS_COPY)
-/* Use TopOfOldHeap as a memory barrier and OnHeap (for safe cross
-   copy_term, since we cannot not assume anything about the order of
-   different heaps */
-#define OldHVA(X) (!OffHeaptop(X,w->global_uncond) || !OnHeap(TaggedToPointer(X)))
-#define OldCVA(X) (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond) || !OnHeap(TaggedToPointer(X)))
-#else
-/* Use TopOfOldHeap as a memory barrier */
-#define OldHVA(X) (!OffHeaptop(X,w->global_uncond))
-#define OldCVA(X) (!OffHeaptop(Tagp(HVA,TagpPtr(CVA,X)),w->global_uncond))
-#endif
 
 /* ------------------------------------------------------------------------- */
 
