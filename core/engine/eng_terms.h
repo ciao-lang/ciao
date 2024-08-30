@@ -149,6 +149,10 @@
 
 #define TaggedSameTag(U,V) (((U)^(V)) < QTAGMASK)
 
+// TODO:[oc-merge] with current tag scheme, !IsVar(U&V) is equivalent to 
+//   !IsVar(U) && !IsVar(V)
+#define BothNonvar(U, V) (!IsVar((U)&(V)))
+
 /* ------------------------------------------------------------------------- */
 /* Pointers to tagged words with GC marks */
 
@@ -420,6 +424,8 @@
 #define TermIsCallable(X) (!(IsVar((X)) || IsNumber((X))))
 
 /* TODO:[oc-merge] merge */
+#define FUNCTOR_NAME(X) SetArity((X), 0)
+/* TODO:[oc-merge] merge, rename PredFuncName? */
 #define FuncName(Func) (SetArity((Func)->printname, 0))
 //#define FuncArity(Func) (Arity((Func)->printname))
 #define FuncArity(Func) ((Func)->arity)

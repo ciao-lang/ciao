@@ -374,6 +374,7 @@ tagged_is(sva,T), [[f]]=> '$fcall'('TaggedIsSVA', [T]).
 
 is_num_or_atm(T), [[f]]=> '$fcall'('IsNUMorATM',[T]).
 is_var(T), [[f]]=> '$fcall'('IsVar',[T]).
+both_nonvar(U,V), [[f]]=> '$fcall'('BothNonvar',[U,V]).
 
 bind(hva, T0, T1) => callstmt('BindHVA', [T0,T1]).
 bind(cva, T0, T1) => callstmt('BindCVA', [T0,T1]).
@@ -2335,7 +2336,7 @@ pred_enter_builtin_dif =>
     %[[ update(mode(w)) ]],
     if(T0==T1,
       jump_fail,
-      if(logical_and(not(~is_var(T0/\T1)), logical_or(~is_num_or_atm(T0), ~is_num_or_atm(T1))), (
+      if(logical_and(~both_nonvar(T0,T1), logical_or(~is_num_or_atm(T0), ~is_num_or_atm(T1))), (
           goto_ins(proceed)
       ), (
           x(0) <- T0,

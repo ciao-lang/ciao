@@ -923,31 +923,37 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
   }
 #else
   tagged_t tagarity;
-  DerefSw_HVAorCVAorSVA_Other(term,{
+  DerefSw_HVAorCVAorSVA_NUMorATM_LST_STR(term, { /* HVA CVA SVA */
     DerefSw_HVAorCVAorSVA_Other(name,;,{});
     DerefSw_HVAorCVAorSVA_Other(arity,;,{});
-    if (TermIsAtomic(name) && (arity==TaggedZero)) {
+    if (TermIsAtomic(name) && (arity==MakeSmall(0))) {
       CBOOL__LASTUNIFY(name,term);
     } else if (TaggedIsATM(name) &&
-               (arity>TaggedZero) && (arity<MakeSmall(ARITYLIMIT))) {
-      CBOOL__LASTUNIFY(make_structure(Arg, SetArity(name,GetSmall(arity))), term);
+               (arity>MakeSmall(0)) && (arity<MakeSmall(ARITYLIMIT))) {
+      CBOOL__LASTUNIFY(CFUN__EVAL(make_structure, SetArity(name,GetSmall(arity))), term);
     } else {
       CBOOL__FAIL;
     }
-  },{
-    if (TermIsAtomic(term)) {
+  }, { /* NUM ATM */
+    tagarity = MakeSmall(0);
+    goto unif;
+  }, { /* LST */
+#if defined(OPTIM_COMP)
+    term = atom_lst;
+#else
+    term = atom_list;
+#endif
+    tagarity = MakeSmall(2);
+    goto unif;
+  }, { /* STR */
+    SwStruct(f, term, { /* STR(blob) */
       tagarity = MakeSmall(0);
       goto unif;
-    } else if (!(term & TagBitFunctor)) {
-      term = atom_list;
-      tagarity = MakeSmall(2);
-      goto unif;
-    } else {
-      tagged_t f = TaggedToHeadfunctor(term);
-      term = SetArity(f,0);
+    }, { /* STR(struct) */
+      term = FUNCTOR_NAME(f);
       tagarity = MakeSmall(Arity(f));
       goto unif;
-    }
+    });
   });
  unif:
   CBOOL__UnifyCons(tagarity,arity);
@@ -960,7 +966,7 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
 // TODO: required for ISO compatibility; this seems to be OK with our codebase
 #define USE_BU2_UNIV_EXCEPTIONS 1
 
-CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) { 
+CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
 #if defined(USE_BU2_UNIV_EXCEPTIONS)
   ERR__FUNCTOR("term_basic:=..", 2);
 #endif
@@ -971,40 +977,50 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
   arity_t arity;
   tagged_t f;
 
-  DerefSw_HVAorCVAorSVA_Other(term,{goto construct;},{});
-  cdr = atom_nil;
-  if (TermIsAtomic(term)) {
-    MakeLST(cdr,term,cdr);
-    CBOOL__LASTUNIFY(cdr,list);
-  }
-  
-  if (term & TagBitFunctor) {
-    f = TaggedToHeadfunctor(term);
-    argp = TaggedToArg(term,1);
-    argq = HeapOffset(argp,Arity(f));
-  } else {
+  DerefSw_HVAorCVAorSVA_NUMorATM_LST_STR(term, { /* HVA CVA SVA */
+    goto construct;
+  }, { /* NUM ATM */
+    goto nil_list;
+  }, { /* LST */
     f = functor_lst;
     argp = TaggedToCar(term);
-    argq = HeapOffset(argp,2);
-  }
+    argq = HeapCharOffset(argp,2*sizeof(tagged_t));
+    goto build_list;
+  }, { /* STR */
+    SwStruct(hf, term, { /* STR(blob) */
+      goto nil_list;
+    }, { /* STR(struct) */
+      f = hf;
+      argp = TaggedToArg(term,1);
+      argq = HeapCharOffset(argp,Arity(f)*sizeof(tagged_t));
+      goto build_list;
+    });
+  });
+
+ nil_list:
+  MakeLST(cdr,term,atom_nil);
+  CBOOL__LASTUNIFY(cdr,list);
+
+ build_list:
+  cdr = atom_nil;
   while (HeapYounger(argq,argp)) {
-    HeapDecr(argq);
+    argq--;
     car = *argq;
     MakeLST(cdr,car,cdr);
   }
-  MakeLST(cdr,SetArity(f,0),cdr);
+  MakeLST(cdr,FUNCTOR_NAME(f),cdr);
   CBOOL__LASTUNIFY(cdr,list);
 
  construct:
   cdr = list;
+  DerefSw_HVAorCVAorSVA_Other(cdr, {
 #if defined(USE_BU2_UNIV_EXCEPTIONS)
-  DerefSw_HVAorCVAorSVA_Other(cdr, BUILTIN_ERROR(ERR_instantiation_error, list, 2);,{});
+    BUILTIN_ERROR(ERR_instantiation_error, list, 2);
 #else
-  DerefSw_HVAorCVAorSVA_Other(cdr,;,{});
+    goto bomb;
 #endif
-  arity = 0;
-
-  if (IsVar(cdr)) goto bomb;
+  }, {
+  });
   if (!TaggedIsLST(cdr)) {
 #if defined(USE_BU2_UNIV_EXCEPTIONS)
     if (cdr == atom_nil) {
@@ -1031,7 +1047,7 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
     BUILTIN_ERROR(ERR_type_error(atom), f, 2); 
   }
 #else
-  if (TermIsAtomic(f) && (cdr==atom_nil)) {
+  if ((cdr==atom_nil) && TermIsAtomic(f)) {
     CBOOL__LASTUNIFY(f,term);
   } else if (IsVar(f)) {
     goto bomb;
@@ -1040,6 +1056,7 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
   }
 #endif
 
+  arity = 0;
   argp = G->heap_top;
   HeapPush(G->heap_top,f);
   while (TaggedIsLST(cdr) && arity<ARITYLIMIT) {
@@ -1061,13 +1078,15 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
     MINOR_FAULT("=../2: incorrect 2nd argument");
   }
 #endif
-  
+
   f = SetArity(f,arity);
-  if (f==functor_lst) {
+  if (f==functor_lst) { /* rewrite as a list; note: cannot handle LST cast directly because arity is not known until all the input is processed */
     G->heap_top = argp;
-    argq = HeapOffset(G->heap_top,1);
-    car = *(argq++);
-    cdr = *(argq++);
+    argq = HeapCharOffset(G->heap_top,1*sizeof(tagged_t));
+    car = *argq;
+    argq++;
+    cdr = *argq;
+    argq++;
     HeapPush(G->heap_top,car);
     HeapPush(G->heap_top,cdr);
     CBOOL__LASTUNIFY(Tagp(LST,argp),term);
