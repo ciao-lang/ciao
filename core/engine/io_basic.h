@@ -73,4 +73,6 @@ int c_mblen(const char *s);
 int c_mbstrlen(const char * s);
 #endif
 
+void print_syserror(char *s); /* TODO: move somewhere else? */ 
+
 #endif /* _CIAO_IO_BASIC_H */

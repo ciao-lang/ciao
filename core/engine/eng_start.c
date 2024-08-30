@@ -26,6 +26,7 @@
 #include <sys/cygwin.h>
 #endif
 
+#include <time.h> /* tzset() */
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
