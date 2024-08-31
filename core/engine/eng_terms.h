@@ -7,8 +7,14 @@
 #ifndef _CIAO_ENG_TERMS_H
 #define _CIAO_ENG_TERMS_H
 
+#include <ciao/eng_predef.h> /* BC_SCALE, masks, etc. */
+
 #if defined(OPTIM_COMP)
 #error "not valid for OPTIM_COMP"
+#endif
+
+#if !defined(SMALLPTR_BASE)
+#error "SMALLPTR_BASE is undefined"
 #endif
 
 /* ------------------------------------------------------------------------- */
@@ -120,7 +126,7 @@
 
 #define POINTERMASK     (QTAGMASK-(1<<tagged__ptr_offset))
 #define PointerPart(T)  ((intmach_t)((T)&POINTERMASK))  
-#if SMALLPTR_BASE
+#if SMALLPTR_BASE != 0
 #define TaggedToPointer(T) ((tagged_t *)(((tagged_t)(T)&POINTERMASK)+SMALLPTR_BASE))
 #else
 #define TaggedToPointer(T) ((tagged_t *)((tagged_t)(T)&POINTERMASK))
@@ -129,7 +135,7 @@
 #define Tagt(T) (((tagged_t)(T)<<tagged__tag_offset))
 
 /* Tagp(T,P) creates tagged_t from tag T and pointer P */
-#if SMALLPTR_BASE
+#if SMALLPTR_BASE != 0
 #define Tagp(T,P) (Tagt((T))+((tagged_t)(P) & POINTERMASK))
 #else
 #define Tagp(T,P) (Tagt((T))+((tagged_t)(P)))
@@ -305,7 +311,7 @@
 
 /* NOTE: pointers must be in the SMALLPTR_BASE range and they must be
    aligned to 1<<tagged__num_offset (32-bits) */
-#if SMALLPTR_BASE
+#if SMALLPTR_BASE != 0
 #define TermToPointer(T, X) ((T *)((X) ^ (TaggedZero^SMALLPTR_BASE)))
 #define TermToPointerOrNull(T, X) ((T *)((X)==TaggedZero ? 0 : (X) ^ (TaggedZero^SMALLPTR_BASE)))
 #define PointerToTerm(X) ((tagged_t)(X) ^ (TaggedZero^SMALLPTR_BASE))

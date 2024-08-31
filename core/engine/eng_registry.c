@@ -2212,7 +2212,7 @@ CVOID__PROTO(reinitialize_wam_areas) {
 /*
 void mem_prog_reset(void) {
     mem_start = (char *)(&end);
-#if SMALLPTR_BASE
+#if SMALLPTR_BASE != 0
   if (mem_start < (char *)SMALLPTR_BASE)
     mem_start = (char *)SMALLPTR_BASE;
 #endif

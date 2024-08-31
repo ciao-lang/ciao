@@ -56,7 +56,7 @@ char *tryalloc_errstring;
   }
 
 /* segfault patch -- jf */
-#if SMALLPTR_BASE
+#if SMALLPTR_BASE != 0
 #define ENSURE_ADDRESSABLE(P, SIZE) \
   (((tagged_t)(P) >= (tagged_t)SMALLPTR_BASE) && \
   (((tagged_t)(P) - (tagged_t)SMALLPTR_BASE) < POINTERMASK) && \

@@ -655,24 +655,6 @@ typedef struct try_node_ try_node_t; /* defined in dynamic_rt.h */
 typedef struct definition_ definition_t; /* defined in dynamic_rt.h */
 typedef struct module_ module_t; /* defined in dynamic_rt.h */
 
-/* ------------------------------------------------------------------------- */
-
-/* (memory management constants for 4 reserved upper bits in pointers;
-   defined dynamically by configure.c) */
-#define SMALLPTR_UPPERBITS 4
-#define SMALLPTR_LOWERBITS 2 /* no. of GC bits, concides with 32bit align */
-
-#if SMALLPTR_UPPERBITS == 4
-#define SMALLPTR_BASE MallocBase4
-#if !(defined(USE_MMAP) && OWNMALLOC_MmapAllowed)
-#define OWNMALLOC_BLOCKSIZE MIN_MEM_ALLOC_4
-#endif
-#define OWNMALLOC_MmapAllowed MmapAllowed4
-#define OWNMALLOC_MmapSize MmapSize4
-#else
-#error "Unsupported SMALLPTR_UPPERBITS"
-#endif
-
 /* --------------------------------------------------------------------------- */
 
 typedef struct instance_handle_ instance_handle_t;

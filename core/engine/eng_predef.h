@@ -119,6 +119,24 @@ typedef int arity_t; /* type for arity */ // TODO:[oc-merge] intmach_t in OC
 #define CharOffset(X,O) ((tagged_t *)((char *)(X) + (O)))
 
 /* ------------------------------------------------------------------------- */
+
+/* (memory management constants for 4 reserved upper bits in pointers;
+   defined dynamically by configure.c) */
+#define SMALLPTR_UPPERBITS 4
+#define SMALLPTR_LOWERBITS 2 /* no. of GC bits, concides with 32bit align */
+
+#if SMALLPTR_UPPERBITS == 4
+#define SMALLPTR_BASE MallocBase4
+#if !(defined(USE_MMAP) && OWNMALLOC_MmapAllowed)
+#define OWNMALLOC_BLOCKSIZE MIN_MEM_ALLOC_4
+#endif
+#define OWNMALLOC_MmapAllowed MmapAllowed4
+#define OWNMALLOC_MmapSize MmapSize4
+#else
+#error "Unsupported SMALLPTR_UPPERBITS"
+#endif
+
+/* ------------------------------------------------------------------------- */
 /* Worker argument abstraction (from optim_comp) */
 
 #define CHANGE_WORKER(NEW_WORKER, CODE) { \
