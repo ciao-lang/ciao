@@ -427,9 +427,9 @@ CBOOL__PROTO(run_determ_c, tagged_t goal)
   tagged_t *s;
 
 #if 0
-  printf("run_determ_c: ");
-  DerefDisplayTerm(X(0),Output_Stream_Ptr,FALSE);
-  printf("\n");
+  fprintf(stderr, "run_determ_c: ");
+  DerefDisplayTerm(X(0),Error_Stream_Ptr,FALSE);
+  fprintf(stderr, "\n");
 #endif
 
   DEREF(goal,goal);
