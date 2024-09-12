@@ -404,7 +404,7 @@ unexpand_primitive_meta_term(X,X1):-
     unexpand_meta_term(X,X1).
 
 % --- DTM: is Meta argument used???
-unexpand_meta_terms(_,0,_Meta,_).
+unexpand_meta_terms(_,0,_Meta,_) :- !.
 unexpand_meta_terms(A0,N,Meta,A):-
     N > 0,
     arg(N,A0,T0),
