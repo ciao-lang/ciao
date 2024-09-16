@@ -39,7 +39,7 @@ fixed_array([N|Ms],A):-
 fixed_array([N],A):-
     functor(A,a,N).
 
-rows(0,_Ms,_A).
+rows(0,_Ms,_A) :- !.
 rows(N,Ms,A):-
     N > 0,
     arg(N,A,Arg),
