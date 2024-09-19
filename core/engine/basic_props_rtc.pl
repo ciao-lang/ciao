@@ -111,18 +111,8 @@ compat_struct(T) :- rtc_struct(T).
 % ----------------------------------------------------------------------
 % instantiation rtcheck version for basic_props:gnd/1
 
-rtc_gnd(X)  :- var(X), !, fail.
-rtc_gnd([]) :- !.
-rtc_gnd(T)  :-
-    functor(T, _, A),
-    grnd_args(A, T).
-
-grnd_args(0, _).
-grnd_args(N, T) :-
-    arg(N, T, A),
-    rtc_gnd(A),
-    N1 is N-1,
-    grnd_args(N1, T).
+% instantiation
+rtc_gnd(X) :- ground(X).
 
 % ----------------------------------------------------------------------
 
