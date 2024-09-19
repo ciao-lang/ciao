@@ -20,15 +20,6 @@ set_undefined_names([Name = _|Dict], Idx0, Idx) :-
     ),
     set_undefined_names(Dict, Idx1, Idx).
 
-complete_dict_args(N, Term, Dict, Exclude, Idx0, Idx, EDict0, EDict) :-
-    arg(N, Term, Arg),
-    !,
-    complete_dict_arg(Arg, Dict, Exclude, Idx0, Idx1, EDict0, EDict1),
-    N1 is N + 1,
-    complete_dict_args(N1, Term, Dict, Exclude, Idx1, Idx, EDict1,
-        EDict).
-complete_dict_args(_, _, _, _, Idx, Idx, EDict, EDict).
-
 complete_dict_arg(Arg, Dict, Exclude, Idx0, Idx, EDict0, EDict) :-
     var(Arg),
     !,
@@ -49,8 +40,16 @@ complete_dict_arg(Arg, Dict, Exclude, Idx0, Idx, EDict0, EDict) :-
 complete_dict_arg(Arg, Dict, Exclude, Idx0, Idx, EDict0, EDict) :-
     compound(Arg),
     !,
-    complete_dict_args(1, Arg, Dict, Exclude, Idx0, Idx, EDict0, EDict).
+    functor(Arg, _, N),
+    complete_dict_args(1, N, Arg, Dict, Exclude, Idx0, Idx, EDict0, EDict).
 complete_dict_arg(_, _, _, Idx, Idx, EDict, EDict).
+
+complete_dict_args(N0, N, Term, Dict, Exclude, Idx0, Idx, EDict0, EDict) :- N0 =< N, !,
+    arg(N0, Term, Arg),
+    complete_dict_arg(Arg, Dict, Exclude, Idx0, Idx1, EDict0, EDict1),
+    N1 is N0 + 1,
+    complete_dict_args(N1, N, Term, Dict, Exclude, Idx1, Idx, EDict1, EDict).
+complete_dict_args(_, _, _, _, _, Idx, Idx, EDict, EDict).
 
 new_name(Dict, Name, Idx0, Idx) :-
     atom_number(AIdx0, Idx0),
