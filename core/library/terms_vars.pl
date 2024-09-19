@@ -39,15 +39,15 @@ term_variables_2(X, Vars, Tail0, Tail) :-
     var(X), !,
     push_var(Vars, X, Tail0, Tail).
 term_variables_2(Term, Vars, Tail0, Tail) :-
-    term_variables_3(1, Term, Vars, Tail0, Tail).
+    functor(Term, _, N),
+    term_variables_3(1, N, Term, Vars, Tail0, Tail).
 
-term_variables_3(N0, Term, Vars, Tail0, Tail) :-
+term_variables_3(N0, N, Term, Vars, Tail0, Tail) :- N0 =< N, !,
     arg(N0, Term, Arg),
-    !,
     term_variables_2(Arg, Vars, Tail0, Tail1),
-    N is N0 + 1,
-    term_variables_3(N, Term, Vars, Tail1, Tail).
-term_variables_3(_, _, _, Tail, Tail).
+    N1 is N0 + 1,
+    term_variables_3(N1, N, Term, Vars, Tail1, Tail).
+term_variables_3(_, _, _, _, Tail, Tail).
 
 push_var(Vars, X, _, Tail) :-
     var(Vars),
