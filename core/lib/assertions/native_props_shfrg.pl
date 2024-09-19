@@ -39,7 +39,13 @@
 :- endif.
 
 % --------------------------------------------------------------------------
-% Amadeo
+
+% TODO: write a more efficient implementation
+% TODO: use of $$Mark is really weak
+% TODO: do not work with attributed variables
+
+% (original version by Amadeo)
+
 :- export(indep/2).
 :- prop indep(X, Y) + native(indep([[X, Y]]))
    # "@var{X} and @var{Y} do not have variables in common.".
@@ -51,27 +57,31 @@ indep(A, B) :-
     fail.
 indep(_, _).
 
-mark('$$Mark', no) :- !. % Mark the variable, signal variable found
-mark(Atom,     _) :- atomic(Atom), !.
-mark(Complex,  GR) :- mark_(Complex, 1, GR).
+mark('$$Mark', GR) :- !, GR=no. % Mark the variable, signal variable found
+mark(Atom, _) :- atomic(Atom), !.
+mark(Term, GR) :-
+    functor(Term, _, N),
+    mark_(1, N, Term, GR).
 
-mark_(Args, Mth, GR) :-
-    arg(Mth, Args, ThisArg), !,
-    mark(ThisArg, GR),
-    Nth is Mth+1,
-    mark_(Args, Nth, GR).
-mark_(_, _, _).
+mark_(N0, N, Term, GR) :- N0 =< N, !,
+    arg(N0, Term, Arg),
+    mark(Arg, GR),
+    N1 is N0+1,
+    mark_(N1, N, Term, GR).
+mark_(_, _, _, _).
 
 marked(Term) :-
     functor(Term, F, A),
-    ( A > 0, !, marked_(Term, 1)
-    ; F = '$$Mark' ).
+    ( A > 0 -> marked_(1, A, Term)
+    ; F = '$$Mark'
+    ).
 
-marked_(Args, Mth) :-
-    arg(Mth, Args, ThisArg), !,
-    ( marked(ThisArg) % TODO: missing cut?
-    ; Nth is Mth+1,
-      marked_(Args, Nth)
+marked_(N0, N, Term) :-
+    N0 =< N,
+    arg(N0, Term, Arg),
+    ( marked(Arg) -> true
+    ; N1 is N0+1,
+      marked_(N1, N, Term)
     ).
 
 % --------------------------------------------------------------------------
