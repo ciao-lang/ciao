@@ -787,30 +787,31 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t term) {
 #if defined(USE_FU2_ARG_EXCEPTIONS)
   // TODO:[oc-merge] fixme
   ERR__FUNCTOR("term_basic:arg", 3);
-  intmach_t i;
 
-  DerefSw_HVAorCVAorSVA_Other(number, BUILTIN_ERROR(ERR_instantiation_error, number, 1);,{});
-  DerefSw_HVAorCVAorSVA_Other(term, BUILTIN_ERROR(ERR_instantiation_error, term, 2);,{});
-
-  Sw_NUM_Large_Other(number, {
-    i = GetSmall(number);
+  intval_t i;
+  DerefSw_HVAorCVAorSVA_Other(number, {
+    BUILTIN_ERROR(ERR_instantiation_error, number, 1);
   }, {
-    CBOOL__FAIL;
-  }, {
-    BUILTIN_ERROR(ERR_type_error(integer), number, 1);
+    Sw_NUM_Large_Other(number, {
+      i = GetSmall(number);
+    }, {
+      /* large number, saturate to max arity plus 1 so that we can
+         continue checking the other arguments */
+      i = ARITYLIMIT + 1;
+    }, {
+      BUILTIN_ERROR(ERR_type_error(integer), number, 1);
+    });
+    if (i < 0) {
+      BUILTIN_ERROR(ERR_domain_error(not_less_than_zero), number, 1);
+    }
   });
 
-  if (i < 0) {
-    BUILTIN_ERROR(ERR_domain_error(not_less_than_zero), number, 1);
-  }
-
-  if (TaggedIsSTR(term)) {
-    tagged_t f = TaggedToHeadfunctor(term);
-    if (i == 0 || i > Arity(f) || FunctorIsBlob(f)) {
-      CBOOL__FAIL;
-    }
-    return *TaggedToArg(term,i);
-  } else if (IsComplex(term)) { /* i.e. list */
+  DerefSw_HVAorCVAorSVA_NUMorATM_LST_STR(term, { /* HVA CVA SVA */
+    BUILTIN_ERROR(ERR_instantiation_error, term, 2);
+  }, { /* NUM ATM */
+    // if (TaggedIsATM(term)) CBOOL__FAIL; // TODO: comment this case for full ISO compliance
+    BUILTIN_ERROR(ERR_type_error(compound), term, 2);
+  }, { /* LST */ 
     if (i == 1) {
       tagged_t t0 = *TaggedToCar(term);
       CFUN__PROCEED(t0);
@@ -818,43 +819,47 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t term) {
       tagged_t t0 = *TaggedToCdr(term);
       CFUN__PROCEED(t0);
     } else {
-      CBOOL__FAIL;
+      CFUN__PROCEED(ERRORTAG); /* (a failure) */
     }
-  } else {
-    if (TaggedIsATM(term)) { // TODO: comment this case for full ISO compliance
-      CBOOL__FAIL;      
-    } else {
-      BUILTIN_ERROR(ERR_type_error(compound), term, 2);
-    }
-  }
+  }, { /* STR */
+    SwStruct(f, term, { /* STR(blob) */
+      CFUN__PROCEED(ERRORTAG); /* (a failure) */
+    }, { /* STR(struct) */
+      if (i == 0 || i > Arity(f)) {
+        CFUN__PROCEED(ERRORTAG); /* (a failure) */
+      }
+      tagged_t t0 = *TaggedToArg(term,i);
+      CFUN__PROCEED(t0);
+    });
+  });
 #else
   DerefSw_HVAorCVAorSVA_Other(number,{
     goto barf1;
-  },{
-    DerefSw_HVAorCVAorSVA_NUMorATM_LST_STR(term, { /* HVA CVA SVA */
-      goto barf2;
-    }, { /* NUM ATM */
-      goto barf2;
-    }, { /* LST */ 
-      if (number==MakeSmall(1)) {
-        tagged_t t0 = *TaggedToCar(term);
-        CFUN__PROCEED(t0);
-      } else if (number==MakeSmall(2)) {
-        tagged_t t0 = *TaggedToCdr(term);
-        CFUN__PROCEED(t0);
-      } else {
-        goto barf1;
-      }
-    }, { /* STR */
-      SwStruct(f, term, { /* STR(blob) */
-        goto barf1;
-      }, { /* STR(struct) */
-        /* TODO: do we check that 'number' is a small integer? */
-        intval_t i = GetSmall(number);
-        if (i<=0 || i>Arity(f)) goto barf1;
-        tagged_t t0 = *TaggedToArg(term,i);
-        CFUN__PROCEED(t0);
-      });
+  }, {
+  });
+  DerefSw_HVAorCVAorSVA_NUMorATM_LST_STR(term, { /* HVA CVA SVA */
+    goto barf2;
+  }, { /* NUM ATM */
+    goto barf2;
+  }, { /* LST */ 
+    if (number==MakeSmall(1)) {
+      tagged_t t0 = *TaggedToCar(term);
+      CFUN__PROCEED(t0);
+    } else if (number==MakeSmall(2)) {
+      tagged_t t0 = *TaggedToCdr(term);
+      CFUN__PROCEED(t0);
+    } else {
+      goto barf1;
+    }
+  }, { /* STR */
+    SwStruct(f, term, { /* STR(blob) */
+      goto barf1;
+    }, { /* STR(struct) */
+      /* TODO: do we check that 'number' is a small integer? */
+      intval_t i = GetSmall(number);
+      if (i<=0 || i>Arity(f)) goto barf1;
+      tagged_t t0 = *TaggedToArg(term,i);
+      CFUN__PROCEED(t0);
     });
   });
 
