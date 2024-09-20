@@ -13,7 +13,6 @@
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic)).
 :- use_module(engine(messages_basic), [message/2]).
-:- use_module(library(iso_misc), [compound/1]).
 :- use_module(library(sort)).
 :- use_module(library(dict)).
 :- use_module(library(terms), [atom_concat/2]).
@@ -330,14 +329,14 @@ E_GAUGE ***/
 structure(structure(F,Args), S) :- S=..[F|Args].
 
 parse_clause(H, B, [parsed_clause(structure(Fu,Args),Pbody,Ch1,0)], Prof) :-
-    functor(H, Fu, _),
+    functor(H, Fu, Ar),
     parse_body(B, outer, B1),
     (   Prof=unprofiled -> B1 = B2
 /*** B_GAUGE
     ;   insert_counters(B1, B2)
 E_GAUGE ***/
     ),
-    trans_args(1, H, Args, Dic),
+    trans_args(1, Ar, H, Args, Dic),
     trans_term(Ch, Ch1, Dic),
     trans_goal(B2, Pbody, 'basiccontrol:CUT IDIOM'(Ch), Dic).
 
@@ -395,15 +394,15 @@ trans_goal('basiccontrol:,'(X,Y), S, Cut, Dic) :- !,
     trans_goal(X, X1, Cut, Dic),
     trans_goal(Y, Y1, Cut, Dic).
 trans_goal(X, structure(Fu,Args), _, Dic) :-
-    functor(X, Fu, _),
-    trans_args(1, X, Args, Dic).
+    functor(X, Fu, Ar),
+    trans_args(1, Ar, X, Args, Dic).
 
-trans_args(I, Term, [X1|Args], Dic) :-
-    compound(Term),
-    arg(I, Term, X), !,
+trans_args(I, Ar, Term, [X1|Args], Dic) :- I =< Ar, !,
+    arg(I, Term, X),
     trans_term(X, X1, Dic),
-    I1 is I+1, trans_args(I1, Term, Args, Dic).
-trans_args(_, _, [], _).
+    I1 is I+1,
+    trans_args(I1, Ar, Term, Args, Dic).
+trans_args(_, _, _, [], _).
 
 trans_term(V, Tran, Dic) :-
     var(V), !,
@@ -417,8 +416,8 @@ trans_term(C, Tran, _) :-
     atomic(C), !,
     Tran=constant(C).
 trans_term(X, structure(Fu,Args), Dic) :- 
-    functor(X, Fu, _),
-    trans_args(1, X, Args, Dic).
+    functor(X, Fu, Ar),
+    trans_args(1, Ar, X, Args, Dic).
 
 %-----------------------------------------------------------------------------
 % Given a clause, break off separate predicates for special forms such as
