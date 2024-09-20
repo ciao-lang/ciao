@@ -780,12 +780,11 @@ CBOOL__PROTO(prolog_unifyOC) {
 
 /* --------------------------------------------------------------------------- */
 
-// TODO: required for ISO compatibility (see another TODO note below); but we need to update our codebase
-// #define USE_FU2_ARG_EXCEPTIONS 1
+#define USE_FU2_ARG_EXCEPTIONS 1 /* ISO compatibility */
+// TODO: deprecate old behavior
 
 CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t term) {
 #if defined(USE_FU2_ARG_EXCEPTIONS)
-  // TODO:[oc-merge] fixme
   ERR__FUNCTOR("term_basic:arg", 3);
 
   intval_t i;
