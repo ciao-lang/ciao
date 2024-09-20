@@ -2180,17 +2180,6 @@ CVOID__PROTO(trail_push_check, tagged_t x);
   G->trail_top = pt1; \
 })
 
-/* SERIOUS_FAULT - a fault that should not occur- indicating a corruption
-                  such as following the STR tag not coming to a FNT tag
-                  this kind of fault may not need to be testing in final
-                  version but must in testing cause a total abort
-   USAGE_FAULT   - a fault in the usage(incorrect parameters) of a 
-                  builtin predicate - an error message is written.
-   MINOR_FAULT   - a fault that should result in a error message being
-                  written somewhere, but the builtin predicate just
-                  fails and is not aborted
-*/
-
 /* ------------------------------------------------------------------------- */
 
 CVOID__PROTO(push_choicept, try_node_t *alt);
@@ -2213,13 +2202,26 @@ extern SIGJMP_BUF abort_env;
 
 void failc(char *mesg);
 
+/* SERIOUS_FAULT - a fault that should not occur- indicating a corruption
+                  such as following the STR tag not coming to a FNT tag
+                  this kind of fault may not need to be testing in final
+                  version but must in testing cause a total abort
+   USAGE_FAULT   - a fault in the usage(incorrect parameters) of a 
+                  builtin predicate - an error message is written.
+   MINOR_FAULT   - a fault that should result in a error message being
+                  written somewhere, but the builtin predicate just
+                  fails and is not aborted
+*/
+
 #define PANIC_FAULT SERIOUS_FAULT /* TODO: use oc panic fault? */
 
 #define SERIOUS_FAULT(Y) { \
     failc(Y); \
     SIGLONGJMP(abort_env, WAM_ABORT); \
   }
-                          
+
+// TODO:[oc-merge] distinguish "return FALSE" (CBOOL) from "return ERRORTAG" (CFUN)
+
 #define MAJOR_FAULT(Y) { failc(Y); return FALSE; }
 
 #define USAGE_FAULT(Y) { failc(Y); return FALSE; }
