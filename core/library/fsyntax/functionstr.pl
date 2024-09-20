@@ -617,6 +617,7 @@ function_output_arg(FSpec, Fun, Arg, (-)) :-
     functor(Fun, F, A1).
 
 has_tilde(N, F, Arg) :-
+    N > 0,
     arg(N, F, F_N),
     N1 is N-1,
     ( F_N == (~) ->
