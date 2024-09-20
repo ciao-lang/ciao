@@ -487,7 +487,7 @@ w->structure = NULL;
 if (vr27==vr28) {
 goto fail;
     }
- else if (!IsVar(vr27&vr28)&&(IsNUMorATM(vr27)||IsNUMorATM(vr28))) {
+ else if (BothNonvar(vr27,vr28)&&(IsNUMorATM(vr27)||IsNUMorATM(vr28))) {
 goto w_op64;
     }
  else {
