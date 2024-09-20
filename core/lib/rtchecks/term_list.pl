@@ -156,6 +156,7 @@ collapse_term([E|L0], C0, R0, R) :-
 %% yes
 
 % intended use
+:- export(count_vars/3).
 :- pred count_vars(Term, Tail, VarCounts)
     :: (list(Term), list(Tail))
     :  (nonground(Term), var(VarCounts)) => list(eq,VarCounts)
@@ -192,13 +193,13 @@ count_vars(Term, C0, C) :-
 count_vars(Arg, C0, C) :-
     compound(Arg),
     !,
-    count_var(1, Arg, C0, C).
+    functor(Arg, _, N),
+    count_var(1, N, Arg, C0, C).
 count_vars(_, C, C).
 
-count_var(N, Term, C0, C) :-
-    arg(N, Term, Arg),
-    !,
+count_var(I, N, Term, C0, C) :- I =< N, !,
+    arg(I, Term, Arg),
     count_vars(Arg, C0, C1),
-    N1 is N + 1,
-    count_var(N1, Term, C1, C).
-count_var(_, _, C, C).
+    I1 is I + 1,
+    count_var(I1, N, Term, C1, C).
+count_var(_, _, _, C, C).
