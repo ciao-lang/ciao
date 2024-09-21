@@ -913,12 +913,12 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
       BUILTIN_ERROR(ERR_representation_error(max_arity), arity, 3);
     }
 
+    if (!TermIsAtomic(name)) {
+      BUILTIN_ERROR(ERR_type_error(atomic), name, 2);
+    }
     if (arity_n==0) { /* if arity_n==0, 'name' can be any atomic */
-      if (!TermIsAtomic(name)) {
-        BUILTIN_ERROR(ERR_type_error(atomic), name, 2);
-      }
       CBOOL__LASTUNIFY(name,term);
-    } else { /* otherwise 'name' must be an atom */
+    } else { /* 'name' must be an atom if arity_n!=0 */
       if (!TaggedIsATM(name)) {
         BUILTIN_ERROR(ERR_type_error(atom), name, 2);
       }
