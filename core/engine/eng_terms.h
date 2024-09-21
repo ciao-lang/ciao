@@ -408,6 +408,7 @@
 #define MakeFunctorFix   BlobFunctorBignum(1)
 #define BlobFunctorFlt64 (TagIndex(NUM,3) + QTAGMASK)
 #define LargeIsFloat(X)  FunctorIsFloat(TaggedToHeadfunctor(X))
+//#define FunctorIsBignum(X) (!(!((X)&TagBitFunctor)))
 #define FunctorIsFloat(X) (!((X)&TagBitFunctor))
 
 #define MakeBlob(Ptr) make_blob(Arg,(tagged_t *)(Ptr))

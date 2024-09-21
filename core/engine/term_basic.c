@@ -9,6 +9,7 @@
 #if !defined(OPTIM_COMP)
 #include <ciao/basiccontrol.h>
 #include <ciao/eng_gc.h>
+#include <ciao/eng_bignum.h> /* bn_positive */
 #endif
 
 /* Unify with occurs-check, using inline checks (var-nonvar cases) */
@@ -877,54 +878,76 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t term) {
 
 CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
 #if defined(USE_BU3_FUNCTOR_EXCEPTIONS)
-  // TODO:[oc-merge] fixme
   ERR__FUNCTOR("term_basic:functor", 3);
 
-  DerefSw_HVAorCVAorSVA_Other(term,{goto construct;},{});
-  {
-    tagged_t tagarity;
-    if (TermIsAtomic(term)) {
-      tagarity = TaggedZero;
-    } else if (!(term & TagBitFunctor)) {
-      term = atom_list;
-      tagarity = MakeSmall(2);
-    } else {
-      tagged_t f = TaggedToHeadfunctor(term);
-      term = SetArity(f,0);
-      tagarity = MakeSmall(Arity(f));
-    }
-    CBOOL__UnifyCons(tagarity,arity);
-    CBOOL__LASTUNIFY(term,name);
-  }
- construct:
-  {
-    DerefSw_HVAorCVAorSVA_Other(name, BUILTIN_ERROR(ERR_instantiation_error, name, 2);,{});
-    DerefSw_HVAorCVAorSVA_Other(arity, BUILTIN_ERROR(ERR_instantiation_error, arity, 3);,{});
+  tagged_t tagarity;
+  DerefSw_HVAorCVAorSVA_NUMorATM_LST_STR(term,{ /* HVA CVA SVA */
+    /* (construct) */
 
-    if (TermIsAtomic(name)) {
-      if (arity == TaggedZero) {
-        CBOOL__LASTUNIFY(name,term);
-      } else if (arity > TaggedZero) {
-        if (TaggedIsATM(name)) {
-          if (arity < MakeSmall(ARITYLIMIT)) {
-            return cunify(Arg, make_structure(Arg, SetArity(name,GetSmall(arity))), term);
-          } else if (IsInteger(arity)) {
-            BUILTIN_ERROR(ERR_representation_error(max_arity), arity, 3);
-          } else {
-            BUILTIN_ERROR(ERR_type_error(integer),arity, 3);
-          }
-        } else if (IsInteger(arity)) {
-          BUILTIN_ERROR(ERR_type_error(atom), name, 2);
-        } else {
-          BUILTIN_ERROR(ERR_type_error(integer), arity, 3);
-        }
+    DerefSw_HVAorCVAorSVA_Other(name, {
+      BUILTIN_ERROR(ERR_instantiation_error, name, 2);
+    }, {});
+    DerefSw_HVAorCVAorSVA_Other(arity, {
+      BUILTIN_ERROR(ERR_instantiation_error, arity, 3);
+    },{});
+
+    /* Get and check arity */
+    intval_t arity_n;
+    Sw_NUM_Large_Other(arity, { /* NUM */
+      arity_n = GetSmall(arity);
+    }, { /* Large */
+      /* large number, saturate to -1 or max arity plus 1 so that we can
+         continue checking the other arguments */
+      if (bn_positive(TaggedToBignum(arity))) {
+        arity_n = ARITYLIMIT + 1;
       } else {
-        BUILTIN_ERROR(ERR_domain_error(not_less_than_zero), arity, 3);
+        arity_n = -1;
       }
-    } else {
-      BUILTIN_ERROR(ERR_type_error(atomic), name, 2);
+    }, { /* Other */
+      BUILTIN_ERROR(ERR_type_error(integer), arity, 3);
+    });
+    if (arity_n < 0) {
+      BUILTIN_ERROR(ERR_domain_error(not_less_than_zero), arity, 3);
     }
-  }
+    if (arity_n >= ARITYLIMIT) {
+      BUILTIN_ERROR(ERR_representation_error(max_arity), arity, 3);
+    }
+
+    if (arity_n==0) { /* if arity_n==0, 'name' can be any atomic */
+      if (!TermIsAtomic(name)) {
+        BUILTIN_ERROR(ERR_type_error(atomic), name, 2);
+      }
+      CBOOL__LASTUNIFY(name,term);
+    } else { /* otherwise 'name' must be an atom */
+      if (!TaggedIsATM(name)) {
+        BUILTIN_ERROR(ERR_type_error(atom), name, 2);
+      }
+      CBOOL__LASTUNIFY(CFUN__EVAL(make_structure, SetArity(name,arity_n)), term);
+    }
+  },{ /* NUM ATM */
+    tagarity = MakeSmall(0);
+    goto unif;
+  }, { /* LST */
+#if defined(OPTIM_COMP)
+    term = atom_lst;
+#else
+    term = atom_list;
+#endif
+    tagarity = MakeSmall(2);
+    goto unif;
+  }, { /* STR */
+    SwStruct(f, term, { /* STR(blob) */
+      tagarity = MakeSmall(0);
+      goto unif;
+    }, { /* STR(struct) */
+      term = FUNCTOR_NAME(f);
+      tagarity = MakeSmall(Arity(f));
+      goto unif;
+    });
+  });
+ unif:
+  CBOOL__UnifyCons(tagarity,arity);
+  CBOOL__LASTUNIFY(term,name);
 #else
   tagged_t tagarity;
   DerefSw_HVAorCVAorSVA_NUMorATM_LST_STR(term, { /* HVA CVA SVA */
