@@ -174,6 +174,7 @@ normalize(Var,_Mod,_Arith, Var) :- var(Var), !.
 normalize(~V,_Mod,_Arith, NrF) :-
     var(V), !,
     NrF = '\6\Eval'(call(V, Ret_Arg), Ret_Arg). % Apply?
+normalize(T, _Mod, _Arith, NT) :- T = ^(X), var(X), !, NT = T. % TODO: just quote (bug caught with ISO functor/3)
 normalize(^(T), Mod, Arith, NT) :- !,
     normalize_args_of(T, Mod, Arith, NT).
 normalize(F, Mod, Arith, NrF) :-
