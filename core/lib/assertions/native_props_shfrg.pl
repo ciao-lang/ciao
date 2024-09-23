@@ -71,6 +71,7 @@ mark_(N0, N, Term, GR) :- N0 =< N, !,
 mark_(_, _, _, _).
 
 marked(Term) :-
+    nonvar(Term),
     functor(Term, F, A),
     ( A > 0 -> marked_(1, A, Term)
     ; F = '$$Mark'
