@@ -176,7 +176,7 @@ no
 transform_metapred(H, M, HT) :-
     ( % Get Meta for H
       functor(H, F, FArity),
-      ( MetaArity_G is FArity - 1 % when H (expanded) have one more argument (we must try this first!)
+      ( FArity > 0, MetaArity_G is FArity - 1 % when H (expanded) have one more argument (we must try this first!)
       ; MetaArity_G = FArity % when H (expanded) do not have more arguments (or dcase "B" below)
       ),
       functor(MetaG, F, MetaArity_G),
