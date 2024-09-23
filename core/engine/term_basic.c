@@ -873,8 +873,8 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t term) {
 
 /*---------------------------------------------------------------*/
 
-// TODO: required for ISO compatibility; but we need to update our codebase
-// #define USE_BU3_FUNCTOR_EXCEPTIONS 1
+#define USE_BU3_FUNCTOR_EXCEPTIONS 1 /* ISO compatibility */
+// TODO: deprecate old behavior
 
 CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
 #if defined(USE_BU3_FUNCTOR_EXCEPTIONS)
