@@ -49,6 +49,11 @@ meta_predicate(F, A, PredSpec, M) :-
     multifile(M, F, A),
     functor(PredSpec, F, A),
     meta_args(multifile, PredSpec).
+meta_predicate(F, A, PredSpec, M) :- var(A), !,
+    % TODO:[JF] check if this new clause is OK, (pre-ISO functor/3 silently failed here)
+    defines_module(Base, M),
+    imports_pred(Base, _, F, A, _, PredSpec, _),
+    functor(PredSpec, F, A).
 meta_predicate(F, A, PredSpec, M) :-
     functor(PredSpec, F, A),
     defines_module(Base, M),
