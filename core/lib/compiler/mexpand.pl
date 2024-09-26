@@ -275,7 +275,7 @@ expand_clause(H, M, QM, Mode, NH):- !,
 
 spec_expansion(F/A, M, QM, NF/A) :-
     atom(F),
-    integer(A),
+    integer(A), A >= 0, % TODO:[JF] static compile-time error otherwise?
     functor(G,F,A),
     atom_expansion(G, F, A, M, QM, NG, _),
     functor(NG,NF,A).
