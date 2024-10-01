@@ -21,6 +21,7 @@ id_sentence((:- Decl), [], Module) :-
         Limit = unlimited
     ; Decl = iterative(Pred,Init,Formul, Limit)
     ),
+    !,
     declare_iterative(Module, Pred, info(Init, Formul, Limit)).
 id_sentence((Head :- Body), Transformation, Module) :- !,
     transform_clause_head(Module, Head, Body, Transformation).
@@ -92,6 +93,8 @@ generate_driver_if_necessary(Module, Head, Tail,
     %
     assertz_fact(driver_already_generated(Module, Call)).
 
+% ---------------------------------------------------------------------------
+
 transform_body(B, Module, B_depth, Depth) :-
     transform_literals(B, Module, B_depth_, NewDepth, Flag),
     ( var(Flag) ->
@@ -102,8 +105,6 @@ transform_body(B, Module, B_depth, Depth) :-
     ; B_depth = (Depth > 0, NewDepth is Depth - 1, B_depth_)
     ).
 
-% ---------------------------------------------------------------------------
-
 transform_literals((L,B), Module, (L_depth,B_depth), Depth, Flag) :- !,
     transform_literal(L, Module, L_depth, Depth, Flag),
     transform_literals(B, Module, B_depth, Depth, Flag).
@@ -112,8 +113,6 @@ transform_literals((L;B), Module, (L_depth;B_depth), Depth, Flag) :- !,
     transform_literals(B, Module, B_depth, Depth, Flag).
 transform_literals(L, Module, L_depth, Depth, Flag) :-
     transform_literal(L, Module, L_depth, Depth, Flag).
-
-% ---------------------------------------------------------------------------
 
 transform_literal(L, Module, L_depth, Depth, Flag) :-
     current_fact(iterative(Module, L, (L_depth, Depth), _Info)), !,
