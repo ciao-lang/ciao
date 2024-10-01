@@ -1,0 +1,77 @@
+/* --------------------------------------------------------------------------- */
+/* Generic Menu UI elements: frames, menu items, etc. */
+.menu-main {
+    color: var(--fg);
+    background-color: var(--bg);
+    padding: 1px 20px 0px 20px;
+}
+
+.frame_menu {
+    line-height: 42px; /* center vertically */
+    height: 42px;
+    /* background: black; */
+    /* color: white; */
+    border-bottom: 1px solid var(--frame-border);
+    background: var(--bg);
+    color: var(--fg);
+    padding: 0px 4px 0px 4px;
+}
+
+/* (as a span inside .frame_menu) */
+.frame_title {
+    float: left;
+    padding-left: 12px;
+    padding-right: 12px;
+    line-height: 42px; /* center vertically */
+    height: 42px;
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 16px;
+    font-weight: normal;
+}
+
+.menu_item {
+    font-size: 14px;
+    margin: 4px;
+    padding: 4px;
+    border-bottom: 1px solid var(--border);
+}
+.menu_item > button {
+    font-size: 14px;
+}
+.menu_item > input {
+    font-size: 14px;
+}
+.menu_item > optgroup {
+    font-size: 14px;
+}
+.menu_item > select {
+    font-size: 14px;
+}
+.menu_item > textarea {
+    font-size: 14px;
+}
+
+.menu_title {
+    font-weight: bold;
+}
+
+.menu_desc {
+    padding: 2px;
+    color: var(--fg);
+}
+
+.menu_flag {
+    font-family:
+        SFMono-Regular,
+        Consolas,
+        Liberation Mono,
+        Menlo,
+        monospace;
+    color: var(--code-fg);
+    background: var(--code-bg);
+}
+
+.menu_indented {
+    margin-left: 32px;
+}
