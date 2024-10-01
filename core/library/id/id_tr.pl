@@ -1,129 +1,129 @@
-:- module(id_tr, [id_sentence/3, id_clause/3],[assertions, hiord, datafacts]).
+:- module(_, [idclause/3,trbody/3],[assertions, datafacts]).
 
-:- use_module(engine(messages_basic), [message/2]).
+:- use_module(library(aggregates), [findall/4]).
 :- use_module(library(lists), [append/3]).
-:- use_module(library(terms), [atom_concat/2]).
 
-% ---------------------------------------------------------------------------
+:- data toexport/2.
+:- data id_pred/2.
+:- data id_call/2.
+:- data only_first/1.
 
-:- data iterative/4.
-:- data driver_already_generated/2.
+:- use_module(library(compiler/c_itf)).
 
-id_sentence(0, 0, Module) :- !,
-    reset(Module).
-id_sentence(end_of_file, end_of_file, Module) :- !,
-    ( current_fact(iterative(Module, _, _, _)) -> 
-        true
-    ; message(warning, ['No iterative predicate declared in module ', Module])
-    ).
-id_sentence((:- Decl), [], Module) :-
-    ( Decl = iterative(Pred,Init,Formul) ->
-        Limit = unlimited
-    ; Decl = iterative(Pred,Init,Formul, Limit)
-    ),
-    !,
-    declare_iterative(Module, Pred, info(Init, Formul, Limit)).
-id_sentence((Head :- Body), Transformation, Module) :- !,
-    transform_clause_head(Module, Head, Body, Transformation).
-id_sentence(Head, Transformation, Module):- 
-    transform_clause_head(Module, Head, true, Transformation).
+idclause(end_of_file, Cls , _) :- 
+	      !,
+	      retractall_fact(id_call(_,_)),
+              aggregates:findall(CL,
+	                         (retract_fact(id_pred(H,B)),
+	                          interpr(H,B,CL)
+				 ),
+				 Cls,Exportados),
+             aggregates:findall((:- export(F/A)),
+	                        retract_fact(toexport(F,A)),
+				 Exportados,[end_of_file]),
+	      retractall_fact(only_first(_)).
 
-% ---------------------------------------------------------------------------
+idclause((:- iterative(Call,Init,Formul)),
+         (C :- '$iterdeep'(NC,Formul,unlimited)),_) :- 
+	    !,
+	    Call = H/A,
+	    functor(C,H,A),
+            C =.. [Name|L],
+	    atom_concat('$$',Name,NewName),
+	    NC =.. [NewName,0,Init,C,_|L],
+	    asserta_fact(id_call(H,A)).
 
-id_clause(end_of_file, end_of_file, Module) :-
-    reset(Module).
-id_clause(clause(Head_depth, Body), clause(Head_depth, Body_depth), Module) :-
-    current_fact(iterative(Module, _, (Head_depth, Depth), _)),
-    transform_body(Body, Module, Body_depth, Depth). 
+idclause((:- iterative(Call,Init,Formul,MaxDepth)),
+         (C :- '$iterdeep'(NC,Formul,MaxDepth)),_) :- 
+	    !,
+	    Call = H/A,
+	    functor(C,H,A),
+            C =.. [Name|L],
+	    atom_concat('$$',Name,NewName),
+	    NC =.. [NewName,0,Init,C,_|L],
+	    asserta_fact(id_call(H,A)).
 
-% ---------------------------------------------------------------------------
 
-reset(Module) :-
-    retractall_fact(iterative(Module, _, _, _)), 
-    retractall_fact(driver_already_generated(Module, _)).
 
-% ---------------------------------------------------------------------------
+idclause((:- D),(:- D),_):- 
+	    !.	
 
-declare_iterative(Module, F/N, Info) :-
-    functor(Call, F, N), 
-    ( current_fact(iterative(Module, Call, _, _)) ->
-        message(warning, ['Predicate ', Module:F/N, ' already declared as iterative. Declaration ignored.'])
-    ; transform_iterative(Call, Call_depth, Depth),
-      assertz_fact(iterative(Module, Call, (Call_depth,Depth), Info))
-    ).
+idclause(0,[],_):-
+	    !.
 
-% ---------------------------------------------------------------------------
+idclause((H :- B),Tr,_):- 
+	    !,
+	    functor(H,F,A),
+	    ( id_call(F,A) -> Tr = []
+	    ; Tr = (H :- B)),
+            assertz_fact(id_pred(H, B)).
 
-transform_clause_head(Module, Head, Body, Transformation) :-
-    current_fact(iterative(Module, Head, (Head_depth, _), _Info)), 
-    generate_driver_if_necessary(Module, Head, [(Head_depth :- Body)], Transformation).
+idclause((H),Tr,_):- 
+            !,
+    	    functor(H,F,A),
+	    ( id_call(F,A) -> Tr = []
+	    ; Tr = (H)),
+            assertz_fact(id_pred(H,true)).
 
-% ---------------------------------------------------------------------------
 
-generate_driver_if_necessary(Module, Head, Tail, Tail) :-
-    current_fact(driver_already_generated(Module, Head)), !.
-generate_driver_if_necessary(Module, Head, Tail, 
-    [ (LHS0 :- RHS0), (LHS1 :- RHS1), (LHS2 :- RHS2) | Tail ]) :-
-    
-    functor(Head, F, N), functor(Call, F, N),
-    current_fact(iterative(Module, Call, (Call_depth, Depth), info(Init,Formul, Limit))),
-    %
-    Call =.. [F|Args],
-    LHS0 = Call,
-    atom_concat(['$', F, '__iterative'],F_iterative),
-    append(Args, [Init], ArgsInit),               
-    Call_iterative0 =.. [F_iterative|ArgsInit],
-    ( (Limit = unlimited ; Init =< Limit) ->
-        RHS0 = Call_iterative0
-    ; RHS0 = (Init =< Limit, Call_iterative0)
-    ),
-    %
-    append(Args, [Depth],ArgsDepth),   
-    Call_iterative1 =.. [F_iterative|ArgsDepth],
-    LHS1 = Call_iterative1,
-    RHS1 = Call_depth,
-    %
-    LHS2 = Call_iterative1,
-    append(Args, [NextDepth], ArgsNextDepth),
-    Call_iterative2 =.. [F_iterative|ArgsNextDepth],
-    ( Limit = unlimited  ->
-        RHS2 = (Formul(Depth, NextDepth), Call_iterative2)
-    ; RHS2 = (Depth < Limit, Formul(Depth, NextDepth), Call_iterative2)
-    ),
-    %
-    assertz_fact(driver_already_generated(Module, Call)).
 
-% ---------------------------------------------------------------------------
 
-transform_body(B, Module, B_depth, Depth) :-
-    transform_literals(B, Module, B_depth_, NewDepth, Flag),
-    ( var(Flag) ->
-        ( B_depth_ = true  ->
-            B_depth = (Depth > 0)
-        ; B_depth = (Depth > 0 ; B_depth_)
-        )
-    ; B_depth = (Depth > 0, NewDepth is Depth - 1, B_depth_)
-    ).
+interpr(H,_,CL):-
+	functor(H,F,A),
+	(only_first(F) -> fail
+	;
+	 (asserta_fact(only_first(F)),
+          NA is A + 4,
+          atom_concat('$$',F,NF),
+	  functor(NH,NF,NA),
+	  arg(1,NH,Depth),
+          arg(2,NH,Cut),
+          arg(3,NH,Goal),        
+          asserta_fact(toexport(NF,NA)),
+          CL = (NH :- 
+	       Depth > Cut,
+               asserta_fact('$more_sol'(Goal)),
+               !,fail)
+         )
+	).
 
-transform_literals((L,B), Module, (L_depth,B_depth), Depth, Flag) :- !,
-    transform_literal(L, Module, L_depth, Depth, Flag),
-    transform_literals(B, Module, B_depth, Depth, Flag).
-transform_literals((L;B), Module, (L_depth;B_depth), Depth, Flag) :- !,
-    transform_literal(L, Module, L_depth, Depth, Flag),
-    transform_literals(B, Module, B_depth, Depth, Flag).
-transform_literals(L, Module, L_depth, Depth, Flag) :-
-    transform_literal(L, Module, L_depth, Depth, Flag).
 
-transform_literal(L, Module, L_depth, Depth, Flag) :-
-    current_fact(iterative(Module, L, (L_depth, Depth), _Info)), !,
-    Flag = t.
-transform_literal(L, _Module, L, _, _).
-  
-% ---------------------------------------------------------------------------
 
-transform_iterative(Call, Call_depth, Depth) :-
-    Call =.. [F|Args],
-    atom_concat(['$', F,'__depth'],F_depth),
-    append(Args,[Depth],ArgsDepth),
-    Call_depth =.. [F_depth|ArgsDepth].
-    
+interpr(H,B, (NH :-  '$$$replacebody'(B,Depth,Cut,Goal,DepthSol))) :- 
+	H =.. [Name|L],
+	atom_concat('$$',Name,NewName),
+	NH =.. [NewName,Depth,Cut,Goal,DepthSol|L]. 
+	
+
+	
+
+trbody(clause(H,('$$$replacebody'(B,Depth,Cut,Goal,DepthSol))),clause(H,Body),M):-
+	interbody(B,NDepth,Cut,Goal,ListDepthSol,NB,Deeper,M),
+	( Deeper == yes  -> Body = (NDepth is Depth + 1,(NB,'$max_depthsol'(ListDepthSol,DepthSol)))
+	 ; Body = (NB,DepthSol = Depth) 
+	 ).
+	
+	
+interbody((A,B),Depth,Cut,Goal,ListDepthSol,(NA,NB),Deeper,M) :-
+	!,
+	interbody(A,Depth,Cut,Goal,LA,NA,Deeper,M), 
+	interbody(B,Depth,Cut,Goal,LB,NB,Deeper,M),
+	append(LA,LB,ListDepthSol).
+
+interbody(true,_,_,_,[],true,_,_):- 
+	!.
+
+interbody(B,Depth,Cut,Goal,ListDepthSol,NB,Deeper,M) :-
+        functor(B,_,A),
+		  B =.. [Name|L],
+		  atom_concat('$$',Name,NewName),
+         NA is A + 4,
+	( (defines(M,NewName,NA) ; imports(M,_,NewName,NA,_)) -> 
+	      (
+		  NB =.. [NewName,Depth,Cut,Goal,DepthSol|L],
+                  ListDepthSol = [DepthSol], 
+		  Deeper = yes
+	      );
+	    (NB = B,
+	     ListDepthSol = [])
+	). 
