@@ -7,7 +7,7 @@
  */
 
 /*
- *  ciao_menu_html.js
+ *  ciao_menu.js
  *
  *  Common HTML/CSS/JS Ciao menu interface for Ciao.
  *
