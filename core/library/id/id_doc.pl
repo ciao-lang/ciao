@@ -22,7 +22,7 @@ a given depth.  If no solution is found or more solutions are needed by
 backtracking, the depth limit is incremented and the whole goal is
 repeated.  Although it might seem that this approach is very inefficient
 because all higher levels are repeated for the deeper ones, it has been
-shown that is performs only about b/(b - 1) times as many operations than
+shown that it performs only about b/(b - 1) times as many operations than
 the corresponding breadth-first search (where b is the branching factor of
 the proof tree), while the memory consumption is the same as depth first.
 
