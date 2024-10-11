@@ -15,7 +15,7 @@
 %% but then it says that the only error possible is for not 
 %% meeting the : var... what to do?
 :- modedef '?'(_).
-:- modedef '@'(A) + not_further_inst(A).
+:- modedef '@'(A) : nonvar(A) + not_further_inst(A).
 %% Only in older versions of standard? It is obsolete now.
 %% :- modedef '*'(_).
 
