@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.24.0] - 2024-7-20
+## [1.24.0] - 2024-10-13
 
 @begin{alert}
 The release of 1.24 is in progress. The highlights in this list are in
