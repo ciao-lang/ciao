@@ -1205,12 +1205,6 @@ expand_list_tail(Data1, Data) :-
     add_condcomp_fact/2
 ]).
 
-do_expand_term((:- primitive_meta_predicate(MP)), M, _, Data1) :- !,
-    % TODO: JF temporary: This information should be handled like meta_args (and cannot be a term expansion: it leads to a loop in basiccontrol)
-    functor(MP, F, A),
-    functor(Pat, F, A),
-    Data1 = [(:- meta_predicate(MP)),
-             ('$primitive_meta_predicate'(Pat, M))].
 do_expand_term(Data0, M, VNs, Data) :-
     % Update conditional compilation state and filter sentence
     % TODO: merge with compiler_oc
@@ -2585,13 +2579,8 @@ ciaopp_expansion :- current_fact(ciaopp_expansion_enabled).
 
 :- include(library(compiler/mexpand)).
 
-mexpand_meta_args(M, P, Primitive) :-
-    meta_args(M, P),
-    % JF: WRONG!!! Should be a data fact, like meta_args...
-    ( '$primitive_meta_predicate'(P, M) ->
-        Primitive = true
-    ; Primitive = fail
-    ).
+mexpand_meta_args(M, P) :-
+    meta_args(M, P).
 mexpand_imports(M, IM, F, N, EM) :-
     imports(M, IM, F, N, EM).
 mexpand_defines(M, F, N) :-
@@ -2624,10 +2613,10 @@ meta_expansion_keep_arity(_, _, H, _, H).
 possibly_meta_expansion_head(F, N, A1, M, RM, NA, G, G_) :-
     functor(Meta, F, N),
     % JF: it does not take into account expand_inside/2
-    mexpand_meta_args(RM, Meta, Primitive), !,
+    mexpand_meta_args(RM, Meta), !,
     functor(A1, F_, N_),
     assertz_fact(head_expansion, Ref),
-    meta_expansion_args(1, N_, A1, M, compile, Meta, Primitive,
+    meta_expansion_args(1, N_, A1, M, compile, Meta, fail,
                         NAL, G, G_),
     erase(Ref),
     NA =.. [F_|NAL].

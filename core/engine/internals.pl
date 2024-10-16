@@ -855,12 +855,8 @@ ciaopp_expansion :- fail.
 :- data goal_trans/3.
 
 :- include(library(compiler/mexpand)).
-mexpand_meta_args(M, P, Primitive) :-
-    '$meta_args'(M, P),
-    ( '$primitive_meta_predicate'(P, M) ->
-        Primitive = true
-    ; Primitive = fail
-    ).
+mexpand_meta_args(M, P) :-
+    '$meta_args'(M, P).
 mexpand_imports(M, IM, F, N, EM) :-
     '$imports'(M, IM, F, N, EM).
 mexpand_defines(M, F, N) :-

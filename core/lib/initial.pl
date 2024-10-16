@@ -28,8 +28,6 @@
 % Internal module metadata
 :- if(defined(optim_comp)).
 :- else.
-:- multifile('$primitive_meta_predicate'/2).
-:- discontiguous('$primitive_meta_predicate'/2).
 :- multifile('$current_module'/1).
 :- dynamic('$current_module'/1).
 :- multifile('$ldlibs'/1).

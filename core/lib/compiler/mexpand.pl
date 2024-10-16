@@ -169,7 +169,8 @@ possibly_meta_expansion(F, N, A1, M, RM, Mode, NA, G, G_) :-
     % JF: This is a work around, not a good solution...
     ( expand_inside(Meta, RM) ->
         Primitive = true
-    ; mexpand_meta_args(RM, Meta, Primitive)
+    ; mexpand_meta_args(RM, Meta),
+      Primitive = fail
     ), !,
     functor(A1, F_, N_),
     meta_expansion_args(1, N_, A1, M, Mode, Meta, Primitive, NAL, G, G_),
