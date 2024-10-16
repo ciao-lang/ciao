@@ -212,6 +212,9 @@ meta_expansion_list([E|Es], Type, M, QM, Mode, Primitive, [NE|NEs], G, R) :- !,
     meta_expansion_arg1(E, Type, M, QM, Mode, Primitive, NE, G, G_),
     meta_expansion_list(Es, Type, M, QM, Mode, Primitive, NEs, G_, R).
 
+meta_expansion_arg1(A, primitive(Type), M, QM, Mode, _Primitive, NA, G, R) :- !,
+    % (enable primitive metatype)
+    meta_expansion_arg1(A, Type, M, QM, Mode, true, NA, G, R).
 meta_expansion_arg1(A, Type, M, QM, Mode, Primitive, NA, R, R) :-
     expand_meta(A, Type, M, QM, Mode, XA), !,
     term_to_meta_or_primitive(Primitive, XA, NA).

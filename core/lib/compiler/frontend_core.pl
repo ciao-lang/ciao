@@ -255,6 +255,8 @@ normalize_meta_arg(':', goal).
 normalize_meta_arg(addmodule, addmodule(?)).
 normalize_meta_arg(addmodule(X), addmodule(Xn)) :-
     normalize_meta_arg(X, Xn).
+normalize_meta_arg(primitive(X), primitive(Xn)) :-
+    normalize_meta_arg(X, Xn).
 normalize_meta_arg(X, X) :- real_meta_arg(X).
 
 real_meta_arg(goal).
