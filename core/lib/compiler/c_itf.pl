@@ -675,15 +675,13 @@ del_in_mode(In) :-
 :- export(process_files_from/7).
 % process_files_from(File, Mode{in,in$,...,po,...}, Type{module,any},
 %                    TreatP, StopP, SkipP, RedoP)
-:- meta_predicate
-    process_files_from(+, +, +, pred(1), pred(1), pred(1), pred(1)).
+:- meta_predicate process_files_from(+, +, +, pred(1), pred(1), pred(1), pred(1)).
 
 process_files_from(Files, Mode, Type, TreatP, StopP, SkipP, RedoP) :-
     cleanup_c_itf_data,
     process_files_from_all(Files, Mode, Type, TreatP, StopP, SkipP, RedoP).
 
-:- meta_predicate
-    process_files_from_all(+, +, +, pred(1), pred(1), pred(1), pred(1)).
+:- meta_predicate process_files_from_all(+, +, +, pred(1), pred(1), pred(1), pred(1)).
 
 process_files_from_all([],_Mode,_Type,_TreatP,_StopP,_SkipP,_RedoP) :- !.
 process_files_from_all([F|Fs], Mode, Type, TreatP, StopP, SkipP, RedoP) :- !,
@@ -693,24 +691,21 @@ process_files_from_all(File, Mode, Type, TreatP, StopP, SkipP, RedoP) :-
     process_files_from_(File, Mode, Type, TreatP, StopP, SkipP, RedoP).
 
 :- export(process_file/7).
-:- meta_predicate
-    process_file(+, +, +, pred(1), pred(1), pred(1), pred(1)).
+:- meta_predicate process_file(+, +, +, pred(1), pred(1), pred(1), pred(1)).
 
 process_file(File, Mode, Type, TreatP, StopP, SkipP, RedoP) :-
     cleanup_c_itf_data,
     get_base_name(File, Base, Pl, Dir),
     process_file_(Base, Pl, Dir, Mode, Type, TreatP, StopP, SkipP, RedoP).
 
-:- meta_predicate
-    process_files_from_(+, +, +, pred(1), pred(1), pred(1), pred(1)).
+:- meta_predicate process_files_from_(+, +, +, pred(1), pred(1), pred(1), pred(1)).
 
 process_files_from_(File, Mode, Type, TreatP, StopP, SkipP, RedoP) :-
     get_base_name(File, Base, Pl, Dir),
     process_file_(Base, Pl, Dir, Mode, Type, TreatP, StopP, SkipP, RedoP),
     process_remaining_files(Mode, TreatP, StopP, SkipP, RedoP).
 
-:- meta_predicate
-    process_remaining_files(+, pred(1), pred(1), pred(1), pred(1)).
+:- meta_predicate process_remaining_files(+, pred(1), pred(1), pred(1), pred(1)).
 
 process_remaining_files(Mode, TreatP, StopP, SkipP, RedoP) :-
     retract_fact(process_too(Mode, Base)), % Coming from ensure_loaded
@@ -720,8 +715,7 @@ process_remaining_files(Mode, TreatP, StopP, SkipP, RedoP) :-
       process_remaining_files(Mode, TreatP, StopP, SkipP, RedoP).
 process_remaining_files(_, _, _, _, _).
 
-:- meta_predicate
-    process_file_(+, +, +, +, +, pred(1), pred(1), pred(1), pred(1)).
+:- meta_predicate process_file_(+, +, +, +, +, pred(1), pred(1), pred(1), pred(1)).
 
 process_file_(Base, PlName, Dir, Mode, Type, TreatP, StopP, SkipP, RedoP) :-
     check_loop(Base, Check),
@@ -2652,8 +2646,7 @@ head_expansion0(H, _, _, M, NH):-
 
 :- export(multifile/1).
 % (defined as multifile/2 with addmodule)
-:- meta_predicate
-    multifile(addmodule).
+:- meta_predicate multifile(addmodule).
 
 multifile(F/A, Mod) :-
     functor(_P, F, A), % Check if valid
