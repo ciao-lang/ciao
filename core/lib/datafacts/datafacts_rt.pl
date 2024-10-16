@@ -81,11 +81,7 @@
    predicate concerned.").
 :- pred asserta_fact(+cgoal).
 
-:- if(defined(optim_comp)).
 :- meta_predicate asserta_fact(primitive(fact)).
-:- else.
-:- primitive_meta_predicate(asserta_fact(fact)).
-:- endif.
 asserta_fact(Fact) :-
     meta_asserta_fact(Fact).
 
@@ -104,11 +100,7 @@ meta_asserta_fact(Fact) :-
    fact.").
 :- pred asserta_fact(+cgoal,-reference).
 
-:- if(defined(optim_comp)).
 :- meta_predicate asserta_fact(primitive(fact),-).
-:- else.
-:- primitive_meta_predicate(asserta_fact(fact,-)).
-:- endif.
 :- if(defined(optim_comp)).
 asserta_fact(Fact, Ref) :-
     '$asserta_ref'(Fact, 'basiccontrol:true', Ref).
@@ -125,11 +117,7 @@ asserta_fact(Fact, Ref) :-
    predicate concerned.").
 :- pred assertz_fact(+cgoal) => cgoal.
 
-:- if(defined(optim_comp)).
 :- meta_predicate assertz_fact(primitive(fact)).
-:- else.
-:- primitive_meta_predicate(assertz_fact(fact)).
-:- endif.
 :- if(defined(optim_comp)).
 assertz_fact(Fact) :-
     '$assertz'(Fact, 'basiccontrol:true').
@@ -145,11 +133,7 @@ assertz_fact(Fact) :-
    fact.").
 :- pred assertz_fact(+cgoal,-reference).
 
-:- if(defined(optim_comp)).
 :- meta_predicate assertz_fact(primitive(fact),-).
-:- else.
-:- primitive_meta_predicate(assertz_fact(fact,-)).
-:- endif.
 :- if(defined(optim_comp)).
 assertz_fact(Fact, Ref) :-
     '$assertz_ref'(Fact, 'basiccontrol:true', Ref).
@@ -174,11 +158,7 @@ assertz_fact(Fact, Ref) :-
 %% locked while the clause is being executed.
 :- pred current_fact(+cgoal) => cgoal.
 
-:- if(defined(optim_comp)).
 :- meta_predicate current_fact(primitive(fact)).
-:- else.
-:- primitive_meta_predicate(current_fact(fact)).
-:- endif.
 :- if(defined(optim_comp)).
 current_fact(Fact) :-
     '$current'(Fact, 'basiccontrol:true').
@@ -194,11 +174,7 @@ current_fact(Fact) :-
    non-closed.").
 :- pred current_fact_nb(+cgoal) => cgoal.
 
-:- if(defined(optim_comp)).
 :- meta_predicate current_fact_nb(primitive(fact)).
-:- else.
-:- primitive_meta_predicate(current_fact_nb(fact)).
-:- endif.
 :- if(defined(optim_comp)).
 current_fact_nb(Fact) :-
     '$current_nb'(Fact, 'basiccontrol:true').
@@ -218,11 +194,7 @@ current_fact_nb(Fact) :-
 :- pred current_fact(?cgoal,+reference) # "Given @var{Ref}, unifies
    @var{Fact} with the fact identified by it.".
 
-:- if(defined(optim_comp)).
 :- meta_predicate current_fact(primitive(fact),-).
-:- else.
-:- primitive_meta_predicate(current_fact(fact,-)).
-:- endif.
 :- if(defined(optim_comp)).
 current_fact(Fact, Ref) :-
     '$current_nb_ref'(Fact, 'basiccontrol:true', Ref).
@@ -252,11 +224,7 @@ this_is_true(ThisIsTrue) :- ( ThisIsTrue = true -> true ; ThisIsTrue = 'basiccon
    clause has been removed.").
 :- pred retract_fact(+cgoal) => cgoal. 
 
-:- if(defined(optim_comp)).
 :- meta_predicate retract_fact(primitive(fact)).
-:- else.
-:- primitive_meta_predicate(retract_fact(fact)).
-:- endif.
 :- if(defined(optim_comp)).
 retract_fact(Fact) :-
     '$erase'(Fact, 'basiccontrol:true').
@@ -273,11 +241,7 @@ retract_fact(Fact) :-
    @concept{concurrent} and is non-@concept{closed}.").
 :- pred retract_fact_nb(+cgoal) => cgoal.
 
-:- if(defined(optim_comp)).
 :- meta_predicate retract_fact_nb(primitive(fact)).
-:- else.
-:- primitive_meta_predicate(retract_fact_nb(fact)).
-:- endif.
 :- if(defined(optim_comp)).
 retract_fact_nb(Fact) :-
     '$erase_nb'(Fact, 'basiccontrol:true').
@@ -294,11 +258,7 @@ retract_fact_nb(Fact) :-
    are removed, the predicate continues to exist.").
 :- pred retractall_fact(+cgoal) => cgoal. 
 
-:- if(defined(optim_comp)).
 :- meta_predicate retractall_fact(primitive(fact)).
-:- else.
-:- primitive_meta_predicate(retractall_fact(fact)).
-:- endif.
 retractall_fact(Fact) :-
     meta_retractall_fact(Fact).
 
@@ -323,11 +283,7 @@ meta_retractall_fact(_).
    (instead of wait) if no more clauses of @var{Pred} are available.").
 :- pred close_predicate(+cgoal) => cgoal.
 
-:- if(defined(optim_comp)).
 :- meta_predicate close_predicate(primitive(fact)).
-:- else.
-:- primitive_meta_predicate(close_predicate(fact)).
-:- endif.
 :- if(defined(optim_comp)).
 close_predicate(Fact):-
     '$close_pred'(Fact).
@@ -342,11 +298,7 @@ close_predicate(Fact):-
    failing if no more clauses of @var{Pred} are available.").
 :- pred open_predicate(+cgoal) => cgoal.
 
-:- if(defined(optim_comp)).
 :- meta_predicate open_predicate(primitive(fact)).
-:- else.
-:- primitive_meta_predicate(open_predicate(fact)).
-:- endif.
 :- if(defined(optim_comp)).
 open_predicate(Fact):-
     '$open_pred'(Fact).

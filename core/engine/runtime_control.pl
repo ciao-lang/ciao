@@ -481,8 +481,8 @@ append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs).
     @pred{predicate_property/2} implementation").
 
 % TODO: This was disabled (it should not) --JFMC
-%:- primitive_meta_predicate(predicate_property(fact,?)).
-:- primitive_meta_predicate(predicate_property(fact,addmodule)).
+%:- meta_predicate(predicate_property(primitive(fact),?)).
+:- meta_predicate predicate_property(primitive(fact),addmodule).
 
 :- test predicate_property(Head, Prop) :
     ( Head = true ) => ( Prop = compiled )

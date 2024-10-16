@@ -38,7 +38,7 @@
 
 :- trust pred ','(+cgoal,+cgoal) + iso.
 
-:- primitive_meta_predicate(','(goal, goal)).
+:- meta_predicate ','(primitive(goal), primitive(goal)).
 (X, Y) :- undefined_goal((X, Y)).
 %(X, Y) :- '$meta_call'(X), '$meta_call'(Y).
 
@@ -48,7 +48,7 @@
 
 :- trust pred ';'(+cgoal,+cgoal) + iso.
 
-:- primitive_meta_predicate(';'(goal, goal)).
+:- meta_predicate ';'(primitive(goal), primitive(goal)).
 (X;Y) :- undefined_goal((X;Y)).
 %(X;_) :- '$meta_call'(X).
 %(_;Y) :- '$meta_call'(Y).
@@ -61,7 +61,7 @@
 
 :- trust pred '->'(+cgoal,+cgoal) + iso.
 
-:- primitive_meta_predicate('->'(goal, goal)).
+:- meta_predicate '->'(primitive(goal), primitive(goal)).
 (X->Y) :- undefined_goal((X->Y)).
 
 :- trust pred '!'/0 + ( iso, is_det, not_fails, relations(1) )
@@ -79,7 +79,7 @@
 
 :- trust pred \+(+cgoal) + ( iso, native(not(X)), is_det ).
 
-:- primitive_meta_predicate(\+(goal)).
+:- meta_predicate \+(primitive(goal)).
 \+X :- undefined_goal(\+X).
 
 :- doc(if(P,Q,R), "If @var{P} then @var{Q} else @var{R}, exploring
@@ -90,7 +90,7 @@
     : (cgoal(A), cgoal(B), cgoal(C))
     => (cgoal(A), cgoal(B), cgoal(C)).
 
-:- primitive_meta_predicate(if(goal, goal, goal)).
+:- meta_predicate if(primitive(goal), primitive(goal), primitive(goal)).
 if(P, Q, R) :- undefined_goal(if(P,Q,R)).
 
 :- trust pred true/0 + ( iso, native, sideff(free),

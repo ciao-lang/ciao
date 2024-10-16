@@ -76,7 +76,7 @@ eng_id(EngId) :-
 
 % ---------------------------------------------------------------------------
 
-:- primitive_meta_predicate(catch(goal, ?, goal)).
+:- meta_predicate(catch(primitive(goal), ?, primitive(goal))).
 
 :- trust pred catch(+cgoal, ?term, ?cgoal) + (iso, native).
 
@@ -157,7 +157,7 @@ no_handler(Error) :-
 
 :- use_module(engine(internals), ['$setarg'/4]).
 
-:- primitive_meta_predicate(intercept(goal, ?, goal)).
+:- meta_predicate intercept(primitive(goal), ?, primitive(goal)).
 
 :- pred intercept(+cgoal, ?term, +cgoal).
 

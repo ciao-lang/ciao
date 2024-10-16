@@ -23,7 +23,7 @@
    variable @var{G} in a goal position.").
 
 :- trust pred call(+cgoal) + (iso, native). 
-:- primitive_meta_predicate(call(goal)).
+:- meta_predicate call(primitive(goal)).
 :- impl_defined(call/1).
 
 :- doc(call(Pred,Arg1), "The family of builtin predicates of the form
@@ -39,7 +39,7 @@
 % Won't get checked due to throw/1 in the first clause of calln/2.
 :- pred call(+cgoal,?term) + native. 
 
-% :- primitive_meta_predicate(call(pred(1),?)).
+% :- meta_predicate call(primitive(pred(1)),?).
 
 call(V, Args) :- calln(V, Args).
 
@@ -76,7 +76,7 @@ calln(Pred, Args) :-
 
 
 :- trust pred '$nodebug_call'(+cgoal).
-:- primitive_meta_predicate('$nodebug_call'(goal)).
+:- meta_predicate '$nodebug_call'(primitive(goal)).
 :- impl_defined('$nodebug_call'/1).
 
 :- trust pred '$meta_call'(+A) : cgoal(A) + native(call(A)).
