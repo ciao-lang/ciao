@@ -891,8 +891,8 @@ restore_menu_flags(_, []).
 % [ctcheck=on].
 
 % TODO: avoid this!!!
-is_true_pa('$:'('PAEnv'(true,'PA'(true, _, _)))) :- !.
-is_true_pa('$:'('PA'(true, _, _))) :- !. % TODO: deprecate PA without PAEnv
+% (menu_rt:true/2)
+is_true2_pa(PA) :- '$pa_env'(PA, true). % TODO: better check?
 
 % TODO: cleaner
 guard_sols(P, SOL) :-
@@ -1010,7 +1010,7 @@ generate_menu_path_offline_kleene :-
     enum_menu_opt(Node, Flag, _Title, _Guard, _BeforePrint, Post),
     trace(menu_path__m(Node, Flag, Post)),
     trace(menu_path__post(Post)),
-    \+ is_true_pa(Post), % check that it is a node
+    \+ is_true2_pa(Post), % check that it is a node
     %
     % Get the path to that node
     generate_menu_path(Node, Path),
