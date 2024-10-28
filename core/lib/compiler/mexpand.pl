@@ -298,7 +298,7 @@ pred_expansion_pa(Hh, B, N, M, QM, Mode, 'PAEnv'(ShVs,PA)) :-
     head_and_shvs(Hh, H, ShVs),
     check_pred(H, N, {Hh :- B}),
     body_expansion(B, M, QM, Mode, NB),
-    ( nonvar(ShVs), ShVs = -(_) -> % negative sharing (requires shpa package)
+    ( nonvar(ShVs), ShVs = -(_) -> % negative sharing (requires fsyntaxplus package)
         PA = 'PA'(ShVs,H,NB) % (do not rename vars)
     ; copy_term('PA'(ShVs,H,NB),PA) % rename vars
     ).
