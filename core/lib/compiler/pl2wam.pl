@@ -16,7 +16,7 @@
 :- use_module(library(sort)).
 :- use_module(library(dict)).
 :- use_module(library(terms), [atom_concat/2]).
-:- use_module(library(write), [portray_clause/2]). % for wam output
+:- use_module(library(write), [portray_clause/2]). % for wamql.pl, 'wam' compile_file_emit
 :- use_module(library(lists), 
     [append/3, length/2, dlist/3, list_lookup/3,
      contains1/2, nocontainsx/2, contains_ro/2, nonsingle/1,
@@ -247,7 +247,7 @@ compile_all(H, B, Profiled) :-
     wam_clause_name(ClName0, ClName),
     asserta_fact('$compiled'(F,ClName,Data)), !.
 compile_all(H, B, _) :-
-    message(warning, [H,' :- ',B,' - clause failed to compile}']).
+    message(warning, [''(H),' :- ',''(B),' - clause failed to compile}']).
 
 wam_clause_name(Name/Ar/0, Name/Ar/I) :-
     functor(F, Name, Ar),
@@ -275,6 +275,8 @@ get_clause_id(structure(Name,Args), No, Name/Ar/No) :-
 % clause name.  Note that the Module parameter is not redundant (for
 % example in multifile clauses or user prolog files.
 
+mangle_clause(Module, aux, MangledName) :- !,
+    module_concat(Module,'aux$$',MangledName). % TODO: add pred name?
 mangle_clause(Module, Name/Ar/No, MangledName) :-
     module_split(Name,_,Pred),
     !,
@@ -324,8 +326,6 @@ E_GAUGE ***/
 %-----------------------------------------------------------------------------
 % Make second-level structures, open up disjunctions, take care of cut.
 
-% safe_structure(structure(F,Args), S) :- atom(F), S=..[F|Args].
-
 structure(structure(F,Args), S) :- S=..[F|Args].
 
 parse_clause(H, B, [parsed_clause(structure(Fu,Args),Pbody,Ch1,0)], Prof) :-
@@ -340,7 +340,71 @@ E_GAUGE ***/
     trans_term(Ch, Ch1, Dic),
     trans_goal(B2, Pbody, 'basiccontrol:CUT IDIOM'(Ch), Dic).
 
+:- compilation_fact(optim_pa). % optimize predicate abstractions
+
 parse_body(P, _, 'hiord_rt:call'(P)) :- var(P), !.
+% (predicate abstractions)
+parse_body('hiord_rt:$pa_def'(dynamic, ShVs, PACode, V), _, G) :- !,
+    parse_body('hiord_rt:$pa_def'(static, ShVs, PACode, PA), outer, G1),
+    G = 'basiccontrol:,'(G1,'term_basic:='(PA,V)).
+:- if(defined(optim_pa)).
+% TODO:[oc-merge] see static_predabs in optim-comp
+parse_body('hiord_rt:$pa_def'(static, ShVs, PACode, PA), _, G) :- !,
+    % (emit auxiliary pred for PA code)
+    copy_term(ShVs-PACode, PASh-clause(Head,Body)), % rename all vars
+    % PASh = [S1,...,Sm]
+    functor(Head, F, N), Head =.. [''|Args],                  % Head = F(A1,...,An)
+    append(Args, PASh, ArgsFull), FullHead =.. [''|ArgsFull], % FullHead = F(A1,...,An,S1,...,Sm)
+    %
+    functor(H, F, N), H =.. [''|HArgs],                       % H = F(A1',...,An') (fresh)
+    append(HArgs, PASh, HArgsFull), HFull =.. [''|HArgsFull], % HFull = F(A1',...,An',S1,...,Sm)
+    Cls = [(FullHead :- Body)], % TODO: allow more than one clause
+    %
+    % (emit auxiliary pred for PA code)
+    internal_name(aux, AuxName),
+    HFull =.. [''|HArgsFull],
+    PABody =.. [AuxName|HArgsFull],
+    PA = '$:'('PAEnv'(ShVs, 'PA'(PASh,H,PABody))),
+    ( cyclic_term(ShVs) -> % static recursive PA! (cyclic terms in shared context)
+        % Horrible hack: propagate ShVs into PASh, which will
+        % instantiate all recursive PA (and their shared context)
+        % inside Cls. Then prune those cyclic terms.
+        ShVs = PASh,
+        prune_recpa_cls(Cls, Cls2)
+    ; Cls2 = Cls
+    ),
+    G = 'hiord_rt:AUXPRED IDIOM'(AuxName,Cls2).
+:- else.
+parse_body('hiord_rt:$pa_def'(static, ShVs, PACode, PA), _, G) :- !,
+    % (PA code is interpreted) % TODO: much slower but needed for interpreted code
+    copy_term(ShVs-PACode, PASh-clause(Head,Body)), % rename all vars
+    PA = '$:'('PAEnv'(ShVs, 'PA'(PASh,Head,Body))),
+    G = 'basiccontrol:NOP IDIOM'.
+:- endif.
+% (hiord_rt:call/N and similar)
+parse_body('hiord_rt:$pa_call'(P, PArgs), _, X) :-
+    % (partial evaluate call to a PA known statically)
+    nonvar(P), P = '$:'(A1),
+    nonvar(A1), A1 = 'PAEnv'(ShVs, PA),
+    nonvar(PA), PA = 'PA'(PASh,Head,Body),
+    !,
+    ( cyclic_term(ShVs) -> % static recursive PA!
+        % (cyclic terms in shared context) Horrible hack: prune cyclic
+        % terms from both lists of shared variables and goals
+        prune_recpa_list(ShVs, ShVs0),
+        prune_recpa_list(PASh, PASh0),
+        prune_recpa_g(Head, Head0),
+        prune_recpa_g(Body, Body0),
+        copy_term(PASh0-Head0-Body0, ShVs0-PArgs-Body2)
+    ; copy_term(PASh-Head-Body, ShVs-PArgs-Body2)
+    ),
+    X = Body2.
+parse_body('hiord_rt:$pa_call'(P0,Args), _, G) :- !,
+    % length(Args,N), G = 'basiccontrol:,'('internals:rt_module_exp'(PA0,pred(N),M,-,true,PA), CallG),
+    G = 'basiccontrol:,'('term_basic:='('$:'(P), P0), CallG), % no rt_module_exp, only PA
+    parse_body('hiord_rt:call'(P,Args), outer, CallG).
+parse_body('hiord_rt:call'(P,''), _, 'hiord_rt:call'(P)) :- !. % (optimize call/n)
+%
 %parse_body('aggregates:^'(V,P0), _, 'aggregates:^'(V,P)) :- !,
 %       parse_body(P0, outer, P).
 parse_body('basiccontrol:false', _, 'basiccontrol:fail') :- !.
@@ -367,6 +431,24 @@ parse_body('basiccontrol:if'(P0,Q0,R0), _,
     parse_body(R0, outer, R).
 parse_body(P, _, P).
 
+prune_recpa_cls([], []).
+prune_recpa_cls([(H :- B)|Cls], [(H2 :- B)|Cls2]) :-
+    prune_recpa_g(H, H2),
+    prune_recpa_cls(Cls, Cls2).
+
+prune_recpa_g(G0, G) :-
+    G0 =.. [N|Args0],
+    prune_recpa_list(Args0, Args),
+    G =.. [N|Args].
+
+prune_recpa_list([], []).
+prune_recpa_list([X|Xs], Ys) :-
+    nonvar(X), X = '$:'(_), cyclic_term(X),
+    !,
+    prune_recpa_list(Xs, Ys).
+prune_recpa_list([X|Xs], [X|Ys]) :-
+    prune_recpa_list(Xs, Ys).
+
 parse_negate_goal('term_typing:var'(X), 'term_typing:nonvar'(X)) :- !.
 parse_negate_goal('term_typing:nonvar'(X), 'term_typing:var'(X)) :- !.
 parse_negate_goal('term_compare:=='(X,Y), 'term_compare:\\=='(X,Y)) :- !.
@@ -381,6 +463,9 @@ parse_negate_goal(P, 'basiccontrol:;'('basiccontrol:->'(P, 'basiccontrol:fail'),
 %       trans_goal(Goal, S, Cut, Dic).
 trans_goal('basiccontrol:!', Tran, Cut, Dic) :- !,
     trans_term(Cut, Tran, Dic).
+trans_goal('hiord_rt:AUXPRED IDIOM'(N, Cls), S, _Cut, _Dic) :- !,
+    trans_auxcls(Cls, N, TCls),
+    S = structure_AUXCLS(TCls).
 trans_goal('basiccontrol:;'(X,Y), S, Cut, Dic) :- !,
     structure(S, 'basiccontrol:;'(X1,Y1)),
     trans_goal(X, X1, Cut, Dic),
@@ -419,6 +504,14 @@ trans_term(X, structure(Fu,Args), Dic) :-
     functor(X, Fu, Ar),
     trans_args(1, Ar, X, Args, Dic).
 
+trans_auxcls([], _, []).
+trans_auxcls([(H :- B)|Cls], N, TCls) :-
+    H =.. [''|Args],
+    H0 =.. [N|Args],
+    parse_clause(H0, B, Parsed1, unprofiled),
+    append(Parsed1, TCls0, TCls),
+    trans_auxcls(Cls, N, TCls0).
+
 %-----------------------------------------------------------------------------
 % Given a clause, break off separate predicates for special forms such as
 % disjunctions, negations, implications.
@@ -428,18 +521,21 @@ transform_clause(Head, Body0, Choice, TypeKey, Body, ClName) -->
                    TypeKey, Body1, [])},
     transform_clause_1(Head, Body1, Choice, Body, ClName).
 
-transform_clause_1(Head, Body1, Choice, body(Choice,Head,Body2), _) -->
-    {simple_body(Body1, Body2), !,
-     allocate_temps(Choice),
+transform_clause_1(Head, Body1, Choice, body(Choice,Head,Body2), ClName) -->
+    { simple_body(Body1, Body1b) }, !,
+    straight_body(Body1b, -, Body2, ClName, 0, 1), % (for auxcls)
+    {allocate_temps(Choice),
      allocate_temps(Head),
      allocate_temps_body(Body2)}.
 transform_clause_1(Head, Body1, Choice, body(Choice,Head,Body2), ClName) -->
     {mk_occurrences_list([inline(list(Choice,Head))|Body1], 0, 0, List)},
-    straight_body(Body1, List, Body2, ClName, 0, 1, 1),
+    straight_body(Body1, List, Body2, ClName, 0, 1),
     {allocate_vas(List, 0)}.
-        
 
 simple_body([], []) :- !.
+simple_body([Goal|Body0], [Goal|Body]) :-
+    Goal = auxcls(_), !,
+    simple_body(Body0, Body).
 simple_body([Goal|Body0], [Goal|Body]) :-
     Goal = inline(_), !,
     simple_body(Body0, Body).
@@ -451,10 +547,12 @@ simple_body(Body0, Body) :-
     ;   Body = Body0
     ).
 
-straight_goal('basiccontrol:,'(X1, X2), _, Flag, Head, TK0, TK) --> !,
+straight_goal_('basiccontrol:NOP IDIOM', _, _, _, TK0, TK) --> !, % like true/0 but do not generate any call % TODO: not used, but useful
+    { TK = TK0 }.
+straight_goal_('basiccontrol:,'(X1, X2), _, Flag, Head, TK0, TK) --> !,
     straight_goal(X1, Flag, Head, TK0, TK1),
     straight_goal(X2, Flag, Head, TK1, TK).
-straight_goal('basiccontrol:CUT IDIOM'(X), S, Flag, structure(_, Args), TK0, TK) -->
+straight_goal_('basiccontrol:CUT IDIOM'(X), S, Flag, structure(_, Args), TK0, TK) -->
     {var(Flag),
      trivial_head(Args, []),
      TK0 = type_key(Type0, Key),
@@ -465,11 +563,11 @@ straight_goal('basiccontrol:CUT IDIOM'(X), S, Flag, structure(_, Args), TK0, TK)
     ;   straight_goal(Flag, inline(S))
     ), !.
 /*** B_GAUGE
-straight_goal('PROFILE POINT'(_), S, _, _, TK, TK) -->
+straight_goal_('PROFILE POINT'(_), S, _, _, TK, TK) -->
     !,
     straight_goal(_, inline(S)).
 E_GAUGE ***/
-straight_goal(Goal, S, Flag, structure(_, Args), TK0, TK) -->
+straight_goal_(Goal, S, Flag, structure(_, Args), TK0, TK) -->
     {var(Flag),
      type_ck(Goal, Args, Type1, Auto),
      TK0 = type_key(Type0, Key),
@@ -482,15 +580,18 @@ straight_goal(Goal, S, Flag, structure(_, Args), TK0, TK) -->
         {Type is Type0/\(Type1\/1)},
         straight_goal(Flag, inline(S))
     ), !.
-straight_goal(Goal, S, Flag, _, TK, TK) -->
+straight_goal_(Goal, S, Flag, _, TK, TK) -->
     (   {inline_codable(Goal)},
         straight_goal(Flag, inline(S))
     ;   straight_goal(Flag, pcall(S,_))
     ), !.
 
+straight_goal(structure_AUXCLS(Cls), _Flag, _Head, TK0, TK) --> !,
+    { TK = TK0 },
+    [auxcls(Cls)].
 straight_goal(S, Flag, Head, TK0, TK) -->
     {structure(S, Goal)},
-    straight_goal(Goal, S, Flag, Head, TK0, TK).
+    straight_goal_(Goal, S, Flag, Head, TK0, TK).
 
 straight_goal(flag, Item) --> [Item].
 
@@ -522,13 +623,14 @@ trivial_head([X|Xs], Seen) :-
     nocontainsx(Seen, X),
     trivial_head(Xs, [X|Seen]).
 
-straight_body([], _, [], _, _, _, _) --> [].
-straight_body([inline(Fu)|Gs], List,
-           [inline(Fu)|Gs1], ClName, Chn, Gn, SubNo) --> !,
+straight_body([], _, [], _, _, _) --> [].
+straight_body([auxcls(Cls)|Gs], List, Gs1, ClName, Chn, Gn) --> !,
+    straight_auxcls(Cls, 0),
+    straight_body(Gs, List, Gs1, ClName, Chn, Gn).
+straight_body([inline(Fu)|Gs], List, [inline(Fu)|Gs1], ClName, Chn, Gn) --> !,
     {Gn1 is Gn+1},
-    straight_body(Gs, List, Gs1, ClName, Chn, Gn1, SubNo).
-straight_body([pcall(S, Size)|Gs], List,
-          [pcall(S1, Size)|Gs1], ClName, Chn, Gn, SubNo) -->
+    straight_body(Gs, List, Gs1, ClName, Chn, Gn1).
+straight_body([pcall(S, Size)|Gs], List, [pcall(S1, Size)|Gs1], ClName, Chn, Gn) -->
     {structure(S, 'basiccontrol:;'(G1,G2)), !,
      internal_name(ClName, SubName), % jf-new solve multifile bug
      internal_predicate(List, Chn-Gn, SubName, S1), % jf-new solve multifile bug
@@ -538,11 +640,10 @@ straight_body([pcall(S, Size)|Gs], List,
     straight_body(F1, left, S1, 0, No),
     straight_body(F2, right, S1, No, _),
     {Chn1 is Chn+1},
-    {SubNo1 is SubNo+1},
-    straight_body(Gs, List, Gs1, ClName, Chn1, 0, SubNo1).
-straight_body([Goal|Gs], List, [Goal|Gs1], ClName, Chn, _, SubNo) -->
+    straight_body(Gs, List, Gs1, ClName, Chn1, 0).
+straight_body([Goal|Gs], List, [Goal|Gs1], ClName, Chn, _) -->
     {Chn1 is Chn+1},
-    straight_body(Gs, List, Gs1, ClName, Chn1, 0, SubNo).
+    straight_body(Gs, List, Gs1, ClName, Chn1, 0).
 
 % jf-new solve multifile bug (hmm, that's temporary code)
 :- data counter/1. 
@@ -591,9 +692,18 @@ straight_body(Goal, _, Head, No0, No) -->
 copy_goal_and_head(S, structure(F,L), S1, structure(F,L1)) :-
     copy_term(S-L, S1-L1).
 
+% (copy term and number clauses)
+straight_auxcls([], _) --> [].
+straight_auxcls([parsed_clause(H,B,Ch,_)|Cls], No0) -->
+    {No is No0+1},
+    [parsed_clause(H, B, Ch, No)],
+    straight_auxcls(Cls, No).
+
 %-----------------------------------------------------------------------------
 % Compute environment sizes, allocate perm. variables.
 mk_occurrences_list([], _, _, _).
+mk_occurrences_list([auxcls(_)|Gs], Chn, Gn, List) :- !,
+    mk_occurrences_list(Gs, Chn, Gn, List).
 mk_occurrences_list([inline(G)|Gs], Chn, Gn, List) :- !,
     Gn1 is Gn+1,
     mk_occurrences_list(Gs, Chn, Gn1, List),
@@ -616,6 +726,7 @@ record_occurrences(list(X,Y), Gn, D) :-
     record_occurrences(Y, Gn, D).
 record_occurrences(structure(_,Args), Gn, D) :-
     record_occurrences_args(Args, Gn, D).
+record_occurrences(structure_AUXCLS(_), _, _).
 record_occurrences(nil, _, _).
 record_occurrences(constant(_), _, _).
 
@@ -641,6 +752,7 @@ allocate_temps(list(X,Y)) :-
     allocate_temps(Y).
 allocate_temps(structure(_,Args)) :-
     allocate_temps_args(Args).
+allocate_temps(structure_AUXCLS(_)).
 
 allocate_temps_args([]).
 allocate_temps_args([X|Xs]) :-
