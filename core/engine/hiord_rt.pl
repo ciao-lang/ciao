@@ -33,7 +33,7 @@
 % Won't get checked due to throw/1 in the first clause of calln/2.
 :- pred call(+cgoal,?term) + native. 
 
-% :- meta_predicate call(primitive(pred(1)),?).
+% :- meta_predicate call(primitive(pred(N)),?). % where N is arity of Args
 
 call(V, Args) :- calln(V, Args).
 
@@ -78,7 +78,7 @@ calln(Pred, Args) :-
 % ---------------------------------------------------------------------------
 :- export('$meta_call'/1).
 :- trust pred '$meta_call'(+A) : cgoal(A) + native(call(A)).
-:- impl_defined('$meta_call'/1).
+:- impl_defined('$meta_call'/1). % like call/1 but without any meta expansion
 
 % ---------------------------------------------------------------------------
 :- export('$meta_exp'/3).
@@ -107,6 +107,16 @@ calln(Pred, Args) :-
     nonvar(PA), PA = '$:'(PA1),
     nonvar(PA1), PA1 = 'PAEnv'(ShEnv, _).
 
+% ---------------------------------------------------------------------------
+
+% (like hiord_rt:call/2 but does not allow meta-expansion)
+:- export('$pa_call'/2).
+:- impl_defined('$pa_call'/2).
+
+% (internal, see fsyntaxplus and pl2wam)
+:- export('$pa_def'/4).
+:- impl_defined('$pa_def'/4).
+   
 % ---------------------------------------------------------------------------
 :- export(this_module/1).
 :- meta_predicate this_module(addmodule).
