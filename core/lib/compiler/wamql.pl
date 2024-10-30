@@ -275,7 +275,7 @@ collapse_call_2([put_y_unsafe_value(Y,X)|Insns]) --> !,
     collapse_call_2_yuval(Insns, Y,X).
 collapse_call_2([put_x_void(X)|Insns]) --> !,
     [x(69 ,X)], collapse_call_2(Insns).
-collapse_call_2([put_x_variable(X,A)|Insns]) -->
+collapse_call_2([put_x_variable(X,A)|Insns]) --> !,
     [rev_x_x(70 ,X,A)], collapse_call_2(Insns).
 collapse_call_2([]) --> [].
 
