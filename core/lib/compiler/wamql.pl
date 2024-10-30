@@ -65,187 +65,187 @@ asm_cinsns([I|Is], XOff, Off0, Off) -->
 
 collapse([]) --> [].
 collapse([Insn|Insns]) --> 
-    collapse(Insn, Insns).
+    collapse_(Insn, Insns).
 
-collapse(ifshallow, Insns) --> !,
+collapse_(ifshallow, Insns) --> !,
     [ifshallow], collapse(Insns).
-collapse(else, Insns) --> !,
+collapse_(else, Insns) --> !,
     [else], collapse(Insns).
-collapse(endif, Insns) --> !,
+collapse_(endif, Insns) --> !,
     [endif], collapse(Insns).
-collapse(call(X,Y), Insns) --> !,
+collapse_(call(X,Y), Insns) --> !,
     collapse_call(call(X,Y), Insns, L, L).
-collapse(cutb, [neck(_),proceed|Insns]) --> !,
+collapse_(cutb, [neck(_),proceed|Insns]) --> !,
     [none(213 )], collapse(Insns).
-collapse(cutb, [neck(_)|Insns]) --> !,
+collapse_(cutb, [neck(_)|Insns]) --> !,
     [none(211 )], collapse(Insns).
-collapse(cutb, Insns) --> !,                    % MOVED FROM PLWAM
+collapse_(cutb, Insns) --> !,                    % MOVED FROM PLWAM
     collapse(Insns).
-collapse(cute, [neck(_)|Insns]) --> !,
+collapse_(cute, [neck(_)|Insns]) --> !,
     [none(217 )], collapse(Insns).
-collapse(cute, Insns) --> !,                    % MOVED FROM PLWAM
+collapse_(cute, Insns) --> !,                    % MOVED FROM PLWAM
     collapse(Insns).
-collapse(cutb_x(A), [neck(_),proceed|Insns]) --> !,
+collapse_(cutb_x(A), [neck(_),proceed|Insns]) --> !,
     [x(212 ,A)], collapse(Insns).
-collapse(cutb_x(A), [neck(_)|Insns]) --> !,
+collapse_(cutb_x(A), [neck(_)|Insns]) --> !,
     [x(210 ,A)], collapse(Insns).
-collapse(cute_x(A), [neck(_)|Insns]) --> !,
+collapse_(cute_x(A), [neck(_)|Insns]) --> !,
     [x(216 ,A)], collapse(Insns).
-collapse(neck(_), [proceed|Insns]) --> !,
+collapse_(neck(_), [proceed|Insns]) --> !,
     [none(66 )], collapse(Insns).
-collapse(allocate, [Insn|Insns]) --> !,
+collapse_(allocate, [Insn|Insns]) --> !,
     collapse_allocate(Insn, Insns).
-collapse(deallocate, [Insn|Insns]) --> !,
+collapse_(deallocate, [Insn|Insns]) --> !,
     collapse_deallocate(Insn, Insns).
-collapse(put_x_void(X), Insns) --> !,
+collapse_(put_x_void(X), Insns) --> !,
     collapse_call(put_x_void(X), Insns, L, L).
-collapse(put_x_variable(Y,X), Insns) --> !,
+collapse_(put_x_variable(Y,X), Insns) --> !,
     collapse_call(put_x_variable(Y,X), Insns, L, L).
-collapse(put_y_value(Y,X), Insns) --> !,
+collapse_(put_y_value(Y,X), Insns) --> !,
     collapse_call(put_y_value(Y,X), Insns, L, L).
-collapse(put_y_unsafe_value(Y,X), Insns) --> !,
+collapse_(put_y_unsafe_value(Y,X), Insns) --> !,
     collapse_call(put_y_unsafe_value(Y,X), Insns, L, L).
-collapse(get_x_variable(To,From), [get_x_variable(To1,From1)|Insns]) --> !,
+collapse_(get_x_variable(To,From), [get_x_variable(To1,From1)|Insns]) --> !,
     [rev_x_x_x_x(108 ,To,From,To1,From1)], collapse(Insns).
-collapse(get_y_variable(To,From), [get_y_variable(To1,From1)|Insns]) --> !,
+collapse_(get_y_variable(To,From), [get_y_variable(To1,From1)|Insns]) --> !,
     [rev_y_x_y_x(110 ,To,From,To1,From1)], collapse(Insns).
-collapse(get_constant(C,X), [neck(_),proceed|Insns]) --> !,
+collapse_(get_constant(C,X), [neck(_),proceed|Insns]) --> !,
     [tagged_x(112 ,C,X)], collapse(Insns).
-collapse(get_nil(X), [neck(_),proceed|Insns]) --> !,
+collapse_(get_nil(X), [neck(_),proceed|Insns]) --> !,
     [x(113 ,X)], collapse(Insns).
-collapse(put_x_value(From,To), [put_x_value(From1,To1)|Insns]) --> !,
+collapse_(put_x_value(From,To), [put_x_value(From1,To1)|Insns]) --> !,
     [rev_x_x_x_x(85 ,From,To,From1,To1)], collapse(Insns).
-collapse(init(L), [call(M,S)|Insns]) --> !,
+collapse_(init(L), [call(M,S)|Insns]) --> !,
     [ylist_label_size(3 ,L,M,S)], collapse(Insns).
-collapse(init(L), [true(S)|Insns]) --> !,
+collapse_(init(L), [true(S)|Insns]) --> !,
     [ylist_size(261 ,L,S)], collapse(Insns).
-collapse(put_y_variable(Y,X), [put_y_variable(Y1,X1)|Insns]) --> !,
+collapse_(put_y_variable(Y,X), [put_y_variable(Y1,X1)|Insns]) --> !,
     [rev_yv_x_yv_x(84 ,Y,X,Y1,X1)], collapse(Insns).
-collapse(unify_constant(C), [neck(_),proceed|Insns]) --> !,
+collapse_(unify_constant(C), [neck(_),proceed|Insns]) --> !,
     [tagged(134 ,C)], collapse(Insns).
-collapse(unify_nil, [neck(_),proceed|Insns]) --> !,
+collapse_(unify_nil, [neck(_),proceed|Insns]) --> !,
     [none(135 )], collapse(Insns).
-collapse(unify_void, Insns0) --> !,
+collapse_(unify_void, Insns0) --> !,
     {collapse_voids(Insns0, [Insn|Insns], 1, X)},
     collapse_u2_void(Insn, Insns, X).
-collapse(unify_x_variable(X), [Insn|Insns]) --> !,
+collapse_(unify_x_variable(X), [Insn|Insns]) --> !,
     collapse_u2_xvar(Insn, Insns, X).
-collapse(unify_y_variable(X), [Insn|Insns]) --> !,
+collapse_(unify_y_variable(X), [Insn|Insns]) --> !,
     collapse_u2_yvar(Insn, Insns, X).
-collapse(unify_x_value(X), [Insn|Insns]) --> !,
+collapse_(unify_x_value(X), [Insn|Insns]) --> !,
     collapse_u2_xval(Insn, Insns, X).
-collapse(unify_x_local_value(X), [Insn|Insns]) --> !,
+collapse_(unify_x_local_value(X), [Insn|Insns]) --> !,
     collapse_u2_xlval(Insn, Insns, X).
-collapse(unify_y_first_value(X), [Insn|Insns]) --> !,
+collapse_(unify_y_first_value(X), [Insn|Insns]) --> !,
     collapse_u2_yfval(Insn, Insns, X).
-collapse(unify_y_value(X), [Insn|Insns]) --> !,
+collapse_(unify_y_value(X), [Insn|Insns]) --> !,
     collapse_u2_yval(Insn, Insns, X).
-collapse(unify_y_local_value(X), [Insn|Insns]) --> !,
+collapse_(unify_y_local_value(X), [Insn|Insns]) --> !,
     collapse_u2_ylval(Insn, Insns, X).
-collapse(execute(A), Insns) --> !,
+collapse_(execute(A), Insns) --> !,
     [label(63 ,A)], collapse(Insns).
-collapse(proceed, Insns) --> !,
+collapse_(proceed, Insns) --> !,
     [none(64 )], collapse(Insns).
-collapse(neck(_), Insns) --> !,
+collapse_(neck(_), Insns) --> !,
     [none(65 )], collapse(Insns).
-collapse(fail, Insns) --> !,
+collapse_(fail, Insns) --> !,
     [none(67 )], collapse(Insns).
-collapse(put_x_value(A,B), Insns) --> !,
+collapse_(put_x_value(A,B), Insns) --> !,
     [rev_x_x(71 ,A,B)], collapse(Insns).
-collapse(put_x_unsafe_value(A,B), Insns) --> !,
+collapse_(put_x_unsafe_value(A,B), Insns) --> !,
     [rev_x_x(72 ,A,B)], collapse(Insns).
-collapse(put_y_variable(A,B), Insns) --> !,
+collapse_(put_y_variable(A,B), Insns) --> !,
     [rev_yv_x(74 ,A,B)], collapse(Insns).
-collapse(put_constant(A,B), Insns) --> !,
+collapse_(put_constant(A,B), Insns) --> !,
     [tagged_x(78 ,A,B)], collapse(Insns).
-collapse(put_large(A,B), Insns) --> !,
+collapse_(put_large(A,B), Insns) --> !,
     [large_x(253 ,A,B)], collapse(Insns).
-collapse(put_structure(A,B), Insns) --> !,
+collapse_(put_structure(A,B), Insns) --> !,
     [functor_x(80 ,A,B)], collapse(Insns).
-collapse(put_nil(A), Insns) --> !,
+collapse_(put_nil(A), Insns) --> !,
     [x(81 ,A)], collapse(Insns).
-collapse(put_list(A), Insns) --> !,
+collapse_(put_list(A), Insns) --> !,
     [x(82 ,A)], collapse(Insns).
-collapse(get_x_variable(A,B), Insns) --> !,
+collapse_(get_x_variable(A,B), Insns) --> !,
     [rev_x_x(90 ,A,B)], collapse(Insns).
-collapse(get_x_value(A,B), Insns) --> !,
+collapse_(get_x_value(A,B), Insns) --> !,
     [rev_x_x(91 ,A,B)], collapse(Insns).
-collapse(get_y_variable(A,B), Insns) --> !,
+collapse_(get_y_variable(A,B), Insns) --> !,
     [rev_y_x(93 ,A,B)], collapse(Insns).
-collapse(get_y_first_value(A,B), Insns) --> !,
+collapse_(get_y_first_value(A,B), Insns) --> !,
     [rev_y_x(94 ,A,B)], collapse(Insns).
-collapse(get_y_value(A,B), Insns) --> !,
+collapse_(get_y_value(A,B), Insns) --> !,
     [rev_y_x(95 ,A,B)], collapse(Insns).
-collapse(get_constant(A,B), Insns) --> !,
+collapse_(get_constant(A,B), Insns) --> !,
     [tagged_x(97 ,A,B)], collapse(Insns).
-collapse(get_large(A,B), Insns) --> !,
+collapse_(get_large(A,B), Insns) --> !,
     [large_x(255 ,A,B)], collapse(Insns).
-collapse(get_structure(A,B), Insns) --> !,
+collapse_(get_structure(A,B), Insns) --> !,
     [functor_x(99 ,A,B)], collapse(Insns).
-collapse(get_nil(A), Insns) --> !,
+collapse_(get_nil(A), Insns) --> !,
     [x(100 ,A)], collapse(Insns).
-collapse(get_list(A), Insns) --> !,
+collapse_(get_list(A), Insns) --> !,
     [x(101 ,A)], collapse(Insns).
-collapse(get_constant_x0(A), Insns) --> !,
+collapse_(get_constant_x0(A), Insns) --> !,
     [tagged(103 ,A)], collapse(Insns).
-collapse(get_large_x0(A), Insns) --> !,
+collapse_(get_large_x0(A), Insns) --> !,
     [large(257 ,A)], collapse(Insns).
-collapse(get_structure_x0(A), Insns) --> !,
+collapse_(get_structure_x0(A), Insns) --> !,
     [functor(105 ,A)], collapse(Insns).
-collapse(get_nil_x0, Insns) --> !,
+collapse_(get_nil_x0, Insns) --> !,
     [none(106 )], collapse(Insns).
-collapse(get_list_x0, Insns) --> !,
+collapse_(get_list_x0, Insns) --> !,
     [none(107 )], collapse(Insns).
-collapse(unify_constant(A), Insns) --> !,
+collapse_(unify_constant(A), Insns) --> !,
     [tagged(128 ,A)], collapse(Insns).
-collapse(unify_large(A), Insns) --> !,
+collapse_(unify_large(A), Insns) --> !,
     [large(259 ,A)], collapse(Insns).
-collapse(unify_structure(A), Insns) --> !,
+collapse_(unify_structure(A), Insns) --> !,
     [functor(130 ,A)], collapse(Insns).
-collapse(unify_nil, Insns) --> !,
+collapse_(unify_nil, Insns) --> !,
     [none(131 )], collapse(Insns).
-collapse(unify_list, Insns) --> !,
+collapse_(unify_list, Insns) --> !,
     [none(132 )], collapse(Insns).
-collapse(cutb_x(A), Insns) --> !,
+collapse_(cutb_x(A), Insns) --> !,
     [x(208 ,A)], collapse(Insns).
-collapse(cute_x(A), Insns) --> !,
+collapse_(cute_x(A), Insns) --> !,
     [x(214 ,A)], collapse(Insns).
-collapse(cutf, Insns) --> !,
+collapse_(cutf, Insns) --> !,
     [none(209 )], collapse(Insns).
-collapse(cutf_x(A), Insns) --> !,
+collapse_(cutf_x(A), Insns) --> !,
     [x(215 ,A)], collapse(Insns).
-collapse(cut_y(A), Insns) --> !,
+collapse_(cut_y(A), Insns) --> !,
     [y(218 ,A)], collapse(Insns).
-collapse(choice_x(A), Insns) --> !,
+collapse_(choice_x(A), Insns) --> !,
     [x(219 ,A)], collapse(Insns).
-collapse(choice_y(A), Insns) --> !,
+collapse_(choice_y(A), Insns) --> !,
     [y(221 ,A)], collapse(Insns).
-collapse(function_1(A,B,C,D,E), Insns) --> !,
+collapse_(function_1(A,B,C,D,E), Insns) --> !,
     [function_x_x(223 ,A,B,C,D,E)], collapse(Insns).
-collapse(function_2(A,B,C,D,E,F), Insns) --> !,
+collapse_(function_2(A,B,C,D,E,F), Insns) --> !,
     [function_x_x_x(225 ,A,B,C,D,E,F)], collapse(Insns).
-collapse(builtin_1(A,B), Insns) --> !,
+collapse_(builtin_1(A,B), Insns) --> !,
     [builtin_x(227 ,A,B)], collapse(Insns).
-collapse(builtin_2(A,B,C), Insns) --> !,
+collapse_(builtin_2(A,B,C), Insns) --> !,
     [builtin_x_x(229 ,A,B,C)], collapse(Insns).
-collapse(builtin_3(A,B,C,D), Insns) --> !,
+collapse_(builtin_3(A,B,C,D), Insns) --> !,
     [builtin_x_x_x(231 ,A,B,C,D)], collapse(Insns).
-collapse(ci_call(A,B), Insns) --> !,
+collapse_(ci_call(A,B), Insns) --> !,
     [i_i(241 ,A,B)], collapse(Insns).
-collapse(ci_inarg(A,B), Insns) --> !,
+collapse_(ci_inarg(A,B), Insns) --> !,
     [i_i(242 ,A,B)], collapse(Insns).
-collapse(ci_outarg(A,B), Insns) --> !,
+collapse_(ci_outarg(A,B), Insns) --> !,
     [i_i(243 ,A,B)], collapse(Insns).
-collapse(ci_retval(A,B), Insns) --> !,
+collapse_(ci_retval(A,B), Insns) --> !,
     [i_i(244 ,A,B)], collapse(Insns).
-collapse(heapmargin_call(A,B), Insns) --> !,
+collapse_(heapmargin_call(A,B), Insns) --> !,
     [l_i(246 ,A,B)], collapse(Insns).
 /*** B_GAUGE
-collapse(bump_counter(A), Insns) --> !,
+collapse_(bump_counter(A), Insns) --> !,
     [counter(249 ,A)], collapse(Insns).
-collapse(counted_neck(_,A,B), Insns) --> !,
+collapse_(counted_neck(_,A,B), Insns) --> !,
     [counter_counter(251 ,A,B)], collapse(Insns).
-collapse(profile_point(A), Insns) --> !,
+collapse_(profile_point(A), Insns) --> !,
     [profile_point(A)], collapse(Insns).
 E_GAUGE ***/
 
@@ -255,19 +255,19 @@ collapse_voids(Insns, Insns, N, N).
 
 collapse_call_1([], [], _, L, L).
 collapse_call_1([Insn|S0], S, I, L0, L) :-
-    collapse_call_1(Insn, I, I1, U), !,
+    collapse_call_1_u(Insn, I, I1, U), !,
     collapse_call_1(S0, S, I1, L0, [U|L]).
 collapse_call_1([Insn|S0], [Insn|S], I, L0, L) :-
-    collapse_call_1(Insn, I),
+    collapse_call_1_(Insn, I),
     collapse_call_1(S0, S, I, L0, L).
 
-collapse_call_1(put_y_value(Y,I), I, I1, v(Y)) :- I1 is I+1.
-collapse_call_1(put_y_unsafe_value(Y,I), I, I1, u(Y)) :- I1 is I+1.
+collapse_call_1_u(put_y_value(Y,I), I, I1, v(Y)) :- I1 is I+1.
+collapse_call_1_u(put_y_unsafe_value(Y,I), I, I1, u(Y)) :- I1 is I+1.
 
-collapse_call_1(put_y_value(_,X), I) :- X>=I.
-collapse_call_1(put_y_unsafe_value(_,X), I) :- X>=I.
-collapse_call_1(put_x_void(X), I) :- X>=I.
-collapse_call_1(put_x_variable(X,X1), I) :- X>=I, X1>=I.
+collapse_call_1_(put_y_value(_,X), I) :- X>=I.
+collapse_call_1_(put_y_unsafe_value(_,X), I) :- X>=I.
+collapse_call_1_(put_x_void(X), I) :- X>=I.
+collapse_call_1_(put_x_variable(X,X1), I) :- X>=I, X1>=I.
 
 collapse_call_2([put_y_value(Y,X)|Insns]) --> !,
     collapse_call_2_yval(Insns, Y,X).
@@ -317,7 +317,7 @@ collapse_call(deallocate, [execute(X)|Insns], [], L) -->
     !, collapse(Insns).
 collapse_call(Insn, Insns, [], L) -->
     collapse_call_2(L),
-    collapse(Insn, Insns).
+    collapse_(Insn, Insns).
 
 collapse_allocate(choice_y(Y), Insns) --> !,
     [y(220 ,Y)], collapse(Insns).
@@ -355,7 +355,7 @@ collapse_u2_yfvar(unify_y_value(Y), Insns, X) --> !,
 collapse_u2_yfvar(unify_y_local_value(Y), Insns, X) --> !,
     [y_y(165 ,X,Y)], collapse(Insns).
 collapse_u2_yfvar(Insn, Insns, X) -->
-    [y(122 ,X)], collapse(Insn, Insns).
+    [y(122 ,X)], collapse_(Insn, Insns).
 
 collapse_u2_void(unify_x_variable(Y), Insns, X) --> !,
     [i_x(136 ,X,Y)], collapse(Insns).
@@ -374,7 +374,7 @@ collapse_u2_void(unify_y_value(Y), Insns, X) --> !,
 collapse_u2_void(unify_y_local_value(Y), Insns, X) --> !,
     [i_y(143 ,X,Y)], collapse(Insns).
 collapse_u2_void(Insn, Insns, X) -->
-    [voids(114 ,X)], collapse(Insn, Insns).
+    [voids(114 ,X)], collapse_(Insn, Insns).
 
 collapse_u2_xvar(unify_void, Insns0, X) --> !,
     {collapse_voids(Insns0, Insns, 1, Y)},
@@ -394,7 +394,7 @@ collapse_u2_xvar(unify_y_value(Y), Insns, X) --> !,
 collapse_u2_xvar(unify_y_local_value(Y), Insns, X) --> !,
     [x_y(152 ,X,Y)], collapse(Insns).
 collapse_u2_xvar(Insn, Insns, X) -->
-    [x(119 ,X)], collapse(Insn, Insns).
+    [x(119 ,X)], collapse_(Insn, Insns).
 
 collapse_u2_yvar(unify_void, Insns0, X) --> !,
     {collapse_voids(Insns0, Insns, 1, Y)},
@@ -412,7 +412,7 @@ collapse_u2_yvar(unify_y_value(Y), Insns, X) --> !,
 collapse_u2_yvar(unify_y_local_value(Y), Insns, X) --> !,
     [y_y(166 ,X,Y)], collapse(Insns).
 collapse_u2_yvar(Insn, Insns, X) -->
-    [y(123 ,X)], collapse(Insn, Insns).
+    [y(123 ,X)], collapse_(Insn, Insns).
 
 collapse_u2_xval(unify_void, Insns0, X) --> !,
     {collapse_voids(Insns0, Insns, 1, Y)},
@@ -434,7 +434,7 @@ collapse_u2_xval(unify_y_value(Y), Insns, X) --> !,
 collapse_u2_xval(unify_y_local_value(Y), Insns, X) --> !,
     [x_y(183 ,X,Y)], collapse(Insns).
 collapse_u2_xval(Insn, Insns, X) -->
-    [x(120 ,X)], collapse(Insn, Insns).
+    [x(120 ,X)], collapse_(Insn, Insns).
 
 collapse_u2_xlval(unify_void, Insns0, X) --> !,
     {collapse_voids(Insns0, Insns, 1, Y)},
@@ -456,7 +456,7 @@ collapse_u2_xlval(unify_y_value(Y), Insns, X) --> !,
 collapse_u2_xlval(unify_y_local_value(Y), Insns, X) --> !,
     [x_y(184 ,X,Y)], collapse(Insns).
 collapse_u2_xlval(Insn, Insns, X) -->
-    [x(121 ,X)], collapse(Insn, Insns).
+    [x(121 ,X)], collapse_(Insn, Insns).
 
 collapse_u2_yval(unify_void, Insns0, X) --> !,
     {collapse_voids(Insns0, Insns, 1, Y)},
@@ -476,7 +476,7 @@ collapse_u2_yval(unify_y_value(Y), Insns, X) --> !,
 collapse_u2_yval(unify_y_local_value(Y), Insns, X) --> !,
     [y_y(206 ,X,Y)], collapse(Insns).
 collapse_u2_yval(Insn, Insns, X) -->
-    [y(125 ,X)], collapse(Insn, Insns).
+    [y(125 ,X)], collapse_(Insn, Insns).
 
 collapse_u2_yfval(unify_void, Insns0, X) --> !,
     {collapse_voids(Insns0, Insns, 1, Y)},
@@ -494,7 +494,7 @@ collapse_u2_yfval(unify_y_value(Y), Insns, X) --> !,
 collapse_u2_yfval(unify_y_local_value(Y), Insns, X) --> !,
     [y_y(205 ,X,Y)], collapse(Insns).
 collapse_u2_yfval(Insn, Insns, X) -->
-    [y(124 ,X)], collapse(Insn, Insns).
+    [y(124 ,X)], collapse_(Insn, Insns).
 
 collapse_u2_ylval(unify_void, Insns0, X) --> !,
     {collapse_voids(Insns0, Insns, 1, Y)},
@@ -514,7 +514,7 @@ collapse_u2_ylval(unify_y_value(Y), Insns, X) --> !,
 collapse_u2_ylval(unify_y_local_value(Y), Insns, X) --> !,
     [y_y(207 ,X,Y)], collapse(Insns).
 collapse_u2_ylval(Insn, Insns, X) -->
-    [y(126 ,X)], collapse(Insn, Insns).
+    [y(126 ,X)], collapse_(Insn, Insns).
 
 asm_args(none(Opcode), Off, Off1) -->
     {Off1 is Off+2},
@@ -862,13 +862,14 @@ incore_ql_compile_file_emit(_, _).                      % ignore others
 
 qdump_postlude(D, _, R0, R, Q0, Q, _) :- var(D), !, R0=R, Q0=Q.
 qdump_postlude(dic(K, V, Le, Ri), Sdic, R0, R, Q0, Q, Stream) :-
-    qdump_prev_last(V, 0, Offset),
+    qdump_prev_nolast(V, 0, Offset),
     qdump_postlude(Le, Sdic, R0, R1, Q0, Q1, Stream),
     qdump_post(K, Offset, Sdic, R1, R2, Q1, Q2, Stream),
     qdump_postlude(Ri, Sdic, R2, R, Q2, Q, Stream).
 
-qdump_prev_last(V, Prev0, Prev) :- var(V), !, Prev0=Prev.
-qdump_prev_last([I0|V], _, Prev) :- qdump_prev_last(V, I0, Prev).
+% (was qdump_prev_last/3)
+qdump_prev_nolast(V, Prev0, Prev) :- var(V), !, Prev0=Prev.
+qdump_prev_nolast([I0|V], _, Prev) :- qdump_prev_nolast(V, I0, Prev).
 
 qdump_post(functor(Fu), Offset, _, R, R, Q0, Q, Stream) :-
     get_qlval(Fu, Sreg, Q0, Q, Stream),
@@ -964,14 +965,14 @@ ql_term_size([T1|T2], S0, S) :- !,
 ql_term_size(Term, S0, S) :-
     functor(Term, _, A),
     S1 is S0+A+1,
-    ql_term_size(A, Term, S1, S).
+    ql_term_size_(A, Term, S1, S).
 
-ql_term_size(0, _, S, S) :- !.
-ql_term_size(A, Term, S0, S) :-
+ql_term_size_(0, _, S, S) :- !.
+ql_term_size_(A, Term, S0, S) :-
     arg(A, Term, Arg),
     A1 is A-1,
     ql_term_size(Arg, S0, S1),
-    ql_term_size(A1, Term, S1, S).
+    ql_term_size_(A1, Term, S1, S).
 
 qlval_begin(-1, Q) :-
     current_fact('$qlval'(_,Q0)), !,
