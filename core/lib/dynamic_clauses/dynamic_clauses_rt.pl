@@ -1,6 +1,6 @@
 :- module(dynamic_clauses_rt, [
     asserta/1, asserta/2, assertz/1, assertz/2, assert/1, assert/2,
-    retract/1, retractall/1, abolish/1, clause/2, mfclause/2,
+    retract/1, retractall/1, abolish/1, clause/1, clause/2,
     current_predicate/1, current_predicate/2,
     dynamic/1, data/1, erase/1, wellformed_body/3
     ],[assertions,isomodes,regtypes,datafacts]).
@@ -10,6 +10,7 @@
 % TODO: Merge duplicated code and definitions from dynamic_rt.pl
 
 :- doc(author, "Daniel Cabeza").
+:- doc(author, "Jose F. Morales (minor)").
 :- doc(author, "The Ciao Development Team").
 
 :- doc(usage, "Do not use this module directly (use the
@@ -22,7 +23,6 @@
 :- use_module(engine(runtime_control), [module_split/3]).
 :- use_module(engine(internals)).
 :- use_module(engine(runtime_control), [new_atom/1, current_module/1]).
-:- use_module(library(iso_misc), [sub_atom/5]).
 
 :- meta_predicate asserta(addmodule(addterm(clause))).
 :- meta_predicate asserta(addmodule(addterm(clause)), ?).
@@ -354,14 +354,11 @@ abolish(Spec) :-
     '$abolish'(Head).
 
 abolish_data_of(F, A) :-
-    ( atom_concat('multifile:',F_a, F) ->
+    ( module_split(F, multifile, F_a) ->
         functor(Head, F_a, A),
         ClData = 'multifile:\3\mfclause'(Head,_)
-    ; sub_atom(F, Before, 1, _, ':'),
-      ColonPos is Before+1,
-      sub_atom(F, 0, ColonPos, MC),
-      sub_atom(F, ColonPos, _, 0, F_a),
-      atom_concat(MC, '\3\clause', ClFun),
+    ; module_split(F, M, F_a),
+      module_concat(M, '\3\clause', ClFun),
       functor(ClData, ClFun, 2),
       functor(Head, F_a, A),
       arg(1, ClData, Head)
@@ -379,23 +376,32 @@ abolish_hooks(Head) :-
       fail.
 abolish_hooks(_).
 
+:- use_module(engine(hiord_rt), ['$meta_call'/1]).
 
+% TODO: cgoal/1 in assertion may be wrong? (primitive(fact))
+% TODO: fix documentation
+:- meta_predicate clause(primitive(fact), ?).
 :- pred clause(+Head,?Body): cgoal(Head) => body(Body) + (iso, native)
 # "The clause '@var{Head} @tt{:-} @var{Body}' exists in the current
    module. The predicate concerned must be dynamic.".
 
-:- impl_defined(clause/2).
-
-:- pred mfclause(+Head,?Body): cgoal(Head) => body(Body) + (iso, native)
-# "There is a clause '@var{Head} @tt{:-} @var{Body}' of a dynamic multifile
-   predicate accessible from this module.".
-
-:- doc(hide, '\3\mfclause'/2).
-
-:- multifile '\3\mfclause'/2.
-:- data '\3\mfclause'/2.
-
-mfclause(H, B) :- '\3\mfclause'(H, B).
+clause(Head0, _) :- var(Head0), !,
+    throw(error(instantiation_error, my_clause/2)).
+clause(Head0, Body) :-
+    functor(Head0, F, A),
+    ( module_split(F, multifile, F_a) ->
+        functor(Head, F_a, A),
+        ClData = 'multifile:\3\mfclause'(Head,_)
+    ; module_split(F, M, F_a),
+      module_concat(M, '\3\clause', ClFun),
+      functor(ClData, ClFun, 2),
+      functor(Head, F_a, A),
+      arg(1, ClData, Head)
+    ),
+    Head0 =.. [_|Args],
+    Head =.. [_|Args],
+    arg(2, ClData, Body),
+    '$meta_call'(ClData).
 
 :- pred current_predicate(?Spec) => predname + (iso, native)
     # "A predicate in the current module is named @var{Spec}.".
