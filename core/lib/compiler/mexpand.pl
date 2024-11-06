@@ -126,7 +126,7 @@ unqualified_atom_expansion(A, F, N, M, NA, RM) :-
           module_concat(M, A, NA),
           RM = M,
           check_if_imported(M, F, N)
-    ; mexpand_imports(M, IM, F, N, EM) ->
+    ; mexpand_imports_last(M, IM, F, N, EM) ->
           module_concat(EM, A, NA),
           RM = EM,
           check_if_reimported(M, IM, F, N, EM)
@@ -136,6 +136,28 @@ unqualified_atom_expansion(A, F, N, M, NA, RM) :-
       module_concat(M, A, NA),
       RM = M
     ).
+
+:- if(defined(priority_first_import)). % First import has priority (old semantics)
+mexpand_imports_last(M, IM, F, N, EM) :- mexpand_imports(M, IM, F, N, EM).
+:- else.
+% Last import has priority (new semantics)
+% TODO:[oc-merge] fix: traverse modules in reverse order in modload.c instead
+
+:- use_module(engine(internals), ['$setarg'/4]).
+
+% Get last solution of imports (note that asserting imports in reverse
+% order may break source manipulating tools)
+mexpand_imports_last(M, IM, F, N, EM) :-
+    LastImported = last_import(_,_),
+    ( mexpand_imports(M, IM0, F, N, EM0),
+        atom(IM0), atom(EM0), % TODO: bug if not atoms! needed for nb setarg here
+        '$setarg'(1, LastImported, IM0, no),
+        '$setarg'(2, LastImported, EM0, no),
+        fail
+    ; true
+    ),
+    LastImported = last_import(IM,EM).
+:- endif.
 
 check_if_imported(M, F, N) :- 
     ( \+ redefining(M, F, N),
