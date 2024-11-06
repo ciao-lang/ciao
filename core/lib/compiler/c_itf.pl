@@ -1359,19 +1359,23 @@ defined_in_source(Base, F, A) :-
     assertz_fact(defines_pred(Base,F,A)).
 
 % ---------------------------------------------------------------------------
-:- doc(section, "Support for dynamic clauses").
+:- doc(section, "Support for dynamic_clauses package").
+
+% TODO:[JF] it was added for all dynamic multifile predicates even if the
+%   module is not using dynamic_handling; show error/warning instead?
 
 dynamic_handling(Base, F, A, H, B, VNs, Pl, Ln0, Ln1) :-
-    multifile_pred(Base, F, A), !,
-    add_multifile_pred(Base, '\3\mfclause', 2),
-    assert_dyn_decl(Base, '\3\mfclause', 2, data, Ln0, Ln1),
-    assertz_fact(clause_of(Base, '\3\mfclause'(H,B), true,
-                           VNs, Pl, Ln0, Ln1)).
-dynamic_handling(Base,_F,_A, H, B, VNs, Pl, Ln0, Ln1) :-
     new_decl(Base, dynamic_handling, _), !,
-    % '\3\clause'/2 defined data in the package
-    assertz_fact(clause_of(Base, '\3\clause'(H,B), true,
-                           VNs, Pl, Ln0, Ln1)).
+    % Add clause with '-\3\clause' suffix
+    functor(H, F, A),
+    atom_concat(F, '-\3\clause', F1),
+    functor(H1, F1, A),
+    copy_args(A, H, H1),
+    %
+    ( multifile_pred(Base, F, A) -> add_multifile_pred(Base, F1, A) ; true ),
+    assert_dyn_decl(Base, F1, A, data, Ln0, Ln1), % TODO:[JF] actually 'dynamic'
+    %
+    assertz_fact(clause_of(Base, '\3\rawbody'(H1), B, VNs, Pl, Ln0, Ln1)).
 dynamic_handling(_Base,_F,_A,_H,_B,_VNs,_Pl,_Ln0,_Ln1).
 
 % ---------------------------------------------------------------------------
@@ -2131,7 +2135,10 @@ compile_clauses(Base, Module, Mode) :-
       erase(CRef),
       asserta_fact(location(Src,Ln0,Ln1), Ref),
       ( number(H) ->
-        true
+          true
+      ; H = '\3\rawbody'(H0) -> % (special case, do not expand body)
+          head_expansion(H0, Module, H2),
+          compile_clause(Mode, H2, B, Module) % (do not expand body)
       ; module_expansion(H, B, Module, Dict, Mode, _, _, H2, B2),
         compile_clause(Mode, H2, B2, Module)
       ),

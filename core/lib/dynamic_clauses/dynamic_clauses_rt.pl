@@ -1,16 +1,15 @@
 :- module(dynamic_clauses_rt, [
     asserta/1, asserta/2, assertz/1, assertz/2, assert/1, assert/2,
-    retract/1, retractall/1, abolish/1, clause/1, clause/2,
-    current_predicate/1, current_predicate/2,
-    dynamic/1, data/1, erase/1, wellformed_body/3
-    ],[assertions,isomodes,regtypes,datafacts]).
+    retract/1, retractall/1, abolish/1, clause/2,
+    erase/1
+],[noprelude,assertions,isomodes,regtypes,datafacts]).
 
 :- doc(title,"Dynamic predicates (source preserving) (runtime)").
 
 % TODO: Merge duplicated code and definitions from dynamic_rt.pl
 
-:- doc(author, "Daniel Cabeza").
-:- doc(author, "Jose F. Morales (minor)").
+:- doc(author, "Daniel Cabeza (original)").
+:- doc(author, "Jose F. Morales (improved)").
 :- doc(author, "The Ciao Development Team").
 
 :- doc(usage, "Do not use this module directly (use the
@@ -20,415 +19,31 @@
    predicates to manipulate dynamic predicates, preserving the
    original source definitions.").
 
+:- doc(bug, "Package dynamic_clauses cannot be loaded into the shell.").
+
+:- use_module(engine(basiccontrol)).
+:- use_module(engine(term_basic)).
+:- use_module(engine(term_typing)).
+:- use_module(engine(exceptions)).
+:- use_module(engine(arithmetic)).
+:- use_module(engine(atomic_basic)).
+
 :- use_module(engine(runtime_control), [module_split/3]).
 :- use_module(engine(internals)).
-:- use_module(engine(runtime_control), [new_atom/1, current_module/1]).
+:- reexport(library(dynamic/dynamic_rt), [dynamic/1, data/1, wellformed_body/3, current_predicate/1, current_predicate/2]).
+:- use_module(library(dynamic/dynamic_rt), [clause/2]).
+:- import(dynamic_rt, [dynamic1/2]). % (low-level import)
 
-:- meta_predicate asserta(addmodule(addterm(clause))).
-:- meta_predicate asserta(addmodule(addterm(clause)), ?).
-:- meta_predicate assertz(addmodule(addterm(clause))).
-:- meta_predicate assertz(addmodule(addterm(clause)), ?).
-:- meta_predicate assert(addmodule(addterm(clause))).
-:- meta_predicate assert(addmodule(addterm(clause)), ?).
-:- meta_predicate retract(addmodule(addterm(retracting_clause))).
-:- meta_predicate retractall(addmodule(addterm(fact))).
-:- meta_predicate abolish(spec).
-:- meta_predicate dynamic(addmodule).
-:- meta_predicate data(addmodule).
-:- meta_predicate current_predicate(addmodule).
+% ---------------------------------------------------------------------------
 
-:- doc(doinclude, dynamic/1).
-
-:- decl dynamic(Predicates) : sequence_or_list(predname) + iso
-    # "Defines each predicate in @var{Predicates} as a
-      @concept{dynamic predicate}.  If a predicate is defined
-      dynamic in a file, it must be defined dynamic in every file
-      containing clauses for that predicate. The directive should
-      precede all clauses of the affected predicates.  This
-      directive is defined as a prefix operator in the compiler.".
-
-:- pred asserta(+Clause): clause + (iso, native)
-# "The current instance of @var{Clause} is interpreted as a clause and is
-   added to the current program.  The predicate concerned must be dynamic.
-   The new clause becomes the @em{first} clause for the predicate concerned.
-   Any uninstantiated variables in @var{Clause} will be replaced by new
-   private variables.".
-%% along with copies of any subgoals blocked on these variables.
-
-asserta(Clause, Term, M) :-
-    dynamic_decomposition(Clause, Term, M, asserta/1,
-                          ClHead, ClBody, ClData),
-    asserta_internal(ClHead, ClBody),
-    asserta_internal(ClData, true).
-
-:- pred asserta(+Clause,-Ref): clause(Clause) + native
-# "Like @tt{asserta/1}.  @var{Ref} is a unique identifier of the asserted
-   clause.".
-
-asserta(Clause, Term, M, (RefC, RefI)) :-
-    dynamic_decomposition(Clause, Term, M, asserta/2,
-                          ClHead, ClBody, ClData),
-    asserta_internal(ClHead, ClBody, RefC),
-    asserta_internal(ClData, true, RefI).
-
-
-:- pred assertz(+Clause): clause + (iso, native)
-# "Like @tt{asserta/1}, except that the new clause becomes the @em{last}
-   clause for the predicate concerned.".
-
-assertz(Clause, Term, M) :-
-    dynamic_decomposition(Clause, Term, M, assertz/1,
-                          ClHead, ClBody, ClData),
-    assertz_internal(ClHead, ClBody),
-    assertz_internal(ClData, true).
-
-:- pred assertz(+Clause,-Ref): clause(Clause) + native
-# "Like @tt{assertz/1}. @var{Ref} is a unique identifier of the asserted
-   clause.".
-
-assertz(Clause, Term, M, (RefC, RefI)) :-
-    dynamic_decomposition(Clause, Term, M, assertz/2,
-                          ClHead, ClBody, ClData),
-    assertz_internal(ClHead, ClBody, RefC),
-    assertz_internal(ClData, true, RefI).
-
-:- pred assert(+Clause): clause + native
-# "Identical to @tt{assertz/1}. Included for compatibility.".
-
-assert(Clause, Term, M) :- 
-    dynamic_decomposition(Clause, Term, M, assert/1,
-                          ClHead, ClBody, ClData),
-    assertz_internal(ClHead, ClBody),
-    assertz_internal(ClData, true).
-
-:- pred assert(+Clause,-Ref): clause(Clause) + native
-# "Identical to @tt{assertz/2}. Included for compatibility.".
-
-assert(Clause, Term, M, (RefC, RefI)) :-
-    dynamic_decomposition(Clause, Term, M, assert/2,
-                          ClHead, ClBody, ClData),
-    assertz_internal(ClHead, ClBody, RefC),
-    assertz_internal(ClData, true, RefI).
-
-dynamic_decomposition(Clause,_Term,_M, Goal,_ClHead,_ClBody,_ClData) :-
-    var(Clause), !,
-    throw(error(instantiation_error, Goal-1)),
-    fail.
-dynamic_decomposition(Clause, Term, M, Goal, ClHead, ClBody, ClData) :-
-    term_to_meta(Cl, Clause),
-    clause_head_and_body(Cl, 'basiccontrol:true', ClHead, ClBody),
-    check_head(ClHead, M, Goal-1, ClData),
-    clause_head_and_body(Term, true, Head, Body0),
-    ( wellformed_body(Body0, +, Body) ->
-         dynamic1(ClHead, Goal),
-         arg(1, ClData, Head),
-         arg(2, ClData, Body)
-    ; throw(error(type_error(clause, Term), Goal-1)),
-      fail
-    ).
-
-:- push_prolog_flag(multi_arity_warnings, off).
-
-asserta_internal(Head, Body) :-
-    '$compile_term'([Head|Body], Ptr0), 
-    '$current_clauses'(Head, Root),
-    '$inserta'(Root, Ptr0).
-
-asserta_internal(Head, Body, Ref) :-
-    '$compile_term'([Head|Body], Ptr0), 
-    '$current_clauses'(Head, Root),
-    '$inserta'(Root, Ptr0),
-    '$ptr_ref'(Ptr0, Ref).
-
-assertz_internal(Head, Body) :-
-    '$compile_term'([Head|Body], Ptr0), 
-    '$current_clauses'(Head, Root),
-    '$insertz'(Root, Ptr0).
-
-assertz_internal(Head, Body, Ref) :-
-    '$compile_term'([Head|Body], Ptr0), 
-    '$current_clauses'(Head, Root),
-    '$insertz'(Root, Ptr0),
-    '$ptr_ref'(Ptr0, Ref).
-
-:- pop_prolog_flag(multi_arity_warnings).
-
-:- doc(erase(Ref), "Deletes the clause referenced by @var{Ref}, the
-   identifier obtained by using @pred{asserta/2} or @pred{assertz/2}.").
-
-erase((RefC, RefI)) :- !,
-    datafacts_rt:erase(RefC),
-    datafacts_rt:erase(RefI).
-erase(Ref) :- datafacts_rt:erase(Ref).
-
-
-clause_head_and_body((H :- B),_T, H, B) :- !.
-clause_head_and_body(H, True, H, True).
-
-% TODO:[JF] not reachable due to "atom_expansion_add_goals(V, _, _, _, _, _, _) :- var(V), !, fail." in mexpand, fixme?
-% check_head(V, _, Spec, _) :- var(V), !,
-%     throw(error(instantiation_error, Spec)).
-check_head(N, _, Spec, _) :- number(N), !,
-    throw(error(type_error(callable, N), Spec)),
-    fail.
-check_head(H, _, Spec, _) :-
-    '$predicate_property'(H, _, Prop),
-    Prop/\2 =:= 0, !,  % not dynamic, xref rt_exp.c
-    functor(H, F, A),
-    throw(error(permission_error(modify, static_procedure, F/A), Spec)),
-    fail.
-check_head(H, M, Spec, ClData) :-
-    functor(H, F, A),
-    ( module_split(F, multifile, _) ->
-        ClData = 'multifile:\3\mfclause'(_,_)
-    ; module_name(M, MN),
-      module_split(F, MN, _) ->
-        module_concat(MN, '\3\clause', ClFun),
-        functor(ClData, ClFun, 2)
-    ; throw(error(permission_error(modify, nonlocal_procedure, F/A),Spec)),
-      fail
-    ).
-
-module_name(user(_), user) :- !.
-module_name(M, M).
-
-:- doc(wellformed_body(BodyIn,Env,BodyOut),
-   "@var{BodyIn} is a well-formed clause body. @var{BodyOut} is its
-    counterpart with no single-variable meta-goals (i.e., with @tt{call(X)}
-    for @tt{X}). @tt{Env} denotes if global cuts are admissible in
-    @tt{BodyIn} (@tt{+} if they are, @tt{-} if they are not)."). 
-
-wellformed_body(B, _, call(B)) :- var(B), !.
-wellformed_body(!, Env, !) :- !, Env = + .
-wellformed_body((A,B), Env, (A1,B1)) :- !,
-    wellformed_body(A, Env, A1),
-    wellformed_body(B, Env, B1).
-wellformed_body((A->B), Env, (A1->B1)) :- !,
-    wellformed_body(A, -, A1),
-    wellformed_body(B, Env, B1).
-wellformed_body((A;B), Env, (A1;B1)) :- !,
-    wellformed_body(A, Env, A1),
-    wellformed_body(B, Env, B1).
-wellformed_body((\+ A), _, (\+ A1)) :- !,
-    wellformed_body(A, -, A1).
-wellformed_body(if(A,B,C), Env, if(A1,B1,C1)) :- !,
-    wellformed_body(A, -, A1),
-    wellformed_body(B, Env, B1),
-    wellformed_body(C, Env, C1).
-wellformed_body(L^A, Env, L^A1) :- !,
-    wellformed_body(A, Env, A1).
-wellformed_body(Goal, _, Goal) :-
-    functor(Goal, F, _),
-    atom(F).
-
-:- doc(dynamic(Spec), "@var{Spec} is of the form @var{F}/@var{A}.
-    The predicate named @var{F} with arity @var{A} is made
-    @concept{dynamic} in the current module at runtime (useful for
-    predicate names generated on-the-fly).  If the predicate functor
-    name @var{F} is uninstatiated, a new, unique, predicate name is
-    generated at runtime.").
-
-:- pred dynamic(+Spec): predname.
-
-dynamic(F/A, Mod) :-
-    atom(F), !,
-    module_concat(Mod, F, MF),
-    functor(Head, MF, A),
-    asserta_fact('$imports'(Mod, Mod, F, A, Mod)), % defines/3 is not dynamic
-    dynamic1(Head, dynamic/2).
-
-dynamic(F/A, Mod) :-
-    var(F), !,
-    new_atom(F),
-    dynamic(F/A, Mod).
-
-
-:- doc(doinclude, data/1).
-
-:- pred data(+Spec): predname.
-
-:- doc(data(Spec), "@var{Spec} is of the form @var{F}/@var{A}.  The
-    predicate named @var{F} with arity @var{A} is made
-    @concept{data} in the current module at runtime (useful for
-    predicate names generated on-the-fly).  If the predicate functor
-    name @var{F} is uninstatiated, a new, unique, predicate name is
-    generated at runtime. ").
-
-% By now identical to dynamic
-data(F/A, Mod) :-
-    atom(F), !,
-    module_concat(Mod, F, MF),
-    functor(Head, MF, A), !,
-    asserta_fact('$imports'(Mod, Mod, F, A, Mod)), % defines/3 in not dynamic
-    dynamic1(Head, data/2).
-data(F/A, Mod) :-
-    var(F), !,
-    new_atom(F),
-    data(F/A, Mod).
-
-
-dynamic1(F, Goal) :-
-    '$predicate_property'(F, _, Prop), !,
-    (   Prop/\2 =:= 2 -> true               % dynamic, xref rt_exp.c
-    ;   functor(F, N, A),
-        throw(error(permission_error(modify,static_procedure,N/A), Goal)),
-        fail
-    ).
-dynamic1(F, _) :-
-    functor(F, Name, Ar),
-    '$define_predicate'(Name/Ar, consult),
-    '$set_property'(F, (dynamic)).          % xref internals.c
-
-:- pred retract(+Clause): clause + (iso, native)
-# "The first clause in the program that matches @var{Clause} is erased.
-   The predicate concerned must be dynamic. 
-
-   The predicate @tt{retract/1}
-   may be used in a non-determinate fashion, i.e., it will successively
-   retract clauses matching the argument through backtracking. If reactivated
-   by backtracking, invocations of the predicate whose clauses are being
-   retracted will proceed unaffected by the retracts. This is also true
-   for invocations of @tt{clause} for the same predicate. The space occupied
-   by a retracted clause will be recovered when instances of the clause are
-   no longer in use.".
-
-
-retract(Clause,_Term,_M) :-
-    var(Clause), !,
-    throw(error(instantiation_error, retract/1-1)),
-    fail.
-retract(Clause, Term, M) :-
-    term_to_meta(Cl, Clause),
-    copy_term(Cl, Cl_copy), % To detach Clause from Term
-    clause_head_and_body(Cl_copy, 'basiccontrol:true', ClHead, ClBody),
-    check_head(ClHead, M, retract/1-1, ClData),
-    clause_head_and_body(Term, true, Head, Body),
-    arg(1, ClData, Head),
-    arg(2, ClData, Body),
-    retract_internal(ClHead, ClBody),
-    ( retract_internal(ClData, _True) -> true
-    ; throw(bug(internal_error, retract/1))
-    ).
-
-retract_internal(Head, Body) :-
-    '$current_clauses'(Head, Root), 
-    '$current_instance'(Head, Body, Root, Ptr, no_block),
-    '$erase'(Ptr),
-    '$unlock_predicate'(Root).
-
-
-:- pred retractall(+Head): cgoal + native
-# "Erase all clauses whose head matches @var{Head}, where @var{Head} must
-   be instantiated to an atom or a compound term.  The predicate concerned
-   must be dynamic.  The predicate definition is retained.".
-
-retractall(Head,_Term,_M) :-
-    var(Head), !,
-    throw(error(instantiation_error, retractall/1-1)),
-    fail.
-retractall(Head, Term, M) :-
-    term_to_meta(H, Head),
-    check_head(H, M, retractall/1-1, ClData),
-    arg(1, ClData, Term),
-    retractall_(H, ClData).
-
-retractall_(Head, ClData) :-
-    retract_internal(Head, _),
-    ( retract_internal(ClData, _True) -> true
-    ; throw(bug(internal_error, retractall/1))
-    ),
-    fail.
-retractall_(_, _).
-
-:- pred abolish(+Spec): predname + (iso, native)
-# "Erase all clauses of the predicate specified by the predicate spec
-   @var{Spec}.  The predicate definition itself is also erased (the
-   predicate is deemed undefined after execution of the abolish). The
-   predicates concerned must all be user defined.".
-
-abolish(Spec) :-
-    term_to_meta(F/A, Spec),
-    functor(Head, F, A), !,
-    abolish_data_of(F, A),
-    abolish_hooks(Head),
-    '$abolish'(Head).
-
-abolish_data_of(F, A) :-
-    ( module_split(F, multifile, F_a) ->
-        functor(Head, F_a, A),
-        ClData = 'multifile:\3\mfclause'(Head,_)
-    ; module_split(F, M, F_a),
-      module_concat(M, '\3\clause', ClFun),
-      functor(ClData, ClFun, 2),
-      functor(Head, F_a, A),
-      arg(1, ClData, Head)
-    ),
-    ( retract_internal(ClData, _True), fail ; true ).
-    
-:- trust pred do_on_abolish(G) : cgoal(G).
-:- multifile do_on_abolish/1.
-
-:- doc(do_on_abolish(Head),"A hook predicate which will be called
-    when the definition of the predicate of @var{Head} is abolished.").
-
-abolish_hooks(Head) :-
-    do_on_abolish(Head),
-      fail.
-abolish_hooks(_).
-
-:- use_module(engine(hiord_rt), ['$meta_call'/1]).
-
-% TODO: cgoal/1 in assertion may be wrong? (primitive(fact))
-% TODO: fix documentation
-:- meta_predicate clause(primitive(fact), ?).
-:- pred clause(+Head,?Body): cgoal(Head) => body(Body) + (iso, native)
-# "The clause '@var{Head} @tt{:-} @var{Body}' exists in the current
-   module. The predicate concerned must be dynamic.".
-
-clause(Head0, _) :- var(Head0), !,
-    throw(error(instantiation_error, my_clause/2)).
-clause(Head0, Body) :-
-    functor(Head0, F, A),
-    ( module_split(F, multifile, F_a) ->
-        functor(Head, F_a, A),
-        ClData = 'multifile:\3\mfclause'(Head,_)
-    ; module_split(F, M, F_a),
-      module_concat(M, '\3\clause', ClFun),
-      functor(ClData, ClFun, 2),
-      functor(Head, F_a, A),
-      arg(1, ClData, Head)
-    ),
-    Head0 =.. [_|Args],
-    Head =.. [_|Args],
-    arg(2, ClData, Body),
-    '$meta_call'(ClData).
-
-:- pred current_predicate(?Spec) => predname + (iso, native)
-    # "A predicate in the current module is named @var{Spec}.".
-
-:- pred current_predicate(?Spec,?Module) => predname * internal_module_id
-    + native
-    # "A predicate in @var{Module} is named @var{Spec}. @var{Module}
-       never is an engine module.".
-
-current_predicate(F/A,M) :-
-    current_module(M),
-    module_concat(M,'',MPref),
-    '$predicate_property'(P, _, _),
-    functor(P, MF, A),
-    atom_concat(MPref,F,MF).
-
-:- regtype clause(C) # "@var{C} is a well-formed clause".
-
-clause(X) :- 
+:- regtype cl(C) # "@var{C} is a well-formed clause".
+cl(X) :- 
     cgoal(X).
-clause((H :- B)) :- 
+cl((H :- B)) :- 
     cgoal(H),
     body(B).
 
-
 :- regtype body(B) # "@var{B} is a clause body".
-
 body(!).
 body((A,B)):-
     body(A),
@@ -450,4 +65,256 @@ body(_^A) :-
 body(Goal) :-
     cgoal(Goal).
 
-:- doc(bug, "Package dynamic_clauses cannot be loaded into the shell.").
+% ---------------------------------------------------------------------------
+
+% Decompose a clause (for assert-like predicates)
+decomp_assert(Clause,_Term, Goal,_ClHead,_ClBody,_SrcHead,_SrcBody) :-
+    var(Clause), !,
+    throw(error(instantiation_error, Goal-1)).
+decomp_assert(Clause, Term, Goal, ClHead, ClBody, SrcHead, SrcBody) :-
+    term_to_meta(Cl, Clause),
+    clause_head_and_body(Cl, 'basiccontrol:true', ClHead, ClBody),
+    check_head(ClHead, Goal-1, SrcHead),
+    clause_head_and_body(Term, true, _, SrcBody0),
+    ( wellformed_body(SrcBody0, +, SrcBody) -> true
+    ; throw(error(type_error(clause, Term), Goal-1))
+    ),
+    dynamic1(ClHead, Goal),
+    dynamic1(SrcHead, Goal).
+
+% Decompose a clause (for retract-like predicates)
+decomp_retract(Clause,_Term,Goal,_ClHead,_ClBody,_SrcHead,_SrcBody) :-
+    var(Clause), !,
+    throw(error(instantiation_error, Goal-1)).
+decomp_retract(Clause, Term, Goal, ClHead, ClBody, SrcHead, SrcBody) :-
+    term_to_meta(Cl, Clause),
+    clause_head_and_body(Cl, 'basiccontrol:true', ClHead, ClBody),
+    check_head(ClHead, Goal-1, SrcHead),
+    clause_head_and_body(Term, true, _, SrcBody).
+
+clause_head_and_body((H :- B),_T, H, B) :- !.
+clause_head_and_body(H, True, H, True).
+
+% ---------------------------------------------------------------------------
+
+:- meta_predicate asserta(addterm(clause)).
+:- pred asserta(+Clause): cl(Clause) + (iso, native)
+# "The current instance of @var{Clause} is interpreted as a clause and is
+   added to the current program.  The predicate concerned must be dynamic.
+   The new clause becomes the @em{first} clause for the predicate concerned.
+   Any uninstantiated variables in @var{Clause} will be replaced by new
+   private variables.".
+%% along with copies of any subgoals blocked on these variables.
+
+asserta(Clause, Term) :-
+    decomp_assert(Clause, Term, asserta/1, ClHead, ClBody, SrcHead, SrcBody),
+    asserta_internal(ClHead, ClBody),
+    asserta_internal(SrcHead, SrcBody).
+
+:- meta_predicate asserta(addterm(clause), ?).
+:- pred asserta(+Clause,-Ref): cl(Clause) + native
+# "Like @tt{asserta/1}.  @var{Ref} is a unique identifier of the asserted
+   clause.".
+
+asserta(Clause, Term, (RefC, RefI)) :-
+    decomp_assert(Clause, Term, asserta/2, ClHead, ClBody, SrcHead, SrcBody),
+    asserta_internal_ref(ClHead, ClBody, RefC),
+    asserta_internal_ref(SrcHead, SrcBody, RefI).
+
+
+:- meta_predicate assertz(addterm(clause)).
+:- pred assertz(+Clause): cl(Clause) + (iso, native)
+# "Like @tt{asserta/1}, except that the new clause becomes the @em{last}
+   clause for the predicate concerned.".
+
+assertz(Clause, Term) :-
+    decomp_assert(Clause, Term, assertz/1, ClHead, ClBody, SrcHead, SrcBody),
+    assertz_internal(ClHead, ClBody),
+    assertz_internal(SrcHead, SrcBody).
+
+:- meta_predicate assertz(addterm(clause), ?).
+:- pred assertz(+Clause,-Ref): cl(Clause) + native
+# "Like @tt{assertz/1}. @var{Ref} is a unique identifier of the asserted
+   clause.".
+
+assertz(Clause, Term, (RefC, RefI)) :-
+    decomp_assert(Clause, Term, assertz/2, ClHead, ClBody, SrcHead, SrcBody),
+    assertz_internal_ref(ClHead, ClBody, RefC),
+    assertz_internal_ref(SrcHead, SrcBody, RefI).
+
+:- meta_predicate assert(addterm(clause)).
+:- pred assert(+Clause): cl(Clause) + native
+# "Identical to @tt{assertz/1}. Included for compatibility.".
+
+assert(Clause, Term) :- 
+    decomp_assert(Clause, Term, assert/1, ClHead, ClBody, SrcHead, SrcBody),
+    assertz_internal(ClHead, ClBody),
+    assertz_internal(SrcHead, SrcBody).
+
+:- meta_predicate assert(addterm(clause), ?).
+:- pred assert(+Clause,-Ref): cl(Clause) + native
+# "Identical to @tt{assertz/2}. Included for compatibility.".
+
+assert(Clause, Term, (RefC, RefI)) :-
+    decomp_assert(Clause, Term, assert/2, ClHead, ClBody, SrcHead, SrcBody),
+    assertz_internal_ref(ClHead, ClBody, RefC),
+    assertz_internal_ref(SrcHead, SrcBody, RefI).
+
+asserta_internal(Head, Body) :-
+    '$compile_term'([Head|Body], Ptr0), 
+    '$current_clauses'(Head, Root),
+    '$inserta'(Root, Ptr0).
+
+asserta_internal_ref(Head, Body, Ref) :-
+    '$compile_term'([Head|Body], Ptr0), 
+    '$current_clauses'(Head, Root),
+    '$inserta'(Root, Ptr0),
+    '$ptr_ref'(Ptr0, Ref).
+
+assertz_internal(Head, Body) :-
+    '$compile_term'([Head|Body], Ptr0), 
+    '$current_clauses'(Head, Root),
+    '$insertz'(Root, Ptr0).
+
+assertz_internal_ref(Head, Body, Ref) :-
+    '$compile_term'([Head|Body], Ptr0), 
+    '$current_clauses'(Head, Root),
+    '$insertz'(Root, Ptr0),
+    '$ptr_ref'(Ptr0, Ref).
+
+:- doc(erase(Ref), "Deletes the clause referenced by @var{Ref}, the
+   identifier obtained by using @pred{asserta/2} or @pred{assertz/2}.").
+
+erase((RefC, RefI)) :- !,
+    datafacts_rt:erase(RefC),
+    datafacts_rt:erase(RefI).
+erase(Ref) :- datafacts_rt:erase(Ref).
+
+
+% TODO:[JF] removed check for nonlocal_procedure, recover? It may be
+%   useful to (optionally?) prevent bodies being expanded from
+%   different modules:
+%     throw(error(permission_error(modify, nonlocal_procedure, F/A),Spec))
+
+% TODO:[JF] not reachable due to "atom_expansion_add_goals(V, _, _, _, _, _, _) :- var(V), !, fail." in mexpand, fixme?
+% check_head(V, Spec, _) :- var(V), !,
+%     throw(error(instantiation_error, Spec)).
+check_head(N, Spec, _) :- number(N), !,
+    throw(error(type_error(callable, N), Spec)).
+check_head(H, Spec, _) :-
+    '$predicate_property'(H, _, Prop),
+    Prop/\2 =:= 0, !,  % not dynamic, xref rt_exp.c
+    functor(H, F, A),
+    throw(error(permission_error(modify, static_procedure, F/A), Spec)).
+check_head(H, _Spec, SrcHead) :-
+    check_head0(H, SrcHead).
+
+check_head0(H, SrcHead) :-
+    functor(H, F, A),
+    atom_concat(F, '-\3\clause', F2),
+    functor(SrcHead, F2, A),
+    copy_args(A, H, SrcHead).
+
+% TODO: duplicated
+copy_args(0, _,  _) :- !.
+copy_args(I, F1, F2) :-
+    arg(I, F1, X),
+    arg(I, F2, X),
+    I1 is I-1,
+    copy_args(I1, F1, F2).
+
+
+:- meta_predicate retract(addterm(retracting_clause)).
+:- pred retract(+Clause): cl(Clause) + (iso, native)
+# "The first clause in the program that matches @var{Clause} is erased.
+   The predicate concerned must be dynamic. 
+
+   The predicate @tt{retract/1}
+   may be used in a non-determinate fashion, i.e., it will successively
+   retract clauses matching the argument through backtracking. If reactivated
+   by backtracking, invocations of the predicate whose clauses are being
+   retracted will proceed unaffected by the retracts. This is also true
+   for invocations of @tt{clause} for the same predicate. The space occupied
+   by a retracted clause will be recovered when instances of the clause are
+   no longer in use.".
+
+retract(Clause, Term) :-
+    decomp_retract(Clause, Term, retract/1, ClHead, _ClBody, SrcHead, SrcBody),
+    % Let us retract first the source version (SrcHead); then assume that we retract the right
+    retract_internal(SrcHead, SrcBody),
+    ( retract_internal(ClHead, _) -> true % (assume same order as SrcHead)
+    ; throw(bug(internal_error, retract/1))
+    ).
+
+retract_internal(Head, Body) :-
+    '$current_clauses'(Head, Root), 
+    '$current_instance'(Head, Body, Root, Ptr, no_block),
+    '$erase'(Ptr),
+    '$unlock_predicate'(Root).
+
+
+:- meta_predicate retractall(addterm(fact)).
+:- pred retractall(+Head): cgoal + native
+# "Erase all clauses whose head matches @var{Head}, where @var{Head} must
+   be instantiated to an atom or a compound term.  The predicate concerned
+   must be dynamic.  The predicate definition is retained.".
+
+retractall(Head,_Term) :-
+    var(Head), !,
+    throw(error(instantiation_error, retractall/1-1)).
+retractall(Head, _Term) :-
+    term_to_meta(H, Head),
+    check_head(H, retractall/1-1, SrcHead),
+    retractall_(H, SrcHead).
+
+retractall_(Head, SrcHead) :-
+    retract_internal(Head, _),
+    ( retract_internal(SrcHead, _) -> true
+    ; throw(bug(internal_error, retractall/1))
+    ),
+    fail.
+retractall_(_, _).
+
+:- meta_predicate abolish(spec).
+:- pred abolish(+Spec): predname + (iso, native)
+# "Erase all clauses of the predicate specified by the predicate spec
+   @var{Spec}.  The predicate definition itself is also erased (the
+   predicate is deemed undefined after execution of the abolish). The
+   predicates concerned must all be user defined.".
+
+abolish(Spec) :-
+    term_to_meta(F/A, Spec),
+    functor(Head, F, A), !,
+    abolish_data_of(Head),
+    abolish_hooks(Head),
+    '$abolish'(Head).
+
+abolish_data_of(ClHead) :-
+    check_head0(ClHead, SrcHead),
+    ( retract_internal(SrcHead, _), fail ; true ).
+    
+:- trust pred do_on_abolish(G) : cgoal(G).
+:- multifile do_on_abolish/1.
+
+:- doc(do_on_abolish(Head),"A hook predicate which will be called
+    when the definition of the predicate of @var{Head} is abolished.").
+
+abolish_hooks(Head) :-
+    do_on_abolish(Head),
+      fail.
+abolish_hooks(_).
+
+% TODO: cgoal/1 in assertion may be wrong? (primitive(fact))
+% TODO: fix documentation
+:- meta_predicate clause(primitive(fact), ?).
+:- pred clause(+Head,?Body): cgoal(Head) => body(Body) + (iso, native)
+# "The clause '@var{Head} @tt{:-} @var{Body}' exists in the current
+   module. The predicate concerned must be dynamic.".
+
+clause(Head0, _) :- var(Head0), !,
+    throw(error(instantiation_error, clause/2)).
+clause(Head0, Body) :-
+    check_head0(Head0, SrcHead),
+    term_to_meta(SrcHead, SrcHead2),
+    dynamic_rt:clause(SrcHead2, Body).
+
