@@ -879,6 +879,11 @@ module_warning(not_imported(F, N, M, QM)) :- !,
     message(error, ['Bad module qualification of ',~~(F/N),
                     ', module ',M,
                     ' does not import the predicate from module ',QM]).
+%% TODO: add prolog flag?
+% module_warning(imported_needs_qual(F, N, M0, M)) :- !,
+%     message(warning, ['Unqualified predicate call to ',~~(F/N),
+%                       ' assumed to module ',M,', calls to predicate imported from ',M0,
+%                       ' must be qualified']).
 module_warning(bad_pred_abs(PA)) :- !,
     message(error, ['Bad predicate abstraction ',~~(PA),
                       ' : head functor should be ''''']).
