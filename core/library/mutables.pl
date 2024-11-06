@@ -28,10 +28,10 @@
 %                          !!! WARNING !!!  
 %                ***  setarg/3 has unsafe semantics ***
 %
-% This version of mutables uses a structure (of principale functor
+% This version of mutables uses a structure (of principal functor
 % '$mutable'/1) to store the imperative data and setarg/3 to assign
 % this later. To avoid unsafe semantics, we have to ensure that the
-% word modifed by setarg/3 is never a free variable. It is why the
+% word modified by setarg/3 is never a free variable. It is why the
 % effective datum is '$'(Value) and not Value.
 %
 % -- Remy Haemmerle
