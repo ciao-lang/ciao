@@ -141,10 +141,11 @@ unqualified_atom_expansion(A, F, N, M, NA, RM) :-
 mexpand_imports_last(M, IM, F, N, EM) :- mexpand_imports(M, IM, F, N, EM).
 :- else.
 % Last import has priority (new semantics)
-% TODO:[oc-merge] fix: traverse modules in reverse order in modload.c instead
+% TODO:[oc-merge] keep in sync with modload.c and oc version of mexpand.pl
 
 :- use_module(engine(internals), ['$setarg'/4]).
 
+% mexpand_imports_last(+M, -IM, +F, +N, -EM):
 % Get last solution of imports (note that asserting imports in reverse
 % order may break source manipulating tools)
 mexpand_imports_last(M, IM, F, N, EM) :-
