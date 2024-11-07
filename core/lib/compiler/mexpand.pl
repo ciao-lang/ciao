@@ -148,7 +148,7 @@ mexpand_imports_last(M, IM, F, N, EM) :- mexpand_imports(M, IM, F, N, EM).
 % Get last solution of imports (note that asserting imports in reverse
 % order may break source manipulating tools)
 mexpand_imports_last(M, IM, F, N, EM) :-
-    LastImported = last_import(_,_),
+    LastImported = last_import(-,-),
     ( mexpand_imports(M, IM0, F, N, EM0),
         atom(IM0), atom(EM0), % TODO: bug if not atoms! needed for nb setarg here
         '$setarg'(1, LastImported, IM0, no),
@@ -156,7 +156,8 @@ mexpand_imports_last(M, IM, F, N, EM) :-
         fail
     ; true
     ),
-    LastImported = last_import(IM,EM).
+    LastImported = last_import(IM,EM),
+    \+ EM = - .
 :- endif.
 
 check_if_imported(M, F, N) :- 
