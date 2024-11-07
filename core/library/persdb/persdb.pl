@@ -1,7 +1,8 @@
 :- package(persdb).
 
-% TODO: must be asserted before 'datafacts' to preserve semantics with
-%   'latest import priority'; but this seems to hide those defs, isn't it?
+:- use_package(datafacts). % TODO: refine?
+:- use_package(library(persdb/persdb_decl)).
+
 :- use_module(library(persdb/persdb_rt), [%redefinebuiltins
     asserta_fact/1, 
     assertz_fact/1, 
@@ -12,9 +13,6 @@
     make_persistent/2,
     update_files/0,
     update_files/1]).
-
-:- use_package(datafacts). % TODO: refine?
-:- use_package(library(persdb/persdb_decl)).
 
 :- redefining(asserta_fact/1).
 :- redefining(assertz_fact/1).
