@@ -19,7 +19,8 @@
    predicates to manipulate dynamic predicates, preserving the
    original source definitions.").
 
-:- doc(bug, "Package dynamic_clauses cannot be loaded into the shell.").
+:- doc(bug, "clause/2 does not work properly for predicates where
+   (some) clauses are not added using this package").
 
 :- use_module(engine(basiccontrol)).
 :- use_module(engine(term_basic)).
