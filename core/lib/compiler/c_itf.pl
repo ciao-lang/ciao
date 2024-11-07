@@ -1491,7 +1491,7 @@ gen_imports(Base) :-
     ; indirect_export(BFile, F, A, DefType, Meta, EndFile0),
       relocate_endfile(BFile, File, EndFile0, EndFile)
     ),
-    asserta_fact(imports_pred(Base, File, F, A, DefType, Meta, EndFile)),
+    assertz_fact(imports_pred(Base, File, F, A, DefType, Meta, EndFile)),
     fail.
 gen_imports(Base) :-
     ( retract_fact(imports_expl(Base, File, F, A))
@@ -1500,7 +1500,7 @@ gen_imports(Base) :-
     base_name_or_user(File, BFile),
     ( exports_thru(BFile, F, A, DefType, Meta, EndFile) ->
         relocate_endfile(BFile, File, EndFile, EndFile2),
-        asserta_fact(imports_pred(Base, File, F, A, DefType, Meta, EndFile2))
+        assertz_fact(imports_pred(Base, File, F, A, DefType, Meta, EndFile2))
     ; defines_module(BFile, IM),
       interface_error(not_exported(IM,F/A))
     ),
