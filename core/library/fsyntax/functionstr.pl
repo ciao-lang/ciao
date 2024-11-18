@@ -285,6 +285,15 @@ split_shvs(F, MaybeShVs, F0) :-
     ; MaybeShVs = no, F0 = F
     ).
 
+% effective head for sharing (FuncHead or Head)
+sh_head(F, H) :-
+    nonvar(F),
+    ( F = (Head := _ :- _) -> H = Head
+    ; F = (Head := _) -> H = Head
+    ; F = (Head :- _) -> H = Head
+    ; H = F
+    ).
+
 % mark closure (non)shared vars (if needed)
 add_shvs(yes(ShVs), (H :- B), (ShVs -> H :- B)).
 add_shvs(no, HB, HB).
@@ -293,13 +302,14 @@ add_shvs(no, HB, HB).
 defunc_predabs(F, NF, Mod) :-
     split_shvs(F, MaybeShVs0, F0),
     defunc_pred(F0, NF0, Mod),
-    def_shvs(MaybeShVs0, NF0, MaybeShVs),
+    def_shvs(MaybeShVs0, F0, MaybeShVs),
     add_shvs(MaybeShVs, NF0, NF).
 
 % set default (non)shared vars (if needed)
-def_shvs(no, (H :- _), MaybeShVs) :- !,
+def_shvs(no, F, MaybeShVs) :- !,
     % head variables "shadow" parent variables (share-parent excluding
     % variables in the head)
+    sh_head(F, H),
     varset(H, HeadVars),
     MaybeShVs = yes(-HeadVars). % Note: yes(-[]) for share parent
 def_shvs(MaybeShVs, _, MaybeShVs).
