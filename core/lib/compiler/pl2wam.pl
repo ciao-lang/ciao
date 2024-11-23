@@ -2186,7 +2186,7 @@ peep_1(Insn, Env, Env, _) --> peep_heap_usage(Insn).
 
 emit_ensure_space(Kind, EffAr, H) -->
     (   {Kind=cont, H>128} -> [heapmargin_call(H, 0)]
-    ;   {H>1152} -> [heapmargin_call(H, EffAr)]
+    ;   {H>1152} -> [heapmargin_call(H, EffAr)] % 1152=4*256+128 % TODO: relate with eng_terms.h defs
     ;   []
     ).
 
