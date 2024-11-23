@@ -223,5 +223,36 @@ CBOOL__PROTO(statistics) {
              walltick0-ciao_stats.startwalltick,
              ciao_stats.wallclockfreq);
 
+  //#define DESCRIBE_TAGS 1 /* debug, only for 64-bits */
+#if defined(DESCRIBE_TAGS)
+  // macos: sysctl machdep.virtual_address_size
+  //        (machdep.virtual_address_size: 47)
+  // linux: grep -i 'address sizes' /proc/cpuinfo
+  //        address sizes	: 40 bits physical, 48 bits virtual
+  StreamPrintf(s, "VirtualAddressMask: 0x%016llx\n", ((uintmach_t)1<<48)-1);
+  StreamPrintf(s, "SMALLPTR_BASE: 0x%016llx\n", (uintmach_t)SMALLPTR_BASE);
+  //
+  StreamPrintf(s, "GC_ANYMASK: 0x%016llx\n", GC_ANYMASK); // TODO: needed for (all) non-pointers?
+  StreamPrintf(s, "TAGMASK: 0x%016llx\n", TAGMASK);
+  StreamPrintf(s, "QTAGMASK: 0x%016llx\n", QTAGMASK);
+  StreamPrintf(s, " (HVA=0x%016llx)\n", Tagn(HVA,0));
+  StreamPrintf(s, " (CVA=0x%016llx)\n", Tagn(CVA,0));
+  StreamPrintf(s, " (SVA=0x%016llx)\n", Tagn(SVA,0));
+  StreamPrintf(s, " (UBV=0x%016llx)\n", Tagn(UBV,0));
+  StreamPrintf(s, " (LST=0x%016llx)\n", Tagn(LST,0));
+  StreamPrintf(s, " (STR=0x%016llx)\n", Tagn(STR,0));
+  StreamPrintf(s, "  POINTERMASK: 0x%016llx\n", POINTERMASK);
+  StreamPrintf(s, " (ATM=0x%016llx)\n", Tagn(ATM,0));
+  StreamPrintf(s, "  ArityMask: 0x%016llx\n", MakeMask(uintmach_t, ARITYSIZE, ARITYOFFSET));
+  StreamPrintf(s, "  IndexMask: 0x%016llx\n", MakeMask(uintmach_t, ARITYOFFSET-tagged__atm_offset, tagged__atm_offset));
+  StreamPrintf(s, "  (ARITYLIMIT=%lld)\n", (uintmach_t)ARITYLIMIT);
+  StreamPrintf(s, "  (MaxAtomCount=%lld)\n", (uintmach_t)MaxAtomCount);
+  StreamPrintf(s, " (NUM=0x%016llx)\n", Tagn(NUM,0));
+  StreamPrintf(s, "  NumMask: 0x%016llx\n", MakeMask(uintmach_t, tagged__num_size, tagged__num_offset));
+  StreamPrintf(s, "Max structure size: %.6f MB\n", (double)ARITYLIMIT*sizeof(tagged_t)/(1024*1024));
+  StreamPrintf(s, "Min atom size: 0x%llx bytes\n", (uintmach_t)sizeof(atom_t));
+  StreamPrintf(s, "Max alloc of min atoms: %.6f MB\n", (double)sizeof(atom_t)*MaxAtomCount/(1024*1024));
+#endif
+
   return TRUE;
 }
