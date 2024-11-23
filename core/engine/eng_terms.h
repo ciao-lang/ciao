@@ -106,9 +106,13 @@
 #define tagged__num_offset SMALLPTR_LOWERBITS 
 #define tagged__atm_offset SMALLPTR_LOWERBITS 
 #define tagged__ptr_offset SMALLPTR_LOWERBITS 
-#define ARITYSIZE 8
+
+// NOTE: see hardwired constants in pl2wam.pl
+#define ARITYSIZE 8 /* 1<<8 = 256 */
+// #define ARITYSIZE 20 /* 1<<20 = 1048576 */
+// #define ARITYSIZE 27 /* 1<<27 = 134217728 */
 #define ARITYOFFSET (tagged__size-tagged__tag_size-1-ARITYSIZE)
-#define ARITYLIMIT (1<<ARITYSIZE) /* 256 */
+#define ARITYLIMIT (1<<ARITYSIZE)
 
 #define tagged__num_size (tagged__size - tagged__tag_size - 1 - tagged__num_offset)
 
