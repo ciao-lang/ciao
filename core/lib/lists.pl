@@ -117,12 +117,14 @@ eq(A, B):- \+ \+ A = B.
 select(E, [E|Es], Es).
 select(E, [X|Es], [X|L]) :- select(E, Es, L).
 
-:- pred length(L,N) : list * var => list * int
+:- pred length(L,N) : list * var => list * int + det
     # "Computes the length of @var{L}.".
-:- pred length(L,N) : var * int => list * int
+:- pred length(L,N) : var * int => list * int + det
     # "Outputs @var{L} of length @var{N}.".
-:- pred length(L,N) : list * int => list * int
+:- pred length(L,N) : list * int => list * int + semidet
     # "Checks that @var{L} is of length @var{N}.".
+:- pred length(L,N) + nondet
+    # "Generates @var{L}s and @var{N}s. @var{L} can be partially instantiated.".
 
 % Problems with this assertion: triple disjunction = nested disjunction
 %:- calls length(L,N)
