@@ -31,7 +31,8 @@
     defines_module/2,
     exports_pred/3,
     location/1,
-    location/3]).
+    location/3,
+    dyn_decl/4]).
 
 % ---------------------------------------------------------------------------
 
@@ -172,6 +173,10 @@ rtcheck_assr_type(comp).
 rtcheck_assr_type(exit).
 rtcheck_assr_type(success).
 
+is_dyn_pred(M, F, A) :-  
+    ( defines_module(Base, M) -> true ; fail ),
+    dyn_decl(Base, F, A, _Decl). % data, dynamic, or concurrent
+
 proc_posponed_sentence(Clauses, M) :-
     posponed_sentence_db(F, A, Head, Body0, loc(S, LB, LE), M, Dict),
     asserta_fact(location(S, LB, LE), Ref),
@@ -187,6 +192,7 @@ current_assertion_2(Pred0, Status, Type, Pred, Compat, Call, Succ, Comp0,
     assertion_read(Pred0, M, Status, Type, ABody, Dict0, S, LB, LE),
     valid_assertions(Status, Type),
     functor(Pred0, F, CA),
+    \+ is_dyn_pred(M, F, A),
     lit_clause_arity(M, F, A, CA),
     (
         (
@@ -202,7 +208,6 @@ current_assertion_2(Pred0, Status, Type, Pred, Compat, Call, Succ, Comp0,
         fail
     ),
     assertion_body(Pred, Compat, Call, Succ, Comp0, _Comm, ABody),
-    \+ (Compat=[], Call=[], Succ=[], Comp0=[]), % at least one non-empty relevant field
     \+ member(no_rtcheck(_), Comp0),
     \+ black_list_pred(F, A).
 
@@ -211,6 +216,7 @@ remaining_pred(F, A, M) :-
     \+ generated_rtchecks_db(F, A, M).
 
 black_list_pred('=', 2).
+black_list_pred('==', 2).
 
 proc_remaining_assertions(Preds, [(:- redefining(F/A))|Clauses], M, Dict) :-
     member(F/A, Preds),
@@ -247,6 +253,7 @@ do_rtchecks_sentence_tr((:- Decl),[],_,_) :-
     PropDef  = :(_ModDef ,/(DefF ,DefA)),
     PropImpl = :(_ModImpl,/(ImplF,ImplA)),
     asserta_fact(rtc_impl(DefF, DefA, inst, ImplF, ImplA)).
+
 do_rtchecks_sentence_tr((:- _Decl), _, _, _) :-
     !,
     fail.
@@ -354,6 +361,10 @@ cleanup_goal_alias_db(M) :-
 cleanup_generated_rtchecks_db(M) :-
     retractall_fact(generated_rtchecks_db(_, _, M)).
 
+process_sentence(Head, Body, [(Head :- Body)], M, _) :-
+    functor(Head, F, A),
+    is_dyn_pred(M, F, A), !.
+    
 process_sentence(Head, Body0, Clauses, M, Dict) :-
     functor(Head, F, A),
     (
@@ -813,7 +824,7 @@ calls_rtcheck(
          send_rtcheck(calls, PredName, Dict, PropName, PropDict, PosLoc),
        Exit)) :-
     member((Status, Type), StatusTypes),
-    \+(Call == []),
+    % \+(Call == []), % Commented out. It should not ignore empty calls assertions
     insert_posloc(UsePosLoc, PName, PLoc, ALoc, PosLocs, PredName, PosLoc),
     varset(Pred, RelevantVars),
     get_check_props(Call, calls,  RelevantVars, CheckProps),
