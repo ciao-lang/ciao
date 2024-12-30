@@ -176,10 +176,14 @@ no
 transform_metapred(H, M, HT) :-
     ( % Get Meta for H
       functor(H, F, FArity),
-      ( FArity > 0, MetaArity_G is FArity - 1 % when H (expanded) have one more argument (we must try this first!)
-      ; MetaArity_G = FArity % when H (expanded) do not have more arguments (or dcase "B" below)
+      % NOTE:[JF] meta_pred(_,_) needs a special case for hiord_rt:call
+      ( % when H (expanded) have one more argument (we must try this first!)
+        FArity > 0, MetaArity_G is FArity - 1,
+        functor(MetaG, F, MetaArity_G),
+        \+ H = 'hiord_rt:call'(_,_) % (avoid special case that require all args)
+      ; % when H (expanded) do not have more arguments (or dcase "B" below)
+        MetaG = H
       ),
-      functor(MetaG, F, MetaArity_G),
       type_of_goal(metapred(_Type,Meta),MetaG),
       functor(Meta, F, MetaArity),
       % TODO: this has problems, if program transformations work at
