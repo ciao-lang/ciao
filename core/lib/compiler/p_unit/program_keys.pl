@@ -428,6 +428,8 @@ inverse_rewrite_source_body(\+($(A,_,_)):_,\+(A)):- !.
 %inverse_rewrite_source_body('hiord_rt:call'($(A,_,_)):_,A):- !.
 inverse_rewrite_source_body('hiord_rt:call'($(A,_,_)):_,NBody):- !,
     NBody = 'hiord_rt:call'(A).
+inverse_rewrite_source_body('hiord_rt:call'($(A,_,_),Args):_,NBody):- !,
+    NBody = 'hiord_rt:call'(A,Args).
 inverse_rewrite_source_body('aggregates:bagof'(Var,$(A,_,_),List):_Id,NBody):-!,
     NBody = 'aggregates:bagof'(Var,A,List).
 inverse_rewrite_source_body('aggregates:setof'(Var,$(A,_,_),List):_Id,NBody):-!,

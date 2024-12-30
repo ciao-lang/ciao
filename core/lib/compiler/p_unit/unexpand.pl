@@ -386,7 +386,12 @@ unexpand_meta_calls(A,call(A)):- var(A),!.
 unexpand_meta_calls((A0,B0),(A,B)):- !,
     unexpand_meta_calls(A0,A),
     unexpand_meta_calls(B0,B).
-unexpand_meta_calls('hiord_rt:call'(A,''(X)),call(A,X)):- !.
+unexpand_meta_calls('hiord_rt:call'(A0,Args),G) :- nonvar(Args),
+    functor(Args, '', _), !,
+    % TODO: no way to specify that arguments are meta terms
+    Args =.. [_|Args0],
+    unexpand_meta_term(A0,A),
+    G =.. [call, A|Args0].
 unexpand_meta_calls(\+(X),\+(X1)):- !,
     unexpand_primitive_meta_term(X,X1).
 unexpand_meta_calls(if(X,Y,Z),if(X1,Y1,Z1)):- !,
