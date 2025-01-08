@@ -1,14 +1,15 @@
-:- module(population_query, [population_query/1], [fsyntax]).
+:- module(population_query, [population_query/1]).
 
 % Population Query example
+% 
 % ?- population_query(quad(C1, D1, C2, D2)).
 
 population_query(quad(C1, D1, C2, D2)) :-
-    D1 = ~density(C1),
-    D2 = ~density(C2),
+    density(C1,D1),
+    density(C2,D2),
     D1 > D2, 20 * D1 < 21 * D2.
 
-density(C) := D :-
+density(C,D) :-
     pop(C, P),
     area(C, A),
     D is P * 100 // A.
