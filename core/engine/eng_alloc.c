@@ -20,27 +20,21 @@
 #endif
 
 #if defined(USE_OWN_MALLOC)
-tagged_t *own_malloc(intmach_t size);
-tagged_t *own_realloc(tagged_t *ptr, intmach_t size_in_chars);
-void own_free(tagged_t *ptr);
+char *own_malloc(intmach_t size);
+char *own_realloc(char *ptr, intmach_t size_in_chars);
+void own_free(char *ptr);
 void init_own_malloc(void);
 #endif
 
 #if defined(USE_OWN_MALLOC)
-#  define Malloc(p)     own_malloc(p)
-#  define Free(p)       own_free(p)
-#  define Realloc(p, s) own_realloc(p, s)
+#  define Malloc(p)     own_malloc((p))
+#  define Free(p)       own_free((char *)(p))
+#  define Realloc(p, s) own_realloc((char *)(p), (s))
 #else
-#  define Malloc(p)     malloc(p)
-#  define Free(p)       free((char *)p)
-#  define Realloc(p, s) realloc((char *)p, s)
+#  define Malloc(p)     malloc((p))
+#  define Free(p)       free((char *)(p))
+#  define Realloc(p, s) realloc((char *)(p), (s))
 #endif                                                       
-
-#if defined(sequent) 
-#  define Malloc(p) shmalloc(p)
-#  define Free(p)   free(p)
-#  define Realloc(p, s) realloc(p, s)
-#endif                                                         /* sequent */
 
 char *tryalloc_errstring;
 
@@ -94,8 +88,7 @@ static tagged_t *tiny_blocks = NULL;                     /* Shared & locked */
 #endif
 
 #if defined(USE_TINY_BLOCKS)
-static tagged_t *get_tiny_blocks(void)
-{
+static tagged_t *get_tiny_blocks(void) {
   intmach_t i;
   tagged_t *ptr;
   tagged_t *p;
@@ -105,7 +98,7 @@ static tagged_t *get_tiny_blocks(void)
      Malloc() because of recursive locks stopping the engine.  Thus,
      the total amount of memory is also increased here. */
 
-  ptr = Malloc(NTINY*THRESHHOLD);
+  ptr = (tagged_t *)Malloc(NTINY*THRESHHOLD);
 
   if (!ptr) {
     Release_slock(mem_mng_l);
@@ -186,7 +179,7 @@ void checkdealloc(tagged_t *ptr, intmach_t decr)
   } else {
 #endif
     total_mem_count -= decr;
-    Free(ptr);
+    Free((char *)ptr);
 #if defined(USE_TINY_BLOCKS)
   }
 #endif
@@ -207,7 +200,7 @@ tagged_t *tryrealloc(tagged_t *ptr, intmach_t decr, intmach_t size)
     if (size<=THRESHHOLD)
       p = ptr;
     else {
-      p = Malloc(size);                       /* Was a call to checkalloc */
+      p = (tagged_t *)Malloc(size); /* Was a call to checkalloc */
        if (!p) {
         Release_slock(mem_mng_l);
         MEMORY_FAULT("Memory allocation failed [Malloc()]");
@@ -234,7 +227,7 @@ tagged_t *tryrealloc(tagged_t *ptr, intmach_t decr, intmach_t size)
       memcpy(p, ptr, ALIGN_TO(sizeof(tagged_t), size));
     } else {
 #endif
-      p = (tagged_t *)Realloc(ptr,size);
+      p = (tagged_t *)Realloc((char *)ptr,size);
       if (!p) {
         Release_slock(mem_mng_l);
         MEMORY_FAULT("Memory allocation failed [in Realloc()]");

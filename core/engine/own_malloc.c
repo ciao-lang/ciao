@@ -30,10 +30,6 @@
 #endif
 #endif
 
-#if defined(DEBUG_TRACE)
-#include <stdio.h>
-#endif
-
 /* TODO: share more definitions of both LINEAR and BINARY versions */
 
 #if defined(USE_OWN_MALLOC)
@@ -45,16 +41,26 @@
 #define OWN_MALLOC_UPPER 1 /* TODO: it was enabled with LINEAR, why? */
 
 #define ALIGN OWNMALLOC_ALIGN
-#define TW_TO_CHARS(Tw) (Tw)*ALIGN
-#define CHARS_TO_TW(Chars) ((Chars)%ALIGN==0 ? (Chars)/ALIGN : (Chars)/ALIGN+1)
+#define ALIGN_TO(A,X) ((((X)-1) & -(A))+(A))
+#define ALIGN_SIZE(Chars) ALIGN_TO(OWNMALLOC_ALIGN, (Chars))
 
-#define ADJUST_BLOCK(SIZE) ((SIZE) < CHARS_TO_TW(OWNMALLOC_BLOCKSIZE) ? CHARS_TO_TW(OWNMALLOC_BLOCKSIZE) : (SIZE))
+#define ADJUST_BLOCK(SIZE) ((SIZE) < ALIGN_SIZE(OWNMALLOC_BLOCKSIZE) ? ALIGN_SIZE(OWNMALLOC_BLOCKSIZE) : (SIZE))
 
-#define HEADER_SIZE ((CHARS_TO_TW(sizeof(mem_block_t))) - 1)
+#define HEADER_SIZE ALIGN_SIZE(sizeof(mem_block_t))
 #define MEM_BLOCK_SIZE(Units) (HEADER_SIZE+(Units))
 
-#define MEM_BLOCK_PTR(BLOCK) (&((BLOCK)->mem_ptr))
-#define PTR_TO_MEM_BLOCK(Ptr) ((mem_block_t *)((Ptr) - HEADER_SIZE))
+#define MEM_BLOCK_PTR(BLOCK) ((char *)(BLOCK) + HEADER_SIZE)
+#define PTR_TO_MEM_BLOCK(PTR) ((mem_block_t *)((char *)(PTR) - HEADER_SIZE))
+
+//#define USE_RTBLOCKCHECK 1
+/* TODO: make block checking optional, improve and make it work for
+   both linear and binary versions of alloc */
+#if defined(USE_RTBLOCKCHECK)
+void rtblockcheck(char *f, intmach_t l);
+#define RTBLOCKCHECK rtblockcheck(__FUNCTION__, __LINE__)
+#else
+#define RTBLOCKCHECK
+#endif
 
 #endif /* USE_OWN_MALLOC */
 
@@ -78,8 +84,7 @@ struct mem_block {
 #if defined(USE_OWN_MALLOC_BINARY)
   block_tree_t *which_node;
 #endif
-  intmach_t size; /* Measured in tagged_t words */
-  tagged_t mem_ptr; /* 1st word of the allocated memory */
+  intmach_t size; /* measured in bytes (aligned to ALIGN) */
 };
 
 #if defined(USE_OWN_MALLOC_BINARY)
@@ -107,28 +112,50 @@ static mem_block_t *block_list = NULL;  /* Shared, locked */
 
 static mem_block_t *free_block_list = NULL;
 
-static mem_block_t *locate_block(intmach_t tagged_w);
+static mem_block_t *locate_block(intmach_t size);
 
-/* Search for a block with memory enough. Requested size comes in tagged_t
-   words.  If no block found, return NULL. */
+#if defined(USE_RTBLOCKCHECK)
+void rtblockcheck(char *f, intmach_t l) {
+  mem_block_t *running;
+  for (running = free_block_list; running != NULL; running = running->next_free) {
+    if (running->block_is_free != 0 && running->block_is_free != 1) {
+      TRACE_PRINTF("{%s:%" PRIdm ": inconsistent free block at %p}\n", f, l, running);
+    }
+  }
+}
+#endif
+
+/* Search for a block in the free_block_list with enough memory.
+   Requested size is aligned to ALIGN.
+   If no block found, return NULL. */
 
 #define LOCATE_BLOCK(BLOCK, SIZE) (BLOCK) = locate_block((SIZE))
 
-static mem_block_t *locate_block(intmach_t requested_tagged_w) {
+static mem_block_t *locate_block(intmach_t requested_size) {
   mem_block_t *running;
 
-#if defined(DEBUG_TRACE)
-  if (debug_mem) printf("locate_block was requested a block of %" PRIdm " words\n", requested_tagged_w);
-  if (requested_tagged_w < 1) printf("Uh? locate_block was requested a block of %" PRIdm " words!\n", requested_tagged_w);
-#endif
+  DEBUG__TRACE(debug_mem,
+               "locate_block was requested a block of %" PRIdm " bytes\n",
+               requested_size);
 
-    running = free_block_list;
-    while(running && running->size < requested_tagged_w) 
-      running = running->next_free;
+  RTCHECK({
+    if (requested_size < ALIGN)
+      TRACE_PRINTF("Uh? locate_block was requested a block of %" PRIdm " bytes!\n",
+                   requested_size);
+  });
+
+  RTBLOCKCHECK;
+
+  running = free_block_list;
+  while(running && running->size < requested_size) {
+    running = running->next_free;
+  }
 
 #if defined(DEBUG_TRACE)
-  if (debug_mem) {
-    if (!running) printf("locate_block did not find a block of %" PRIdm " words\n", requested_tagged_w);
+  if (!running) {
+    DEBUG__TRACE(debug_mem,
+                 "locate_block did not find a block of %" PRIdm " bytes\n",
+                 requested_tagged_w);
   }
 #endif
   
@@ -140,38 +167,35 @@ static mem_block_t *locate_block(intmach_t requested_tagged_w) {
 
 static void insert_block(mem_block_t *block,
                          mem_block_t *previous,
-                         mem_block_t *next)
-{
+                         mem_block_t *next) {
   block->bck = previous;
   block->fwd = next;
-  if (previous != NULL)
+  if (previous != NULL) {
     previous->fwd = block;
-  else                             /* Then block is the first in the list */
+  } else {
+    /* Then block is the first in the list */
     block_list = block;
+  }
   if (next != NULL) next->bck = block;
 }
 
 
 /* Link a block into the free blocks list. */
 
-static void insert_free_block(mem_block_t *block)
-{
+static void insert_free_block(mem_block_t *block) {
   block->prev_free = NULL;
   block->next_free = free_block_list;
   if (free_block_list)
     free_block_list->prev_free = block;
   free_block_list = block;    
-#if defined(DEBUG_TRACE)
-  if (debug_mem) printf("*Put back block of %" PRIdm " words\n", block->size);
-#endif
+  DEBUG__TRACE(debug_mem, "*Put back block of %" PRIdm " bytes\n", block->size);
 }
 
 /* Remove a block from the free blocks list. */
 
-static void remove_free_block(mem_block_t *block)
-{
-  mem_block_t *previous = block->prev_free,
-            *next     = block->next_free;
+static void remove_free_block(mem_block_t *block) {
+  mem_block_t *previous = block->prev_free;
+  mem_block_t *next = block->next_free;
 
   if (next)
     next->prev_free = previous;
@@ -192,18 +216,18 @@ static void remove_free_block(mem_block_t *block)
 static block_tree_t *free_blocks_tree = NULL;
 static block_tree_t *disposed_tree_nodes = NULL;
 
-static block_tree_t *search_free_block(intmach_t tagged_w);
+static block_tree_t *search_free_block(intmach_t units);
 static block_tree_t *create_new_node(mem_block_t *block, block_tree_t *parent);
 static void remove_block_from_node(block_tree_t *node, mem_block_t  *block);
 static void add_block_to_node(block_tree_t *node, mem_block_t  *block);
-
-#if defined(DEBUG_TRACE)
+#if defined(USE_LOWRTCHECKS)
 static void test_tree(void);
 static void test(block_tree_t *tree);
 #endif
 
-/* Search for a block with memory enough. Requested size comes in tagged_t
-   words.  If no block found, return NULL. */
+/* Search for a block with memory enough.
+   Requested is aligned to ALIGN.
+   If no block found, return NULL. */
 
 #define LOCATE_BLOCK(BLOCK, SIZE) { \
   block_tree_t *node; \
@@ -215,41 +239,48 @@ static void test(block_tree_t *tree);
   } \
 }
 
-static block_tree_t *search_free_block(intmach_t requested_tagged_w)
-{
+static block_tree_t *search_free_block(intmach_t requested_size) {
   block_tree_t *running;
 
-#if defined(DEBUG_TRACE)
-  if (debug_mem) printf("search_free_block was requested a block of %" PRIdm " words\n", requested_tagged_w);
-  if (requested_tagged_w < 1) printf("Uh? search_free_block was requested a block of %" PRIdm " words!\n", requested_tagged_w);
-#endif
+  DEBUG__TRACE(debug_mem,
+               "search_free_block was requested a block of %" PRIdm " bytes\n",
+               requested_size);
+
+  RTCHECK({
+    if (requested_size < ALIGN)
+      TRACE_PRINTF("Uh? search_free_block was requested a block of %" PRIdm " bytes!\n",
+                   requested_size);
+  });
 
   running = free_blocks_tree;
   while(running) {
-    if (running->left && requested_tagged_w <= running->max_left)
+    if (running->left && requested_size <= running->max_left)
       running = running->left;
-    else if (requested_tagged_w <= running->size_this_node)
+    else if (requested_size <= running->size_this_node)
       break;
-    else if (running->right && requested_tagged_w <= running->max)
+    else if (running->right && requested_size <= running->max)
       running = running->right;
     else
       running = NULL;
   }
 
 #if defined(DEBUG_TRACE)
-  if (debug_mem) {
-    if (!running) printf("search_free_block did not find a block of %" PRIdm " words\n", requested_tagged_w);
-    test_tree();
+  if (!running) {
+    DEBUG__TRACE(debug_mem,
+                 "search_free_block did not find a block of %" PRIdm " bytes\n",
+                 requested_size);
   }
 #endif
+  RTCHECK({
+    if (!running) test_tree();
+  });
   
   return running;
 }
 
 /* Link a block into the free blocks pool. */
 
-static void insert_free_block(mem_block_t *block)
-{
+static void insert_free_block(mem_block_t *block) {
   intmach_t size = block->size;
   block_tree_t *parent, *running, *new_node;
 
@@ -260,7 +291,7 @@ static void insert_free_block(mem_block_t *block)
     parent = NULL;
     while (running){
       parent = running; 
-      if (size < running->size_this_node){
+      if (size < running->size_this_node) {
         if (size > running->max_left) { /* Update sizes as we go down */
           running->max_left = size;
         }
@@ -277,7 +308,7 @@ static void insert_free_block(mem_block_t *block)
       add_block_to_node(running, block);
     } else { /* Change parent */
       new_node = create_new_node(block, parent);
-      if (size < parent->size_this_node){
+      if (size < parent->size_this_node) {
         parent->left = new_node;
         parent->max_left = size;
       } else {
@@ -286,16 +317,12 @@ static void insert_free_block(mem_block_t *block)
       }
     }
   }
-#if defined(DEBUG_TRACE)
-  if (debug_mem) printf("*Put back block of %" PRIdm " words\n", block->size);
-#endif
+  DEBUG__TRACE(debug_mem, "*Put back block of %" PRIdm " bytes\n", block->size);
 }
-
 
 /* Remove a block from the free blocks pool. */
 
-static void remove_free_block(mem_block_t *block)
-{
+static void remove_free_block(mem_block_t *block) {
   block_tree_t *node = block->which_node;
   block_tree_t *parent, *running, *successor, *child;
 
@@ -391,17 +418,17 @@ static void remove_free_block(mem_block_t *block)
         else parent->left = successor;
       }
     }
- /* Dispose this tree node -- but keep it for ourselves! */
+    /* Dispose this tree node -- but keep it for ourselves! */
     node->right = disposed_tree_nodes;
     disposed_tree_nodes = node;
   }
 }
 
-#if defined(DEBUG_TRACE)
+#if defined(USE_LOWRTCHECKS)
 static void test_tree(void) {
   if (free_blocks_tree) {
     test(free_blocks_tree);
-  }    
+  }
 }
 
 /* 
@@ -413,32 +440,30 @@ static void test(block_tree_t *t) {
   if (!t) return;
   if (t->right){
     if (t->right->parent != t)
-      printf("***** Right node does not point back to parent!\n");
+      TRACE_PRINTF("***** Right node does not point back to parent!\n");
     if (t->max <= t->size_this_node)
-      printf("***** Max subtree size less than node size!\n");
+      TRACE_PRINTF("***** Max subtree size less than node size!\n");
     if (t->max != t->right->max)
-      printf("***** Max size does not agree with right subtree size!\n");
+      TRACE_PRINTF("***** Max size does not agree with right subtree size!\n");
     test(t->right);
   } else {
     if (t->max != t->size_this_node)
-      printf("***** Max node and subtree size do not agree!\n");
+      TRACE_PRINTF("***** Max node and subtree size do not agree!\n");
   }
   if (t->left){
     if (t->left->parent != t)
-      printf("***** Left node does not point back to parent!\n");
+      TRACE_PRINTF("***** Left node does not point back to parent!\n");
     if (t->max_left != t->left->max)
-      printf("***** Left max size does not agree with left subtree size!\n");
+      TRACE_PRINTF("***** Left max size does not agree with left subtree size!\n");
     test(t->left);
   }
 }
-
 #endif
 
 /* Creates a new tree node and initializes all of its fields. */
 
-block_tree_t *create_new_node(mem_block_t *block,
-                            block_tree_t *parent)
-{
+static block_tree_t *create_new_node(mem_block_t *block,
+                                     block_tree_t *parent) {
   block_tree_t *node;
 
   if (disposed_tree_nodes) {
@@ -455,13 +480,10 @@ block_tree_t *create_new_node(mem_block_t *block,
   return node;
 }
 
-
 /* Add a block to the node; put it first in the list.  Prec.: there is a
    nonempty block list hanging from the node */
 
-void add_block_to_node(block_tree_t *node,
-                       mem_block_t *block)
-{
+static void add_block_to_node(block_tree_t *node, mem_block_t *block) {
   mem_block_t *first = node->block_list;
 
   block->prev_free = NULL;
@@ -471,11 +493,9 @@ void add_block_to_node(block_tree_t *node,
   block->which_node = node;
 }
 
-void remove_block_from_node(block_tree_t *node,
-                            mem_block_t *block)
-{
-  mem_block_t *previous = block->prev_free,
-            *next     = block->next_free;
+static void remove_block_from_node(block_tree_t *node, mem_block_t *block) {
+  mem_block_t *previous = block->prev_free;
+  mem_block_t *next = block->next_free;
 
   if (next)
     next->prev_free = previous;
@@ -490,31 +510,32 @@ void remove_block_from_node(block_tree_t *node,
 
 static void insert_block(mem_block_t *block,
                          mem_block_t *previous,
-                         mem_block_t *next)
-{
+                         mem_block_t *next) {
   block->bck = previous;
   block->fwd = next;
-  if (previous != NULL)
+  if (previous != NULL) {
     previous->fwd = block;
-  else                             /* Then block is the first in the list */
+  } else {
+    /* Then block is the first in the list */
     block_list = block;
+  }
   if (next != NULL) next->bck = block;
 }
 
-#if defined(DEBUG_TRACE)
-void dump_blocks(void)
-{
+#if defined(USE_LOWRTCHECKS)
+/* TODO: recover and enhance memory block checks */
+void dump_blocks(void) {
   mem_block_t *running = block_list;
 
   while (running) {
-    printf("%" PRIdm " tags (%s) from %p to %p\n",
-           running->size, 
-           running->block_is_free ? "free" : "used",
-           MEM_BLOCK_PTR(running),
-           (MEM_BLOCK_PTR(running) + running->size));
+    TRACE_PRINTF("%" PRIdm " bytes (%s) from %p to %p\n",
+                 running->size,
+                 running->block_is_free ? "free" : "used",
+                 MEM_BLOCK_PTR(running),
+                 (MEM_BLOCK_PTR(running) + running->size));
     running = running->fwd;
   }
-  printf("\n");
+  TRACE_PRINTF("\n");
 }
 #endif
 
@@ -526,12 +547,12 @@ void dump_blocks(void)
 #if defined(USE_OWN_MALLOC)
 
 #if defined(USE_MMAP) && OWNMALLOC_MmapAllowed
-tagged_t *mmap_base = NULL;
+static char *mmap_base = NULL;
 #endif
 
-static mem_block_t *new_block_at(tagged_t *mem, intmach_t size_in_tagged_w) {
+static mem_block_t *new_block_at(char *mem, intmach_t size) {
   mem_block_t *new_block = (mem_block_t *)mem;
-  new_block->size = size_in_tagged_w;
+  new_block->size = size;
   insert_block(new_block, NULL, block_list);  
   new_block->block_is_free = TRUE;
   insert_free_block(new_block);
@@ -540,140 +561,134 @@ static mem_block_t *new_block_at(tagged_t *mem, intmach_t size_in_tagged_w) {
 
 void init_own_malloc(void) {
 #if defined(USE_MMAP) && OWNMALLOC_MmapAllowed
-  intmach_t mmap_size = OWNMALLOC_MmapSize; // In bytes
+  intmach_t mmap_size = OWNMALLOC_MmapSize; /* in bytes */
   mem_block_t *new_block;
 
-  mmap_base = (tagged_t *)SMALLPTR_BASE; 
-
+  mmap_base = (char *)SMALLPTR_BASE; 
   if (own_fixed_mmap((void *) mmap_base, mmap_size)) {
     fprintf(stderr, "PANIC: cannot mmap() own memory at %p!!!\n", mmap_base);
     exit(-1);
   }
 
-  // What follows is basically a create_new_block which allocates 
-  // all memory we can address
-  new_block = new_block_at(mmap_base, CHARS_TO_TW(mmap_size - TW_TO_CHARS(2*HEADER_SIZE)));
+  /* What follows is basically a create_new_block which allocates 
+     all memory we can address */
+  new_block = new_block_at(mmap_base, ALIGN_SIZE(mmap_size - 2*HEADER_SIZE));
 #endif
 }
 
+#if !(defined(USE_MMAP) && OWNMALLOC_MmapAllowed)
 /* Create a new block with a given size, rounded upwards to be a multiple of
    an ALIGNed word.  If the creation was sucessful, insert them into the
    general blocks list and into the free blocks list. */
+/* pre: size is aligned to ALIGN */
+static mem_block_t *create_new_block(intmach_t size) {
+  char *mem;
 
-#if !(defined(USE_MMAP) && OWNMALLOC_MmapAllowed)
-static mem_block_t *create_new_block(intmach_t size_in_tagged_w) {
-  tagged_t *mem;
-
-  mem = (tagged_t *)malloc(TW_TO_CHARS(MEM_BLOCK_SIZE(size_in_tagged_w)));
+  mem = (char *)malloc(MEM_BLOCK_SIZE(size));
   if (!mem) {
-#if defined(DEBUG_TRACE)
-    printf("malloc: could not allocate %" PRIdm " words of memory\n", 
-           MEM_BLOCK_SIZE(size_in_tagged_w));
-#endif
+    DEBUG__TRACE(debug_mem,
+                 "malloc: could not allocate %" PRIdm " bytes of memory\n", 
+                 MEM_BLOCK_SIZE(size));
     return NULL;
   }
-  return new_block_at(mem, size_in_tagged_w);
+  return new_block_at(mem, size);
 }
 #endif
 
-
 /* Given a block which has enough room to allocate the requested chars,
    return pointer to memory area and split the block into two if needed. */
+/* pre: req_chars is aligned to ALIGN */
+static char *reserve_block(intmach_t req_chars, mem_block_t *block) {
+  RTCHECK({
+    if (block->size < req_chars) {
+      fprintf(stderr, "{panic: reserve_block received a block smaller than needed}\n");
+      return NULL;
+    }
+  });
 
-static tagged_t *reserve_block(intmach_t req_tagged, mem_block_t *block) {
-#if defined(DEBUG_TRACE)
-  if (block->size < req_tagged){
-    printf("**** Fatal error: reserve_block received a block smaller than needed\n");
-    return NULL;
-  }
-#endif
-
-  if (block->size >= MEM_BLOCK_SIZE(req_tagged)) {
+  if (block->size >= MEM_BLOCK_SIZE(req_chars)) {
     /* Note: >= and not >, since blocks of size==0 can be merged to
        contiguous free blocks */
     mem_block_t *new_block;
     /* Split the block */
     remove_free_block(block);
 #if defined(OWN_MALLOC_UPPER)
-    block->size -= MEM_BLOCK_SIZE(req_tagged);
+    /* Allocate in the upper parts of the reserved memory first */
+    block->size -= MEM_BLOCK_SIZE(req_chars);
     insert_free_block(block);
     //
-    new_block = (mem_block_t *)((tagged_t *)block + MEM_BLOCK_SIZE(block->size));
-    new_block->size = req_tagged;
+    new_block = (mem_block_t *)((char *)block + MEM_BLOCK_SIZE(block->size));
+    new_block->size = req_chars;
     insert_block(new_block, block, block->fwd);
     new_block->block_is_free = FALSE;
 #else
     /* Allocate in the lower parts of the reserved memory first */
     mem_block_t *block0;
-    block0 = (mem_block_t *)((tagged_t *)block + MEM_BLOCK_SIZE(req_tagged));
-    block0->size = block->size - MEM_BLOCK_SIZE(req_tagged);
+    block0 = (mem_block_t *)((char *)block + MEM_BLOCK_SIZE(req_chars));
+    block0->size = block->size - MEM_BLOCK_SIZE(req_chars);
     insert_block(block0, block, block->fwd);
     block0->block_is_free = TRUE;
     //
     new_block = block;
     new_block->block_is_free = FALSE;
-    new_block->size = req_tagged;
+    new_block->size = req_chars;
     insert_free_block(block0);
 #endif
     return MEM_BLOCK_PTR(new_block);
   } else {
     /* Remaning part too small */
+    /* (??) OC: Exactly the size we want */
     block->block_is_free = FALSE;
     remove_free_block(block);
     return MEM_BLOCK_PTR(block);
   }
 }
 
-/* Our three beloved calls: alloc, dealloc, realloc. */
-
-tagged_t *own_malloc(intmach_t size)
-{
+char *own_malloc(intmach_t size) {
   mem_block_t *block;
-  tagged_t *pointer_returned;
-  intmach_t size_to_reserve;
+  char *pointer_returned;
+  intmach_t size_in_chars;
 
-#if defined(DEBUG_TRACE)
-  if (size <= 0) {
-    printf("own_malloc received a request of %" PRIdm " chars... what should I do?\n", size);
-    return NULL;
-  }
-#endif
+  RTCHECK({
+    if (size <= 0) {
+      TRACE_PRINTF("own_malloc received a request of %" PRIdm " chars... what should I do?\n",
+              size);
+      return NULL;
+    }
+  });
   
-  size_to_reserve = CHARS_TO_TW(size);
-  LOCATE_BLOCK(block, size_to_reserve);
+  size_in_chars = ALIGN_SIZE(size);
+  LOCATE_BLOCK(block, size_in_chars);
   if (block == NULL) {
 #if !(defined(USE_MMAP) && OWNMALLOC_MmapAllowed)
-    block = create_new_block(ADJUST_BLOCK(size_to_reserve));
+    block = create_new_block(ADJUST_BLOCK(size_in_chars));
     if (block == NULL) {
+#endif
       /* malloc could not stand it! */
-#endif
-#if defined(DEBUG_TRACE)
-      printf("own_malloc: could not reserve %" PRIdm " chars\n", size);
-#endif
+      DEBUG__TRACE(debug_mem,
+                   "own_malloc: could not reserve %" PRIdm " chars\n", size);
       return NULL;
 #if !(defined(USE_MMAP) && OWNMALLOC_MmapAllowed)
     }
 #endif
   }
-  pointer_returned = reserve_block(size_to_reserve, block);
-#if defined(DEBUG_TRACE)
-  if (debug_mem)
-    printf("own_malloc returned %p, %" PRIdm " chars\n", pointer_returned, size);
-#endif
+  pointer_returned = reserve_block(size_in_chars, block);
+  DEBUG__TRACE(debug_mem,
+               "own_malloc returned %p, %" PRIdm " chars\n", 
+               pointer_returned, size);
 
   return pointer_returned;
 }
 
 /* Mark a block as unused.  Collapse it with the surronding ones if possible */
-static void dealloc_block(mem_block_t *block)
-{
+static void dealloc_block(mem_block_t *block) {
   mem_block_t *next, *prev;
 
   block->block_is_free = TRUE;
 
   if (((next = block->fwd) != NULL) &&        /* Check if next block free */
       (next->block_is_free == TRUE) &&
-      ((tagged_t *)block + MEM_BLOCK_SIZE(block->size) == (tagged_t *)next)){
+      ((char *)block + MEM_BLOCK_SIZE(block->size) == (char *)next)) {
     block->size += MEM_BLOCK_SIZE(next->size);
     if ((block->fwd = next->fwd) != NULL) {
       block->fwd->bck = block;
@@ -683,7 +698,7 @@ static void dealloc_block(mem_block_t *block)
   
   if (((prev = block->bck) != NULL) &&
       (prev->block_is_free == TRUE) &&
-      ((tagged_t *)prev + MEM_BLOCK_SIZE(prev->size) == (tagged_t *)block)){
+      ((char *)prev + MEM_BLOCK_SIZE(prev->size) == (char *)block)) {
     remove_free_block(prev);
     prev->size += MEM_BLOCK_SIZE(block->size);
     insert_free_block(prev);
@@ -695,8 +710,7 @@ static void dealloc_block(mem_block_t *block)
   }
 }
 
-void own_free(tagged_t *ptr)
-{
+void own_free(char *ptr) {
   mem_block_t *block_to_dealloc;
 
   block_to_dealloc = PTR_TO_MEM_BLOCK(ptr);
@@ -712,8 +726,11 @@ void own_free(tagged_t *ptr)
    realloc() behaves like malloc() for the specified size.  If size is zero
    and ptr is not a null pointer, the object pointed to is freed.
 */
-/* size: size in chars */
-tagged_t *own_realloc(tagged_t *ptr, intmach_t size) {
+
+#define MIN(A,B) ((A) <= (B) ? (A) : (B))
+
+/* size in chars */
+char *own_realloc(char *ptr, intmach_t size) {
   mem_block_t *old_block;
   intmach_t size_to_copy;
 
@@ -724,41 +741,37 @@ tagged_t *own_realloc(tagged_t *ptr, intmach_t size) {
     return NULL;
   }
 
-  //  fprintf(stderr, "\nRealloc asked for %" PRIdm " words\n", CHARS_TO_TW(size));
-
   old_block = PTR_TO_MEM_BLOCK(ptr);
   if (old_block == NULL) return NULL;
 
   {
     mem_block_t *new_block;
-    tagged_t *new_mem_area;
-    intmach_t size_in_tagged_w = CHARS_TO_TW(size);
+    char *new_mem_area;
+    intmach_t size_in_chars = ALIGN_SIZE(size);
 
-    LOCATE_BLOCK(new_block, size_in_tagged_w);
+    LOCATE_BLOCK(new_block, size_in_chars);
     if (new_block == NULL) {
 #if !(defined(USE_MMAP) && OWNMALLOC_MmapAllowed)
-      new_block = create_new_block(ADJUST_BLOCK(size_in_tagged_w));
+      new_block = create_new_block(ADJUST_BLOCK(size_in_chars));
       if (new_block == NULL) {
 #endif
-#if defined(DEBUG_TRACE)
-        printf("own_realloc: could not reserve %" PRIdm " chars!\n", size);
-#endif
+        /* malloc could not stand it! */
+        DEBUG__TRACE(debug_mem,
+                     "own_realloc: could not reserve %" PRIdm " chars!\n", size);
         return NULL;
 #if !(defined(USE_MMAP) && OWNMALLOC_MmapAllowed)
       } 
 #endif
     }
-
-    new_mem_area = reserve_block(size_in_tagged_w, new_block);
-    size_to_copy = old_block->size > size_in_tagged_w ?
-                   size_in_tagged_w : old_block->size;
+    new_mem_area = reserve_block(size_in_chars, new_block);
+    size_to_copy = MIN(old_block->size, size_in_chars);
     (void)memcpy(new_mem_area, 
                  MEM_BLOCK_PTR(old_block),
-                 TW_TO_CHARS(size_to_copy));
+                 size_to_copy);
     own_free(ptr);
-#if defined(DEBUG_TRACE)
-    if (debug_mem) printf("own_realloc returned %p, %" PRIdm " chars\n", new_mem_area, size);
-#endif    
+    DEBUG__TRACE(debug_mem,
+                 "own_realloc returned %p, %" PRIdm " chars\n",
+                 new_mem_area, size);
 
     return new_mem_area;
   }
