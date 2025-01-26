@@ -11,16 +11,11 @@
 
 /* TODO: eng_alloc.h should be type agnostic (do not use tagged_t) */
 
-extern char *tryalloc_errstring;
-
 void init_alloc(void);
 
-tagged_t *tryalloc(intmach_t size);
-tagged_t *tryrealloc(tagged_t *ptr, intmach_t decr, intmach_t size);
-
-tagged_t *checkalloc(intmach_t size);
-tagged_t *checkrealloc(tagged_t *ptr, intmach_t decr, intmach_t size);
-void checkdealloc(tagged_t *ptr, intmach_t decr);
+char *checkalloc(intmach_t size);
+char *checkrealloc(char *ptr, intmach_t decr, intmach_t size);
+void checkdealloc(char *ptr, intmach_t decr);
 
 /* Memory management for objects of type Type */
 
@@ -28,7 +23,7 @@ void checkdealloc(tagged_t *ptr, intmach_t decr);
   ((Type *)checkalloc(sizeof(Type)))
 
 #define checkdealloc_TYPE(Type, Ptr) \
-  checkdealloc((tagged_t *)(Ptr), sizeof(Type))
+  checkdealloc((char *)(Ptr), sizeof(Type))
 
 /*
  * Memory management for flexible structures.
@@ -51,13 +46,13 @@ void checkdealloc(tagged_t *ptr, intmach_t decr);
   ((Type *)checkalloc(SIZEOF_FLEXIBLE_STRUCT(Type, ArrayType, (ArrayLen))))
 
 #define checkdealloc_FLEXIBLE(Type, ArrayType, ArrayLen, Ptr) \
-  checkdealloc((tagged_t *)(Ptr), \
+  checkdealloc((char *)(Ptr), \
                SIZEOF_FLEXIBLE_STRUCT(Type, \
                                       ArrayType, \
                                       (ArrayLen)))
 
 #define checkrealloc_FLEXIBLE(Type, ArrayType, ArrayLen0, ArrayLen1, Ptr) \
-  ((Type *)checkrealloc((tagged_t *)(Ptr), \
+  ((Type *)checkrealloc((char *)(Ptr), \
                         SIZEOF_FLEXIBLE_STRUCT(Type, \
                                                ArrayType, \
                                                (ArrayLen0)), \
@@ -76,7 +71,7 @@ void checkdealloc(tagged_t *ptr, intmach_t decr);
 })
 
 #define checkdealloc_FLEXIBLE_S(Type, SizeField, Ptr) \
-  checkdealloc((tagged_t *)(Ptr), \
+  checkdealloc((char *)(Ptr), \
                (Ptr)->SizeField)
 
 /* Memory management for arrays */
@@ -85,12 +80,12 @@ void checkdealloc(tagged_t *ptr, intmach_t decr);
   ((ArrayType *)checkalloc((ArrayLen) * sizeof(ArrayType)))
 
 #define checkrealloc_ARRAY(ArrayType, ArrayLen0, ArrayLen1, Ptr) \
-  ((ArrayType *)checkrealloc((tagged_t *)(Ptr), \
+  ((ArrayType *)checkrealloc((char *)(Ptr), \
                              (ArrayLen0) * sizeof(ArrayType), \
                              (ArrayLen1) * sizeof(ArrayType)))
 
 #define checkdealloc_ARRAY(ArrayType, ArrayLen, Ptr) \
-  checkdealloc((tagged_t *)(Ptr), \
+  checkdealloc((char *)(Ptr), \
                (ArrayLen) * sizeof(ArrayType))
 
 /* Memory management for raw binary buffers (e.g., for stacks) */

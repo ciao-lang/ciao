@@ -1951,10 +1951,6 @@ CVOID__PROTO(init_streams_each_time)
 #endif
 #include <unistd.h>
 
- /* # bytes used by the Prolog program & database code.  Probably not
-    accurately measured (patched here and there) (MCL).  */
-intmach_t mem_prog_count = 0;                                     /* Shared */
-
  /* Number of predicates asserted */
 intmach_t num_of_predicates = 0;                                  /* Shared */
 

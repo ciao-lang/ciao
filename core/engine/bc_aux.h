@@ -1101,7 +1101,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   } else {
     INC_MEM_PROG(truesize - object->objsize);
     //fprintf(stderr, "resize %x-%x\n", object->objsize, truesize);
-    object=(instance_t *)checkrealloc((tagged_t *)object, object->objsize, truesize);
+    object=(instance_t *)checkrealloc((char *)object, object->objsize, truesize);
     object->objsize = truesize;
   }
 

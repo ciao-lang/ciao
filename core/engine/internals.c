@@ -1027,7 +1027,7 @@ static void free_info(enter_instr_t enter_instr, char *info)
     case OTHER_STUFF:
       {
         other_stuff_t *other = (other_stuff_t *)info;
-        checkdealloc((tagged_t *)other->pointer, other->size);
+        checkdealloc((char *)other->pointer, other->size);
         checkdealloc_TYPE(other_stuff_t, info);
         break;
       }
