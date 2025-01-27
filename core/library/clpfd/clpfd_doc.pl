@@ -63,7 +63,7 @@ equal), @pred{#\\\\=/2} (constraint not equal), @pred{#</2}
 greater or equal). These meta-constraints are
 defined over arithmetic expressions with FD variables (see regular type
 @pred{fd_expr/1} in module @lib{clpfd_rt}.).  Such constraints are
-\"meta\" in the sens that their arguments are interpreted at
+\"meta\" in the sense that their arguments are interpreted at
 compile-time and all variables occurring free in the arguments will be
 implicitly constrained to take integer values only. In particular, note
 that variables constrained in such a way would not be unifiable with 
