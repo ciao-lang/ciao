@@ -58,7 +58,7 @@ programming environment(s) (e.g., @ref{Using Ciao inside GNU
 emacs}, the Playground, the Virtual Studio Code extension,
 etc.). These environments have many debugging-related facilities,
 including displaying the source code for the module(s) corresponding
-to the procedure being executed, and higlighting dynamically the code
+to the procedure being executed, and highlighting dynamically the code
 segments corresponding to the different execution steps.
 
 @end{note}
@@ -67,9 +67,9 @@ segments corresponding to the different execution steps.
 
 The Ciao debugger is module-based. This allows skipping during the
 debugging process all files (including system library files) except
-those in which a bug is suspected. This saves having to explictily and
+those in which a bug is suspected. This saves having to explicitly and
 repetitively skip predicates in unrelated files during the debugging
-process.  Also, there is an efficieny advantage: in order to be able
+process.  Also, there is an efficiency advantage: in order to be able
 to run the debugger on a module, it must be loaded in @index{debug
 (interpreted) mode}, which will execute slower than normal (compiled)
 modules.  Thus, it is interesting to compile in debug mode only those
@@ -112,7 +112,7 @@ compatible between them, i.e., Ciao allows having some modules loaded with
 @pred{debug_module/1} and others with @pred{debug_module_source/1}. To
 change from one interpreted mode to the other mode it suffices to select
 the module with the new interpreted mode (debugger mode), using the
-appropiate command, and reload the module.
+appropriate command, and reload the module.
 
 The commands above perform in fact two related actions: first, they
 let the compiler know that if a file containing a module with this
@@ -224,14 +224,14 @@ simply using the @tt{trace} package.
 Note that there is a particularly interesting way of using the
 @concept{embedded debugger} in the @apl{emacs} editor:
 if an @em{application} is run in a @em{shell buffer} (a buffer running
-an OS shell) which has been pUt in Ciao inferior mode' (by typing @key{M-x} 
+an OS shell) which has been put in Ciao inferior mode' (by typing @key{M-x} 
 @tt{ciao-inferior-mode}) and this application starts emitting output
 from the embedded debugger (i.e., which contains the embedded debugger
 and is debugging its code) then the Ciao emacs mode will be able to
 follow these messages, for example tracking execution in the source
 level code. This also works if the application is written in a
 combination of languages, provided the parts written in Ciao are
-compiled with the embedded debugger package and is thus a covenient
+compiled with the embedded debugger package and is thus a convenient
 way of debugging multi-language applications. The only thing needed is
 to make sure that the output messages appear in a shell buffer that is
 in Ciao inferior mode.
@@ -422,7 +422,7 @@ substrings to locate. This information for locating the point on the source
 file is not shown when executing the source-level debugger from the Ciao
 @apl{emacs} mode or other IDEs.
 
-Ports can be ``unleashed'' by calling the @pred{leash/1} predicate omiting
+Ports can be ``unleashed'' by calling the @pred{leash/1} predicate omitting
 that port in the argument. This means that the debugger will stop but user
 interaction is not possible for an unleashed port. Obviously, the @tt{?}
 prompt will not be shown in such messages, since the user has specified

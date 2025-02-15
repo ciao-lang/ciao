@@ -142,7 +142,7 @@ current_debugged(Ms) :- findall(M, current_fact(debug_mod(M)), Ms).
    addition, the module is marked specially so that when (re)loaded it
    will be (re)compiled in debug mode. It also marks the module as
    'modified' so that (re)loading this file or a main file that uses
-   this module will force it to acrually be recompiled. Note that in
+   this module will force it to actually be recompiled. Note that in
    addition to marking it for debugging the module @em{needs to be
    reloaded} after marking it, for all this to occur. In other words,
    the proper sequence to debug module @tt{m} is:
@@ -177,7 +177,7 @@ in_debug_module(G) :-
    # "Unmark module @var{Module} for debugging.  The debugger will not
    enter debug mode for module @var{Module}.  When issuing this
    command at the toplevel shell, the compiler is instructed also to
-   set to @em{compile} the loading mode of the iles defining that
+   set to @em{compile} the loading mode of the files defining that
    module, i.e., the module will be compiled in standard mode if
    reloaded.".
 
@@ -188,8 +188,8 @@ nodebug_module(M) :- % If M is a var, nodebug for all
 %% This entry point is only for documentation purposes.
 :- export(debug_module_source/1).
 :- pred debug_module_source(Module) : atm(Module)
-   # "The debugger will take into acount module @var{Module} (assuming
-   it is is loaded in source-level debug mode).  When issuing this
+   # "The debugger will take into account module @var{Module} (assuming
+   it is loaded in source-level debug mode).  When issuing this
    command at the toplevel shell, the compiler is instructed also to
    set to @em{interpret} the loading mode of files defining that
    module and also to mark it as 'modified' so that (re)loading this
@@ -414,7 +414,7 @@ functor_spec(Name, Name, 0, 255, _) :- % 255 is max. arity
    : atm * sourcename * int * int * int * int
    # "Set a @index{breakpoint} in file @var{Src} between lines
    @var{Ln0} and @var{Ln1} at the literal corresponding to the
-   @var{Number}'th occurence of (predicate) name @var{Pred}.  The pair
+   @var{Number}'th occurrence of (predicate) name @var{Pred}.  The pair
    @var{Ln0}-@var{Ln1} uniquely identifies a program clause and must
    correspond to the start and end line numbers for the clause. The
    rest of the arguments provide enough information to be able to
@@ -461,9 +461,9 @@ nobreakall :-
 
 :- export(list_breakpt/0).
 :- pred list_breakpt/0 # "Prints out the location of all
-    breakpoints. The location of the breakpoints is showed usual by
+    breakpoints. The location of the breakpoints is shown usually by
     referring to the source file, the lines between which the predicate
-    can be found, the predicate name and the number of occurrence of the
+    can be found, the predicate name and the number of occurrences of the
     predicate name of the literal.".
 
 list_breakpt:-
