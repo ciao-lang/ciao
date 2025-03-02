@@ -153,11 +153,37 @@ enlarge_array(I, Size0, Array0, Size, Array) :-
 
 array_item(0, _, Item, Item) :- !,
     Item \== $ .
+array_item(_N, _Index, $, _Item) :- !, fail.
 array_item(N, Index, Array, Item) :-
     N1 is N-2,
     Subindex is ((Index>>N1)/\3)+1,
     arg(Subindex, Array, Array1),
     array_item(N1, Index, Array1, Item).
+
+
+:- pred array_length(+Array,-Length) # 
+    "returns the current @var{Length} of @var{Array}.".
+
+:- export(array_length/2).
+array_length(array($(A0,A1,A2,A3),Size), Length) :- 
+    N is Size-2,
+    subarray_length(0, N, 0, A0, none, L1), 
+    subarray_length(1, N, 0, A1, L1, L2), 
+    subarray_length(2, N, 0, A2, L2, L3), 
+    subarray_length(3, N, 0, A3, L3, Length).
+
+subarray_length(K, 0, M, Item, _, N) :-
+    Item \== $, !,
+    N is K+M.
+subarray_length(K, N, M, $(A0,A1,A2,A3), L0, L) :-
+    N>0, !,
+    N1 is N-2,
+    M1 is (K+M)<<2,
+    subarray_length(0, N1, M1, A0, L0, L1),
+    subarray_length(1, N1, M1, A1, L1, L2),
+    subarray_length(2, N1, M1, A2, L2, L3),
+    subarray_length(3, N1, M1, A3, L3, L).
+subarray_length(_, _, _, _, L, L).
 
 
 update_array_item(0, _, _, NewItem, NewItem) :- !.
