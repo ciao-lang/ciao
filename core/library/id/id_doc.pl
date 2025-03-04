@@ -30,7 +30,7 @@ the proof tree), while the memory consumption is the same as depth first.
 
 @tt{:- iterative(Name, FirstCut, Formula).}
 
-which states than the predicate 'Name' given in functor/arity form
+which states that the predicate 'Name' given in functor/arity form
 will be executed using the iterative deepening search rule, starting
 at depth @var{FirstCut}, and with depth being incremented by predicate
 @var{Formula}. This predicate computes the new depth using the
