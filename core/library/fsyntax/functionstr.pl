@@ -104,10 +104,10 @@ defunc_decl(fun_eval(Spec), _, Mod) :- !,
     ; function_output_arg(Spec, Fun, A, QM) ->
         asserta_fact(fun_return(Fun, A, Mod, QM)),
         make_fun_eval(Fun, Mod, QM)
-    ; Spec = abbrev(Pattern, Val) -> % TODO: document
-        assertz_fact(macro_rule(Pattern, Mod, Val, -, -))
+    ; Spec = notation(Pattern, Val) -> % TODO: document
+        asserta_fact(macro_rule(Pattern, Mod, Val, -, -))
     ; Spec = macro(Pattern, Val, SubOut, SubExpr) -> % TODO: document
-        assertz_fact(macro_rule(Pattern, Mod, Val, SubOut, SubExpr))
+        asserta_fact(macro_rule(Pattern, Mod, Val, SubOut, SubExpr))
     ; message(error, ['Invalid fun_eval specification: ',Spec])
     ).
 defunc_decl(fun_return(FSpec), _, Mod) :- !,
