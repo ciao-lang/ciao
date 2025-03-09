@@ -1,4 +1,4 @@
-:- module(functionstr, [defunc/3, defunc_goal/2], [datafacts]).
+:- module(xsyntax_tr, [defunc/3, defunc_goal/2], [datafacts]).
 
 :- include(library(fsyntax/ops)).
 
@@ -15,7 +15,8 @@
 :- data fun_return/4.
 :- data macro_rule/5. % TODO: document feature
 
-%%%% Sentence translation %%%%
+% ---------------------------------------------------------------------------
+%! # Sentence translation
 
 % defunc(FuncItem, PredItem, Module) :- PredItem is a clause, query or
 % command which is equivalent to FuncItem but without functions.
@@ -168,7 +169,8 @@ concat_bodies((G, Gs), B, (G, NB)) :- !,
     concat_bodies(Gs, B, NB).
 concat_bodies(G, B, (G, B)).
 
-%%%% Translating terms to a normal form %%%%
+% ---------------------------------------------------------------------------
+%! # Translating terms to a normal form
 
 normalize(Var,_Mod,_Arith, Var) :- var(Var), !.
 normalize(~V,_Mod,_Arith, NrF) :-
@@ -469,7 +471,7 @@ normalize_statevars_([Arg|Args], [Arg|Args2]) :-
     normalize_statevars_(Args, Args2).
 
 % ---------------------------------------------------------------------------
-%%%% Translating normal forms to terms + goals %%%%
+%! # Translating normal forms to terms + goals
 
 % defunc_nrf(Exp, NewExp, AddGoal, RestGoal) :- NewExp is an expression
 % without functions which is equivalent to normal form Exp when adding goals
@@ -532,7 +534,8 @@ defunc_nrf_assign(Val, V, Assign) :-
 defunc_nrf_assign(Val, V, Assign) :-
     defunc_nrf(Val, NVal, Assign, (V = NVal)).
 
-%%%% Goal translation, translates normal forms %%%%
+% ---------------------------------------------------------------------------
+%! # Goal translation, translates normal forms
 
 % defunc_goal(Goal, NewGoal) :- NewGoal is a goal which is equivalent to Goal
 % (which is normalized) but without functions.
