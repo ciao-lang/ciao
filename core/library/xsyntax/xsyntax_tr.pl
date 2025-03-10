@@ -9,11 +9,19 @@
 % Database to store declaration for the currently compiled module
 :- data fun_eval/3.
 :- data eval_arith/2.
-:- data eval_hiord/1.
-:- data eval_statevars/1. % TODO: document feature
-:- data defined_functions/1.
+% Flags for different extensions: % TODO: add user documentation
+%  - hiord: enabled {...} syntax for higher order
+%  - statevars: enable statevar expansion
+%  - funhead: enable (_ := _) heads
+%  - funexp: enable ~F expansion
+%  - arithfunexp: arith in ~F expansion
+%  - condexp: (_?_|_) conditional expressions
+%  - quote: ^F to prevent expansions
+%  - deffun: implicit ~ while definining a function
+:- data eval_flag/2.
+%
 :- data fun_return/4.
-:- data macro_rule/5. % TODO: document feature
+:- data macro_rule/5. % notations % TODO: document
 
 % ---------------------------------------------------------------------------
 %! # Sentence translation
@@ -26,9 +34,7 @@ defunc(end_of_file, end_of_file, Mod) :- !,
     retractall_fact(fun_eval(_,Mod,_)),
     retractall_fact(eval_arith(Mod,_)),
     retractall_fact(macro_rule(_,Mod,_,_,_)),
-    retractall_fact(eval_hiord(Mod)),
-    retractall_fact(eval_statevars(Mod)),
-    retractall_fact(defined_functions(Mod)),
+    retractall_fact(eval_flag(_,Mod)),
     retractall_fact(fun_return(_,_,Mod,_)).
 defunc((?- _), _, _) :- !, fail.
 defunc(('SHELL' :- Decl), R, Mod) :- toplevel_decl(Decl), !, % declarations from the toplevel
@@ -39,6 +45,7 @@ defunc((:- Decl), NewDecl, Mod) :- !,
 defunc((FuncHead := FuncValOpts), Clauses, Mod) :-
     nonvar(FuncValOpts),
     FuncValOpts = (FuncVal1 | FuncValR),
+    enabled_flag(funhead, Mod),
     !,
     Clauses = [Clause1 | ClauseR],
     defunc((FuncHead := FuncVal1), Clause1, Mod),
@@ -49,6 +56,7 @@ defunc(Def, Clauses, Mod) :-
 defunc_pred((FuncHead := CondFuncVal), (Head :- Body), Mod) :-
     nonvar(CondFuncVal),
     CondFuncVal = (Cond ? FuncVal),
+    enabled_flag(funhead, Mod),
     !,
     arith_flag(Mod, ArithF),
     make_tmp_fun_eval(FuncHead, Mod, Ref),
@@ -57,14 +65,18 @@ defunc_pred((FuncHead := CondFuncVal), (Head :- Body), Mod) :-
     normalize(FuncVal, Mod, ArithF, NFuncVal),
     delt_tmp_fun_eval(Ref),
     concat_bodies(NCond, (!, '\6\Unif_ret'(Ret_Arg, NFuncVal)), RestBody).
-defunc_pred((FuncHead := FuncVal), (Head :- Body), Mod) :- !,
+defunc_pred((FuncHead := FuncVal), (Head :- Body), Mod) :-
+    enabled_flag(funhead, Mod),
+    !,
     arith_flag(Mod, ArithF),
     make_tmp_fun_eval(FuncHead, Mod, Ref),
     normalize(FuncVal, Mod, ArithF, NFuncVal),
     defunc_funhead(FuncHead, Mod, ArithF, Head, NFuncVal, AddBody, true),
     delt_tmp_fun_eval(Ref),
     del_last_true(AddBody, Body).
-defunc_pred((FuncHead := FuncVal :- FuncBody), (Head :- Body), Mod) :- !,
+defunc_pred((FuncHead := FuncVal :- FuncBody), (Head :- Body), Mod) :-
+    enabled_flag(funhead, Mod),
+    !,
     arith_flag(Mod, ArithF),
     make_tmp_fun_eval(FuncHead, Mod, Ref),
     defunc_funhead(FuncHead, Mod, ArithF, Head, Ret_Arg, Body, RestBody),
@@ -86,22 +98,8 @@ defunc_decl(fun_eval(Spec), _, Mod) :- !,
         make_fun_eval(P, Mod, QM)
     ; Spec = F/A, functor(P, F, A) ->
         make_fun_eval(P, Mod, (-))
-    ; Spec = arith(false) ->
-        retractall_fact(eval_arith(Mod,_))
-    ; Spec = arith(Arith), valid_arith(Arith) ->
-        asserta_fact(eval_arith(Mod,Arith))
-    ; Spec = hiord(true) ->
-        asserta_fact(eval_hiord(Mod))
-    ; Spec = hiord(false) ->
-        retractall_fact(eval_hiord(Mod))
-    ; Spec = statevars(true) ->
-        asserta_fact(eval_statevars(Mod))
-    ; Spec = statevars(false) ->
-        retractall_fact(eval_statevars(Mod))
-    ; Spec = defined(true) ->
-        asserta_fact(defined_functions(Mod))
-    ; Spec = defined(false) ->
-        retractall_fact(defined_functions(Mod))
+    ; is_flag(Spec, Flag, Val) ->
+        set_flag(Flag, Val, Mod)
     ; function_output_arg(Spec, Fun, A, QM) ->
         asserta_fact(fun_return(Fun, A, Mod, QM)),
         make_fun_eval(Fun, Mod, QM)
@@ -125,6 +123,34 @@ defunc_decl(initialization(Goal), (:- initialization(NGoal)), Mod) :- !,
 defunc_decl(on_abort(Goal), (:- on_abort(NGoal)), Mod) :- !,
     arith_flag(Mod, ArithF),
     normalize(Goal, Mod, ArithF, NGoal).
+
+is_flag(arith(Val), arith, Val) :- nonvar(Val), valid_arith(Val).
+is_flag(hiord(Val), hiord, Val) :- nonvar(Val), is_bool(Val).
+is_flag(statevars(Val), statevars, Val) :- nonvar(Val), is_bool(Val).
+is_flag(funhead(Val), funhead, Val) :- nonvar(Val), is_bool(Val).
+is_flag(funexp(Val), funexp, Val) :- nonvar(Val), is_bool(Val).
+is_flag(arithfunexp(Val), arithfunexp, Val) :- nonvar(Val), is_bool(Val).
+is_flag(condexp(Val), condexp, Val) :- nonvar(Val), is_bool(Val).
+is_flag(quote(Val), quote, Val) :- nonvar(Val), is_bool(Val).
+is_flag(defined(Val), defined, Val) :- nonvar(Val), is_bool(Val).
+
+is_bool(true).
+is_bool(false).
+
+set_flag(arith, Arith, Mod) :- !,
+    retractall_fact(eval_arith(Mod,_)),
+    ( Arith = false -> true
+    ; asserta_fact(eval_arith(Mod,Arith))
+    ).
+set_flag(Flag, Val, Mod) :-
+    ( Val = true ->
+        ( eval_flag(Flag, Mod) -> true ; assertz_fact(eval_flag(Flag, Mod)) )
+    ; Val = false ->
+        ( retract_fact(eval_flag(Flag, Mod)) -> true ; true )
+    ; fail
+    ).
+
+enabled_flag(Flag, Mod) :- eval_flag(Flag, Mod), !.
 
 % decl allowed in toplevel
 toplevel_decl(fun_eval(_)).
@@ -172,12 +198,9 @@ concat_bodies(G, B, (G, B)).
 % ---------------------------------------------------------------------------
 %! # Translating terms to a normal form
 
-normalize(Var,_Mod,_Arith, Var) :- var(Var), !.
-normalize(~V,_Mod,_Arith, NrF) :-
-    var(V), !,
-    NrF = '\6\Eval'(call(V, Ret_Arg), Ret_Arg). % Apply?
+normalize(Var,_Mod,_Arith, NT) :- var(Var), !, NT = Var.
 normalize(T, _Mod, _Arith, NT) :- T = ^(X), var(X), !, NT = T. % TODO: just quote (bug caught with ISO functor/3)
-normalize(^(T), Mod, Arith, NT) :- !,
+normalize(^(T), Mod, Arith, NT) :- enabled_flag(quote, Mod), !,
     normalize_args_of(T, Mod, Arith, NT).
 normalize(F, Mod, Arith, NrF) :-
     match_macro_rule(F, Mod, NF, SubOut, SubExpr), !, % TODO: detect loops?
@@ -186,6 +209,18 @@ normalize(F, Mod, Arith, NrF) :-
       SubOut = NSubExpr
     ),
     normalize(NF, Mod, Arith, NrF).
+normalize(~T, Mod, Arith, NrF) :- enabled_flag(funexp, Mod), !,
+    ( var(T) ->
+        NrF = '\6\Eval'(call(T, Ret_Arg), Ret_Arg) % Apply?
+    ; arith_exp(T), enabled_flag(arithfunexp, Mod) ->
+        NrF = '\6\Arit'(true, NF), % TODO: allow other ArithF?
+        disable_arith(Arith, NArith),
+        normalize_args_of(T, Mod, NArith, NF)
+    ; take_qualification(T, QM, Fun),
+      fun_to_pred_ret_tilde(Fun, QM, Mod, Arith, Pred0, Ret_Arg),
+      add_qualification(QM, Pred0, Pred),
+      NrF = '\6\Eval'(Pred, Ret_Arg)
+    ).
 normalize(F, Mod, Arith, NrF) :-
     is_arith_exp(F, Arith, ArithF, F0), !,
     NrF = '\6\Arit'(ArithF, NF),
@@ -196,11 +231,6 @@ normalize(F, Mod, Arith, NrF) :-
     NrF = '\6\AritRel'(Arith, NF),
     disable_arith(Arith, NArith),
     normalize_args_of(F0, Mod, NArith, NF).
-normalize(~T, Mod, Arith, NrF) :- !,
-    take_qualification(T, QM, Fun),
-    fun_to_pred_ret_tilde(Fun, QM, Mod, Arith, Pred0, Ret_Arg),
-    add_qualification(QM, Pred0, Pred),
-    NrF = '\6\Eval'(Pred, Ret_Arg).
 normalize(F, Mod, Arith, NrF) :-
     take_qualification(F, QM, Fun),
     nonvar(Fun),
@@ -208,29 +238,29 @@ normalize(F, Mod, Arith, NrF) :-
     fun_to_pred_ret(Fun, QM, Mod, Arith, Pred0, Ret_Arg),
     add_qualification(QM, Pred0, Pred),
     NrF = '\6\Eval'(Pred, Ret_Arg).
-normalize((A|B), Mod, Arith, '\6\Opts'(NA, NB)) :- !,
+normalize((A|B), Mod, Arith, '\6\Opts'(NA, NB)) :- enabled_flag(condexp, Mod), !,
     restore_arith(Arith, NArith),
     normalize(A, Mod, NArith, NA),
     normalize(B, Mod, NArith, NB).
-normalize((A?B), Mod, Arith, '\6\Cond'(NA,NB)) :- !,
+normalize((A?B), Mod, Arith, '\6\Cond'(NA,NB)) :- enabled_flag(condexp, Mod), !,
     restore_arith(Arith, NArith),
     normalize(A, Mod, NArith, NA),
     normalize(B, Mod, NArith, NB).
 normalize('\006\curly_block'(Sents), Mod, _Arith, NrF) :-
-    eval_hiord(Mod),
+    enabled_flag(hiord, Mod),
     !,
     norm_curly_block(Sents, Mod, NF),
-    norm_predabs_arity(NF, N),
+    norm_predabs_arity(NF, Mod, N),
     NrF = '\6\Predabs'(N, NF).
 normalize({F}, Mod, _Arith, NrF) :-
-    eval_hiord(Mod),
-    is_predabs(F),
+    enabled_flag(hiord, Mod),
+    is_predabs(F, Mod),
     !,
     defunc_predabs(F, NF, Mod),
-    norm_predabs_arity(NF, N),
+    norm_predabs_arity(NF, Mod, N),
     NrF = '\6\Predabs'(N, NF).
 normalize({F}, Mod, Arith, NrF) :-
-    eval_hiord(Mod),
+    enabled_flag(hiord, Mod),
     !,
     restore_arith(Arith, NArith),
     normalize(F, Mod, NArith, NF),
@@ -239,7 +269,7 @@ normalize(T, Mod, Arith, NT) :-
     normalize_args_of(T, Mod, Arith, NT).
 
 normalize_args_of(T, Mod, Arith, NT) :-
-    ( eval_statevars(Mod) -> normalize_statevars(T, T1)
+    ( enabled_flag(statevars, Mod) -> normalize_statevars(T, T1)
     ; T1 = T
     ),
     functor(T1, F, A),
@@ -259,26 +289,26 @@ normalize_args(N, T0, Mod, Arith, T1) :-
 :- use_module(library(terms_vars), [varset/2]). % (for def_shvs)
 
 % Is it a predicate (or function) abstraction? (gives arity in N)
-is_predabs(B) :-
-    split_shvs(B, _, A),
+is_predabs(B, Mod) :-
+    split_shvs(B, Mod, _, A),
     ( nonvar(A), A = (A1 :- _) -> true ; A1 = A ),
     nonvar(A1),
-    ( A1 = (A2 := _) -> % TODO: make it optional (hiord {} without fsyntax)
+    ( A1 = (A2 := _), enabled_flag(funhead, Mod) ->
         nonvar(A2), functor(A2, '', _)
     ; functor(A1, '', _)
     ).
 
 % Get arity of a normalized predicate abstraction
-norm_predabs_arity(B, N) :-
-    split_shvs(B, _, A),
+norm_predabs_arity(B, Mod, N) :-
+    split_shvs(B, Mod, _, A),
     ( nonvar(A), A = (A1 :- _) -> true ; A1 = A ),
     functor(A1, _, N).
 
-split_shvs(F, MaybeShVs, F0) :-
+split_shvs(F, Mod, MaybeShVs, F0) :-
     nonvar(F),
-    ( F = (ShVs -> Head := R :- Body) ->
+    ( F = (ShVs -> Head := R :- Body), enabled_flag(funhead, Mod) ->
         MaybeShVs = yes(ShVs), F0 = (Head := R :- Body)
-    ; F = (ShVs -> Head := R) ->
+    ; F = (ShVs -> Head := R), enabled_flag(funhead, Mod) ->
         MaybeShVs = yes(ShVs), F0 = (Head := R)
     ; F = (ShVs -> Head :- Body) ->
         MaybeShVs = yes(ShVs), F0 = (Head :- Body)
@@ -288,10 +318,10 @@ split_shvs(F, MaybeShVs, F0) :-
     ).
 
 % effective head for sharing (FuncHead or Head)
-sh_head(F, H) :-
+sh_head(F, Mod, H) :-
     nonvar(F),
-    ( F = (Head := _ :- _) -> H = Head
-    ; F = (Head := _) -> H = Head
+    ( F = (Head := _ :- _), enabled_flag(funhead, Mod) -> H = Head
+    ; F = (Head := _), enabled_flag(funhead, Mod) -> H = Head
     ; F = (Head :- _) -> H = Head
     ; H = F
     ).
@@ -302,25 +332,25 @@ add_shvs(no, HB, HB).
 
 % Defunc for predicate (or function) abstractions
 defunc_predabs(F, NF, Mod) :-
-    split_shvs(F, MaybeShVs0, F0),
+    split_shvs(F, Mod, MaybeShVs0, F0),
     defunc_pred(F0, NF0, Mod),
-    def_shvs(MaybeShVs0, F0, MaybeShVs),
+    def_shvs(MaybeShVs0, F0, Mod, MaybeShVs),
     add_shvs(MaybeShVs, NF0, NF).
 
 % set default (non)shared vars (if needed)
-def_shvs(no, F, MaybeShVs) :- !,
+def_shvs(no, F, Mod, MaybeShVs) :- !,
     % head variables "shadow" parent variables (share-parent excluding
     % variables in the head)
-    sh_head(F, H),
+    sh_head(F, Mod, H),
     varset(H, HeadVars),
     MaybeShVs = yes(-HeadVars). % Note: yes(-[]) for share parent
-def_shvs(MaybeShVs, _, MaybeShVs).
+def_shvs(MaybeShVs, _, _, MaybeShVs).
 
 % Merge multiple clauses into a single one
 % TODO: This is a temporary solution until multiple clauses are
 % supported in PA
 norm_curly_block(Sents0, Mod, NrF) :-
-    split_shvs_block(Sents0, MaybeShVs0, Sents1),
+    split_shvs_block(Sents0, Mod, MaybeShVs0, Sents1),
     defunc_pred_sents(Sents1, Mod, Cls),
     ( check_heads(Cls, HeadN, HeadF) -> true
     ; fail % TODO: emit an error instead
@@ -331,9 +361,9 @@ norm_curly_block(Sents0, Mod, NrF) :-
     add_shvs(MaybeShVs, (Head :- Body), NrF).
 
 % (shvs only in first clause)
-split_shvs_block([S0|Ss], MaybeShVs, [S|Ss]) :-
+split_shvs_block([S0|Ss], Mod, MaybeShVs, [S|Ss]) :-
     S0 = sentence(Cl, VarNames, Singletons, Ln0, Ln1),
-    split_shvs(Cl, MaybeShVs, Cl2),
+    split_shvs(Cl, Mod, MaybeShVs, Cl2),
     S = sentence(Cl2, VarNames, Singletons, Ln0, Ln1).
 
 % All heads must be consistent
@@ -376,9 +406,8 @@ get_heads([Cl|Cls], [H|Hs]) :- cl_decomp(Cl, H, _), get_heads(Cls, Hs).
 
 % ---------------------------------------------------------------------------
 
-is_arith_exp(~(F), _Arith, ArithF, F) :-
-    arith_exp(F), !, ArithF = true. % (default) % TODO: allow other ArithF?
-is_arith_exp(F, Arith, ArithF, F) :- \+ disabled_arith(Arith),
+is_arith_exp(F, Arith, ArithF, F) :-
+    \+ disabled_arith(Arith),
     arith_exp(F),
     ArithF = Arith.
 
@@ -537,6 +566,12 @@ defunc_nrf_assign(Val, V, Assign) :-
 % ---------------------------------------------------------------------------
 %! # Goal translation, translates normal forms
 
+% TODO: use enabled_flag(funexp,Mod) to enable/disable goal translations (see
+%   compiler_oc/mexpand.pl). This cannot be easily done at this moment
+%   since defunc_goal do not have access to the translation context,
+%   instead if relies on reserved functors.
+% TODO:[oc-merge] mexpand:defunc_exp/3 does normalize+defunc_goal
+
 % defunc_goal(Goal, NewGoal) :- NewGoal is a goal which is equivalent to Goal
 % (which is normalized) but without functions.
 %
@@ -608,13 +643,12 @@ make_fun_eval(P, Mod, QM) :-
     asserta_fact(fun_eval(P, Mod, QM)).
 
 make_tmp_fun_eval(Fun, Mod, Ref) :-
-    defined_functions(Mod), !,
+    enabled_flag(deffun, Mod), !,
     functor(Fun, F, A),
     functor(P, F, A),
     ( current_fact(fun_eval(P, Mod, (-))) ->
         Ref = []
-    ;
-        asserta_fact(fun_eval(P, Mod, (-)), Ref)
+    ; asserta_fact(fun_eval(P, Mod, (-)), Ref)
     ).
 make_tmp_fun_eval(_F, _Mod, []).
 
@@ -660,6 +694,7 @@ del_last_true_((G,Gs), G0, (G0,NG)) :-
 % ---------------------------------------------------------------------------
 % Syntax tables
 
+valid_arith(false).
 valid_arith(true).
 valid_arith(clpr).
 valid_arith(clpq).

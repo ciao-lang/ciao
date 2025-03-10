@@ -9,7 +9,6 @@
 %   - simpler translation for functional if-then-else (emit (_->_;_)
 %     directly, because it is correctly optimized by later
 %     optimizations)
-:- '$pragma'(functional_expand).
 :- else.
 :- load_compilation_module(library(xsyntax/xsyntax_tr)).
 :- add_sentence_trans(xsyntax_tr:defunc/3, 610).
