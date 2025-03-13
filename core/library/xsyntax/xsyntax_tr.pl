@@ -58,39 +58,34 @@ defunc_pred((FuncHead := CondFuncVal), (Head :- Body), Mod) :-
     CondFuncVal = (Cond ? FuncVal),
     enabled_flag(funhead, Mod),
     !,
-    arith_flag(Mod, ArithF),
     make_tmp_fun_eval(FuncHead, Mod, Ref),
-    defunc_funhead(FuncHead, Mod, ArithF, Head, Ret_Arg, Body, RestBody),
-    normalize(Cond, Mod, ArithF, NCond),
-    normalize(FuncVal, Mod, ArithF, NFuncVal),
+    defunc_funhead(FuncHead, Mod, Head, Ret_Arg, Body, RestBody),
+    normalize(Cond, Mod, NCond),
+    normalize(FuncVal, Mod, NFuncVal),
     delt_tmp_fun_eval(Ref),
     concat_bodies(NCond, (!, '\6\Unif_ret'(Ret_Arg, NFuncVal)), RestBody).
 defunc_pred((FuncHead := FuncVal), (Head :- Body), Mod) :-
     enabled_flag(funhead, Mod),
     !,
-    arith_flag(Mod, ArithF),
     make_tmp_fun_eval(FuncHead, Mod, Ref),
-    normalize(FuncVal, Mod, ArithF, NFuncVal),
-    defunc_funhead(FuncHead, Mod, ArithF, Head, NFuncVal, AddBody, true),
+    normalize(FuncVal, Mod, NFuncVal),
+    defunc_funhead(FuncHead, Mod, Head, NFuncVal, AddBody, true),
     delt_tmp_fun_eval(Ref),
     del_last_true(AddBody, Body).
 defunc_pred((FuncHead := FuncVal :- FuncBody), (Head :- Body), Mod) :-
     enabled_flag(funhead, Mod),
     !,
-    arith_flag(Mod, ArithF),
     make_tmp_fun_eval(FuncHead, Mod, Ref),
-    defunc_funhead(FuncHead, Mod, ArithF, Head, Ret_Arg, Body, RestBody),
-    normalize(FuncBody, Mod, ArithF, NFuncBody),
-    normalize(FuncVal, Mod, ArithF, NFuncVal),
+    defunc_funhead(FuncHead, Mod, Head, Ret_Arg, Body, RestBody),
+    normalize(FuncBody, Mod, NFuncBody),
+    normalize(FuncVal, Mod, NFuncVal),
     delt_tmp_fun_eval(Ref),
     concat_bodies(NFuncBody, '\6\Unif_ret'(Ret_Arg, NFuncVal), RestBody).
 defunc_pred((Head :- Body), (NewHead :- NewBody), Mod) :- !,
-    arith_flag(Mod, ArithF),
-    normalize(Body, Mod, ArithF, NBody),
-    defunc_head(Head, Mod, ArithF, NewHead, NewBody, NBody).
+    normalize(Body, Mod, NBody),
+    defunc_head(Head, Mod, NewHead, NewBody, NBody).
 defunc_pred(Head, (NewHead :- NewBody), Mod) :-
-    arith_flag(Mod, ArithF),
-    defunc_head(Head, Mod, ArithF, NewHead, Body, true),
+    defunc_head(Head, Mod, NewHead, Body, true),
     del_last_true(Body, NewBody).
 
 defunc_decl(fun_eval(Spec), _, Mod) :- !,
@@ -118,11 +113,9 @@ defunc_decl(fun_return(FSpec), _, Mod) :- !,
 defunc_decl(lazy(Decl), (:- lazy(LazySpec)), Mod) :- !,
     defunc_lazy_decl(Decl, LazySpec, Mod).
 defunc_decl(initialization(Goal), (:- initialization(NGoal)), Mod) :- !,
-    arith_flag(Mod, ArithF),
-    normalize(Goal, Mod, ArithF, NGoal).
+    normalize(Goal, Mod, NGoal).
 defunc_decl(on_abort(Goal), (:- on_abort(NGoal)), Mod) :- !,
-    arith_flag(Mod, ArithF),
-    normalize(Goal, Mod, ArithF, NGoal).
+    normalize(Goal, Mod, NGoal).
 
 is_flag(arith(Val), arith, Val) :- nonvar(Val), valid_arith(Val).
 is_flag(hiord(Val), hiord, Val) :- nonvar(Val), is_bool(Val).
@@ -132,7 +125,7 @@ is_flag(funexp(Val), funexp, Val) :- nonvar(Val), is_bool(Val).
 is_flag(arithfunexp(Val), arithfunexp, Val) :- nonvar(Val), is_bool(Val).
 is_flag(condexp(Val), condexp, Val) :- nonvar(Val), is_bool(Val).
 is_flag(quote(Val), quote, Val) :- nonvar(Val), is_bool(Val).
-is_flag(defined(Val), defined, Val) :- nonvar(Val), is_bool(Val).
+is_flag(defined(Val), deffun, Val) :- nonvar(Val), is_bool(Val).
 
 is_bool(true).
 is_bool(false).
@@ -181,11 +174,12 @@ defunc_lazy_decl(fun_return(Spec), LazySpec, Mod) :- !,
 arith_flag(Mod, ArithF) :-
     ( eval_arith(Mod, Arith) -> ArithF = Arith ; ArithF = false ).
 
-defunc_funhead(Head, Mod, Arith, NPred, Ret_Arg, AddBody, RestBody) :-
-    fun_to_pred_ret(Head, (-), Mod, Arith, Pred, Ret_Arg),
+defunc_funhead(Head, Mod, NPred, Ret_Arg, AddBody, RestBody) :-
+    fun_to_pred_ret(Head, (-), Mod, Pred, Ret_Arg),
     defunc_nrf_args_of(Pred, NPred, AddBody, RestBody).
 
-defunc_head(Head, Mod, Arith, NewHead, AddBody, RestBody) :-
+defunc_head(Head, Mod, NewHead, AddBody, RestBody) :-
+    arith_flag(Mod, Arith),
     normalize_args_of(Head, Mod, Arith, NHead),
     defunc_nrf_args_of(NHead, NewHead, AddBody, RestBody).
 
@@ -198,74 +192,79 @@ concat_bodies(G, B, (G, B)).
 % ---------------------------------------------------------------------------
 %! # Translating terms to a normal form
 
-normalize(Var,_Mod,_Arith, NT) :- var(Var), !, NT = Var.
-normalize(T, _Mod, _Arith, NT) :- T = ^(X), var(X), !, NT = T. % TODO: just quote (bug caught with ISO functor/3)
-normalize(^(T), Mod, Arith, NT) :- enabled_flag(quote, Mod), !,
+normalize(T, Mod, NT) :-
+    arith_flag(Mod, Arith),
+    normalize_(T, Mod, Arith, NT).
+
+normalize_(Var,_Mod,_Arith, NT) :- var(Var), !, NT = Var.
+normalize_(T, _Mod, _Arith, NT) :- T = ^(X), var(X), !, NT = T. % TODO: just quote (bug caught with ISO functor/3)
+normalize_(^(T), Mod, Arith, NT) :- enabled_flag(quote, Mod), !,
     normalize_args_of(T, Mod, Arith, NT).
-normalize(F, Mod, Arith, NrF) :-
+normalize_(F, Mod, Arith, NrF) :-
     match_macro_rule(F, Mod, NF, SubOut, SubExpr), !, % TODO: detect loops?
     ( SubOut == (-) -> true
-    ; normalize(SubExpr, Mod, Arith, NSubExpr), % (treat inner macro parts)
+    ; normalize_(SubExpr, Mod, Arith, NSubExpr), % (treat inner macro parts)
       SubOut = NSubExpr
     ),
-    normalize(NF, Mod, Arith, NrF).
-normalize(~T, Mod, Arith, NrF) :- enabled_flag(funexp, Mod), !,
+    normalize_(NF, Mod, Arith, NrF).
+normalize_(~T, Mod, Arith, NrF) :- enabled_flag(funexp, Mod), !,
     ( var(T) ->
         NrF = '\6\Eval'(call(T, Ret_Arg), Ret_Arg) % Apply?
     ; arith_exp(T), enabled_flag(arithfunexp, Mod) ->
-        NrF = '\6\Arit'(true, NF), % TODO: allow other ArithF?
-        disable_arith(Arith, NArith),
+        ( is_inner_arith(Arith) -> NrF = NF
+        ; NrF = '\6\Arit'(true, NF) % TODO: allow other arith (clpfd, etc.) in explicit '~'
+        ),
+        inner_arith(Arith, NArith),
         normalize_args_of(T, Mod, NArith, NF)
     ; take_qualification(T, QM, Fun),
-      fun_to_pred_ret_tilde(Fun, QM, Mod, Arith, Pred0, Ret_Arg),
+      fun_to_pred_ret_tilde(Fun, QM, Mod, Pred0, Ret_Arg),
       add_qualification(QM, Pred0, Pred),
       NrF = '\6\Eval'(Pred, Ret_Arg)
     ).
-normalize(F, Mod, Arith, NrF) :-
-    is_arith_exp(F, Arith, ArithF, F0), !,
-    NrF = '\6\Arit'(ArithF, NF),
-    disable_arith(Arith, NArith),
-    normalize_args_of(F0, Mod, NArith, NF).
-normalize(F, Mod, Arith, NrF) :-
-    is_arith_rel(F, Arith, F0), !,
+normalize_(F, Mod, Arith, NrF) :-
+    is_arith_exp(F, Arith), !,
+    ( is_inner_arith(Arith) -> NrF = NF
+    ; NrF = '\6\Arit'(Arith, NF)
+    ),
+    inner_arith(Arith, NArith),
+    normalize_args_of(F, Mod, NArith, NF).
+normalize_(F, Mod, Arith, NrF) :-
+    is_arith_rel(F, Arith), !,
     NrF = '\6\AritRel'(Arith, NF),
-    disable_arith(Arith, NArith),
-    normalize_args_of(F0, Mod, NArith, NF).
-normalize(F, Mod, Arith, NrF) :-
+    inner_arith(Arith, NArith),
+    normalize_args_of(F, Mod, NArith, NF).
+normalize_(F, Mod, _Arith, NrF) :-
     take_qualification(F, QM, Fun),
     nonvar(Fun),
     fun_eval(Fun, Mod, QM), !,
-    fun_to_pred_ret(Fun, QM, Mod, Arith, Pred0, Ret_Arg),
+    fun_to_pred_ret(Fun, QM, Mod, Pred0, Ret_Arg),
     add_qualification(QM, Pred0, Pred),
     NrF = '\6\Eval'(Pred, Ret_Arg).
-normalize((A|B), Mod, Arith, '\6\Opts'(NA, NB)) :- enabled_flag(condexp, Mod), !,
-    restore_arith(Arith, NArith),
-    normalize(A, Mod, NArith, NA),
-    normalize(B, Mod, NArith, NB).
-normalize((A?B), Mod, Arith, '\6\Cond'(NA,NB)) :- enabled_flag(condexp, Mod), !,
-    restore_arith(Arith, NArith),
-    normalize(A, Mod, NArith, NA),
-    normalize(B, Mod, NArith, NB).
-normalize('\006\curly_block'(Sents), Mod, _Arith, NrF) :-
+normalize_((A|B), Mod, _Arith, '\6\Opts'(NA, NB)) :- enabled_flag(condexp, Mod), !,
+    normalize(A, Mod, NA),
+    normalize(B, Mod, NB).
+normalize_((A?B), Mod, _Arith, '\6\Cond'(NA,NB)) :- enabled_flag(condexp, Mod), !,
+    normalize(A, Mod, NA),
+    normalize(B, Mod, NB).
+normalize_('\006\curly_block'(Sents), Mod, _Arith, NrF) :-
     enabled_flag(hiord, Mod),
     !,
     norm_curly_block(Sents, Mod, NF),
     norm_predabs_arity(NF, Mod, N),
     NrF = '\6\Predabs'(N, NF).
-normalize({F}, Mod, _Arith, NrF) :-
+normalize_({F}, Mod, _Arith, NrF) :-
     enabled_flag(hiord, Mod),
     is_predabs(F, Mod),
     !,
     defunc_predabs(F, NF, Mod),
     norm_predabs_arity(NF, Mod, N),
     NrF = '\6\Predabs'(N, NF).
-normalize({F}, Mod, Arith, NrF) :-
+normalize_({F}, Mod, _Arith, NrF) :-
     enabled_flag(hiord, Mod),
     !,
-    restore_arith(Arith, NArith),
-    normalize(F, Mod, NArith, NF),
+    normalize(F, Mod, NF),
     NrF = '\6\Block'(NF).
-normalize(T, Mod, Arith, NT) :-
+normalize_(T, Mod, Arith, NT) :-
     normalize_args_of(T, Mod, Arith, NT).
 
 normalize_args_of(T, Mod, Arith, NT) :-
@@ -274,15 +273,15 @@ normalize_args_of(T, Mod, Arith, NT) :-
     ),
     functor(T1, F, A),
     functor(NT, F, A),
-    normalize_args(A, T1, Mod, Arith, NT).
+    normalize_args_(A, T1, Mod, Arith, NT).
 
-normalize_args(0, _, _Mod,_Arith, _ ) :- !.
-normalize_args(N, T0, Mod, Arith, T1) :-
+normalize_args_(0, _, _Mod,_Arith, _ ) :- !.
+normalize_args_(N, T0, Mod, Arith, T1) :-
     arg(N, T0, A0),
     arg(N, T1, A1),
     N1 is N-1,
-    normalize(A0, Mod, Arith, A1),
-    normalize_args(N1, T0, Mod, Arith, T1).
+    normalize_(A0, Mod, Arith, A1),
+    normalize_args_(N1, T0, Mod, Arith, T1).
 
 % ---------------------------------------------------------------------------
 
@@ -405,25 +404,24 @@ get_heads([], []).
 get_heads([Cl|Cls], [H|Hs]) :- cl_decomp(Cl, H, _), get_heads(Cls, Hs).
 
 % ---------------------------------------------------------------------------
+% NOTE: arith expression notation propagates through the whole
+%   expression (not first first functor).
 
-is_arith_exp(F, Arith, ArithF, F) :-
-    \+ disabled_arith(Arith),
-    arith_exp(F),
-    ArithF = Arith.
+is_arith_exp(F, Arith) :-
+    \+ Arith = false,
+    arith_exp(F).
 
-is_arith_rel(F, Arith, F) :-
-%    \+ Arith = true,
-    \+ disabled_arith(Arith),
+is_arith_rel(F, Arith) :-
+    \+ Arith = false,
     arith_rel(F).
 
-disabled_arith(false).
-disabled_arith(tempfalse(_)).
+is_inner_arith(tempfalse(_)).
 
-disable_arith(false, NArith) :- !, NArith = false.
-disable_arith(Prev,  tempfalse(Prev)).
+inner_arith(false, NArith) :- !, NArith = false.
+inner_arith(Arith, NArith) :- Arith = tempfalse(_), !, NArith = Arith.
+inner_arith(Prev,  tempfalse(Prev)). % (tempfalse(_) for inner expressions, not expanded)
 
-restore_arith(tempfalse(Prev), NArith) :- !, NArith = Prev.
-restore_arith(Arith, Arith).
+% ---------------------------------------------------------------------------
 
 match_macro_rule(F, Mod, NF, SubOut, SubExpr) :-
     functor(F, N, A),
@@ -432,6 +430,8 @@ match_macro_rule(F, Mod, NF, SubOut, SubExpr) :-
     !,
     F = F0, NF = NF0, SubOut = SubOut0, SubExpr = SubExpr0.
 
+% ---------------------------------------------------------------------------
+
 % PRE: 1st is not var
 take_qualification(QM:T, QM, T) :- !.
 take_qualification(T,   (-), T).
@@ -439,27 +439,26 @@ take_qualification(T,   (-), T).
 add_qualification(Q, T, T) :- Q == (-), !.
 add_qualification(QM, T, QM:T).
 
-fun_to_pred_ret_tilde(Fun,_QM, Mod, Arith, Pred, Ret_Arg) :-
+fun_to_pred_ret_tilde(Fun,_QM, Mod, Pred, Ret_Arg) :-
     functor(Fun, F, A),
     has_tilde(A, Fun, Arg), !, % Quick check
     functor(Pred, F, A),
     arg(Arg, Pred, Ret_Arg),
-    restore_arith(Arith, NArith),
-    normalize_args_but(A, Arg, Fun, Mod, NArith, Pred).
-fun_to_pred_ret_tilde(Fun, QM, Mod, Arith, Pred, Ret_Arg) :-
-    fun_to_pred_ret(Fun, QM, Mod, Arith, Pred, Ret_Arg).
+    normalize_args_but(A, Arg, Fun, Mod, Pred).
+fun_to_pred_ret_tilde(Fun, QM, Mod, Pred, Ret_Arg) :-
+    fun_to_pred_ret(Fun, QM, Mod, Pred, Ret_Arg).
 
-normalize_args_but(N, N, T0, Mod, Arith, T1) :- !,
+normalize_args_but(N, N, T0, Mod, T1) :- !,
     N1 is N-1,
-    normalize_args(N1, T0, Mod, Arith, T1).
-normalize_args_but(N, Exc, T0, Mod, Arith, T1) :-
+    normalize_args(N1, T0, Mod, T1).
+normalize_args_but(N, Exc, T0, Mod, T1) :-
     arg(N, T0, A0),
     arg(N, T1, A1),
     N1 is N-1,
-    normalize(A0, Mod, Arith, A1),
-    normalize_args_but(N1, Exc, T0, Mod, Arith, T1).
+    normalize(A0, Mod, A1),
+    normalize_args_but(N1, Exc, T0, Mod, T1).
 
-fun_to_pred_ret(Fun, QM, Mod, Arith, Pred, Ret_Arg) :-
+fun_to_pred_ret(Fun, QM, Mod, Pred, Ret_Arg) :-
     functor(Fun, F, A),
     A1 is A+1,
     functor(Pred, F, A1),
@@ -467,19 +466,27 @@ fun_to_pred_ret(Fun, QM, Mod, Arith, Pred, Ret_Arg) :-
     ; Arg = A1
     ),
     arg(Arg, Pred, Ret_Arg),
-    restore_arith(Arith, NArith),
-    normalize_args_fun_but(A1, Arg, Fun, Mod, NArith, Pred).
+    normalize_args_fun_but(A1, Arg, Fun, Mod, Pred).
 
-normalize_args_fun_but(N, N, T0, Mod, Arith, T1) :- !,
+normalize_args_fun_but(N, N, T0, Mod, T1) :- !,
     N1 is N-1,
-    normalize_args(N1, T0, Mod, Arith, T1).
-normalize_args_fun_but(N, Exc, T0, Mod, Arith, T1) :-
+    normalize_args(N1, T0, Mod, T1).
+normalize_args_fun_but(N, Exc, T0, Mod, T1) :-
     N1 is N-1,
     arg(N1, T0, A0),
     arg(N, T1, A1),
-    normalize(A0, Mod, Arith, A1),
-    normalize_args_fun_but(N1, Exc, T0, Mod, Arith, T1).
+    normalize(A0, Mod, A1),
+    normalize_args_fun_but(N1, Exc, T0, Mod, T1).
 
+normalize_args(0, _, _Mod, _ ) :- !.
+normalize_args(N, T0, Mod, T1) :-
+    arg(N, T0, A0),
+    arg(N, T1, A1),
+    N1 is N-1,
+    normalize(A0, Mod, A1),
+    normalize_args(N1, T0, Mod, T1).
+
+% TODO: first translate !V to \6\statevar then expand in defunc_nrf so that only goals are affected
 % Expand !V arguments in atom as '\6\before'(V) and '\6\after'(V)
 normalize_statevars(X, X2) :-
     ( nonvar(X),
