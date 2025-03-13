@@ -143,6 +143,10 @@ set_flag(Flag, Val, Mod) :-
     ; fail
     ).
 
+% Are arithmetic operation interpreted as functions?
+arith_flag(Mod, ArithF) :-
+    ( eval_arith(Mod, Arith) -> ArithF = Arith ; ArithF = false ).
+
 enabled_flag(Flag, Mod) :- eval_flag(Flag, Mod), !.
 
 % decl allowed in toplevel
@@ -170,18 +174,15 @@ defunc_lazy_decl(fun_return(Spec), LazySpec, Mod) :- !,
     ; message(error, ['Invalid fun_return specification in lazy declaration: ',Spec])
     ).
 
-% Are arithmetic operation interpreted as functions?
-arith_flag(Mod, ArithF) :-
-    ( eval_arith(Mod, Arith) -> ArithF = Arith ; ArithF = false ).
-
 defunc_funhead(Head, Mod, NPred, Ret_Arg, AddBody, RestBody) :-
     fun_to_pred_ret(Head, (-), Mod, Pred, Ret_Arg),
-    defunc_nrf_args_of(Pred, NPred, AddBody, RestBody).
+    defunc_nrf_predargs(Pred, NPred, AddBody, RestBody).
 
 defunc_head(Head, Mod, NewHead, AddBody, RestBody) :-
-    arith_flag(Mod, Arith),
-    normalize_args_of(Head, Mod, Arith, NHead),
-    defunc_nrf_args_of(NHead, NewHead, AddBody, RestBody).
+    functor(Head, F, A),
+    functor(NHead, F, A),
+    normalize_args(A, Head, Mod, NHead),
+    defunc_nrf_predargs(NHead, NewHead, AddBody, RestBody).
 
 concat_bodies(V, B, NB) :- var(V), !,
     NB = (V, B).
@@ -207,6 +208,8 @@ normalize_(F, Mod, Arith, NrF) :-
       SubOut = NSubExpr
     ),
     normalize_(NF, Mod, Arith, NrF).
+normalize_(T, Mod, _Arith, NT) :- nonvar(T), T = (!(V)), var(V), enabled_flag(statevars, Mod), !,
+    NT = '\6\StateVar'(V).
 normalize_(~T, Mod, Arith, NrF) :- enabled_flag(funexp, Mod), !,
     ( var(T) ->
         NrF = '\6\Eval'(call(T, Ret_Arg), Ret_Arg) % Apply?
@@ -268,12 +271,9 @@ normalize_(T, Mod, Arith, NT) :-
     normalize_args_of(T, Mod, Arith, NT).
 
 normalize_args_of(T, Mod, Arith, NT) :-
-    ( enabled_flag(statevars, Mod) -> normalize_statevars(T, T1)
-    ; T1 = T
-    ),
-    functor(T1, F, A),
+    functor(T, F, A),
     functor(NT, F, A),
-    normalize_args_(A, T1, Mod, Arith, NT).
+    normalize_args_(A, T, Mod, Arith, NT).
 
 normalize_args_(0, _, _Mod,_Arith, _ ) :- !.
 normalize_args_(N, T0, Mod, Arith, T1) :-
@@ -486,26 +486,6 @@ normalize_args(N, T0, Mod, T1) :-
     normalize(A0, Mod, A1),
     normalize_args(N1, T0, Mod, T1).
 
-% TODO: first translate !V to \6\statevar then expand in defunc_nrf so that only goals are affected
-% Expand !V arguments in atom as '\6\before'(V) and '\6\after'(V)
-normalize_statevars(X, X2) :-
-    ( nonvar(X),
-      functor(X, _, A),
-      A > 0,
-      X =.. [F|Args],
-      normalize_statevars_(Args, Args2),
-      \+ Args == Args2 ->
-        X2 =.. [F|Args2]
-    ; % (no !V, discard)
-      X2 = X
-    ).
-
-normalize_statevars_([], []).
-normalize_statevars_([Arg|Args], ['\6\before'(V),'\6\after'(V)|Args2]) :- nonvar(Arg), Arg = (!(V)), var(V), !,
-    normalize_statevars_(Args, Args2).
-normalize_statevars_([Arg|Args], [Arg|Args2]) :-
-    normalize_statevars_(Args, Args2).
-
 % ---------------------------------------------------------------------------
 %! # Translating normal forms to terms + goals
 
@@ -522,11 +502,12 @@ defunc_nrf('\6\Arit'(Arith, Fun), V, Add, Rest) :-
     arith_exp_eval(Arith, V, NFun, Eval),
     Rest0 = (Eval, Rest).
 defunc_nrf('\6\AritRel'(_,X), X, G, G) :- !. % (non goals)
+defunc_nrf('\6\StateVar'(X), R, G, G) :- !, R = (!X). % (non goal argument) % TODO: show warning?
 defunc_nrf('\6\Predabs'(N,X1), V, Add, Rest) :- !,
     mexp_pred_eval(N, X1, V, MExp),
     Add = (MExp, Rest).
 defunc_nrf('\6\Eval'(Pred, Ret_Arg), Ret_Arg, Add, Rest) :-
-    defunc_nrf_args_of(Pred, NPred, Add, Rest0),
+    defunc_nrf_predargs(Pred, NPred, Add, Rest0),
     Rest0 = (NPred, Rest).
 defunc_nrf(Opts, V, Add, Rest) :-
     Opts = '\6\Opts'(_,_), !,
@@ -569,6 +550,36 @@ defunc_nrf_assign(Val, V, Assign) :-
     del_last_true(Assign1, Assign).
 defunc_nrf_assign(Val, V, Assign) :-
     defunc_nrf(Val, NVal, Assign, (V = NVal)).
+
+defunc_nrf_predargs(T, NT, Add, Rest) :-
+    expand_statevars(T, T1),
+    defunc_nrf_args_of(T1, NT, Add, Rest).
+
+% T has some '\6\StateVar' argument
+has_statevar(N, T) :-
+    N > 0,
+    arg(N, T, T_N),
+    ( nonvar(T_N), T_N = '\6\StateVar'(_) -> true
+    ; N1 is N-1, has_statevar(N1, T)
+    ).
+
+expand_statevars(X, X2) :-
+    ( nonvar(X),
+      functor(X, _, A),
+      A > 0,
+      has_statevar(A, X),
+      X =.. [F|Args],
+      expand_statevars_(Args, Args2),
+      \+ Args == Args2 ->
+        X2 =.. [F|Args2]
+    ; X2 = X % (discard)
+    ).
+
+expand_statevars_([], []).
+expand_statevars_([Arg|Args], ['\6\before'(V),'\6\after'(V)|Args2]) :- nonvar(Arg), Arg = ('\6\StateVar'(V)), !,
+    expand_statevars_(Args, Args2).
+expand_statevars_([Arg|Args], [Arg|Args2]) :-
+    expand_statevars_(Args, Args2).
 
 % ---------------------------------------------------------------------------
 %! # Goal translation, translates normal forms
@@ -621,10 +632,10 @@ defunc_goal((U1 = U2), NewGoal) :-
     defunc_nrf(Fun, V, AddGoal, true),
     del_last_true(AddGoal, NewGoal).
 defunc_goal(QM:Goal, NewGoal) :- !,
-    defunc_nrf_args_of(Goal, Goal1, NewGoal, QM:Goal1),
+    defunc_nrf_predargs(Goal, Goal1, NewGoal, QM:Goal1),
     NewGoal \== QM:Goal.
 defunc_goal(Goal, NewGoal) :-
-    defunc_nrf_args_of(Goal, Goal1, NewGoal, Goal1),
+    defunc_nrf_predargs(Goal, Goal1, NewGoal, Goal1),
     NewGoal \== Goal.
 
 take_out_arg(A, G, X, NG) :-
