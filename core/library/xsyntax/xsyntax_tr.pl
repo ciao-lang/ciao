@@ -502,7 +502,7 @@ defunc_nrf('\6\Arit'(Arith, Fun), V, Add, Rest) :-
     arith_exp_eval(Arith, V, NFun, Eval),
     Rest0 = (Eval, Rest).
 defunc_nrf('\6\AritRel'(_,X), X, G, G) :- !. % (non goals)
-defunc_nrf('\6\StateVar'(X), R, G, G) :- !, R = (!X). % (non goal argument) % TODO: show warning?
+defunc_nrf('\6\StateVar'(X), R, G, G) :- !, R = (!(X)). % (non goal argument) % TODO: show warning?
 defunc_nrf('\6\Predabs'(N,X1), V, Add, Rest) :- !,
     mexp_pred_eval(N, X1, V, MExp),
     Add = (MExp, Rest).
