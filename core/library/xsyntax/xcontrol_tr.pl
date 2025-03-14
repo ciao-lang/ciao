@@ -1,6 +1,6 @@
 :- module(_, [], [assertions, nortchecks, isomodes]).
 
-%! \title Statevars and new PA (expansion module)
+%! \title Low-level support for xsyntax
 %  \author Jose F. Morales
 %
 %  \module This expansion module is in charge of:
@@ -14,7 +14,8 @@
 %      (`-[X1...Xn] -> Head :- Body`), where all common variables are
 %      shared except `X1...Xn`.
 %
-%  Do not use directly, use `fsyntax` with `statevars(true)` instead.
+%  Do not use directly, use `xsyntax` with `statevars(true)` or
+%  `hiord(true)` instead.
 
 :- use_module(library(terms_vars)).
 :- use_module(library(sort)).
@@ -23,14 +24,13 @@
 % ---------------------------------------------------------------------------
 %! # Translation (mexp)
 
-% TODO: find a better name
-:- export(statevars_clause/3).
-statevars_clause(Cl, Cl2, M) :- Cl = clause(_, _),
-    tr_clause(Cl, M, [], clause(Head,Body)),
+:- export(tr_clause/3).
+tr_clause(Cl, Cl2, M) :- Cl = clause(_, _),
+    tr_clause_(Cl, M, [], clause(Head,Body)),
     anot_linking_vars(Head, Body, Body2),
     Cl2 = clause(Head,Body2).
 
-tr_clause(clause(H, B), M, ParentEnv, clause(H2, B2)) :-
+tr_clause_(clause(H, B), M, ParentEnv, clause(H2, B2)) :-
     atom_upds(H, H2, Env0_, Env),
     % (inherit from ParentEnv, just for in state vars)
     p_env__upd_out(Env0_, ParentEnv, Env0),
@@ -52,23 +52,23 @@ tr_body('basiccontrol:;'(X,Y), 'basiccontrol:;'(X2,Y2), M, Env0, Env) :- !,
     tr_body(X, X1, M, Env0, StX),
     tr_body(Y, Y1, M, Env0, StY),
     p_env__meet(Env0, StX, StY, X1, X2, Y1, Y2, Env).
-tr_body('statevars_rt:\6\assign'(Var,Val), G, _M, Env0, Env) :- !,
+tr_body('xcontrol_rt:\6\assign'(Var,Val), G, _M, Env0, Env) :- !,
     replace_var(Val, Env0, Val2),
     p_env__set(Var, S, Env0, Env),
     G = 'term_basic:='(S,Val2).
 %
-tr_body('statevars_rt:\6\stpa_def'(PAMode, Args, Body, PA), G, M, Env0, Env) :- !,
+tr_body('xcontrol_rt:\6\stpa_def'(PAMode, Args, Body, PA), G, M, Env0, Env) :- !,
     % TODO: weak? needed because we need to extract negative sharing once statevars has been expanded
     Env = Env0,
     H =.. [''|Args],
-    tr_clause(clause(H, Body), M, Env0, clause(H2, B2)),
+    tr_clause_(clause(H, Body), M, Env0, clause(H2, B2)),
     varset(H2, HeadVs),
     G = 'hiord_rt:$pa_def'(PAMode, -HeadVs, clause(H2, B2), PA). % (negative sharing, see anot_linking_vars/3)
 tr_body(G0, G, M, Env0, Env) :- old_pa_def_lit(G0, G1), !, % TODO: make mexpand.pl generate $pa_def/6 directly!
     tr_body(G1, G, M, Env0, Env).
 tr_body(G0, G, M, Env0, Env) :- G0 = 'hiord_rt:$pa_def'(PAMode, ShVs, PACode, V), !,
     Env = Env0,
-    tr_clause(PACode, M, Env0, PACode2),
+    tr_clause_(PACode, M, Env0, PACode2),
     G = 'hiord_rt:$pa_def'(PAMode, ShVs, PACode2, V).
 %
 tr_body('hiord_rt:call'(PA), G, M, Env0, Env) :- !,
@@ -80,14 +80,14 @@ tr_body('hiord_rt:$pa_call'(PA,Args0), G, M, Env0, Env) :- !,
     tr_body(Args0, Args, M, Env0, Env), % (Args0 = ''(...) so we treat as a goal)
     G = 'hiord_rt:$pa_call'(PA,Args).
 %
-tr_body('statevars_rt:\6\block_goal'(Goal), G, M, Env0, Env) :- !,
+tr_body('xcontrol_rt:\6\block_goal'(Goal), G, M, Env0, Env) :- !,
     tr_block_goal(Goal, Goal2),
     tr_body(Goal2, G, M, Env0, Env).
-tr_body('statevars_rt:\6\block_expr'(Goal, V), G, M, Env0, Env) :- !,
+tr_body('xcontrol_rt:\6\block_expr'(Goal, V), G, M, Env0, Env) :- !,
     tr_block_expr(Goal, V, Goal2),
     tr_body(Goal2, G, M, Env0, Env).
 %
-tr_body('statevars_rt:\6\shloop'(StLoopVs, Init, Cond, Next, Goal), G, M, Env0, Env) :- !,
+tr_body('xcontrol_rt:\6\shloop'(StLoopVs, Init, Cond, Next, Goal), G, M, Env0, Env) :- !,
     tr_loop(StLoopVs, Init, Cond, Goal, Next, G, M, Env0, Env).
 %
 tr_body(G, G2, _M, Env0, Env) :- !,
@@ -309,8 +309,8 @@ tr_block_expr(Goal, RetVar, Goal2) :-
 
 collect_let([], [], Vs, Vs, _RetVar).
 collect_let([X|Xs], [Y|Ys], Vs0, Vs, RetVar) :-
-    ( X = 'statevars_rt:\6\letvar'(V, Val) -> Vs1 = [V|Vs0], Y = 'term_basic:='(V,Val) % TODO: reuse <- ?
-    ; X = 'statevars_rt:\6\return'(V) -> Vs1 = Vs0, Y = 'term_basic:='(RetVar,V) % TODO: errors?
+    ( X = 'xcontrol_rt:\6\letvar'(V, Val) -> Vs1 = [V|Vs0], Y = 'term_basic:='(V,Val) % TODO: reuse <- ?
+    ; X = 'xcontrol_rt:\6\return'(V) -> Vs1 = Vs0, Y = 'term_basic:='(RetVar,V) % TODO: errors?
     ; Vs1 = Vs0, Y = X
     ),
     collect_let(Xs, Ys, Vs1, Vs, RetVar).
@@ -340,7 +340,7 @@ tr_loop(StLoopVs, Init, Cond, Goal, Next, G, M, Env0, Env) :-
     bangvars(StLoopVs, LoopArgs),
     LoopArgsP =.. [''|LoopArgs],
     ( optim_loops -> PAMode = static ; PAMode = dynamic ),
-    BeginDef = 'statevars_rt:\6\stpa_def'(
+    BeginDef = 'xcontrol_rt:\6\stpa_def'(
         PAMode,
         LoopArgs,
         'basiccontrol:,'(
@@ -351,7 +351,7 @@ tr_loop(StLoopVs, Init, Cond, Goal, Next, G, M, Env0, Env) :-
             )
         ),
         BeginPA),
-    LoopDef = 'statevars_rt:\6\stpa_def'(
+    LoopDef = 'xcontrol_rt:\6\stpa_def'(
         PAMode,
         LoopArgs,
         'basiccontrol:;'(
@@ -426,24 +426,24 @@ an_body('basiccontrol:;'(X,Y), 'basiccontrol:;'(X1,Y1), StVs0, StVs) :- !,
     an_body(X, X1, StVs0, StVs1),
     an_body(Y, Y1, StVs1, StVs).
 % (no statevars can be shared in PA)
-an_body(G0, G, StVs0, StVs) :- G0 = 'statevars_rt:\6\stpa_def'(_, _, _, _), !,
+an_body(G0, G, StVs0, StVs) :- G0 = 'xcontrol_rt:\6\stpa_def'(_, _, _, _), !,
     G = G0, StVs = StVs0.
 an_body(G0, G, StVs0, StVs) :- old_pa_def_lit(G0, G1), !, % TODO: make mexpand.pl generate $pa_def/4 directly!
     an_body(G1, G, StVs0, StVs).
 an_body(G0, G, StVs0, StVs) :- G0 = 'hiord_rt:$pa_def'(_, _, _, _), !,
     G = G0, StVs = StVs0.
 %
-an_body('statevars_rt:\6\loop'(Init, Cond, Next, Goal), G, StVs0, StVs) :- !,
+an_body('xcontrol_rt:\6\loop'(Init, Cond, Next, Goal), G, StVs0, StVs) :- !,
     % TODO: do linkingvars with state so that BeginArgs is more refined than LoopArgs
     an_body(Init, Init2, [], StLoopVs0),
     an_body(Cond, Cond2, StLoopVs0, StLoopVs1),
     an_body(Next, Next2, StLoopVs1, StLoopVs2),
     an_body(Goal, Goal2, StLoopVs2, StLoopVs),
     %
-    G = 'statevars_rt:\6\shloop'(StLoopVs, Init2, Cond2, Next2, Goal2),
+    G = 'xcontrol_rt:\6\shloop'(StLoopVs, Init2, Cond2, Next2, Goal2),
     rec_stvars(StLoopVs, StVs0, StVs). % TODO: only shared!
 %
-an_body(G0, G, StVs0, StVs) :- G0 = 'statevars_rt:\6\assign'(Var,_), !,
+an_body(G0, G, StVs0, StVs) :- G0 = 'xcontrol_rt:\6\assign'(Var,_), !,
     G = G0,
     rec_stvar(Var, StVs0, StVs).
 an_body(G, G, StVs0, StVs) :- !,
