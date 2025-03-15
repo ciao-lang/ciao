@@ -297,7 +297,9 @@ do_use_package(F, _ShMod) :-
     shell_error(bad_package_file(F)).
 
 package_file(F, P) :-
-    ( atom(F) -> P = library(F)
+    ( var(F) -> fail
+    ; atom(F) -> P = library(F)
+    ; F=(_/_) -> P = library(F)
     ; functor(F,_,1) -> P = F
     ).
 
