@@ -1,4 +1,4 @@
-:- package(xsyntax).
+:- package('_xsyntax').
 
 % Base translation for advanced extensions
 % (Do not use directly)

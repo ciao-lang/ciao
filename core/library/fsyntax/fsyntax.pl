@@ -1,6 +1,6 @@
 :- package(fsyntax).
 :- include(library(fsyntax/ops)).
-:- use_package(xsyntax).
+:- use_package(xsyntax/'_xsyntax').
 %
 :- if(defined(optim_comp)).
 % TODO: no fine grained control!

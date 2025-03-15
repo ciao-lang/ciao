@@ -2,7 +2,7 @@
 
 % State variable notation
 
-:- use_package(xsyntax).
+:- use_package(xsyntax/'_xsyntax').
 :- use_package(xsyntax/'_xcontrol'). % (needed for statevars and loops)
 
 :- fun_eval(statevars(true)). % enable expansion of !X syntax
