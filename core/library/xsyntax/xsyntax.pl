@@ -1,5 +1,7 @@
 :- package(xsyntax).
-% Base translation for fsyntax and more
+
+% Base translation for advanced extensions
+% (Do not use directly)
 
 :- if(defined(optim_comp)).
 % TODO: integrated, main incompatibilities and differences:
