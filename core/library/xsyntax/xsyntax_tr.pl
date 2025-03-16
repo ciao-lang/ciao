@@ -11,11 +11,13 @@
 :- data eval_arith/2.
 % Flags for different extensions: % TODO: add user documentation
 %  - hiord: enabled {...} syntax for higher order
+%  - blkgoal: enable {...} syntax for scoped blocks (literals)
 %  - statevars: enable statevar expansion
 %  - funhead: enable (_ := _) heads
 %  - funexp: enable ~F expansion
 %  - arithfunexp: arith in ~F expansion
 %  - condexp: (_?_|_) conditional expressions
+%  - blkexp: enable {...} for block expressions
 %  - quote: ^F to prevent expansions
 %  - deffun: implicit ~ while definining a function
 :- data eval_flag/2.
@@ -119,11 +121,13 @@ defunc_decl(on_abort(Goal), (:- on_abort(NGoal)), Mod) :- !,
 
 is_flag(arith(Val), arith, Val) :- nonvar(Val), valid_arith(Val).
 is_flag(hiord(Val), hiord, Val) :- nonvar(Val), is_bool(Val).
+is_flag(blkgoal(Val), blkgoal, Val) :- nonvar(Val), is_bool(Val).
 is_flag(statevars(Val), statevars, Val) :- nonvar(Val), is_bool(Val).
 is_flag(funhead(Val), funhead, Val) :- nonvar(Val), is_bool(Val).
 is_flag(funexp(Val), funexp, Val) :- nonvar(Val), is_bool(Val).
 is_flag(arithfunexp(Val), arithfunexp, Val) :- nonvar(Val), is_bool(Val).
 is_flag(condexp(Val), condexp, Val) :- nonvar(Val), is_bool(Val).
+is_flag(blkexp(Val), blkexp, Val) :- nonvar(Val), is_bool(Val).
 is_flag(quote(Val), quote, Val) :- nonvar(Val), is_bool(Val).
 is_flag(defined(Val), deffun, Val) :- nonvar(Val), is_bool(Val).
 
@@ -263,10 +267,14 @@ normalize_({F}, Mod, _Arith, NrF) :-
     norm_predabs_arity(NF, Mod, N),
     NrF = '\6\Predabs'(N, NF).
 normalize_({F}, Mod, _Arith, NrF) :-
-    enabled_flag(hiord, Mod),
+    ( enabled_flag(blkgoal, Mod) -> BG = 1 ; BG = 0 ),
+    ( enabled_flag(blkexp, Mod) -> BE = 2 ; BE = 0 ),
+    BM is BG \/ BE,
+    BM =\= 0,
     !,
     normalize(F, Mod, NF),
-    NrF = '\6\Block'(NF).
+    NrF = '\6\Block'(BM, NF).
+
 normalize_(T, Mod, Arith, NT) :-
     normalize_args_of(T, Mod, Arith, NT).
 
@@ -516,9 +524,10 @@ defunc_nrf(Opts, V, Add, Rest) :-
 defunc_nrf('\6\Cond'(Cond, Val), V, Add, Rest) :- !,
     Add = ((Cond -> Assign), Rest),
     defunc_nrf_assign(Val, V, Assign).
-defunc_nrf('\6\Block'(Goal), V, Add, Rest) :- !,
+defunc_nrf('\6\Block'(Mask, Goal), V, Add, Rest) :- Mask /\ 2 =\= 0, !, % blkexp enabled
     Add = (('\6\block_expr'(Goal,Val),Assign), Rest),
     defunc_nrf_assign(Val, V, Assign).
+defunc_nrf('\6\Block'(_, Goal), R, G, G) :- !, R = {Goal}. % (non goals)
 defunc_nrf(T0, T1, Add, Rest) :-
     defunc_nrf_args_of(T0, T1, Add, Rest).
 
@@ -618,10 +627,11 @@ defunc_goal('\6\Eval'(G,X), NG) :- !,    % A predicate is like a function
     A1 is A-1,
     functor(NG, F, A1),
     take_out_arg(A, G, X, NG).
-defunc_goal('\6\Opts'(A,B), (A|B)) :- !. % To give a warning
-defunc_goal('\6\Cond'(A,B), (A?B)) :- !. % To give a warning
-defunc_goal('\6\Block'(Goal), NG) :- !,
+defunc_goal('\6\Opts'(A,B), (A|B)) :- !. % not expanded (usually a warning if |/2 pred is not defined)
+defunc_goal('\6\Cond'(A,B), (A?B)) :- !. % not expanded (usually a warning if ?/2 pred is not defined)
+defunc_goal('\6\Block'(Mask, Goal), NG) :- Mask /\ 1 =\= 0, !, % blkgoal enabled
     NG = '\6\block_goal'(Goal).
+defunc_goal('\6\Block'(_, Goal), NG) :- !, NG = {Goal}. % not expanded (usually a warning if {}/1 pred is not defined)
 defunc_goal((U1 = U2), NewGoal) :-
     (V = U1, Fun = U2 ; V = U2, Fun = U1),
     ( nonvar(Fun),
