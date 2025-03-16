@@ -8,6 +8,9 @@
 :- fun_eval(statevars(true)). % enable expansion of !X syntax
 :- op(60, fx, (!)).
 
+% Scoped {...} goals
+:- fun_eval(blkgoal(true)).
+
 % Reassignment and 'let' notation
 :- op(980, xfx, [(<-)]). % priority between (::) and (,)
 :- op(985, fx, [(let)]). % TODO: check, only meaningful for blocks
