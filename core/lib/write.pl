@@ -127,7 +127,7 @@ write_term_internal(Term, OptList, N) :-
  If the term to be printed has higher priority than @em{prio}, it will be
  printed parenthesized.  Default value is 1200 (no term parenthesized).
 
-@end{itemize}.").
+@end{itemize}").
 
 write_option(quoted(Qt)) :- boolean(Qt).
 write_option(ignore_ops(IO)) :- ignore_ops_flag(IO).

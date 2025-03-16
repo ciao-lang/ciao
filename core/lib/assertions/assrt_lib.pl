@@ -584,8 +584,8 @@ del_assertion_of(PD,M,AStatus,AType,NNAss,Dict,S,LB,LE) :-
    a term of the same functor and arity as the predicate it represents
    (i.e., it is not in Functor/Arity format). @var{Body} is always
    normalized (but the properties or property conjunctions inside may
-   not -- see @pred{normalize_assertions_pass_one/1} and
-   @pred{normalize_assertions_pass_two/1}.".
+   not be -- see @pred{normalize_assertions_pass_one/1} and
+   @pred{normalize_assertions_pass_two/1}).".
 
 :- data assertion_read/9. 
 
