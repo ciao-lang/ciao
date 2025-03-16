@@ -59,6 +59,8 @@ get_query(Stream, Query, Dict, VarNames) :-
 % ---------------------------------------------------------------------------
 % Including files (source or packages) in shell
 
+:- use_module(engine(runtime_control), [current_prolog_flag/2]).
+
 % TODO: move to compiler/dynsyntax.pl? (dynamically change syntax); use add_module instead of shell_module (ShMod)?
 
 :- use_module(engine(internals), ['$open'/3]).
@@ -140,9 +142,23 @@ process_expanded_data_list(Data0, ShMod, Ln0, Ln1) :-
 now_doing_include(source, SourceFile) :- now_doing(['Including ', SourceFile]).
 now_doing_include(package, SourceFile) :- now_doing(['Using package ', SourceFile]).
 
-now_doing(M) :- message(inform, ['{'| M]).
+% TODO: refactor with c_itf.pl; use c_itf_messages?
+doing_verbose(VF) :-
+    current_prolog_flag(verbose_compilation, VF).
 
-end_doing :- message(inform, '}').
+now_doing(M) :-
+    doing_verbose(VF),
+    now_doing_(VF, M).
+
+now_doing_(on, M) :- message(inform, ['{'| M]).
+now_doing_(off, _).
+
+end_doing :-
+    doing_verbose(VF),
+    end_doing_(VF).
+
+end_doing_(on) :- message(inform, '}').
+end_doing_(off).
 
 :- use_module(library(compiler/c_itf), [module_from_base/2]).
 
