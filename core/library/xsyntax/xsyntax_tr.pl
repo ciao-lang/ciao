@@ -604,7 +604,7 @@ expand_statevars_([Arg|Args], [Arg|Args2]) :-
 %
 % Do not translate the following special goals (needed to treat meta args correctly)
 defunc_goal('$meta_exp'(_,_,_), _) :- !, fail.
-defunc_goal('\6\loop'(_,_,_,_), _) :- !, fail.
+defunc_goal('\6\loop'(_,_,_,_,_), _) :- !, fail.
 defunc_goal('\6\block_goal'(_), _) :- !, fail.
 defunc_goal('\6\block_expr'(_,_), _) :- !, fail.
 %

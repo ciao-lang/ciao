@@ -36,14 +36,15 @@
 
 % While loops
 :- fun_eval(notation(while (Cond) { Goal },
-                     '\6\loop'(true, Cond, Goal, true))).
+                     '\6\loop'([], true, Cond, Goal, true))).
 
 % Iterators
 :- op( 700, xfx, (in)).
 
 % For-each loops with iterators
 :- fun_eval(macro(for (Iters) { Goal },
-                  '\6\loop'('iter0.map'(init,IterInfo),
+                  '\6\loop'('iter0.map'(vars,IterInfo),
+                            'iter0.map'(init,IterInfo),
                             'iter0.map'(cond,IterInfo),
                             'iter0.map'(next,IterInfo),
                             Goal),
@@ -53,6 +54,7 @@
 :- fun_eval(notation('iter0.new'((X in Iter)), iter(X, 'iter.new'(Iter), _Curr))).
 :- fun_eval(notation('iter0.new'((A,B)), ('iter0.new'(A),'iter0.new'(B)))).
 %
+:- fun_eval(notation('iter0.map'(vars, iter(X, _, _)), X)).
 :- fun_eval(notation('iter0.map'(init, iter(_, A, Curr)), 'iter.init'(A, Curr))).
 :- fun_eval(notation('iter0.map'(cond, iter(X, A, Curr)), 'iter.cond'(A, X, Curr))).
 :- fun_eval(notation('iter0.map'(next, iter(_, A, Curr)), 'iter.next'(A, Curr))).

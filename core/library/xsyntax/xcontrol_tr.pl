@@ -7,7 +7,7 @@
 %
 %    - threading state variables (expanding `'\6\before'` and `'\6\after'` terms)
 %    - dealing with `'\6\assign'/2`
-%    - expanding `'\6\loop'/4`
+%    - expanding `'\6\loop'/5`
 %    - turn explicit PAEnv unification into new `$pa_def/4` (optimized)
 %      (see `old_pa_def_lit/2`; % TODO: make mexpand.pl generate this directly)
 %    - enable support for PA with shared-by-default variables
@@ -57,13 +57,14 @@ tr_body('xcontrol_rt:\6\assign'(Var,Val), G, _M, Env0, Env) :- !,
     p_env__set(Var, S, Env0, Env),
     G = 'term_basic:='(S,Val2).
 %
-tr_body('xcontrol_rt:\6\stpa_def'(PAMode, Args, Body, PA), G, M, Env0, Env) :- !,
+tr_body('xcontrol_rt:\6\stpa_def'(PAMode, NegShVs, Args, Body, PA), G, M, Env0, Env) :- !,
     % TODO: weak? needed because we need to extract negative sharing once statevars has been expanded
+    % TODO: added NegShVs to specify extra negative sharing
     Env = Env0,
     H =.. [''|Args],
     tr_clause_(clause(H, Body), M, Env0, clause(H2, B2)),
-    varset(H2, HeadVs),
-    G = 'hiord_rt:$pa_def'(PAMode, -HeadVs, clause(H2, B2), PA). % (negative sharing, see anot_linking_vars/3)
+    varset((NegShVs,H2), NegShVs2),
+    G = 'hiord_rt:$pa_def'(PAMode, -NegShVs2, clause(H2, B2), PA). % (negative sharing, see anot_linking_vars/3)
 tr_body(G0, G, M, Env0, Env) :- old_pa_def_lit(G0, G1), !, % TODO: make mexpand.pl generate $pa_def/6 directly!
     tr_body(G1, G, M, Env0, Env).
 tr_body(G0, G, M, Env0, Env) :- G0 = 'hiord_rt:$pa_def'(PAMode, ShVs, PACode, V), !,
@@ -80,8 +81,8 @@ tr_body('hiord_rt:$pa_call'(PA,Args0), G, M, Env0, Env) :- !,
     tr_body(Args0, Args, M, Env0, Env), % (Args0 = ''(...) so we treat as a goal)
     G = 'hiord_rt:$pa_call'(PA,Args).
 %
-tr_body('xcontrol_rt:\6\shloop'(StLoopVs, Init, Cond, Next, Goal), G, M, Env0, Env) :- !,
-    tr_loop(StLoopVs, Init, Cond, Goal, Next, G, M, Env0, Env).
+tr_body('xcontrol_rt:\6\shloop'(NegShVs, StLoopVs, Init, Cond, Next, Goal), G, M, Env0, Env) :- !,
+    tr_loop(NegShVs, StLoopVs, Init, Cond, Goal, Next, G, M, Env0, Env).
 %
 tr_body(G, G2, _M, Env0, Env) :- !,
     atom_upds(G, G1, EnvIn, EnvOut),
@@ -329,12 +330,13 @@ collect_let([X|Xs], [Y|Ys], Vs0, Vs, RetVar) :-
 % optim_loops :- fail.
 optim_loops. % NOTE: closures with loops are cyclic terms! see prune_recpa in pl2wam
 
-tr_loop(StLoopVs, Init, Cond, Goal, Next, G, M, Env0, Env) :-
+tr_loop(NegShVs, StLoopVs, Init, Cond, Goal, Next, G, M, Env0, Env) :-
     bangvars(StLoopVs, LoopArgs),
     LoopArgsP =.. [''|LoopArgs],
     ( optim_loops -> PAMode = static ; PAMode = dynamic ),
     BeginDef = 'xcontrol_rt:\6\stpa_def'(
         PAMode,
+        [],
         LoopArgs,
         'basiccontrol:,'(
             Init, 
@@ -346,6 +348,7 @@ tr_loop(StLoopVs, Init, Cond, Goal, Next, G, M, Env0, Env) :-
         BeginPA),
     LoopDef = 'xcontrol_rt:\6\stpa_def'(
         PAMode,
+        NegShVs, % variables local to loop iteration 
         LoopArgs,
         'basiccontrol:;'(
             'basiccontrol:->'(
@@ -401,7 +404,7 @@ replace_var_args(I, A, X, Env, X2) :-
 % ===========================================================================
 %! # Annotate statevars
 %
-% Annotate shared statevars in '\6\loop'/4 constructs, as '\6\shloop'/5.
+% Annotate shared statevars in '\6\loop'/5 constructs, as '\6\shloop'/6.
 
 % StVs are the statevars used in goal X
 % TODO: improve it! proper lifetime analysis?
@@ -430,21 +433,21 @@ an_body('xcontrol_rt:\6\block_expr'(Goal, V), G, StVs0, StVs) :- !,
     an_body(Goal2, G, StVs0, StVs).
 %
 % (no statevars can be shared in PA)
-an_body(G0, G, StVs0, StVs) :- G0 = 'xcontrol_rt:\6\stpa_def'(_, _, _, _), !,
+an_body(G0, G, StVs0, StVs) :- G0 = 'xcontrol_rt:\6\stpa_def'(_, _, _, _, _), !,
     G = G0, StVs = StVs0.
 an_body(G0, G, StVs0, StVs) :- old_pa_def_lit(G0, G1), !, % TODO: make mexpand.pl generate $pa_def/4 directly!
     an_body(G1, G, StVs0, StVs).
 an_body(G0, G, StVs0, StVs) :- G0 = 'hiord_rt:$pa_def'(_, _, _, _), !,
     G = G0, StVs = StVs0.
 %
-an_body('xcontrol_rt:\6\loop'(Init, Cond, Next, Goal), G, StVs0, StVs) :- !,
+an_body('xcontrol_rt:\6\loop'(NegShVs, Init, Cond, Next, Goal), G, StVs0, StVs) :- !,
     % TODO: do linkingvars with state so that BeginArgs is more refined than LoopArgs
     an_body(Init, Init2, [], StLoopVs0),
     an_body(Cond, Cond2, StLoopVs0, StLoopVs1),
     an_body(Next, Next2, StLoopVs1, StLoopVs2),
     an_body(Goal, Goal2, StLoopVs2, StLoopVs),
     %
-    G = 'xcontrol_rt:\6\shloop'(StLoopVs, Init2, Cond2, Next2, Goal2),
+    G = 'xcontrol_rt:\6\shloop'(NegShVs, StLoopVs, Init2, Cond2, Next2, Goal2),
     rec_stvars(StLoopVs, StVs0, StVs). % TODO: only shared!
 %
 an_body(G0, G, StVs0, StVs) :- G0 = 'xcontrol_rt:\6\assign'(Var,_), !,
