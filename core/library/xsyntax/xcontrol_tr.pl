@@ -80,13 +80,6 @@ tr_body('hiord_rt:$pa_call'(PA,Args0), G, M, Env0, Env) :- !,
     tr_body(Args0, Args, M, Env0, Env), % (Args0 = ''(...) so we treat as a goal)
     G = 'hiord_rt:$pa_call'(PA,Args).
 %
-tr_body('xcontrol_rt:\6\block_goal'(Goal), G, M, Env0, Env) :- !,
-    tr_block_goal(Goal, Goal2),
-    tr_body(Goal2, G, M, Env0, Env).
-tr_body('xcontrol_rt:\6\block_expr'(Goal, V), G, M, Env0, Env) :- !,
-    tr_block_expr(Goal, V, Goal2),
-    tr_body(Goal2, G, M, Env0, Env).
-%
 tr_body('xcontrol_rt:\6\shloop'(StLoopVs, Init, Cond, Next, Goal), G, M, Env0, Env) :- !,
     tr_loop(StLoopVs, Init, Cond, Goal, Next, G, M, Env0, Env).
 %
@@ -412,6 +405,8 @@ replace_var_args(I, A, X, Env, X2) :-
 
 % StVs are the statevars used in goal X
 % TODO: improve it! proper lifetime analysis?
+% TODO: this does block_goal and block_expr expansion here because
+%   they do var renaming
 
 an_body(X, X, StVs0, StVs0) :- var(X), !.
 an_body('basiccontrol:\\+'(X), 'basiccontrol:\\+'(X1), StVs0, StVs) :- !,
@@ -425,6 +420,15 @@ an_body('basiccontrol:->'(X,Y), 'basiccontrol:->'(X1,Y1), StVs0, StVs) :- !,
 an_body('basiccontrol:;'(X,Y), 'basiccontrol:;'(X1,Y1), StVs0, StVs) :- !,
     an_body(X, X1, StVs0, StVs1),
     an_body(Y, Y1, StVs1, StVs).
+%
+% (do block_goal and block_expr expansion here) % TODO: improve
+an_body('xcontrol_rt:\6\block_goal'(Goal), G, StVs0, StVs) :- !,
+    tr_block_goal(Goal, Goal2),
+    an_body(Goal2, G, StVs0, StVs).
+an_body('xcontrol_rt:\6\block_expr'(Goal, V), G, StVs0, StVs) :- !,
+    tr_block_expr(Goal, V, Goal2),
+    an_body(Goal2, G, StVs0, StVs).
+%
 % (no statevars can be shared in PA)
 an_body(G0, G, StVs0, StVs) :- G0 = 'xcontrol_rt:\6\stpa_def'(_, _, _, _), !,
     G = G0, StVs = StVs0.
