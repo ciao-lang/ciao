@@ -99,13 +99,13 @@ iter_next([_|Xs], Xs).
 
 % range iterator
 :- op(550, yfx, ..).
-:- fun_eval(notation('iter.new'(A..B), range_iterable(A, B, 1))).
-:- fun_eval(notation('iter.new'(A..Step..B), range_iterable(A, B, Step))).
-:- fun_eval(notation('iter.init'(range_iterable(A, B, Step), Curr),
-                     (Curr<-A))).
-:- fun_eval(notation('iter.cond'(range_iterable(_, B, _), X, Curr),
-                     (X=Curr, Curr=<B))).
-:- fun_eval(notation('iter.next'(range_iterable(_, _, Step), Curr),
+:- fun_eval(notation('iter.new'(A..B), range_iterable(A, B, _, 1))).
+:- fun_eval(notation('iter.new'(A..Step..B), range_iterable(A, B, _, Step))).
+:- fun_eval(notation('iter.init'(range_iterable(A, B, End, Step), Curr),
+                     (End=B, Curr<-A))).
+:- fun_eval(notation('iter.cond'(range_iterable(_, _, End, _), X, Curr),
+                     (X=Curr, Curr=<End))).
+:- fun_eval(notation('iter.next'(range_iterable(_, _, _, Step), Curr),
                      % (Curr<-Curr+Step)
                      (Tmp is Curr+Step, Curr<-Tmp))).
 :- if(defined(def_gen_iter)).
