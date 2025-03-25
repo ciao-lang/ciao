@@ -2001,6 +2001,32 @@ CBOOL__PROTO(interpreted_drain_marked, definition_t *f, tagged_t mark) {
 }
 #endif
 
+#if !defined(OPTIM_COMP) && defined(ABSMACH_OPT__regmod2)
+CBOOL__PROTO(interpreted_drain_marked, definition_t *f, tagged_t mark) {
+  /* TODO: study if this code is correct --jf */
+  /* TODO: what happens with concurrent predicates? */
+  int_info_t *root;
+  instance_t *i, *j;
+
+  root = f->code.intinfo;
+  for (i = root->first; i; i=j) {
+    j = i->forward;
+    if (i->mark == mark) {
+      CVOID__CALL(prolog_erase_ptr, i);
+    }
+  }
+  /* TODO: necessary? */
+  CVOID__CALL(prolog_unlock_predicate, root);
+
+  /* TODO: check if it has any problems... */
+  /* Abolish if predicate is empty */
+  if (root->first == NULL) {
+    CBOOL__CALL(abolish, f);
+  }
+  CBOOL__PROCEED;
+}
+#endif
+
 /* --------------------------------------------------------------------------- */
 /* Dynamic prolog database update */
 /* (C coded) --jfran */
