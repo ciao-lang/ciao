@@ -660,7 +660,7 @@ typedef struct module_ module_t; /* defined in dynamic_rt.h */
 typedef struct instance_handle_ instance_handle_t;
 typedef struct instance_ instance_t;
 typedef struct int_info_ int_info_t;
-typedef struct sw_on_key_ sw_on_key_t;
+typedef struct hashtab_ hashtab_t;
 
 #define TaggedToInstance(X)    TermToPointerOrNull(instance_t, X)
 #define TaggedToInstHandle(X)  TermToPointerOrNull(instance_handle_t, X)
@@ -1466,7 +1466,9 @@ struct emul_info_ {
 #if defined(ABSMACH_OPT__regmod2)
   tagged_t mark;
 #endif
+#if 0 /* TODO:[oc-merge] disable subdefs */
   definition_t *subdefs;
+#endif
   intmach_t objsize;                             /* total # chars */
 #if defined(GAUGE)
   intmach_t *counters;      /* Pointer to clause's first counter. */
@@ -1488,11 +1490,18 @@ typedef unsigned short int instance_clock_t;
 /* CLAUSE_TAIL */
 #define CLAUSE_TAIL_INSNS_SIZE FTYPE_size(f_o) /* TODO: (JFMC) why? */
 #define IS_CLAUSE_TAIL(EP) (EP->objsize == 0)
+#if 0 /* TODO:[oc-merge] disable subdefs */
 #define ALLOC_CLAUSE_TAIL(EP) {                                         \
     EP = checkalloc_FLEXIBLE(emul_info_t, char, CLAUSE_TAIL_INSNS_SIZE); \
     EP->subdefs = NULL;                                                 \
     EP->objsize = 0;                                                    \
   }
+#else
+#define ALLOC_CLAUSE_TAIL(EP) {                                         \
+    EP = checkalloc_FLEXIBLE(emul_info_t, char, CLAUSE_TAIL_INSNS_SIZE); \
+    EP->objsize = 0;                                                    \
+  }
+#endif
 
 /* Terms recorded under a key or clauses of an interpreted predicate
    are stored as a doubly linked list of records.  The forward link is
@@ -1565,7 +1574,7 @@ struct int_info_ {
   instance_t  *first  ;
   instance_t  *varcase;
   instance_t  *lstcase;
-  sw_on_key_t *indexer;
+  hashtab_t *indexer;
 };
 
 /* # X regs used for control in choicepoints for dynamic code */
@@ -1643,28 +1652,23 @@ struct try_node_ {
 #endif
 };
 
-#define SwitchSize(X) (((X)->mask / sizeof(sw_on_key_node_t))+1) 
-#define SizeToMask(X) (((X)-1) * sizeof(sw_on_key_node_t))
+#define HASHTAB_SIZE(X) (((X)->mask / sizeof(hashtab_node_t))+1) 
+#define SizeToMask(X) (((X)-1) * sizeof(hashtab_node_t))
 
 #if !defined(OPTIM_COMP)
 /* TODO: merge */
-#define hashtab_t sw_on_key_t
 #define hashtab_key_t tagged_t
-#define hashtab_node_t sw_on_key_node_t
-#define hashtab_get incore_gethash
-#define hashtab_lookup dyn_puthash
-#define HASHTAB_SIZE(SW) SwitchSize((SW))
 #endif
 
-typedef struct sw_on_key_node_ sw_on_key_node_t;
-struct sw_on_key_node_ {
+typedef struct hashtab_node_ hashtab_node_t;
+struct hashtab_node_ {
   /* NOTE: Make sure that the size of this structure is a power of 2
      (for efficiency) */
   tagged_t key;
   union {
     try_node_t *try_chain;         /* try-retry-trust as linked list */
     instance_t *instp;             /* int. clauses or recorded terms */
-    sw_on_key_node_t *node;
+    hashtab_node_t *node;
     definition_t *def;                       /* predicate definition */
     module_t *mod;                              /* module definition */
     int_info_t *irootp;                             /* indexer info? */
@@ -1687,18 +1691,18 @@ struct sw_on_key_node_ {
    NOTE (MCL): data structure different from that in Sicstus 1.8!!
 */
 
-struct sw_on_key_ {
+struct hashtab_ {
   uintmach_t mask;                                          /* bitmask */
   intmach_t count;
 #if defined(ATOMGC)
   intmach_t next_index;
 #endif
-  sw_on_key_node_t node[FLEXIBLE_SIZE];
+  hashtab_node_t node[FLEXIBLE_SIZE];
 };
 
 /* Node from a byte offset */
 #define SW_ON_KEY_NODE_FROM_OFFSET(Tab, Offset) \
-  ((sw_on_key_node_t *)((char *)&(Tab)->node[0] + (Offset)))
+  ((hashtab_node_t *)((char *)&(Tab)->node[0] + (Offset)))
 
 typedef struct incore_info_ incore_info_t;
 struct incore_info_ {
@@ -1711,7 +1715,7 @@ struct incore_info_ {
 #endif
   try_node_t *varcase;
   try_node_t *lstcase;
-  sw_on_key_t *othercase;
+  hashtab_t *othercase;
 };
 
 #define SetEnterInstr(F,I) \
@@ -1768,8 +1772,8 @@ struct module_ {
 };
 
 /* Classified somewhere else */
-extern sw_on_key_node_t **atmtab;
-extern sw_on_key_t *ciao_atoms;
+extern hashtab_node_t **atmtab;
+extern hashtab_t *ciao_atoms;
 extern void *builtintab[];
 
 typedef struct statistics_ statistics_t;
@@ -1846,10 +1850,10 @@ CBOOL__PROTO(cunify_args, int arity, tagged_t *pt1, tagged_t *pt2);
 /* extern int atom_buffer_length; */  /* Non-shared --- used by each worker */
 
 
-extern sw_on_key_t *prolog_predicates;    /* Shared -- never changes */
-extern sw_on_key_t **predicates_location;                  /* Shared */
-extern sw_on_key_t *prolog_modules;    /* Shared -- never changes */
-extern sw_on_key_t **modules_location;                  /* Shared */
+extern hashtab_t *prolog_predicates;    /* Shared -- never changes */
+extern hashtab_t **predicates_location;                  /* Shared */
+extern hashtab_t *prolog_modules;    /* Shared -- never changes */
+extern hashtab_t **modules_location;                  /* Shared */
 
 /* Database locks */
 extern SLOCK    prolog_predicates_l;                      /* Pointer to it */

@@ -624,19 +624,19 @@ vr36 = vr35;
     }
 
 intmach_t vr37;
-sw_on_key_t * Htab = Func->code.incoreinfo->othercase;
+hashtab_t * Htab = Func->code.incoreinfo->othercase;
 vr37 = 0;
 tagged_t vr38;
 vr38 = vr36;
 vr36&=Htab->mask;
-sw_on_key_node_t * HtabNode;
+hashtab_node_t * HtabNode;
 do {
 HtabNode = SW_ON_KEY_NODE_FROM_OFFSET(Htab,vr36);
 if (HtabNode->key==vr38||!HtabNode->key) {
 break;
       }
 
-vr37+=sizeof(sw_on_key_node_t);
+vr37+=sizeof(hashtab_node_t);
 vr36 = (vr36+vr37)&Htab->mask;
     }
  while (TRUE);

@@ -33,7 +33,7 @@ CBOOL__PROTO(current_atom) {
   { 
     /* There is an (improbable) case: the 0-th table entry is empty.
        Take it into account. */
-    intmach_t size = SwitchSize(ciao_atoms) >> 1;
+    intmach_t size = HASHTAB_SIZE(ciao_atoms) >> 1;
     intmach_t i = 0;
     while (i < size && (atmtab[i] == NULL))
       i++;
@@ -62,7 +62,7 @@ CBOOL__PROTO(nd_current_atom) {
 
   */
 
-  intmach_t size = SwitchSize(ciao_atoms) >> 1;
+  intmach_t size = HASHTAB_SIZE(ciao_atoms) >> 1;
 
   /* Invariant: at entry, the current i points to a nonempty atom */
   CBOOL__UnifyCons(TagIndex(ATM,i),X(0));

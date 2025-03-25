@@ -578,7 +578,7 @@ tagged_t decode_instance_key(instance_t *);
 CBOOL__PROTO(current_key) {
   int_info_t *root = TaggedToRoot(X(0));
   hashtab_t *swp = root->indexer;
-  intmach_t j = SwitchSize(swp);
+  intmach_t j = HASHTAB_SIZE(swp);
   tagged_t mask;
 
   DEREF(X(2),X(2));
@@ -591,7 +591,7 @@ CBOOL__PROTO(current_key) {
       if (ACTIVE_INSTANCE(root->lstcase,use_clock,FALSE))
         MakeLST(X(4),make_structure(Arg,functor_lst),X(4));
     } else if (TaggedIsSTR(X(3))) {
-      sw_on_key_node_t *hnode =
+      hashtab_node_t *hnode =
         hashtab_get(swp,TaggedToHeadfunctor(X(3)));
       instance_t *inst =
         ACTIVE_INSTANCE(hnode->value.instp,use_clock,FALSE);
@@ -610,7 +610,7 @@ CBOOL__PROTO(current_key) {
           inst = ACTIVE_INSTANCE(inst->next_forward,use_clock,FALSE);
         }
     } else {
-      sw_on_key_node_t *hnode = hashtab_get(swp,X(3));
+      hashtab_node_t *hnode = hashtab_get(swp,X(3));
       instance_t *inst =
         ACTIVE_INSTANCE(hnode->value.instp,use_clock,FALSE);
 
@@ -625,7 +625,7 @@ CBOOL__PROTO(current_key) {
       (functor_lst & mask) == (X(2) & mask))
     MakeLST(X(4),make_structure(Arg,functor_lst),X(4));
   for (--j; j>=0; --j) {
-    sw_on_key_node_t *hnode = &swp->node[j];
+    hashtab_node_t *hnode = &swp->node[j];
     instance_t *inst =
       ACTIVE_INSTANCE(hnode->value.instp,use_clock,FALSE);
 

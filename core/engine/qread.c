@@ -771,7 +771,9 @@ CBOOL__PROTO(make_bytecode_object) {
 #endif
 
   object->next.ptr = NULL;
+#if 0 /* TODO:[oc-merge] disable subdefs */
   object->subdefs = NULL;
+#endif
 #if defined(GAUGE)
   object->counters = (intmach_t *)((char *)object+object->objsize)-counter_cnt;
   for (i=0; i<counter_cnt; i++)
@@ -1030,7 +1032,9 @@ static CVOID__PROTO(load_dbnode32,
   latest_bytecode = db;  
   latest_bytecode_size = codelength;
   db->next.ptr = NULL;
+#if 0 /* TODO:[oc-merge] disable subdefs */
   db->subdefs = NULL;
+#endif
 #if defined(GAUGE)
   db->counters = (intmach_t *)((char *)db+db->objsize)-counter_cnt;
   for (i=0; i<counter_cnt; i++)

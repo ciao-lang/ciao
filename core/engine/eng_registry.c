@@ -85,9 +85,9 @@ statistics_t ciao_stats = {
   0  /*inttime_t systemclockfreq*/
 };                                /* Shared */
 
-sw_on_key_node_t **atmtab; /* Shared --- but need lock when accessing /
+hashtab_node_t **atmtab; /* Shared --- but need lock when accessing /
                                    reallocing it! */
-sw_on_key_t *ciao_atoms;  /* Shared -- need lock when adding atoms */
+hashtab_t *ciao_atoms;  /* Shared -- need lock when adding atoms */
 static char                  /* Shared -- for adding new atoms; need lock */
   *prolog_chars=NULL,
   *prolog_chars_end=NULL;
@@ -95,7 +95,7 @@ static char                  /* Shared -- for adding new atoms; need lock */
 void *builtintab[64];                                           /* Shared */
 
                 /* Shared -- related with the hashing of arith. functions */
-sw_on_key_t *switch_on_function;
+hashtab_t *switch_on_function;
 
 /* tagged_t *heap_start , *heap_end, *heap_warn, *heap_warn_soft, stack_start,
    *stack_end, *stack_warn, tagged_choice_start, choice_start, choice_end,
@@ -104,11 +104,11 @@ sw_on_key_t *switch_on_function;
 /* char *atom_buffer; */ /* Non shared */
 /* int atom_buffer_length; */ /* Non shared */
 
-sw_on_key_t  *prolog_predicates = NULL;                    /* Shared */
-sw_on_key_t **predicates_location = &prolog_predicates;    /* Shared */
+hashtab_t  *prolog_predicates = NULL;                    /* Shared */
+hashtab_t **predicates_location = &prolog_predicates;    /* Shared */
 
-sw_on_key_t  *prolog_modules = NULL;                    /* Shared */
-sw_on_key_t **modules_location = &prolog_modules;    /* Shared */
+hashtab_t  *prolog_modules = NULL;                    /* Shared */
+hashtab_t **modules_location = &prolog_modules;    /* Shared */
 
 #if defined(USE_THREADS) && defined(USE_POSIX_THREADS)
 pthread_attr_t detached_thread;
@@ -328,26 +328,26 @@ definition_t *address_ucc;
 /*  MCL: there is an implicit assumption that the table is not full */
 
 #if defined(ABSMACH_OPT__atom_len)
-static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw,
-                                      tagged_t key,
-                                      char *str,
-                                      uintmach_t str_len)
+static hashtab_node_t *atom_gethash(hashtab_t *sw,
+                                    tagged_t key,
+                                    char *str,
+                                    uintmach_t str_len)
 #else
-static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw,
-                                      tagged_t key,
-                                      char *str)
+static hashtab_node_t *atom_gethash(hashtab_t *sw,
+                                    tagged_t key,
+                                    char *str)
 #endif
 {
-  sw_on_key_node_t *hnode;
+  hashtab_node_t *hnode;
 #if defined(ATOMGC)
-  sw_on_key_node_t *first_erased = NULL;
+  hashtab_node_t *first_erased = NULL;
 #endif
   intmach_t i;
   tagged_t t0;
 
   for (i=0, t0=key & sw->mask;
        ;
-       i+=sizeof(sw_on_key_node_t), t0=(t0+i) & sw->mask) {
+       i+=sizeof(hashtab_node_t), t0=(t0+i) & sw->mask) {
     hnode = SW_ON_KEY_NODE_FROM_OFFSET(sw, t0);
 #if !defined(ATOMGC)
     if ((hnode->key==key 
@@ -373,7 +373,7 @@ static sw_on_key_node_t *atom_gethash(sw_on_key_t *sw,
 }
 
 intmach_t lookup_atom_idx(char *str) {
-  sw_on_key_node_t *hnode;
+  hashtab_node_t *hnode;
   unsigned int hashcode = 0;
   intmach_t count, size;
   intmach_t current_mem = total_mem_count;
@@ -394,7 +394,7 @@ intmach_t lookup_atom_idx(char *str) {
                                    not 0 --- it cannot be 1, either, which is
                                    very important for atom GC */
 /*
-  while ((hnode=incore_gethash(ciao_atoms, (tagged_t)hashcode)) &&
+  while ((hnode=hashtab_get(ciao_atoms, (tagged_t)hashcode)) &&
          hnode->key==(tagged_t)hashcode &&
          strcmp(hnode->value.atomp->name, str)!=0)
     hashcode += 233509<<3;         233509 is prime, and so is
@@ -421,10 +421,10 @@ intmach_t lookup_atom_idx(char *str) {
 
   /* Check for a full table, and expand if needed */
 
-  if ((count+1)<<1 > (size=SwitchSize(ciao_atoms))) {
-    sw_on_key_t *new_table = new_switch_on_key(size<<1, NULL);
+  if ((count+1)<<1 > (size=HASHTAB_SIZE(ciao_atoms))) {
+    hashtab_t *new_table = new_switch_on_key(size<<1, NULL);
     intmach_t i;
-    sw_on_key_node_t *h1, *h2;
+    hashtab_node_t *h1, *h2;
 
 #if defined(ATOMGC) && defined(DEBUG_TRACE)
     /*printf("Reallocing atom table (count = %d)\n", count);*/
@@ -461,7 +461,7 @@ intmach_t lookup_atom_idx(char *str) {
 #endif
     }
 
-    atmtab = checkrealloc_ARRAY(sw_on_key_node_t *,
+    atmtab = checkrealloc_ARRAY(hashtab_node_t *,
                                 count,
                                 2*count,
                                 (tagged_t *)atmtab);
@@ -472,8 +472,8 @@ intmach_t lookup_atom_idx(char *str) {
     new_table->next_index = count;
 #endif
 
-    checkdealloc_FLEXIBLE(sw_on_key_t,
-                          sw_on_key_node_t,
+    checkdealloc_FLEXIBLE(hashtab_t,
+                          hashtab_node_t,
                           size,
                           ciao_atoms);
     new_table->count = count;
@@ -769,7 +769,7 @@ definition_t *define_c_mod_predicate(char *module,
                                      cbool0_t procedure)
 {
   definition_t *func;
-  sw_on_key_node_t *keyval;
+  hashtab_node_t *keyval;
   char mod_pname[STATICMAXATOM]; /* Pred. name with module name prepended */
   tagged_t mod_tagpname;    /* Def. of predicate with module name prepended */
   tagged_t key;
@@ -794,7 +794,7 @@ definition_t *define_c_mod_predicate(char *module,
 
   Wait_Acquire_slock(prolog_predicates_l);
 
-  keyval = (sw_on_key_node_t *)incore_gethash(prolog_predicates,key);
+  keyval = (hashtab_node_t *)hashtab_get(prolog_predicates,key);
 
   if (keyval->key)
     func = keyval->value.def;
@@ -836,7 +836,7 @@ void undefine_c_mod_predicate(char *module, char *pname, int arity) {
 module_t *define_c_static_mod(char *module_name)
 {
   module_t *mod;
-  sw_on_key_node_t *keyval;
+  hashtab_node_t *keyval;
   tagged_t mod_atm;    /* Def. of predicate with module name prepended */
   tagged_t key;
   intmach_t current_mem = total_mem_count;
@@ -846,7 +846,7 @@ module_t *define_c_static_mod(char *module_name)
 
   Wait_Acquire_slock(prolog_modules_l);
 
-  keyval = (sw_on_key_node_t *)incore_gethash(prolog_modules, key);
+  keyval = (hashtab_node_t *)hashtab_get(prolog_modules, key);
 
   if (keyval->key)
     mod = keyval->value.mod;
@@ -873,7 +873,7 @@ static void deffunction(char *atom,
                         int funcno)
 {
   tagged_t k = deffunctor(atom,arity);
-  sw_on_key_node_t *node = incore_gethash(switch_on_function,k);
+  hashtab_node_t *node = hashtab_get(switch_on_function,k);
 
   node->key = k;
   node->value.proc = builtintab[funcno] = (void *)proc;
@@ -884,7 +884,7 @@ static void deffunction_nobtin(char *atom,
                                void *proc)
 {
   tagged_t k = deffunctor(atom,arity);
-  sw_on_key_node_t *node = incore_gethash(switch_on_function,k);
+  hashtab_node_t *node = hashtab_get(switch_on_function,k);
 
   node->key = k;
   node->value.proc = proc;
@@ -1291,7 +1291,7 @@ void init_once(void) {
 #endif
 
   i = eng_cfg_getenv("ATMTABSIZE",ATMTABSIZE);
-  atmtab = checkalloc_ARRAY(sw_on_key_node_t *, i);
+  atmtab = checkalloc_ARRAY(hashtab_node_t *, i);
 
   ciao_atoms = new_switch_on_key(2*i,NULL);
 

@@ -324,8 +324,8 @@ ty(bcp) => tk('bcp_t').
 ty(choice) => tk('choice_t').
 ty(frame) => tk('frame_t').
 ty(worker) => tk('worker_t').
-ty(sw_on_key_node) => tk('sw_on_key_node_t').
-ty(sw_on_key) => tk('sw_on_key_t').
+ty(hashtab_node) => tk('hashtab_node_t').
+ty(hashtab) => tk('hashtab_t').
 ty(instance_clock) => tk('instance_clock_t').
 %
 ty(cbool0) => tk('cbool0_t').
@@ -341,7 +341,7 @@ ty(ftype_ctype(X)) => '$fcall'('FTYPE_ctype', [X]).
 ty(ptr(Ty)) => ty(Ty), ' ', tk('*').
 
 sizeof(tagged) => '$fcall'('sizeof', [ty(tagged)]).
-sizeof(sw_on_key_node) => '$fcall'('sizeof', [ty(sw_on_key_node)]).
+sizeof(hashtab_node) => '$fcall'('sizeof', [ty(hashtab_node)]).
 
 % ---------------------------------------------------------------------------
 %! # C functions
@@ -2409,17 +2409,17 @@ pred_enter_compactcode_indexed =>
     localv(intmach, I),
     [[ Htab = tk('Htab') ]],
     [[ HtabNode = tk('HtabNode') ]],
-    vardecl(ptr(sw_on_key), Htab, (~func)^.code.incoreinfo^.othercase),
+    vardecl(ptr(hashtab), Htab, (~func)^.code.incoreinfo^.othercase),
     %
     I <- 0,
     localv(tagged, T2),
     T2 <- T1,
     assign(T1 /\ Htab^.mask),
-    vardecl(ptr(sw_on_key_node), HtabNode),
+    vardecl(ptr(hashtab_node), HtabNode),
     do_while((
         HtabNode <- ~sw_on_key_node_from_offset(Htab, T1),
         if(logical_or(HtabNode^.key==T2, not(HtabNode^.key)), break),
-        assign(I + sizeof(sw_on_key_node)),
+        assign(I + sizeof(hashtab_node)),
         T1 <- paren(T1+I) /\ Htab^.mask % (note: paren is not needed, but C emits readability warning)
     ), ~true),
     jump_tryeach(HtabNode^.value.try_chain). % (this will break the loop)

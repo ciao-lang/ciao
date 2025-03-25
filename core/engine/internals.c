@@ -176,23 +176,23 @@ CBOOL__PROTO(gc_margin) {
 
 /*-------------------------------------------------------*/
 
-void add_definition(sw_on_key_t **swp,
-                    sw_on_key_node_t *node,
+void add_definition(hashtab_t **swp,
+                    hashtab_node_t *node,
                     tagged_t key,
                     definition_t *def)
 {
   node->key=key;
   node->value.def=def;
-  if (((*swp)->count+=1)<<1 > SwitchSize(*swp))
+  if (((*swp)->count+=1)<<1 > HASHTAB_SIZE(*swp))
     expand_sw_on_key(swp,NULL,FALSE);
 }
 
-definition_t *insert_definition(sw_on_key_t **swp,
+definition_t *insert_definition(hashtab_t **swp,
                                 tagged_t tagpname,
                                 int arity,
                                 bool_t insertp)
 {
-  sw_on_key_node_t *keyval;
+  hashtab_node_t *keyval;
   definition_t *value = NULL;
   tagged_t key=SetArity(tagpname,arity);
 
@@ -200,7 +200,7 @@ definition_t *insert_definition(sw_on_key_t **swp,
      concurrently. */
 
   Wait_Acquire_slock(prolog_predicates_l);
-  keyval = (sw_on_key_node_t *)incore_gethash((*swp),key);
+  keyval = (hashtab_node_t *)hashtab_get((*swp),key);
 
   if (keyval->key)                                    /* Already existent */
     value = keyval->value.def;
@@ -216,7 +216,7 @@ definition_t *insert_definition(sw_on_key_t **swp,
 
 /*------------------------------------------------------------*/
 
-definition_t *find_definition(sw_on_key_t **swp,
+definition_t *find_definition(hashtab_t **swp,
                               tagged_t term, tagged_t **argl,
                               bool_t insertp)
 {
@@ -257,6 +257,7 @@ definition_t *parse_definition(tagged_t complex)
   else return NULL;
 }
 
+#if 0 /* TODO:[oc-merge] disable subdefs */
 static definition_t **find_subdef_chain(definition_t *f, intmach_t clause_no)
 {
   incore_info_t *d = f->code.incoreinfo;
@@ -277,6 +278,7 @@ static definition_t **find_subdef_chain(definition_t *f, intmach_t clause_no)
   }
   return &ep->subdefs;
 }
+#endif
 
 static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
 {
@@ -285,6 +287,7 @@ static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
   if (!TaggedIsSmall(tagarity))
     return NULL;
   arity = GetSmall(tagarity);
+#if 0 /* TODO:[oc-merge] disable subdefs */
   if (TaggedIsSTR(tagname) && (TaggedToHeadfunctor(tagname)==functor_minus))
     /* "internal" predicate */
     {
@@ -292,8 +295,6 @@ static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
       tagged_t tmp;
       intmach_t i;
       intmach_t subdef_no, clause_no;
-
-      fprintf(stderr, "INTERNALDEF\n");
 
       DerefArg(tmp,tagname,2);
       subdef_no = GetSmall(tmp);
@@ -325,6 +326,7 @@ static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
         }
       return f;
     }
+#endif
 
   if (TaggedIsATM(tagname)) 
     return insert_definition(predicates_location,tagname,arity,TRUE);
@@ -345,22 +347,22 @@ module_t *new_module(tagged_t mod_atm)
   return mod;
 }
 
-void add_module(sw_on_key_t **swp,
-                sw_on_key_node_t *node,
+void add_module(hashtab_t **swp,
+                hashtab_node_t *node,
                 tagged_t key,
                 module_t *mod)
 {
   node->key=key;
   node->value.mod=mod;
-  if (((*swp)->count+=1)<<1 > SwitchSize(*swp))
+  if (((*swp)->count+=1)<<1 > HASHTAB_SIZE(*swp))
     expand_sw_on_key(swp,NULL,FALSE);
 }
 
-module_t *insert_module(sw_on_key_t **swp,
+module_t *insert_module(hashtab_t **swp,
                         tagged_t mod_atm,
                         bool_t insertp)
 {
-  sw_on_key_node_t *keyval;
+  hashtab_node_t *keyval;
   module_t *value = NULL;
   tagged_t key = mod_atm;
 
@@ -368,7 +370,7 @@ module_t *insert_module(sw_on_key_t **swp,
      concurrently. */
 
   Wait_Acquire_slock(prolog_modules_l);
-  keyval = (sw_on_key_node_t *)incore_gethash((*swp),key);
+  keyval = (hashtab_node_t *)hashtab_get((*swp),key);
 
   if (keyval->key)                                    /* Already existent */
     value = keyval->value.mod;
@@ -609,16 +611,16 @@ static void incore_insert(try_node_t  **t0,
                           int effar,
                           emul_info_t *ref,
                           incore_info_t *def);
-static void incore_puthash(sw_on_key_t **psw, 
+static void incore_puthash(hashtab_t **psw, 
                            int effar, 
                            emul_info_t *current, 
                            incore_info_t *def,
                            tagged_t k);
 static try_node_t *incore_copy(try_node_t *from);
 static void trychain_free(try_node_t *t);
-static void free_sw_on_key(sw_on_key_t **sw);
+static void free_hashtab_trychain(hashtab_t *sw);
 static void free_emulinfo(emul_info_t *cl);
-static void free_incoreinfo(incore_info_t **p);
+static void incoreinfo_free(incore_info_t *p);
 static CVOID__PROTO(make_undefined, definition_t *f);
 static void free_info(enter_instr_t enter_instr, char *info);
 void init_interpreted(definition_t *f);
@@ -732,27 +734,27 @@ static try_node_t *incore_copy(try_node_t *from)
 }
 
 /* get location of try chain for a key */
-sw_on_key_node_t *incore_gethash(sw_on_key_t *sw, tagged_t key) {
-  sw_on_key_node_t *hnode;
+hashtab_node_t *hashtab_get(hashtab_t *sw, tagged_t key) {
+  hashtab_node_t *hnode;
   intmach_t i;
   tagged_t t0;
 
   for (i=0, t0=key & sw->mask;
        ;
-       i+=sizeof(sw_on_key_node_t), t0=(t0+i) & sw->mask) {
+       i+=sizeof(hashtab_node_t), t0=(t0+i) & sw->mask) {
     hnode = SW_ON_KEY_NODE_FROM_OFFSET(sw, t0);
     if (hnode->key==key || !hnode->key)
       return hnode;
   }
 }
 
-sw_on_key_t *new_switch_on_key(intmach_t size,
-                               try_node_t *otherwise)
+hashtab_t *new_switch_on_key(intmach_t size,
+                             try_node_t *otherwise)
 {
   intmach_t i;
-  sw_on_key_t *sw;
+  hashtab_t *sw;
 
-  sw = checkalloc_FLEXIBLE(sw_on_key_t, sw_on_key_node_t, size);
+  sw = checkalloc_FLEXIBLE(hashtab_t, hashtab_node_t, size);
 
   sw->mask = SizeToMask(size);
   sw->count = 0;
@@ -765,28 +767,28 @@ sw_on_key_t *new_switch_on_key(intmach_t size,
   return sw;
 }
 
-void expand_sw_on_key(sw_on_key_t **psw,
+void expand_sw_on_key(hashtab_t **psw,
                       try_node_t *otherwise,
                       bool_t deletep)
 {
-  sw_on_key_node_t *h1, *h2;
-  intmach_t size = SwitchSize(*psw);
-  sw_on_key_t *newsw = new_switch_on_key(size<<1,otherwise);
+  hashtab_node_t *h1, *h2;
+  intmach_t size = HASHTAB_SIZE(*psw);
+  hashtab_t *newsw = new_switch_on_key(size<<1,otherwise);
   intmach_t j;
 
   for (j=size-1; j>=0; --j) {
     h1 = &(*psw)->node[j];
     if (h1->key) {
       newsw->count++;
-      h2 = incore_gethash(newsw,h1->key);
+      h2 = hashtab_get(newsw,h1->key);
       h2->key = h1->key;
       h2->value.try_chain = h1->value.try_chain;
     }
   }
 
   if (deletep) {
-    checkdealloc_FLEXIBLE(sw_on_key_t,
-                          sw_on_key_node_t,
+    checkdealloc_FLEXIBLE(hashtab_t,
+                          hashtab_node_t,
                           size,
                           *psw);
   } else {
@@ -800,16 +802,16 @@ void expand_sw_on_key(sw_on_key_t **psw,
 has table try nodes; I am passing a NULL pointer which is checked by
 incore_insert() and not used.  */
 
-static void incore_puthash(sw_on_key_t **psw,
+static void incore_puthash(hashtab_t **psw,
                            int effar,
                            emul_info_t *current,
                            incore_info_t *def,
                            tagged_t k)
 {
   intmach_t i;
-  sw_on_key_node_t *h1;
+  hashtab_node_t *h1;
   try_node_t *otherwise = NULL;
-  intmach_t size = SwitchSize(*psw);
+  intmach_t size = HASHTAB_SIZE(*psw);
 
   if (k==ERRORTAG){             /* add an alt. to default and to every key */
     for (i=0; i<size; i++) {
@@ -823,7 +825,7 @@ static void incore_puthash(sw_on_key_t **psw,
         h1->value.try_chain = otherwise;
     }
   } else {
-    h1 = incore_gethash(*psw,k);
+    h1 = hashtab_get(*psw,k);
     if (!h1->key) {
       h1->key = k;
       h1->value.try_chain = incore_copy(otherwise=h1->value.try_chain);
@@ -843,16 +845,14 @@ static void trychain_free(try_node_t *t) {
   }
 }
 
-
-static void free_sw_on_key(sw_on_key_t **sw)
-{
-  sw_on_key_node_t *h1;
+static void free_hashtab_trychain(hashtab_t *sw) {
+  hashtab_node_t *h1;
   intmach_t i;
-  intmach_t size = SwitchSize(*sw);
+  intmach_t size = HASHTAB_SIZE(sw);
   bool_t otherwise = FALSE;
 
   for (i=0; i<size; i++) {
-    h1 = &(*sw)->node[i];
+    h1 = &sw->node[i];
     if (h1->key || !otherwise) {
       trychain_free(h1->value.try_chain);
       h1->value.try_chain = NULL; // TODO:[oc-merge] needed?
@@ -862,36 +862,35 @@ static void free_sw_on_key(sw_on_key_t **sw)
     }
   }
 
-  checkdealloc_FLEXIBLE(sw_on_key_t,
-                        sw_on_key_node_t,
+  checkdealloc_FLEXIBLE(hashtab_t,
+                        hashtab_node_t,
                         size,
-                        *sw);
-  (*sw)=NULL;
+                        sw);
 }
 
 static void free_emulinfo(emul_info_t *cl)
 {
+#if 0 /* TODO:[oc-merge] disable subdefs */
   definition_t *def, *sibling;
-
   for (def=cl->subdefs; def!=NULL; def=sibling) {
     sibling = DEF_SIBLING(def);
     free_info(def->predtyp, (char *)def->code.intinfo);
     checkdealloc_TYPE(definition_t, def);
   }
+#endif
   checkdealloc_FLEXIBLE_S(emul_info_t, objsize, cl);
 }
 
-static void free_incoreinfo(incore_info_t **p)
-{
-  emul_info_t *stop = (*p)->clauses_tail->ptr;
+static void incoreinfo_free(incore_info_t *p) {
+  emul_info_t *stop;
   emul_info_t *cl, *cl1;
 
-  for (cl=(*p)->clauses.ptr; cl!=stop; cl=cl1) {
+  stop = p->clauses_tail->ptr;
+  for (cl=p->clauses.ptr; cl!=stop; cl=cl1) {
     cl1 = cl->next.ptr;
     free_emulinfo(cl);
   }
-  checkdealloc_TYPE(incore_info_t, *p);
-  (*p) = NULL;
+  checkdealloc_TYPE(incore_info_t, p);
 }
 
 /* Those have to do with garbage collecting of the abolished predicates.
@@ -987,18 +986,20 @@ static void free_info(enter_instr_t enter_instr, char *info)
     case ENTER_PROFILEDCODE_INDEXED:
       trychain_free(((incore_info_t *)info)->lstcase);
       ((incore_info_t *)info)->lstcase = NULL; // TODO:[oc-merge] needed?
-      free_sw_on_key(&((incore_info_t *)info)->othercase);
+      free_hashtab_trychain(((incore_info_t *)info)->othercase);
+      ((incore_info_t *)info)->othercase = NULL; // TODO:[oc-merge] needed?
     case ENTER_COMPACTCODE:
     case ENTER_PROFILEDCODE:
       trychain_free(((incore_info_t *)info)->varcase);
       ((incore_info_t *)info)->varcase = NULL; // TODO:[oc-merge] needed?
-      free_incoreinfo((incore_info_t **)(&info));
+      incoreinfo_free((incore_info_t *)info);
+      info = NULL; // TODO:[oc-merge] needed?
       break;
     case ENTER_INTERPRETED:
       {
         int_info_t *int_info = (int_info_t *)info;
         instance_t *n, *m;
-        intmach_t size = SwitchSize(int_info->indexer);
+        intmach_t size = HASHTAB_SIZE(int_info->indexer);
 
         for (n = int_info->first; n; n=m) {
           m=n->forward;
@@ -1006,8 +1007,8 @@ static void free_info(enter_instr_t enter_instr, char *info)
           checkdealloc_FLEXIBLE_S(instance_t, objsize, n);
         }
         
-        checkdealloc_FLEXIBLE(sw_on_key_t,
-                              sw_on_key_node_t,
+        checkdealloc_FLEXIBLE(hashtab_t,
+                              hashtab_node_t,
                               size,
                               int_info->indexer);
         
@@ -1016,10 +1017,10 @@ static void free_info(enter_instr_t enter_instr, char *info)
       }
     case TABLE:
       {
-        sw_on_key_t *sw = (sw_on_key_t *)info;
-        intmach_t size = SwitchSize(sw);
-        checkdealloc_FLEXIBLE(sw_on_key_t,
-                              sw_on_key_node_t,
+        hashtab_t *sw = (hashtab_t *)info;
+        intmach_t size = HASHTAB_SIZE(sw);
+        checkdealloc_FLEXIBLE(hashtab_t,
+                              hashtab_node_t,
                               size,
                               sw);
         break;
@@ -1191,7 +1192,9 @@ CBOOL__PROTO(compiled_clause)
   if (d->clauses.ptr != NULL && IS_CLAUSE_TAIL(ep)) {
     for (epp = &d->clauses.ptr; *epp != ep; epp = (emul_info_t **)*epp)
       ;
+#if 0 /* TODO:[oc-merge] disable subdefs */
     ref->subdefs = ep->subdefs;
+#endif
     ref->next.ptr = ep->next.ptr;
     *epp = ref;
     checkdealloc_FLEXIBLE(emul_info_t,
@@ -1233,20 +1236,20 @@ CBOOL__PROTO(compiled_clause)
   return TRUE;
 }
 
-sw_on_key_node_t *dyn_puthash(sw_on_key_t **swp, tagged_t k)
+hashtab_node_t *hashtab_lookup(hashtab_t **swp, tagged_t k)
 {
-  sw_on_key_node_t *h1;
+  hashtab_node_t *h1;
 
-  h1 = incore_gethash(*swp,k);
+  h1 = hashtab_get(*swp,k);
   if (h1->key)
     return h1;
   else {
     h1->key = k;
-    if (((*swp)->count+=1)<<1 <= SwitchSize(*swp))
+    if (((*swp)->count+=1)<<1 <= HASHTAB_SIZE(*swp))
       return h1;
     else {
       expand_sw_on_key(swp,NULL,TRUE);
-      return incore_gethash(*swp,k);
+      return hashtab_get(*swp,k);
     }
   }
 }
@@ -1281,7 +1284,8 @@ CBOOL__PROTO(set_property)
     f->properties.concurrent = X(1) == atom_concurrent;            /* MCL */
 
     if (type != ENTER_INTERPRETED) {          /* Change it to interpreted */
-      free_incoreinfo(&f->code.incoreinfo);
+      incoreinfo_free(f->code.incoreinfo);
+      f->code.incoreinfo = NULL; // TODO:[oc-merge] needed?
       init_interpreted(f);
     }
 
@@ -1320,7 +1324,7 @@ CBOOL__PROTO(set_currmod) {
 /* --------------------------------------------------------------------------- */
 /* Selective removing of clauses */
 
-#if defined(ABSMACH_OPT__regmod2_drain)
+#if 0 //defined(ABSMACH_OPT__regmod2)
 void trychain_drain_marked(try_node_t **tfirst, tagged_t mark) {
   try_node_t *t;
   try_node_t *last;
@@ -1360,6 +1364,8 @@ void trychain_drain_marked(try_node_t **tfirst, tagged_t mark) {
     }
   }
 }
+#endif
+#if 0 //defined(ABSMACH_OPT__regmod2)
 void hashtab_trychain_drain_marked(hashtab_t **psw, tagged_t mark) {
   intmach_t i;
   hashtab_node_t *h1;
@@ -1383,6 +1389,8 @@ void hashtab_trychain_drain_marked(hashtab_t **psw, tagged_t mark) {
     }
   }
 }
+#endif
+#if 0 //defined(ABSMACH_OPT__regmod2)
 CBOOL__PROTO(incore_drain_marked, definition_t *f, tagged_t mark) {
   intmach_t current_mem = total_mem_count;
   incore_info_t *d;

@@ -5,7 +5,7 @@
 
 /* TODO: refine */
 
-extern sw_on_key_t *switch_on_function;
+extern hashtab_t *switch_on_function;
 
 intmach_t lookup_atom_idx(char *str);
 

@@ -35,7 +35,7 @@ CBOOL__PROTO(current_predicate)
     return TRUE;
   }
 
-  X(2) = MakeSmall(SwitchSize(*predicates_location));
+  X(2) = MakeSmall(HASHTAB_SIZE(*predicates_location));
   X(3) = PointerToTerm(*predicates_location);
   push_choicept(Arg,address_nd_current_predicate);
   return nd_current_predicate(Arg);
@@ -43,8 +43,8 @@ CBOOL__PROTO(current_predicate)
 
 CBOOL__PROTO(nd_current_predicate)
 {
-  sw_on_key_t *table = TermToPointer(sw_on_key_t, X(3));
-  sw_on_key_node_t *keyval;
+  hashtab_t *table = TermToPointer(hashtab_t, X(3));
+  hashtab_node_t *keyval;
   intmach_t j = GetSmall(X(2));
   definition_t *d;
   tagged_t mask = (IsVar(X(0)) ? 0 : INDEXMASK);
@@ -99,7 +99,7 @@ CBOOL__PROTO(predicate_property)
     return TRUE;
   }
 
-  X(3) = MakeSmall(SwitchSize(*predicates_location));
+  X(3) = MakeSmall(HASHTAB_SIZE(*predicates_location));
   X(4) = PointerToTerm(*predicates_location);
   push_choicept(Arg,address_nd_predicate_property);
   return nd_predicate_property(Arg);
@@ -107,9 +107,9 @@ CBOOL__PROTO(predicate_property)
 
 CBOOL__PROTO(nd_predicate_property)
 {
-  sw_on_key_t *table = TermToPointer(sw_on_key_t, X(4));
+  hashtab_t *table = TermToPointer(hashtab_t, X(4));
   intmach_t j = GetSmall(X(3));
-  sw_on_key_node_t *keyval;
+  hashtab_node_t *keyval;
   definition_t *d;
 
   for (--j; j>=0; --j)

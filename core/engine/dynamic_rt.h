@@ -22,7 +22,7 @@ CBOOL__PROTO(next_instance_conc, instance_t **ipp);
 
 CBOOL__PROTO(current_clauses);
 
-/* static void relocate_table_clocks(sw_on_key_t *sw, instance_clock_t *clocks) */
+/* static void relocate_table_clocks(hashtab_t *sw, instance_clock_t *clocks) */
 
 CBOOL__PROTO(prolog_purge);
 CBOOL__PROTO(prolog_erase);

@@ -95,7 +95,7 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
 #if defined(OPTIM_COMP)
     void *proc = hashtab_get(switch_on_function,t_head_functor)->value.as_ptr;
 #else
-    void *proc = incore_gethash(switch_on_function,t_head_functor)->value.proc;
+    void *proc = hashtab_get(switch_on_function,t_head_functor)->value.proc;
 #endif
     if (proc==NULL) goto err;
     switch (Arity(t_head_functor)) {
