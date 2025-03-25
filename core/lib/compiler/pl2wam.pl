@@ -5,6 +5,8 @@
     set_compiler_out/1,
     compile_clause/2,
     compile_clause_in_mode/3,
+    mod_declaration/1,
+    mod_declaration_in_mode/2,
     proc_declaration/4,
     proc_declaration_in_mode/5,
     cleanup_compilation_data/0
@@ -23,7 +25,8 @@
      intset_insert/3, intset_delete/3, intset_in/2, intset_sequence/3]).
 :- use_module(engine(internals), 
     [poversion/1, '$make_bytecode_object'/4, '$compiled_clause'/4,
-     '$interpreted_clause'/2, '$set_property'/2, '$define_predicate'/2]).
+     '$interpreted_clause'/2, '$set_property'/2, '$define_predicate'/2,
+     '$set_currmod'/1]).
 :- use_module(engine(internals), [module_concat/3]).
 :- use_module(engine(runtime_control), [module_split/3]).
 
@@ -153,14 +156,10 @@ E_GAUGE ***/
 %new_x_offset(37).
 
 % jf-new
-reset_counter(Module0) :-
+reset_counter(Module) :-
     retractall_fact(counter(_)),
     retractall_fact(counter_module(_)),
     asserta_fact(counter(0)),
-    ( Module0 = user(Base) ->
-        atom_concat('user$$$', Base, Module)
-    ; Module0 = Module
-    ),
     asserta_fact(counter_module(Module)).
 
 set_compiler_mode(Mode) :- asserta_fact(compiler_mode(Mode)).
@@ -195,6 +194,15 @@ define_predicate_mode(M) :-
     compiler_mode(Mode),
     !,
     arg(1, Mode, M).
+
+
+mod_declaration(Mod) :-
+    compile_file_emit(set_currmod(Mod)).
+
+mod_declaration_in_mode(Mode, Mod) :-
+    asserta_fact(compiler_mode(Mode), Ref),
+    mod_declaration(Mod),
+    erase(Ref).
 
 
 proc_declaration(Decl, P, F, A) :-
@@ -645,7 +653,7 @@ straight_body([Goal|Gs], List, [Goal|Gs1], ClName, Chn, _) -->
 
 % jf-new solve multifile bug (hmm, that's temporary code)
 :- data counter/1. 
-:- data counter_module/1.
+:- data counter_module/1. % (flatten module name)
 internal_name(ClName,SubName) :- !,
     current_fact(counter_module(Module)),
     current_fact(counter(Counter)),

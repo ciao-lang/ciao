@@ -53,6 +53,7 @@
     opt_suff/1,
     %
     '$open'/3, initialize_module/1, initialized/1,
+    '$set_currmod'/1,
     '$define_predicate'/2, '$set_property'/2, '$compiled_clause'/4,
     '$compile_term'/2, '$current_clauses'/2, '$insertz'/2, '$abolish'/1,
     '$current_instance'/5, '$erase'/1, '$predicate_property'/3,
@@ -1977,7 +1978,8 @@ make_po_file_1(Base, FilePred, Mode, Message) :-
 
 make_po_file_2(PoName, Mode, Base, Module, Source) :-
     file_buffer_begin(PoName, Buffer, Stream),
-    reset_counter(Module),
+    flatten_mod_name(Module, FlatModule), % TODO: use flat name in more places?
+    reset_counter(FlatModule),
     set_compiler_mode_out(Mode, Stream),
     compiler_pass(Source, Base, Module, Mode, OK),
     retractall_fact(incore_mode_of(_, _)), % TODO: why?
@@ -2056,6 +2058,8 @@ expand_subbody(M, Dict, C, EC) :-
 compiler_pass(Source, Base, Module, Mode, OK) :-
     del_compiler_pass_data,
     asserta_fact(compiling_src(Source)),
+    flatten_mod_name(Module, FlatModule), % TODO: use flat name in more places?
+    compile_set_currmod(Mode, FlatModule),
     compile_multifile_decls(Base, Module, Mode),
     compile_dyn_decls(Base, Module, Mode),
     activate_translation(Base, Module, add_clause_trans),
@@ -2082,6 +2086,7 @@ compiler_pass(Source, Base, Module, Mode, OK) :-
     del_clause_trans(Module),
     del_goal_trans(Module),
     end_brace_if_needed,
+    compile_unset_currmod(Mode),
     cleanup_compilation_data.
 
 % ---------------------------------------------------------------------------
@@ -2319,6 +2324,33 @@ c_itf_internal_pred_decl(Decl) :-
     nonvar(FA),
     FA = Pred/Arity,
     c_itf_internal_pred(Pred,Arity).
+
+% ---------------------------------------------------------------------------
+:- doc(section, "Compile mod name").
+
+compile_set_currmod(ql(_), Module) :- !,
+    mod_declaration(Module). % in pl2wam
+compile_set_currmod(wam, Module) :- !,
+    mod_declaration(Module).
+compile_set_currmod(incoreql(Pr), Module) :- !,
+    mod_declaration_in_mode(ql(Pr), Module),
+    incore_decl_mod(Module).
+compile_set_currmod(_Mode, Module) :-
+    incore_decl_mod(Module).
+
+incore_decl_mod(Module) :-
+    '$set_currmod'(Module).
+
+compile_unset_currmod(ql(_)) :- !.
+compile_unset_currmod(wam) :- !.
+compile_unset_currmod(_Mode) :- '$set_currmod'(0).
+
+% flatten mod name into an atom
+flatten_mod_name(Module0, Module) :-
+    ( Module0 = user(Base) ->
+        atom_concat('user$$$', Base, Module)
+    ; Module0 = Module
+    ).
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Compile declarations").
@@ -3045,7 +3077,8 @@ load_make_po(Base, Source, PoName, Profiling, Module) :-
     now_doing(['Compiling ',Source]),
     file_buffer_begin(PoName, Buffer, Stream),
     Mode = incoreql(Profiling),
-    reset_counter(Module),
+    flatten_mod_name(Module, FlatModule), % TODO: use flat name in more places?
+    reset_counter(FlatModule),
     set_compiler_mode_out(Mode, Stream),
     % TODO: unload module if OK is not 'yes'
     compiler_pass(Source, Base, Module, Mode, OK),
@@ -3059,7 +3092,8 @@ load_make_po(Base, Source, PoName, Profiling, Module) :-
     ),
     % TODO: add an option for just 'incore'? (it was done before when .po was not writable)
     % Mode = incore(Profiling),
-    % reset_counter(Module),
+    % flatten_mod_name(Module, FlatModule), % TODO: use flat name in more places?
+    % reset_counter(FlatModule),
     % set_compiler_mode(Mode),
     % % TODO: unload module if OK is not 'yes'
     % compiler_pass(Source, Base, Module, Mode, _OK)
@@ -3101,6 +3135,8 @@ qload_dyn_s(Stream, Module) :-
     ; ql_step(Goal, Module), fail
     ), !.
 
+ql_step('internals:$set_currmod'(Mod), _Module) :- !,
+    '$set_currmod'(Mod).
 ql_step('internals:$define_predicate'(N/A, Profiling), Module) :-
     functor(Head, N, A), !,
     incore_mode(incore(Profiling), Head, Mode),

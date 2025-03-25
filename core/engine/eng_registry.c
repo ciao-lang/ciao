@@ -903,6 +903,8 @@ CBOOL__PROTO(module_is_static) {
   return d->properties.is_static;
 }
 
+CBOOL__PROTO(set_currmod);
+
 /* --------------------------------------------------------------------------- */
 /* Initializations that need to be made once only. */
 
@@ -1752,6 +1754,7 @@ void init_once(void) {
   define_c_mod_predicate("internals","$predicate_property",3,predicate_property);
   define_c_mod_predicate("internals","$current_clauses",2,current_clauses);
   define_c_mod_predicate("internals","$module_is_static",1,module_is_static);
+  define_c_mod_predicate("internals","$set_currmod",1,set_currmod);
   define_c_mod_predicate("internals","$first_instance",2,first_instance);
   define_c_mod_predicate("internals","$close_predicate",1,close_predicate);
   define_c_mod_predicate("internals","$open_predicate",1,open_predicate);

@@ -293,6 +293,8 @@ static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
       intmach_t i;
       intmach_t subdef_no, clause_no;
 
+      fprintf(stderr, "INTERNALDEF\n");
+
       DerefArg(tmp,tagname,2);
       subdef_no = GetSmall(tmp);
       DerefArg(tagname,tagname,1);
@@ -613,7 +615,7 @@ static void incore_puthash(sw_on_key_t **psw,
                            incore_info_t *def,
                            tagged_t k);
 static try_node_t *incore_copy(try_node_t *from);
-static void free_try(try_node_t **t);
+static void trychain_free(try_node_t *t);
 static void free_sw_on_key(sw_on_key_t **sw);
 static void free_emulinfo(emul_info_t *cl);
 static void free_incoreinfo(incore_info_t **p);
@@ -622,7 +624,7 @@ static void free_info(enter_instr_t enter_instr, char *info);
 void init_interpreted(definition_t *f);
 
 
-#define ISNOTRY(T)              (((T)==NULL) || ((T)==fail_alt))
+#define TRY_NODE_IS_NULL(T) (((T)==NULL) || ((T)==fail_alt))
 
 /* Indexing for the incore compiler. */
 
@@ -696,14 +698,14 @@ static void incore_insert(try_node_t **t0,
 #endif
   t->next = NULL;
 
-  if (ISNOTRY(*t1)) {
+  if (TRY_NODE_IS_NULL(*t1)) {
     t->emul_p2 = BCoff(t->emul_p, p2_offset(BCOp(t->emul_p, FTYPE_ctype(f_o), 0)));
   } else {
     do {
       if ((*t1)->next==NULL)
         set_nondet(*t1,def,t0==t1);
       t1 = &(*t1)->next;
-    } while (!ISNOTRY(*t1));
+    } while (!TRY_NODE_IS_NULL(*t1));
   }
   (*t1) = t;
 }
@@ -713,7 +715,7 @@ static try_node_t *incore_copy(try_node_t *from)
   try_node_t *tcopy = fail_alt;
   try_node_t **to = &tcopy;
 
-  for (; !ISNOTRY(from); from=from->next) {
+  for (; !TRY_NODE_IS_NULL(from); from=from->next) {
     (*to) = checkalloc_TYPE(try_node_t);
     (*to)->arity = from->arity;
     (*to)->number = from->number;
@@ -832,15 +834,13 @@ static void incore_puthash(sw_on_key_t **psw,
   }
 }
 
-static void free_try(try_node_t **t)
-{
+static void trychain_free(try_node_t *t) {
   try_node_t *t1, *t2;
 
-  for (t1=(*t); !ISNOTRY(t1); t1=t2) {
+  for (t1=t; !TRY_NODE_IS_NULL(t1); t1=t2) {
     t2=t1->next;
     checkdealloc_TYPE(try_node_t, t1);
   }
-  (*t)=NULL;
 }
 
 
@@ -853,10 +853,13 @@ static void free_sw_on_key(sw_on_key_t **sw)
 
   for (i=0; i<size; i++) {
     h1 = &(*sw)->node[i];
-    if (h1->key || !otherwise)
-      free_try(&h1->value.try_chain);
-    if (!h1->key)
+    if (h1->key || !otherwise) {
+      trychain_free(h1->value.try_chain);
+      h1->value.try_chain = NULL; // TODO:[oc-merge] needed?
+    }
+    if (!h1->key) {
       otherwise = TRUE;
+    }
   }
 
   checkdealloc_FLEXIBLE(sw_on_key_t,
@@ -982,11 +985,13 @@ static void free_info(enter_instr_t enter_instr, char *info)
     {
     case ENTER_COMPACTCODE_INDEXED:
     case ENTER_PROFILEDCODE_INDEXED:
-      free_try(&((incore_info_t *)info)->lstcase);
+      trychain_free(((incore_info_t *)info)->lstcase);
+      ((incore_info_t *)info)->lstcase = NULL; // TODO:[oc-merge] needed?
       free_sw_on_key(&((incore_info_t *)info)->othercase);
     case ENTER_COMPACTCODE:
     case ENTER_PROFILEDCODE:
-      free_try(&((incore_info_t *)info)->varcase);
+      trychain_free(((incore_info_t *)info)->varcase);
+      ((incore_info_t *)info)->varcase = NULL; // TODO:[oc-merge] needed?
       free_incoreinfo((incore_info_t **)(&info));
       break;
     case ENTER_INTERPRETED:
@@ -1175,8 +1180,12 @@ CBOOL__PROTO(compiled_clause)
   else if (TaggedIsSTR(key))
     key = TaggedToHeadfunctor(key);
 
-                                /* add a new clause. */
+  /* add a new clause. */
   d = f->code.incoreinfo;
+
+#if defined(ABSMACH_OPT__regmod2)
+  ref->mark = ql_currmod;
+#endif
 
   ep = (emul_info_t *)d->clauses_tail; /* TODO: (JFMC) assumes that &clauses_tail->next == clauses_tail */
   if (d->clauses.ptr != NULL && IS_CLAUSE_TAIL(ep)) {
@@ -1289,6 +1298,127 @@ CBOOL__PROTO(set_property)
 
   return TRUE;
 }
+
+#if defined(ABSMACH_OPT__regmod2)
+tagged_t ql_currmod; /* per-clause mark */
+#endif
+
+CBOOL__PROTO(set_currmod) {
+#if defined(ABSMACH_OPT__regmod2)
+  DEREF(X(0),X(0));
+  if (TaggedIsATM(X(0))) {
+    fprintf(stderr, "set_currmod: %s\n", GetString(X(0)));
+    ql_currmod = X(0);
+  } else {
+    fprintf(stderr, "set_currmod DISABLED\n");
+    ql_currmod = ERRORTAG; // no context
+  }
+#endif
+  CBOOL__PROCEED;
+}
+
+/* --------------------------------------------------------------------------- */
+/* Selective removing of clauses */
+
+#if defined(ABSMACH_OPT__regmod2_drain)
+void trychain_drain_marked(try_node_t **tfirst, tagged_t mark) {
+  try_node_t *t;
+  try_node_t *last;
+  t = *tfirst;
+  if (!TRY_NODE_IS_NULL(t)) {
+    last = NULL; /* the last seen valid try_node */
+    do {
+      if (t->clause->mark == mark) {
+        try_node_t *tnext;
+        tnext = t->next;
+        /* free the node */
+        checkdealloc_TYPE(try_node_t, t);
+        t = tnext; /* advance forward */
+      } else {
+        /* make links */
+        if (last == NULL) {
+          *tfirst = t;
+          /* (*tfirst)->previous update is delayed until we know the
+             last node of the chain */
+        } else {
+          last->next = t;
+          t->previous = last;
+        }
+        /* move forward */
+        last = t;
+        t = t->next;
+      }
+    } while (!TRY_NODE_IS_NULL(t));
+    
+    if (last == NULL) {
+      /* there was no valid nodes at all */
+      *tfirst = fail_alt;
+    } else {
+      TRY_NODE_SET_DET(last, last->clause);
+      /* update (*tfirst)->previous */
+      (*tfirst)->previous = last;
+    }
+  }
+}
+void hashtab_trychain_drain_marked(hashtab_t **psw, tagged_t mark) {
+  intmach_t i;
+  hashtab_node_t *h1;
+  try_node_t *otherwise = NULL;
+  intmach_t size = HASHTAB_SIZE(*psw);
+
+  /* TODO: share sw traversal code skeleton with other incore
+     operations */
+  for (i=0; i<size; i++) {
+    h1 = &(*psw)->node[i];
+    if (h1->key) {
+      trychain_drain_marked((try_node_t **)&h1->value.as_ptr,mark);
+    } else {
+      /* empty entries share the same try_chain */
+      if (!otherwise) {
+        trychain_drain_marked((try_node_t **)&h1->value.as_ptr,mark);
+        otherwise = (try_node_t *)h1->value.as_ptr;
+      } else {
+        h1->value.as_ptr = (void *)otherwise;
+      }
+    }
+  }
+}
+CBOOL__PROTO(incore_drain_marked, definition_t *f, tagged_t mark) {
+  intmach_t current_mem = total_mem_count;
+  incore_info_t *d;
+  emul_info_t *c;
+  emul_info_t *cc;
+  emul_info_t **last;
+
+  d = f->code.incoreinfo;
+  trychain_drain_marked(&d->varcase, mark);
+  trychain_drain_marked(&d->lstcase, mark);
+  hashtab_trychain_drain_marked(&d->othercase, mark);
+
+  /* Remove marked clauses */
+  last = &d->clauses;
+  c = d->clauses;
+  while (c != NULL) {
+    if (c->mark == mark) {
+      *last = c->next;
+      cc = c->next;
+      free_emulinfo(c);
+      c = cc;
+    } else {
+      last = &c->next;
+      c = c->next;
+    }
+  }
+  d->clauses_tail = last;
+  INC_MEM_PROG((total_mem_count - current_mem));
+
+  /* Abolish if empty definition */
+  if (d->clauses_tail == &d->clauses) {
+    CBOOL__CALL(abolish, f);
+  }
+  CBOOL__PROCEED;
+}
+#endif
 
 /* --------------------------------------------------------------------------- */
 /*  Tasks (goal_descriptor_t). */

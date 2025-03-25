@@ -995,6 +995,10 @@ pred_property(wait).
 :- export('$module_is_static'/1).
 :- trust pred '$module_is_static'(M) => atm(M).
 :- impl_defined('$module_is_static'/1).
+
+% (set context for module loading)
+:- export('$set_currmod'/1).
+:- impl_defined('$set_currmod'/1).
 :- endif.
 
 % ---------------------------------------------------------------------------

@@ -18,7 +18,7 @@
 
 /* local declarations */
 
-#define ISNOTRY(T)              (((T)==NULL) || ((T)==fail_alt))
+#define TRY_NODE_IS_NULL(T) (((T)==NULL) || ((T)==fail_alt))
 
 /* Prolog predicates. */
 

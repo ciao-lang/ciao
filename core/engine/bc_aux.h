@@ -1047,6 +1047,9 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   current_insn = (bcp_t)object->emulcode;
   object->pending_x2 = NULL;
   object->pending_x5 = NULL;
+#if defined(ABSMACH_OPT__regmod2)
+  object->mark = ql_currmod;
+#endif
 
   if (hsize>=STATIC_CALLPAD) { /* (was CALLPAD) */
     bcp_t P = current_insn;

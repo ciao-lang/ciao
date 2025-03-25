@@ -726,6 +726,8 @@ ql_compile_file_emit(clause_model(Clause,Counters), Stream) :-
 ql_compile_file_emit(instruction_model(Clause,InsnModel), Stream) :-
     ql_emit_directive(install_insn_model(Clause,InsnModel), _, _, Stream).
 E_GAUGE ***/
+ql_compile_file_emit(set_currmod(Mod), Stream) :- !,
+    ql_emit_directive('internals:$set_currmod'(Mod), _, _, Stream).
 ql_compile_file_emit(clause(Pred/_,Code,ProfileData,TypeKey,Data), Stream) :- !,
     Data = f(EffType,EffKey),
     profile_struct(_,ProfileData,_,InsnModel,Counters),
@@ -801,6 +803,8 @@ incore_compile_file_emit(clause_model(Clause,Counters)) :-
 incore_compile_file_emit(instruction_model(Clause,InsnModel)) :-
     install_insn_model(Clause,InsnModel).
 E_GAUGE ***/
+incore_compile_file_emit(set_currmod(Mod)) :- !,
+    '$set_currmod'(Mod).
 incore_compile_file_emit(clause(Pred/_,Code,ProfileData,TypeKey,Data)) :- !,
     Data = f(EffType,EffKey),
     profile_struct(_,ProfileData,_,InsnModel,Counters),
@@ -830,6 +834,9 @@ incore_parse_key(type_key(Type,hash(K)), Type, K) :- !.
 incore_parse_key(type_key(Type,nohash), Type, _).
 
 % DCG
+incore_ql_compile_file_emit(set_currmod(Mod), Stream) :- !,
+    '$set_currmod'(Mod),
+    ql_emit_directive('internals:$set_currmod'(Mod), _, _, Stream).
 incore_ql_compile_file_emit(clause(Pred/_,Code,ProfileData,TypeKey,Data), Stream) :- !,
     Data = f(EffType,EffKey),
     profile_struct(_,ProfileData,_,InsnModel,Counters),
@@ -1187,6 +1194,12 @@ name_key(Name/A/N, Key) :-
     atom_concat('/',Key1,Key2),
     atom_concat(Name,Key2,Key).
 
+wam_compile_file_emit(set_currmod(Mod), Stream) :- !,
+    '$set_currmod'(Mod),
+    current_output(Cout),
+    set_output(Stream),
+    display('set_currmod('), displayq(Mod), display(').'), nl,
+    set_output(Cout).
 wam_compile_file_emit(clause(Pred/No,Code,_,TypeKey,Data), Stream) :- !,
     Data = f(EffType,EffKey),
     incore_parse_key(TypeKey, EffType, EffKey),

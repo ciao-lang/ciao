@@ -1438,6 +1438,8 @@ typedef short enter_instr_t;
 
 /* OBJECT AREA ----------------------------------------------------*/ 
 
+// #define ABSMACH_OPT__regmod2 1
+
 #define CACHE_INCREMENTAL_CLAUSE_INSERTION
 
 /* p->count = (intmach_t *)((char *)p + objsize) - p->counters */
@@ -1461,6 +1463,9 @@ union clause_link_ {
 
 struct emul_info_ {
   clause_link_t next;          /* next clause OR no. of clauses */
+#if defined(ABSMACH_OPT__regmod2)
+  tagged_t mark;
+#endif
   definition_t *subdefs;
   intmach_t objsize;                             /* total # chars */
 #if defined(GAUGE)
@@ -1509,6 +1514,9 @@ struct instance_ {
   tagged_t key;
   tagged_t rank;
   instance_clock_t birth, death;                          /* Dynamic clause lifespan */
+#if defined(ABSMACH_OPT__regmod2)
+  tagged_t mark;
+#endif
 
   instance_handle_t *pending_x2;       /* Seen by invocations looking @ here */
   instance_handle_t *pending_x5;       /* Seen by invocations looking @ here */
@@ -1585,6 +1593,10 @@ struct int_info_ {
 #define TaggedToRoot(X)        TermToPointer(int_info_t, X)
 
 /* --------------------------------------------------------------------------- */
+
+#if defined(ABSMACH_OPT__regmod2)
+extern tagged_t ql_currmod; /* Shared -- module context for bytecode/interpreted clauses */
+#endif
 
 typedef struct und_info_ und_info_t;
 struct und_info_ {
