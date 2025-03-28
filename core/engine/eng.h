@@ -1438,7 +1438,7 @@ typedef short enter_instr_t;
 
 /* OBJECT AREA ----------------------------------------------------*/ 
 
-//#define ABSMACH_OPT__incoreopt2 1
+#define ABSMACH_OPT__incoreopt2 1
 //#define ABSMACH_OPT__regmod2 1
 
 #define CACHE_INCREMENTAL_CLAUSE_INSERTION
