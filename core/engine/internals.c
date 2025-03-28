@@ -624,11 +624,10 @@ void init_interpreted(definition_t *f);
 
 
 #define TRY_NODE_IS_NULL(T) (((T)==NULL) || ((T)==fail_alt))
-//oc #define TRY_NODE_SET_DET(T, REF) ({ \
-//  (T)->altop = OPCODEenc(restore_all_no_alt); \
-//  (T)->code = (char *)BCoff((REF)->emulcode, BCOp((REF)->emulcode, FTYPE_ctype(f_i), 0)); \
-//  (T)->next = NULL; \
-//})
+#define TRY_NODE_SET_DET(T, REF) ({ \
+  (T)->emul_p = BCoff((REF)->emulcode, BCOp((REF)->emulcode, FTYPE_ctype(f_i), 0)); /* initial p: det case */ \
+  (T)->next = NULL; \
+})
 
 /* Indexing for the incore compiler. */
 
@@ -672,6 +671,10 @@ static emul_info_t *get_try_node_clause(try_node_t *t, incore_info_t *def) {
     cl = cl->next.ptr;
 #endif
 
+#if defined(ABSMACH_OPT__incoreclause)
+  if (cl != t->clause) fprintf(stderr, "incoreclause mismatch\n");
+#endif
+
   return cl;
 }
 
@@ -692,10 +695,15 @@ static void incore_insert(try_node_t **t0,
   /* Init the try_node to insert. */
   t = checkalloc_TYPE(try_node_t);
   t->arity = effar;
+
   /* Last "next" is num. of clauses: we are inserting at the end of the chain */
+#if defined(ABSMACH_OPT__incoreclause)
+  t->clause = ref;
   t->number = ref->next.number;
-  t->emul_p = BCoff(ref->emulcode, BCOp(ref->emulcode, FTYPE_ctype(f_i), 0)); /* initial p: det case */
-  t->next = NULL;
+#else
+  t->number = ref->next.number;
+#endif
+  TRY_NODE_SET_DET(t, ref);
 #if defined(GAUGE)
   t->entry_counter = ref->counters;
 #endif
@@ -754,10 +762,14 @@ static try_node_t *incore_copy(try_node_t *from)
   } else {
     copy = t = checkalloc_TYPE(try_node_t);
     t->arity = from->arity;
+#if defined(ABSMACH_OPT__incoreclause)
+    t->clause = from->clause;
     t->number = from->number;
+#else
+    t->number = from->number;
+#endif
     t->emul_p = from->emul_p;
     t->emul_p2 = from->emul_p2;
-    t->next = NULL;
 #if defined(GAUGE)
     t->entry_counter = from->entry_counter;
 #endif
@@ -766,7 +778,12 @@ static try_node_t *incore_copy(try_node_t *from)
       t0 = t;
       t0->next = t = checkalloc_TYPE(try_node_t);
       t->arity = from->arity;
+#if defined(ABSMACH_OPT__incoreclause)
+      t->clause = from->clause;
       t->number = from->number;
+#else
+      t->number = from->number;
+#endif
       t->emul_p = from->emul_p;
       t->emul_p2 = from->emul_p2;
 #if defined(ABSMACH_OPT__incoreopt2)
@@ -2444,14 +2461,22 @@ CVOID__PROTO(show_nodes, choice_t *cp_younger, choice_t *cp_older) {
   } else {
     next_alt = cp_younger->next_alt;
   }
+#if defined(ABSMACH_OPT__incoreclause)
+  number = (intmach_t)next_alt->clause;
+#else
   number = next_alt->number;
+#endif
   cp_younger = ChoiceCont0(cp_younger, next_alt->arity);
   while(ChoiceYounger(cp_younger, cp_older)) {
     fprintf(stderr,"\n  ");
     fprintf(stderr,"0x%p:",cp_younger);
     DisplayCPFunctor(cp_younger);
     fprintf(stderr, "/%" PRIdm ",", number);
+#if defined(ABSMACH_OPT__incoreclause)
+    number = (intmach_t)cp_younger->next_alt->clause;
+#else
     number = cp_younger->next_alt->number;
+#endif
     cp_younger = ChoiceCont0(cp_younger, ChoiceArity(cp_younger));
   }
   if (!ChoiceYounger(cp_older, cp_younger)) {
