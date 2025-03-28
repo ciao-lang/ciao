@@ -831,17 +831,8 @@ static CFUN__PROTO(current_instance_conc, instance_t *, BlockingType block)
 
 /* Releases the lock on a predicate; this is needed to ensure that a
    clause will not be changed while it is being executed. */
-#if defined(OPTIM_COMP)
-CVOID__PROTO(prolog_unlock_predicate, int_info_t *root)
-#else
-CBOOL__PROTO(prolog_unlock_predicate)
-#endif
-{
+CVOID__PROTO(prolog_unlock_predicate, int_info_t *root) {
 #if defined(USE_LOCKS)
-#if !defined(OPTIM_COMP)
-  int_info_t *root = TaggedToRoot(X(0));
-#endif
-
   DEBUG__TRACEconc(debug_conc, "root is %p\n", root);
   RTCHECK({ /* TODO: trace or rtcheck? */
     if (root->behavior_on_failure == CONC_OPEN) {
@@ -859,10 +850,15 @@ CBOOL__PROTO(prolog_unlock_predicate)
 #else
   DEBUG__TRACEconc(debug_conc, "using fake unlock_predicate!\n");
 #endif /* USE_LOCKS */ 
-#if !defined(OPTIM_COMP)
-  CBOOL__PROCEED;
-#endif
 }
+
+#if !defined(OPTIM_COMP)
+CBOOL__PROTO(prolog_unlock_predicate_x) {
+  int_info_t *root = TaggedToRoot(X(0));
+  CVOID__CALL(prolog_unlock_predicate, root);
+  CBOOL__PROCEED;
+}
+#endif
 
 static bool_t wait_for_an_instance_pointer(instance_t **inst_pptr1,
                                            instance_t **inst_pptr2,
@@ -1392,15 +1388,7 @@ void move_queue(instance_handle_t **srcq,
 
 #define InstOrNull(Handle) Handle ? Handle->inst_ptr : NULL
 
-#if defined(OPTIM_COMP)
-CVOID__PROTO(prolog_erase_ptr, instance_t *node)
-#else
-CBOOL__PROTO(prolog_erase)
-#endif
-{
-#if !defined(OPTIM_COMP)
-  instance_t *node;
-#endif
+CVOID__PROTO(prolog_erase_ptr, instance_t *node) {
   int_info_t *root;
   intmach_t current_mem;
 
@@ -1409,10 +1397,6 @@ CBOOL__PROTO(prolog_erase)
   instance_t *ipp, *x2_insp, *x5_insp;
 #endif
 
-#if !defined(OPTIM_COMP)
-  DEREF(X(0),X(0));
-  node = TaggedToInstance(X(0));
-#endif
   root = node->root;
 
   DEBUG__TRACEconc(debug_conc, "entering\n");
@@ -1481,10 +1465,17 @@ CBOOL__PROTO(prolog_erase)
   INC_MEM_PROG(total_mem_count - current_mem);
 
   DEBUG__TRACEconc(debug_conc, "exiting!\n");
-#if !defined(OPTIM_COMP)
-  CBOOL__PROCEED;
-#endif
 }
+
+#if !defined(OPTIM_COMP)
+CBOOL__PROTO(prolog_erase) {
+  instance_t *node;
+  DEREF(X(0),X(0));
+  node = TaggedToInstance(X(0));
+  CVOID__CALL(prolog_erase_ptr, node);
+  CBOOL__PROCEED;
+}
+#endif
 
 /*-----------------------------------------------------------------*/
 
@@ -1975,33 +1966,7 @@ CVOID__PROTO(clock_overflow) {
 
 /* --------------------------------------------------------------------------- */
 
-#if defined(OPTIM_COMP) && defined(ABSMACH_OPT__regmod)
-CBOOL__PROTO(interpreted_drain_marked, definition_t *f, tagged_t mark) {
-  /* TODO: study if this code is correct --jf */
-  /* TODO: what happens with concurrent predicates? */
-  int_info_t *root;
-  instance_t *i, *j;
-
-  root = f->code.intinfo;
-  for (i = root->first; i; i=j) {
-    j = i->forward;
-    if (i->mark == mark) {
-      CVOID__CALL(prolog_erase_ptr, i);
-    }
-  }
-  /* TODO: necessary? */
-  CVOID__CALL(prolog_unlock_predicate, root);
-
-  /* TODO: check if it has any problems... */
-  /* Abolish if predicate is empty */
-  if (root->first == NULL) {
-    CBOOL__CALL(abolish, f);
-  }
-  CBOOL__PROCEED;
-}
-#endif
-
-#if !defined(OPTIM_COMP) && defined(ABSMACH_OPT__regmod2)
+#if defined(ABSMACH_OPT__regmod)||defined(ABSMACH_OPT__regmod2)
 CBOOL__PROTO(interpreted_drain_marked, definition_t *f, tagged_t mark) {
   /* TODO: study if this code is correct --jf */
   /* TODO: what happens with concurrent predicates? */

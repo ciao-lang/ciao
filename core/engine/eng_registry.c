@@ -1150,7 +1150,7 @@ CBOOL__PROTO(prolog_eng_self);
 CBOOL__PROTO(prolog_lock_atom);
 CBOOL__PROTO(prolog_unlock_atom);
 CBOOL__PROTO(prolog_lock_atom_state);
-CBOOL__PROTO(prolog_unlock_predicate);
+CBOOL__PROTO(prolog_unlock_predicate_x);
 /* system.c */
 CBOOL__PROTO(prolog_using_windows);
 CBOOL__PROTO(prolog_exec);
@@ -1795,7 +1795,7 @@ void init_once(void) {
   define_c_mod_predicate("concurrency","lock_atom",1,prolog_lock_atom);
   define_c_mod_predicate("concurrency","unlock_atom",1,prolog_unlock_atom);
   define_c_mod_predicate("concurrency","atom_lock_state",2,prolog_lock_atom_state);
-  define_c_mod_predicate("internals","$unlock_predicate",1,prolog_unlock_predicate);
+  define_c_mod_predicate("internals","$unlock_predicate",1,prolog_unlock_predicate_x);
 
   address_nd_repeat = def_retry_c(nd_repeat,0);
   address_nd_current_atom = def_retry_c(nd_current_atom,2);

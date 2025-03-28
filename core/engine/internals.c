@@ -604,10 +604,7 @@ CFUN__PROTO(make_structure, tagged_t,
 /* --------------------------------------------------------------------------- */
 /* Support for the incremental clause compiler. */
 
-static void set_nondet(try_node_t *t,
-                       incore_info_t *def,
-                       bool_t first);
-static void incore_insert(try_node_t  **t0, 
+static void incore_insert(try_node_t **t0, 
                           int effar,
                           emul_info_t *ref,
                           incore_info_t *def);
@@ -627,15 +624,17 @@ void init_interpreted(definition_t *f);
 
 
 #define TRY_NODE_IS_NULL(T) (((T)==NULL) || ((T)==fail_alt))
+//oc #define TRY_NODE_SET_DET(T, REF) ({ \
+//  (T)->altop = OPCODEenc(restore_all_no_alt); \
+//  (T)->code = (char *)BCoff((REF)->emulcode, BCOp((REF)->emulcode, FTYPE_ctype(f_i), 0)); \
+//  (T)->next = NULL; \
+//})
 
 /* Indexing for the incore compiler. */
 
 /* Patch bytecode information related to the last clause inserted */
 
-static void set_nondet(try_node_t *t,
-                       incore_info_t *def,
-                       bool_t first)
-{
+static emul_info_t *get_try_node_clause(try_node_t *t, incore_info_t *def) {
   uintmach_t i;
   emul_info_t *cl;
 
@@ -673,20 +672,21 @@ static void set_nondet(try_node_t *t,
     cl = cl->next.ptr;
 #endif
 
- /* Patch previous emul_p "fail_alt" code */
-  t->emul_p = BCoff(cl->emulcode, FTYPE_size(f_i));
-  if (first) { /* maintain emul_p2 optimization */
-    t->emul_p2 = BCoff(t->emul_p, p2_offset(BCOp(t->emul_p, FTYPE_ctype(f_o), 0)));
-  }
+  return cl;
 }
 
+#define SET_NONDET(T, CL) { \
+  (T)->emul_p = BCoff(((CL)->emulcode), FTYPE_size(f_i)); \
+}
+#define PATCH_EMUL_P2(T) { \
+  (T)->emul_p2 = BCoff((T)->emul_p, p2_offset(BCOp((T)->emul_p, FTYPE_ctype(f_o), 0))); \
+}
 
 static void incore_insert(try_node_t **t0,
                           int effar,
                           emul_info_t *ref,
                           incore_info_t *def)
 {
-  try_node_t **t1 = t0;
   try_node_t *t;
 
   /* Init the try_node to insert. */
@@ -695,42 +695,94 @@ static void incore_insert(try_node_t **t0,
   /* Last "next" is num. of clauses: we are inserting at the end of the chain */
   t->number = ref->next.number;
   t->emul_p = BCoff(ref->emulcode, BCOp(ref->emulcode, FTYPE_ctype(f_i), 0)); /* initial p: det case */
+  t->next = NULL;
 #if defined(GAUGE)
   t->entry_counter = ref->counters;
 #endif
-  t->next = NULL;
 
-  if (TRY_NODE_IS_NULL(*t1)) {
-    t->emul_p2 = BCoff(t->emul_p, p2_offset(BCOp(t->emul_p, FTYPE_ctype(f_o), 0)));
+  if (TRY_NODE_IS_NULL(*t0)) {
+    *t0 = t;
   } else {
-    do {
-      if ((*t1)->next==NULL)
-        set_nondet(*t1,def,t0==t1);
-      t1 = &(*t1)->next;
-    } while (!TRY_NODE_IS_NULL(*t1));
+    try_node_t *tt;
+#if defined(ABSMACH_OPT__incoreopt2)
+    /* try_node will be a cyclic list... we can access the 'last' node from the 'first' */
+    tt = *t0;
+    tt = tt->previous;
+    emul_info_t *cl = get_try_node_clause(tt, def);
+    /* Patch previous emul_p "fail_alt" code */
+    SET_NONDET(tt, cl);
+#else
+    tt = *t0;
+    if (tt->next==NULL) {
+      // WAS: set_nondet(tt,def,TRUE);
+      emul_info_t *cl = get_try_node_clause(tt, def);
+      /* Patch previous emul_p "fail_alt" code */
+      SET_NONDET(tt, cl);
+    } else {
+      while (!TRY_NODE_IS_NULL(tt->next)) {
+        tt = tt->next;
+        if (tt->next==NULL) {
+          // WAS: set_nondet(tt,def,FALSE);
+          emul_info_t *cl = get_try_node_clause(tt, def);
+          /* Patch previous emul_p "fail_alt" code */
+          SET_NONDET(tt, cl);
+          break;
+        }
+      };
+    }
+#endif
+    tt->next = t;
+#if defined(ABSMACH_OPT__incoreopt2)
+    t->previous = tt;
+#endif
   }
-  (*t1) = t;
+#if defined(ABSMACH_OPT__incoreopt2)
+  (*t0)->previous = t;
+#endif
+  /* just in case *t0 was modified, maintain emul_p2 optimization */
+  PATCH_EMUL_P2(*t0);
 }
 
 static try_node_t *incore_copy(try_node_t *from)
 {
-  try_node_t *tcopy = fail_alt;
-  try_node_t **to = &tcopy;
+  try_node_t *copy;
+  try_node_t *t;
+  try_node_t *t0;
 
-  for (; !TRY_NODE_IS_NULL(from); from=from->next) {
-    (*to) = checkalloc_TYPE(try_node_t);
-    (*to)->arity = from->arity;
-    (*to)->number = from->number;
-    (*to)->emul_p = from->emul_p;
-    (*to)->emul_p2 = from->emul_p2;
-    (*to)->next = NULL;
+  if (TRY_NODE_IS_NULL(from)) {
+    copy = fail_alt;
+  } else {
+    copy = t = checkalloc_TYPE(try_node_t);
+    t->arity = from->arity;
+    t->number = from->number;
+    t->emul_p = from->emul_p;
+    t->emul_p2 = from->emul_p2;
+    t->next = NULL;
 #if defined(GAUGE)
-    (*to)->entry_counter = from->entry_counter;
+    t->entry_counter = from->entry_counter;
 #endif
-    to = &(*to)->next;
+    from=from->next;
+    while (!TRY_NODE_IS_NULL(from)) {
+      t0 = t;
+      t0->next = t = checkalloc_TYPE(try_node_t);
+      t->arity = from->arity;
+      t->number = from->number;
+      t->emul_p = from->emul_p;
+      t->emul_p2 = from->emul_p2;
+#if defined(ABSMACH_OPT__incoreopt2)
+      t->previous = t0;
+#endif
+#if defined(GAUGE)
+      t->entry_counter = from->entry_counter;
+#endif
+      from=from->next;
+    }
+    t->next = NULL;
+#if defined(ABSMACH_OPT__incoreopt2)
+    copy->previous = t;
+#endif
   }
-
-  return tcopy;
+  return copy;
 }
 
 /* get location of try chain for a key */
@@ -1311,10 +1363,10 @@ CBOOL__PROTO(set_currmod) {
 #if defined(ABSMACH_OPT__regmod2)
   DEREF(X(0),X(0));
   if (TaggedIsATM(X(0))) {
-    fprintf(stderr, "set_currmod: %s\n", GetString(X(0)));
+    // fprintf(stderr, "set_currmod: %s\n", GetString(X(0)));
     ql_currmod = X(0);
   } else {
-    fprintf(stderr, "set_currmod DISABLED\n");
+    // fprintf(stderr, "set_currmod DISABLED\n");
     ql_currmod = ERRORTAG; // no context
   }
 #endif

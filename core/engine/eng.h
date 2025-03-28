@@ -1438,7 +1438,8 @@ typedef short enter_instr_t;
 
 /* OBJECT AREA ----------------------------------------------------*/ 
 
-// #define ABSMACH_OPT__regmod2 1
+//#define ABSMACH_OPT__incoreopt2 1
+//#define ABSMACH_OPT__regmod2 1
 
 #define CACHE_INCREMENTAL_CLAUSE_INSERTION
 
@@ -1649,6 +1650,9 @@ struct try_node_ {
                              /* Gauge specific fields MUST come after this*/
 #if defined(GAUGE)
   intmach_t *entry_counter;        /* Offset of counter for clause entry */
+#endif
+#if defined(ABSMACH_OPT__incoreopt2)
+  try_node_t *previous;
 #endif
 };
 

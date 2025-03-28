@@ -114,6 +114,9 @@ void ciao_initcode(void) {
     startgoal_alt.emul_p = call_code;
     startgoal_alt.emul_p2 = call_code;
     startgoal_alt.next = NULL;
+#if defined(ABSMACH_OPT__incoreopt2)
+    startgoal_alt.previous = NULL;
+#endif
   }
 
   {
@@ -127,6 +130,9 @@ void ciao_initcode(void) {
     nullgoal_alt.emul_p = null_code;
     nullgoal_alt.emul_p2 = null_code;
     nullgoal_alt.next = &nullgoal_alt; /* loop forever */
+#if defined(ABSMACH_OPT__incoreopt2)
+    nullgoal_alt.previous = NULL;
+#endif
   }
 
   {
@@ -143,6 +149,9 @@ void ciao_initcode(void) {
     defaultgoal_alt.emul_p = default_code;
     defaultgoal_alt.emul_p2 = default_code;
     defaultgoal_alt.next = &nullgoal_alt; 
+#if defined(ABSMACH_OPT__incoreopt2)
+    defaultgoal_alt.previous = NULL;
+#endif
   }
 }
 
@@ -195,6 +204,9 @@ static try_node_t *get_null_alt(int arity)
   a->entry_counter[1] = 0;
 #endif
   a->next = NULL;               /* no more alternatives */
+#if defined(ABSMACH_OPT__incoreopt2)
+  a->previous = NULL;
+#endif
   null_alt = a;
   return a;
 }
@@ -249,6 +261,9 @@ try_node_t *def_retry_c(cbool0_t proc, int arity)
   item->entry_counter = (intmach_t *)P;
   item->entry_counter[0] = 0;
   item->entry_counter[1] = 0;
+#endif
+#if defined(ABSMACH_OPT__incoreopt2)
+  item->previous = NULL;
 #endif
   return item;
 }

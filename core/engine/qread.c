@@ -956,7 +956,7 @@ CBOOL__PROTO(push_qlinfo) {
   
 #if defined(ABSMACH_OPT__regmod2)
   ql_currmod = ERRORTAG;
-  fprintf(stderr, "set_currmod DISABLED\n");
+  //  fprintf(stderr, "set_currmod DISABLED\n");
 #endif
 
   return TRUE;
@@ -975,7 +975,7 @@ CBOOL__PROTO(pop_qlinfo)
 
 #if defined(ABSMACH_OPT__regmod2)
   ql_currmod = ERRORTAG;
-  fprintf(stderr, "set_currmod DISABLED\n");
+  // fprintf(stderr, "set_currmod DISABLED\n");
 #endif
 
   return TRUE;
