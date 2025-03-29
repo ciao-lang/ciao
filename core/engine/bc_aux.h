@@ -110,18 +110,11 @@ void ciao_initcode(void) {
     EMIT_o(EXIT_TOPLEVEL);
 
     startgoal_alt.arity = 1;
-#if defined(ABSMACH_OPT__incoreclause)
     startgoal_alt.clause = NULL;
-    startgoal_alt.number = 0;
-#else
-    startgoal_alt.number = 0;
-#endif
     startgoal_alt.emul_p = call_code;
     startgoal_alt.emul_p2 = call_code;
     startgoal_alt.next = NULL;
-#if defined(ABSMACH_OPT__incoreopt2)
     startgoal_alt.previous = NULL;
-#endif
   }
 
   {
@@ -131,18 +124,11 @@ void ciao_initcode(void) {
     EMIT_o(EXIT_TOPLEVEL);
 
     nullgoal_alt.arity = 0;
-#if defined(ABSMACH_OPT__incoreclause)
     nullgoal_alt.clause = NULL;
-    nullgoal_alt.number = 0;
-#else
-    nullgoal_alt.number = 0;
-#endif
     nullgoal_alt.emul_p = null_code;
     nullgoal_alt.emul_p2 = null_code;
     nullgoal_alt.next = &nullgoal_alt; /* loop forever */
-#if defined(ABSMACH_OPT__incoreopt2)
     nullgoal_alt.previous = NULL;
-#endif
   }
 
   {
@@ -155,18 +141,11 @@ void ciao_initcode(void) {
     EMIT_o(EXIT_TOPLEVEL);
 
     defaultgoal_alt.arity = 0;
-#if defined(ABSMACH_OPT__incoreclause)
     defaultgoal_alt.clause = NULL;
-    defaultgoal_alt.number = 0;
-#else
-    defaultgoal_alt.number = 0;
-#endif
     defaultgoal_alt.emul_p = default_code;
     defaultgoal_alt.emul_p2 = default_code;
     defaultgoal_alt.next = &nullgoal_alt; 
-#if defined(ABSMACH_OPT__incoreopt2)
     defaultgoal_alt.previous = NULL;
-#endif
   }
 }
 
@@ -209,12 +188,7 @@ static try_node_t *get_null_alt(int arity)
   INC_MEM_PROG(total_mem_count - current_mem);
 
   a->arity = arity;
-#if defined(ABSMACH_OPT__incoreclause)
   a->clause = NULL;
-  a->number = 0;
-#else
-  a->number = 0;
-#endif
   a->emul_p = insnfail;
   a->emul_p2 = insnfail;
   (a+1)->next = null_alt;       /* tail of list */
@@ -224,9 +198,7 @@ static try_node_t *get_null_alt(int arity)
   a->entry_counter[1] = 0;
 #endif
   a->next = NULL;               /* no more alternatives */
-#if defined(ABSMACH_OPT__incoreopt2)
   a->previous = NULL;
-#endif
   null_alt = a;
   return a;
 }
@@ -270,12 +242,7 @@ try_node_t *def_retry_c(cbool0_t proc, int arity)
 #endif
                         );
   item->arity = arity;
-#if defined(ABSMACH_OPT__incoreclause)
   item->clause = NULL;
-  item->number = 0;
-#else
-  item->number = 0;
-#endif
   P = item->emul_p = (bcp_t )(((char *)item)+sizeof(try_node_t));
   item->emul_p2 = P;
   item->next = item;
@@ -287,9 +254,7 @@ try_node_t *def_retry_c(cbool0_t proc, int arity)
   item->entry_counter[0] = 0;
   item->entry_counter[1] = 0;
 #endif
-#if defined(ABSMACH_OPT__incoreopt2)
   item->previous = NULL;
-#endif
   return item;
 }
 

@@ -1438,11 +1438,7 @@ typedef short enter_instr_t;
 
 /* OBJECT AREA ----------------------------------------------------*/ 
 
-#define ABSMACH_OPT__incoreopt2 1
-#define ABSMACH_OPT__incoreclause 1
 //#define ABSMACH_OPT__regmod2 1
-
-#define CACHE_INCREMENTAL_CLAUSE_INSERTION
 
 /* p->count = (intmach_t *)((char *)p + objsize) - p->counters */
 
@@ -1455,21 +1451,10 @@ typedef short enter_instr_t;
 
 typedef struct emul_info_ emul_info_t;
 
-typedef union clause_link_ clause_link_t;
-union clause_link_ {
-  /* Clause pointer or number (used in emul_info to store links to
-     the next clause or the total number of clauses) */
-  uintmach_t number; /* clause number */
-  emul_info_t *ptr;    /* clause pointer */   
-};
-
 struct emul_info_ {
-  clause_link_t next;          /* next clause OR no. of clauses */
+  emul_info_t *next;          /* next clause */
 #if defined(ABSMACH_OPT__regmod2)
   tagged_t mark;
-#endif
-#if 0 /* TODO:[oc-merge] disable subdefs */
-  definition_t *subdefs;
 #endif
   intmach_t objsize;                             /* total # chars */
 #if defined(GAUGE)
@@ -1492,18 +1477,6 @@ typedef unsigned short int instance_clock_t;
 /* CLAUSE_TAIL */
 #define CLAUSE_TAIL_INSNS_SIZE FTYPE_size(f_o) /* TODO: (JFMC) why? */
 #define IS_CLAUSE_TAIL(EP) (EP->objsize == 0)
-#if 0 /* TODO:[oc-merge] disable subdefs */
-#define ALLOC_CLAUSE_TAIL(EP) {                                         \
-    EP = checkalloc_FLEXIBLE(emul_info_t, char, CLAUSE_TAIL_INSNS_SIZE); \
-    EP->subdefs = NULL;                                                 \
-    EP->objsize = 0;                                                    \
-  }
-#else
-#define ALLOC_CLAUSE_TAIL(EP) {                                         \
-    EP = checkalloc_FLEXIBLE(emul_info_t, char, CLAUSE_TAIL_INSNS_SIZE); \
-    EP->objsize = 0;                                                    \
-  }
-#endif
 
 /* Terms recorded under a key or clauses of an interpreted predicate
    are stored as a doubly linked list of records.  The forward link is
@@ -1647,19 +1620,12 @@ struct try_node_ {
   bcp_t emul_p2;                          /* read mode, first alternative */
   intmach_t arity;                 /* arity of this choicepoint */
   /*short number;*/
-#if defined(ABSMACH_OPT__incoreclause)
   emul_info_t *clause;
-  uintmach_t number;                /* clause number for this alternative */
-#else
-  uintmach_t number;                /* clause number for this alternative */
-#endif
                              /* Gauge specific fields MUST come after this*/
 #if defined(GAUGE)
   intmach_t *entry_counter;        /* Offset of counter for clause entry */
 #endif
-#if defined(ABSMACH_OPT__incoreopt2)
   try_node_t *previous;
-#endif
 };
 
 #define HASHTAB_SIZE(X) (((X)->mask / sizeof(hashtab_node_t))+1) 
@@ -1716,13 +1682,9 @@ struct hashtab_ {
 
 typedef struct incore_info_ incore_info_t;
 struct incore_info_ {
-  clause_link_t clauses;                                  /* first clause */
+  emul_info_t *clauses; /* first clause */
   /* Pointer to either "next" field of last clause or "clauses"  */
-  clause_link_t *clauses_tail;
-#if defined(CACHE_INCREMENTAL_CLAUSE_INSERTION)
-  emul_info_t *last_inserted_clause;        /* Pointer to the last clause */
-  uintmach_t last_inserted_num;           /* Number of last ins. clause */
-#endif
+  emul_info_t **clauses_tail;
   try_node_t *varcase;
   try_node_t *lstcase;
   hashtab_t *othercase;

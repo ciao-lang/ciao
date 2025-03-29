@@ -257,29 +257,6 @@ definition_t *parse_definition(tagged_t complex)
   else return NULL;
 }
 
-#if 0 /* TODO:[oc-merge] disable subdefs */
-static definition_t **find_subdef_chain(definition_t *f, intmach_t clause_no)
-{
-  incore_info_t *d = f->code.incoreinfo;
-  emul_info_t *ep;
-
-  if (clause_no != 0 && clause_no <= d->clauses_tail->number)
-    for (ep = d->clauses.ptr; --clause_no; ep = ep->next.ptr)
-      ;
-  else {
-    /* TODO: (JFMC) assumes that &(d->clauses_tail->next) == d->clauses_tail */
-    ep = (emul_info_t *)d->clauses_tail;
-    if (!IS_CLAUSE_TAIL(ep) || ep->next.ptr == NULL) {
-      ALLOC_CLAUSE_TAIL(ep);
-      ep->next.number = d->clauses_tail->number + 1;
-      d->clauses_tail->ptr = ep;
-      d->clauses_tail = &ep->next;
-    }
-  }
-  return &ep->subdefs;
-}
-#endif
-
 static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
 {
   int arity;
@@ -287,46 +264,6 @@ static definition_t *parse_1_definition(tagged_t tagname, tagged_t tagarity)
   if (!TaggedIsSmall(tagarity))
     return NULL;
   arity = GetSmall(tagarity);
-#if 0 /* TODO:[oc-merge] disable subdefs */
-  if (TaggedIsSTR(tagname) && (TaggedToHeadfunctor(tagname)==functor_minus))
-    /* "internal" predicate */
-    {
-      definition_t *f, *f1, **pf;
-      tagged_t tmp;
-      intmach_t i;
-      intmach_t subdef_no, clause_no;
-
-      DerefArg(tmp,tagname,2);
-      subdef_no = GetSmall(tmp);
-      DerefArg(tagname,tagname,1);
-
-      DerefArg(tmp,tagname,2);
-      clause_no = GetSmall(tmp);
-      DerefArg(tagname,tagname,1);
-
-      f = parse_definition(tagname);
-      if (f==NULL)
-        return NULL;
-      i = f->predtyp;
-      if (i > ENTER_FASTCODE_INDEXED)
-        return NULL;
-      pf = find_subdef_chain(f, clause_no);
-
-      if (!(*pf))
-        f = *pf = new_functor((tagged_t)f|3, arity);
-      else
-        {
-          for (i=1, f1 = *pf;
-               !(f1->printname&2);
-               i++, f1 = (definition_t *)TaggedToPointer(f1->printname))
-            if (i==subdef_no) break;
-        
-          if (i==subdef_no) return f1;
-          f1->printname = (tagged_t)(f=new_functor(f1->printname, arity))|1;
-        }
-      return f;
-    }
-#endif
 
   if (TaggedIsATM(tagname)) 
     return insert_definition(predicates_location,tagname,arity,TRUE);
@@ -606,8 +543,7 @@ CFUN__PROTO(make_structure, tagged_t,
 
 static void incore_insert(try_node_t **t0, 
                           int effar,
-                          emul_info_t *ref,
-                          incore_info_t *def);
+                          emul_info_t *ref);
 static void incore_puthash(hashtab_t **psw, 
                            int effar, 
                            emul_info_t *current, 
@@ -633,51 +569,6 @@ void init_interpreted(definition_t *f);
 
 /* Patch bytecode information related to the last clause inserted */
 
-static emul_info_t *get_try_node_clause(try_node_t *t, incore_info_t *def) {
-  uintmach_t i;
-  emul_info_t *cl;
-
-  /* Check if we can use the last cached clause and number to insert */
-
-#if defined(CACHE_INCREMENTAL_CLAUSE_INSERTION)
-
-  /* If this is activated, patching is sped up by caching the last
-     insertion peformed, and using the cache not to advance in the
-     chain of clauses from the beginning.  Inserting always at the end
-     is simply not possible because the clause numbers to be accessed
-     do not come ordered. The cache is used only if we are inserting
-     farther than the last clause inserted.
-
-     We should check that the clause numbers have not changed ---
-     i.e., that intermediate records are not erased --- as that would
-     invalidate our count.
-  */
-
-  if (t->number >= def->last_inserted_num){/* farther than last insertion */
-    cl = def->last_inserted_clause;
-    i  = t->number - def->last_inserted_num;
-  } else {
-    i  = t->number - 1;
-    cl = def->clauses.ptr;
-  }
-
-  for( ; i; i--)/* Skip until end of chain --- it is not NULL terminated! */
-    cl = cl->next.ptr;
-
-  def->last_inserted_clause = cl;
-  def->last_inserted_num    = t->number;
-#else
-  for (i=t->number, cl=def->clauses.ptr; --i;) /* 1-based numbers */
-    cl = cl->next.ptr;
-#endif
-
-#if defined(ABSMACH_OPT__incoreclause)
-  if (cl != t->clause) fprintf(stderr, "incoreclause mismatch\n");
-#endif
-
-  return cl;
-}
-
 #define SET_NONDET(T, CL) { \
   (T)->emul_p = BCoff(((CL)->emulcode), FTYPE_size(f_i)); \
 }
@@ -687,8 +578,7 @@ static emul_info_t *get_try_node_clause(try_node_t *t, incore_info_t *def) {
 
 static void incore_insert(try_node_t **t0,
                           int effar,
-                          emul_info_t *ref,
-                          incore_info_t *def)
+                          emul_info_t *ref)
 {
   try_node_t *t;
 
@@ -697,12 +587,7 @@ static void incore_insert(try_node_t **t0,
   t->arity = effar;
 
   /* Last "next" is num. of clauses: we are inserting at the end of the chain */
-#if defined(ABSMACH_OPT__incoreclause)
   t->clause = ref;
-  t->number = ref->next.number;
-#else
-  t->number = ref->next.number;
-#endif
   TRY_NODE_SET_DET(t, ref);
 #if defined(GAUGE)
   t->entry_counter = ref->counters;
@@ -712,41 +597,15 @@ static void incore_insert(try_node_t **t0,
     *t0 = t;
   } else {
     try_node_t *tt;
-#if defined(ABSMACH_OPT__incoreopt2)
     /* try_node will be a cyclic list... we can access the 'last' node from the 'first' */
     tt = *t0;
     tt = tt->previous;
-    emul_info_t *cl = get_try_node_clause(tt, def);
     /* Patch previous emul_p "fail_alt" code */
-    SET_NONDET(tt, cl);
-#else
-    tt = *t0;
-    if (tt->next==NULL) {
-      // WAS: set_nondet(tt,def,TRUE);
-      emul_info_t *cl = get_try_node_clause(tt, def);
-      /* Patch previous emul_p "fail_alt" code */
-      SET_NONDET(tt, cl);
-    } else {
-      while (!TRY_NODE_IS_NULL(tt->next)) {
-        tt = tt->next;
-        if (tt->next==NULL) {
-          // WAS: set_nondet(tt,def,FALSE);
-          emul_info_t *cl = get_try_node_clause(tt, def);
-          /* Patch previous emul_p "fail_alt" code */
-          SET_NONDET(tt, cl);
-          break;
-        }
-      };
-    }
-#endif
+    SET_NONDET(tt, tt->clause);
     tt->next = t;
-#if defined(ABSMACH_OPT__incoreopt2)
     t->previous = tt;
-#endif
   }
-#if defined(ABSMACH_OPT__incoreopt2)
   (*t0)->previous = t;
-#endif
   /* just in case *t0 was modified, maintain emul_p2 optimization */
   PATCH_EMUL_P2(*t0);
 }
@@ -762,12 +621,7 @@ static try_node_t *incore_copy(try_node_t *from)
   } else {
     copy = t = checkalloc_TYPE(try_node_t);
     t->arity = from->arity;
-#if defined(ABSMACH_OPT__incoreclause)
     t->clause = from->clause;
-    t->number = from->number;
-#else
-    t->number = from->number;
-#endif
     t->emul_p = from->emul_p;
     t->emul_p2 = from->emul_p2;
 #if defined(GAUGE)
@@ -778,26 +632,17 @@ static try_node_t *incore_copy(try_node_t *from)
       t0 = t;
       t0->next = t = checkalloc_TYPE(try_node_t);
       t->arity = from->arity;
-#if defined(ABSMACH_OPT__incoreclause)
       t->clause = from->clause;
-      t->number = from->number;
-#else
-      t->number = from->number;
-#endif
       t->emul_p = from->emul_p;
       t->emul_p2 = from->emul_p2;
-#if defined(ABSMACH_OPT__incoreopt2)
       t->previous = t0;
-#endif
 #if defined(GAUGE)
       t->entry_counter = from->entry_counter;
 #endif
       from=from->next;
     }
     t->next = NULL;
-#if defined(ABSMACH_OPT__incoreopt2)
     copy->previous = t;
-#endif
   }
   return copy;
 }
@@ -886,9 +731,9 @@ static void incore_puthash(hashtab_t **psw,
     for (i=0; i<size; i++) {
       h1 = &(*psw)->node[i];
       if (h1->key)
-        incore_insert(&h1->value.try_chain,effar,current,def);
+        incore_insert(&h1->value.try_chain,effar,current);
       else if (!otherwise){
-        incore_insert(&h1->value.try_chain,effar,current,def);
+        incore_insert(&h1->value.try_chain,effar,current);
         otherwise = h1->value.try_chain;
       } else
         h1->value.try_chain = otherwise;
@@ -898,10 +743,10 @@ static void incore_puthash(hashtab_t **psw,
     if (!h1->key) {
       h1->key = k;
       h1->value.try_chain = incore_copy(otherwise=h1->value.try_chain);
-      incore_insert(&h1->value.try_chain,effar,current,def);
+      incore_insert(&h1->value.try_chain,effar,current);
       if (((*psw)->count+=1)<<1 > size)
         expand_sw_on_key(psw,otherwise,TRUE);
-    } else incore_insert(&h1->value.try_chain,effar,current,def);
+    } else incore_insert(&h1->value.try_chain,effar,current);
   }
 }
 
@@ -939,14 +784,6 @@ static void free_hashtab_trychain(hashtab_t *sw) {
 
 static void free_emulinfo(emul_info_t *cl)
 {
-#if 0 /* TODO:[oc-merge] disable subdefs */
-  definition_t *def, *sibling;
-  for (def=cl->subdefs; def!=NULL; def=sibling) {
-    sibling = DEF_SIBLING(def);
-    free_info(def->predtyp, (char *)def->code.intinfo);
-    checkdealloc_TYPE(definition_t, def);
-  }
-#endif
   checkdealloc_FLEXIBLE_S(emul_info_t, objsize, cl);
 }
 
@@ -954,9 +791,9 @@ static void incoreinfo_free(incore_info_t *p) {
   emul_info_t *stop;
   emul_info_t *cl, *cl1;
 
-  stop = p->clauses_tail->ptr;
-  for (cl=p->clauses.ptr; cl!=stop; cl=cl1) {
-    cl1 = cl->next.ptr;
+  stop = *p->clauses_tail;
+  for (cl=p->clauses; cl!=stop; cl=cl1) {
+    cl1 = cl->next;
     free_emulinfo(cl);
   }
   checkdealloc_TYPE(incore_info_t, p);
@@ -1178,15 +1015,11 @@ CBOOL__PROTO(define_predicate)
       
       d = checkalloc_TYPE(incore_info_t);
       
-      d->clauses.ptr = NULL;
+      d->clauses = NULL;
       d->clauses_tail = &d->clauses;
       d->varcase = fail_alt;
       d->lstcase = NULL;        /* Used by native preds to hold nc_info */
       d->othercase = NULL; /* Used by native preds to hold index_clause */
-#if defined(CACHE_INCREMENTAL_CLAUSE_INSERTION)
-      d->last_inserted_clause = NULL;
-      d->last_inserted_num = ~0;
-#endif
       f->code.incoreinfo = d;
     }
     f->properties.nonvar = 0;
@@ -1209,21 +1042,6 @@ CBOOL__PROTO(erase_clause)
   return TRUE;
 }
 
-CBOOL__PROTO(clause_number)
-{
-  definition_t *f;
-  uintmach_t number;
-
-  DEREF(X(0),X(0));
-  if ((f=parse_definition(X(0)))==NULL)
-    USAGE_FAULT("$clause_number: bad 1st arg");
-
-  number = f->code.incoreinfo->clauses_tail->number;
-
-  CBOOL__UnifyCons(MakeSmall(number),X(1));
-  return TRUE;
-}
-
 CBOOL__PROTO(compiled_clause)
 {
   definition_t *f;
@@ -1232,7 +1050,6 @@ CBOOL__PROTO(compiled_clause)
   tagged_t t1, key;
   incore_info_t *d;
   unsigned int bitmap;
-  emul_info_t *ep, **epp;
   intmach_t current_mem = total_mem_count;
 
   DEREF(X(0),X(0));             /* Predicate spec */
@@ -1257,23 +1074,8 @@ CBOOL__PROTO(compiled_clause)
   ref->mark = ql_currmod;
 #endif
 
-  ep = (emul_info_t *)d->clauses_tail; /* TODO: (JFMC) assumes that &clauses_tail->next == clauses_tail */
-  if (d->clauses.ptr != NULL && IS_CLAUSE_TAIL(ep)) {
-    for (epp = &d->clauses.ptr; *epp != ep; epp = (emul_info_t **)*epp)
-      ;
-#if 0 /* TODO:[oc-merge] disable subdefs */
-    ref->subdefs = ep->subdefs;
-#endif
-    ref->next.ptr = ep->next.ptr;
-    *epp = ref;
-    checkdealloc_FLEXIBLE(emul_info_t,
-                          char,
-                          CLAUSE_TAIL_INSNS_SIZE,
-                          ep);
-  } else {
-    ref->next.number = d->clauses_tail->number + 1;
-    d->clauses_tail->ptr = ref;
-  }
+  /* Insert the clause */
+  *d->clauses_tail = ref;
   d->clauses_tail = &ref->next;
 
   bitmap = 
@@ -1292,12 +1094,12 @@ CBOOL__PROTO(compiled_clause)
   }
 
   if (!(f->predtyp&1))
-    incore_insert(&d->varcase,f->arity,ref,d);
+    incore_insert(&d->varcase,f->arity,ref);
   else {
     if (bitmap&0x1)
-      incore_insert(&d->varcase,f->arity,ref,d);
+      incore_insert(&d->varcase,f->arity,ref);
     if (bitmap&0x2)
-      incore_insert(&d->lstcase,f->arity,ref,d);
+      incore_insert(&d->lstcase,f->arity,ref);
     if (bitmap&0x4)
       incore_puthash(&d->othercase,f->arity,ref,d,key);
   }
@@ -1334,7 +1136,7 @@ CBOOL__PROTO(set_property)
   if (f == NULL) return FALSE;
   type = f->predtyp;
   if ((type > ENTER_FASTCODE_INDEXED && type != ENTER_INTERPRETED) ||
-      (type <= ENTER_FASTCODE_INDEXED && f->code.incoreinfo->clauses.ptr != NULL) ||
+      (type <= ENTER_FASTCODE_INDEXED && f->code.incoreinfo->clauses != NULL) ||
       (type == ENTER_INTERPRETED && f->code.intinfo->first))
     return FALSE;
 
@@ -2461,22 +2263,14 @@ CVOID__PROTO(show_nodes, choice_t *cp_younger, choice_t *cp_older) {
   } else {
     next_alt = cp_younger->next_alt;
   }
-#if defined(ABSMACH_OPT__incoreclause)
   number = (intmach_t)next_alt->clause;
-#else
-  number = next_alt->number;
-#endif
   cp_younger = ChoiceCont0(cp_younger, next_alt->arity);
   while(ChoiceYounger(cp_younger, cp_older)) {
     fprintf(stderr,"\n  ");
     fprintf(stderr,"0x%p:",cp_younger);
     DisplayCPFunctor(cp_younger);
     fprintf(stderr, "/%" PRIdm ",", number);
-#if defined(ABSMACH_OPT__incoreclause)
     number = (intmach_t)cp_younger->next_alt->clause;
-#else
-    number = cp_younger->next_alt->number;
-#endif
     cp_younger = ChoiceCont0(cp_younger, ChoiceArity(cp_younger));
   }
   if (!ChoiceYounger(cp_older, cp_younger)) {

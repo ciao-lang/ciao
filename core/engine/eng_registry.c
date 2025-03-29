@@ -1541,7 +1541,6 @@ void init_once(void) {
   define_c_mod_predicate("internals","$abolish",1,prolog_abolish); 
   define_c_mod_predicate("internals","$define_predicate",2,define_predicate);
   define_c_mod_predicate("internals","$erase_clause",1,erase_clause);
-  define_c_mod_predicate("internals","$clause_number",2,clause_number);
   define_c_mod_predicate("internals","$compiled_clause",4,compiled_clause);
   define_c_mod_predicate("internals","$empty_gcdef_bin",0,empty_gcdef_bin);
   define_c_mod_predicate("internals","$set_property",2,set_property);

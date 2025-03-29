@@ -31,7 +31,6 @@ CBOOL__PROTO(prolog_abolish); /* JFMC */
 CBOOL__PROTO(abolish, definition_t *f); /* JFMC */
 CBOOL__PROTO(define_predicate);
 CBOOL__PROTO(erase_clause);
-CBOOL__PROTO(clause_number);
 CBOOL__PROTO(compiled_clause);
 hashtab_node_t *hashtab_lookup(hashtab_t **swp, tagged_t k);
 CBOOL__PROTO(set_property);

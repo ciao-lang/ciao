@@ -83,8 +83,8 @@ CBOOL__PROTO(emulated_clause_counters)
   if (!d)
     return FALSE;
   DEREF(X(1),X(1));
-  for (i=GetSmall(X(1)), cl=d->code.incoreinfo->clauses.ptr; i>1; --i)
-    cl = cl->next.ptr;
+  for (i=GetSmall(X(1)), cl=d->code.incoreinfo->clauses; i>1; --i)
+    cl = cl->next;
   CBOOL__UnifyCons(PointerToTerm(cl->counters),X(2));
   count = NumberOfCounters(cl);
   CBOOL__LASTUNIFY(IntvalToTagged(count),X(3));

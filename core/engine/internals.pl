@@ -411,10 +411,6 @@ body((X,Xs)) :- cgoal(X), body(Xs).
 
 :- if(defined(optim_comp)).
 :- else.
-:- export('$clause_number'/2).
-:- trust pred '$clause_number'(Pred,Number). %jcf% Not used in Prolog code.
-:- impl_defined('$clause_number'/2).
-%
 :- export('$compiled_clause'/4).
 :- trust pred '$compiled_clause'(Pred,Obj,Mode,Data) 
     : (predname(Pred), int(Obj), pred_mode(Mode)). %jcf% No info about Data.
