@@ -3,7 +3,7 @@
                  set_debug_mode/1, set_nodebug_mode/1,
                  set_debug_module/1, set_nodebug_module/1,
                  set_debug_module_source/1,
-                 mode_of_module/2, module_of/2
+                 mode_of_module/2
                  ], [assertions, datafacts]).
 
 :- doc(title, "Dynamic loading and compilation").
@@ -103,7 +103,5 @@ set_debug_module_source(Mod) :-
 
 module_pattern(user, user(_)) :- !.
 module_pattern(Module, Module) :- atom(Module).
-
-module_of(H, M) :- pred_module(H, M).
 
 mode_of_module(Module, Mode) :- module_loaded(Module, _, _, Mode).
