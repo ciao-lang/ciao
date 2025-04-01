@@ -1,7 +1,7 @@
 :- module(dynamic_rt, [
     asserta/1, asserta/2, assertz/1, assertz/2, assert/1, assert/2,
     retract/1, retractall/1, abolish/1,
-    clause/2, clause/3,
+    clause/2, clause/3, '$clause'/2, '$clause'/3,
     %current_predicate/1, current_predicate/2, dynamic/1, data/1, %(see below)
     wellformed_body/3
 ], [noprelude,assertions,isomodes,regtypes,datafacts]).
@@ -390,6 +390,58 @@ clause(HEAD, Body, Ref) :-
     term_to_meta(Head, HEAD),
     nonvar(Head), 
     dynamic1(Head, clause/3),
+    '$current_clauses'(Head, Root), 
+    '$current_instance'(Head, Body, Root, Ptr, no_block),
+    '$unlock_predicate'(Root),
+    '$ptr_ref'(Ptr, Ref).
+:- endif.
+
+% ---------------------------------------------------------------------------
+
+% $clause/2 does not require the predicate to be dynamic
+:- if(defined(optim_comp)).
+:- meta_predicate '$clause'(primitive(fact),?).
+:- else.
+:- meta_predicate '$clause'(fact,?).
+:- endif.
+
+:- if(defined(optim_comp)).
+'$clause'(Head, Body) :-
+    nonvar(Head),
+    % '$check_dynamic'(Head, clause/2),
+    '$current_nb'(Head, Body).
+:- else.
+'$clause'(HEAD, Body) :-
+    term_to_meta(Head, HEAD),
+    nonvar(Head),
+    % dynamic1(Head, clause/2),
+    '$current_clauses'(Head, Root),
+    '$current_instance'(Head, Body, Root, _, no_block),
+    '$unlock_predicate'(Root).
+:- endif.
+
+% $clause/3 does not require the predicate to be dynamic
+:- if(defined(optim_comp)).
+:- meta_predicate '$clause'(primitive(fact),?,?).
+:- else.
+:- meta_predicate '$clause'(fact,?,?).
+:- endif.
+
+:- if(defined(optim_comp)).
+'$clause'(Head, Body, Ref) :-
+    % TODO: fix! head cannot be a variable because of the meta expansion... should meta expansions be moded?
+    % '$check_dynamic'(Head, clause/3),
+    '$current_nb_ref'(Head, Body, Ref).
+:- else.
+'$clause'(HEAD, Body, Ref) :-
+    '$ptr_ref'(Ptr, Ref), !, 
+    '$instance'(Head, Body, Ptr), 
+    Head\==0,
+    term_to_meta(Head, HEAD).
+'$clause'(HEAD, Body, Ref) :-
+    term_to_meta(Head, HEAD),
+    nonvar(Head), 
+    % dynamic1(Head, clause/3),
     '$current_clauses'(Head, Root), 
     '$current_instance'(Head, Body, Root, Ptr, no_block),
     '$unlock_predicate'(Root),
