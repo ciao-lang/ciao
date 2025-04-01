@@ -401,6 +401,13 @@ body((X,Xs)) :- cgoal(X), body(Xs).
 :- impl_defined('$abolish'/1).
 :- endif.
 
+:- if(defined(optim_comp)).
+:- else.
+:- export('$abolish_multifile'/2).
+:- trust pred '$abolish_multifile'(Head,Mod) : (cgoal(Head), atm(Mod)).
+:- impl_defined('$abolish_multifile'/2).
+:- endif.
+
 :- export('$erase_clause'/1).
 :- if(defined(optim_comp)).
 :- '$props'('$erase_clause'/1, [impnat=cbool(erase_clause)]).

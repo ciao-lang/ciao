@@ -569,8 +569,8 @@ void init_interpreted(definition_t *f);
 
 /* Patch bytecode information related to the last clause inserted */
 
-#define SET_NONDET(T, CL) { \
-  (T)->emul_p = BCoff(((CL)->emulcode), FTYPE_size(f_i)); \
+#define SET_NONDET(T) { \
+  if ((T)->clause != NULL) (T)->emul_p = BCoff(((T)->clause->emulcode), FTYPE_size(f_i)); \
 }
 #define PATCH_EMUL_P2(T) { \
   (T)->emul_p2 = BCoff((T)->emul_p, p2_offset(BCOp((T)->emul_p, FTYPE_ctype(f_o), 0))); \
@@ -601,7 +601,7 @@ static void incore_insert(try_node_t **t0,
     tt = *t0;
     tt = tt->previous;
     /* Patch previous emul_p "fail_alt" code */
-    SET_NONDET(tt, tt->clause);
+    SET_NONDET(tt);
     tt->next = t;
     t->previous = tt;
   }
@@ -956,7 +956,28 @@ CBOOL__PROTO(prolog_abolish)
 
   DEREF(X(0),X(0));
   f = find_definition(predicates_location,X(0),&junk,FALSE);
-  return abolish(Arg, f);  
+  CBOOL__LASTCALL(abolish, f);
+}
+
+/* ABSMACH_OPT__regmod2 extension */
+CBOOL__PROTO(prolog_abolish_multifile)
+{
+  tagged_t *junk;
+  definition_t *f;
+
+  DEREF(X(0),X(0));
+  f = find_definition(predicates_location,X(0),&junk,FALSE);
+
+  DEREF(X(1),X(1));
+  if (!TaggedIsATM(X(1)))
+    USAGE_FAULT("dynlink/2: second argument must be an atom");
+  tagged_t mod = X(1);
+
+#if defined(ABSMACH_OPT__debug_abolish_multifile)
+  fprintf(stderr, "prolog_abolish_multifile: pred=%s/%d -- mod=%s\n", GetString(f->printname), f->arity, GetString(mod));
+#endif
+
+  CBOOL__LASTCALL(abolish_multifile, f, mod);
 }
 
 /* JFMC: abolish is now a C function instead of a predicate. */
@@ -976,6 +997,23 @@ CBOOL__PROTO(abolish, definition_t *f)
   }
   INC_MEM_PROG(total_mem_count - current_mem);
   return TRUE;
+}
+
+#if defined(ABSMACH_OPT__regmod2)
+CBOOL__PROTO(incore_drain_marked, definition_t *f, tagged_t mark);
+CBOOL__PROTO(interpreted_drain_marked, definition_t *f, tagged_t mark);
+#endif
+
+CBOOL__PROTO(abolish_multifile, definition_t *f, tagged_t mod) {
+#if defined(ABSMACH_OPT__regmod2)
+  if (f->predtyp == ENTER_INTERPRETED) {
+    CBOOL__LASTCALL(interpreted_drain_marked, f, mod);
+  } else { 
+    CBOOL__LASTCALL(incore_drain_marked, f, mod);
+  }
+#else
+  CBOOL__PROCEED;
+#endif
 }
 
 CBOOL__PROTO(define_predicate)
@@ -1195,7 +1233,7 @@ CBOOL__PROTO(set_currmod) {
 /* --------------------------------------------------------------------------- */
 /* Selective removing of clauses */
 
-#if 0 //defined(ABSMACH_OPT__regmod2)
+#if defined(ABSMACH_OPT__regmod2)
 void trychain_drain_marked(try_node_t **tfirst, tagged_t mark) {
   try_node_t *t;
   try_node_t *last;
@@ -1204,6 +1242,10 @@ void trychain_drain_marked(try_node_t **tfirst, tagged_t mark) {
     last = NULL; /* the last seen valid try_node */
     do {
       if (t->clause->mark == mark) {
+#if defined(ABSMACH_OPT__debug_abolish_multifile)
+        fprintf(stderr, "match try_node mark: %s\n", GetString(t->clause->mark));
+        fprintf(stderr, "dealloc try_node %p\n", t);
+#endif
         try_node_t *tnext;
         tnext = t->next;
         /* free the node */
@@ -1232,36 +1274,30 @@ void trychain_drain_marked(try_node_t **tfirst, tagged_t mark) {
       TRY_NODE_SET_DET(last, last->clause);
       /* update (*tfirst)->previous */
       (*tfirst)->previous = last;
+      /* just in case *tfirst was modified, maintain emul_p2 optimization */
+      PATCH_EMUL_P2(*tfirst);
     }
   }
 }
-#endif
-#if 0 //defined(ABSMACH_OPT__regmod2)
+
 void hashtab_trychain_drain_marked(hashtab_t **psw, tagged_t mark) {
   intmach_t i;
   hashtab_node_t *h1;
-  try_node_t *otherwise = NULL;
+  bool_t otherwise = FALSE;
   intmach_t size = HASHTAB_SIZE(*psw);
 
-  /* TODO: share sw traversal code skeleton with other incore
-     operations */
+  /* TODO:[oc-merge] treatment of otherwise was strange in OC, back-backport? */
   for (i=0; i<size; i++) {
     h1 = &(*psw)->node[i];
-    if (h1->key) {
-      trychain_drain_marked((try_node_t **)&h1->value.as_ptr,mark);
-    } else {
-      /* empty entries share the same try_chain */
-      if (!otherwise) {
-        trychain_drain_marked((try_node_t **)&h1->value.as_ptr,mark);
-        otherwise = (try_node_t *)h1->value.as_ptr;
-      } else {
-        h1->value.as_ptr = (void *)otherwise;
-      }
+    if (h1->key || !otherwise) {
+      trychain_drain_marked(&h1->value.try_chain, mark);
+    }
+    if (!h1->key) {
+      otherwise = TRUE;
     }
   }
 }
-#endif
-#if 0 //defined(ABSMACH_OPT__regmod2)
+
 CBOOL__PROTO(incore_drain_marked, definition_t *f, tagged_t mark) {
   intmach_t current_mem = total_mem_count;
   incore_info_t *d;
@@ -1269,16 +1305,24 @@ CBOOL__PROTO(incore_drain_marked, definition_t *f, tagged_t mark) {
   emul_info_t *cc;
   emul_info_t **last;
 
+  // TODO:[oc-merge] "d->othercase != NULL" (and others) not in oc
   d = f->code.incoreinfo;
-  trychain_drain_marked(&d->varcase, mark);
-  trychain_drain_marked(&d->lstcase, mark);
-  hashtab_trychain_drain_marked(&d->othercase, mark);
+#if defined(ABSMACH_OPT__debug_abolish_multifile)
+  fprintf(stderr, "incore_drain_marked: begin\n");
+#endif
+  if (d->varcase != NULL) trychain_drain_marked(&d->varcase, mark);
+  if (d->lstcase != NULL) trychain_drain_marked(&d->lstcase, mark);
+  if (d->othercase != NULL) hashtab_trychain_drain_marked(&d->othercase, mark);
 
   /* Remove marked clauses */
   last = &d->clauses;
   c = d->clauses;
   while (c != NULL) {
     if (c->mark == mark) {
+#if defined(ABSMACH_OPT__debug_abolish_multifile)
+      fprintf(stderr, "incore_drain_marked: --match mark=%s\n", GetString(c->mark));
+      fprintf(stderr, "incore_drain_marked: --free emulinfo %p\n", c);
+#endif
       *last = c->next;
       cc = c->next;
       free_emulinfo(c);
@@ -1293,6 +1337,9 @@ CBOOL__PROTO(incore_drain_marked, definition_t *f, tagged_t mark) {
 
   /* Abolish if empty definition */
   if (d->clauses_tail == &d->clauses) {
+#if defined(ABSMACH_OPT__debug_abolish_multifile)
+    fprintf(stderr, "incore_drain_marked: --abolish empty\n");
+#endif
     CBOOL__CALL(abolish, f);
   }
   CBOOL__PROCEED;
@@ -2119,11 +2166,13 @@ CBOOL__PROTO(prolog_interpreted_clause)
     new_worker = NULL;
     object = compile_term_aux(Arg, Head, Body, &new_worker);
 #if defined(DEBUG_TRACE)
-      if (new_worker)
+    if (new_worker) {
         fprintf(stderr, "wrb reallocation in prolog_interpreted_clause()\n");
+    }
 #endif
-    if ((root = current_clauses_aux(Head)) == NULL) 
+    if ((root = current_clauses_aux(Head)) == NULL) {
       MAJOR_FAULT("Root == NULL @ c_interpreted_clause!!!");
+    }
 
     return insertz_aux(root, object);
 

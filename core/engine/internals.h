@@ -28,7 +28,9 @@ void leave_to_gc(enter_instr_t type, char *info);
 CBOOL__PROTO(empty_gcdef_bin);
 void relocate_gcdef_clocks(instance_clock_t *clocks);
 CBOOL__PROTO(prolog_abolish); /* JFMC */
+CBOOL__PROTO(prolog_abolish_multifile); /* JFMC */
 CBOOL__PROTO(abolish, definition_t *f); /* JFMC */
+CBOOL__PROTO(abolish_multifile, definition_t *f, tagged_t mod); /* JFMC */
 CBOOL__PROTO(define_predicate);
 CBOOL__PROTO(erase_clause);
 CBOOL__PROTO(compiled_clause);

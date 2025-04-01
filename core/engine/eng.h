@@ -1439,6 +1439,7 @@ typedef short enter_instr_t;
 /* OBJECT AREA ----------------------------------------------------*/ 
 
 //#define ABSMACH_OPT__regmod2 1
+//#define ABSMACH_OPT__debug_abolish_multifile 1
 
 /* p->count = (intmach_t *)((char *)p + objsize) - p->counters */
 

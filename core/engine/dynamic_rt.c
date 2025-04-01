@@ -1973,10 +1973,16 @@ CBOOL__PROTO(interpreted_drain_marked, definition_t *f, tagged_t mark) {
   int_info_t *root;
   instance_t *i, *j;
 
+#if defined(ABSMACH_OPT__debug_abolish_multifile)
+  fprintf(stderr, "interpreted_drain_marked: begin\n");
+#endif
   root = f->code.intinfo;
   for (i = root->first; i; i=j) {
     j = i->forward;
     if (i->mark == mark) {
+#if defined(ABSMACH_OPT__debug_abolish_multifile)
+      fprintf(stderr, "interpreted_drain_marked: --calling prolog_erase_ptr %p\n", i);
+#endif
       CVOID__CALL(prolog_erase_ptr, i);
     }
   }
@@ -1986,6 +1992,9 @@ CBOOL__PROTO(interpreted_drain_marked, definition_t *f, tagged_t mark) {
   /* TODO: check if it has any problems... */
   /* Abolish if predicate is empty */
   if (root->first == NULL) {
+#if defined(ABSMACH_OPT__debug_abolish_multifile)
+    fprintf(stderr, "interpreted_drain_marked: --abolish empty\n");
+#endif
     CBOOL__CALL(abolish, f);
   }
   CBOOL__PROCEED;

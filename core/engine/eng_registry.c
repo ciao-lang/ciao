@@ -1539,6 +1539,7 @@ void init_once(void) {
 
                                 /* internals.c */
   define_c_mod_predicate("internals","$abolish",1,prolog_abolish); 
+  define_c_mod_predicate("internals","$abolish_multifile",2,prolog_abolish_multifile); 
   define_c_mod_predicate("internals","$define_predicate",2,define_predicate);
   define_c_mod_predicate("internals","$erase_clause",1,erase_clause);
   define_c_mod_predicate("internals","$compiled_clause",4,compiled_clause);
