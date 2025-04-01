@@ -20,6 +20,9 @@
 % itf sections: allow much faster dependecy checkings
 :- compilation_fact(itf_sections). % (comment out to disable)
 
+% TODO: If disabled, uncomment "#define ABSMACH_OPT__regmod2 1" in core/engine/eng.h
+:- compilation_fact(use_renamed_multifile). % (old rename-based multifile handling)
+
 % ---------------------------------------------------------------------------
 
 :- use_module(library(aggregates), [findall/3]).
@@ -55,7 +58,7 @@
     '$open'/3, initialize_module/1, initialized/1,
     '$set_currmod'/1,
     '$define_predicate'/2, '$set_property'/2, '$compiled_clause'/4,
-    '$compile_term'/2, '$current_clauses'/2, '$insertz'/2, '$abolish'/1,
+    '$compile_term'/2, '$current_clauses'/2, '$insertz'/2, '$abolish'/1, '$abolish_multifile'/2,
     '$current_instance'/5, '$erase'/1, '$predicate_property'/3,
     '$module_is_static'/1,
     '$unlock_predicate'/1, dynlink/2, dynunlink/1,
@@ -510,7 +513,6 @@ restore_multifile(M, F, A, Def) :-
     # "Module @var{Mod} has meta_predicate declaration @var{Meta}.".
 :- data meta_args/2.
 
-:- export(multifile/3).
 :- pred multifile(Mod, F, A, DynType)
     # "Module @var{Mod} defines multifile predicate @var{F}/@var{A}
        defined as @var{DynType}.".
@@ -2180,7 +2182,7 @@ compile_clause(ql(_), Head, Body, _Module) :- !,
 compile_clause(wam, Head, Body, _Module) :- !,
     compile_clause(Head, Body). % in pl2wam
 compile_clause(incoreql(Pr), Head, Body, Module) :- !,
-    incore_mode(incore(Pr), Head, Mode),
+    incore_mode(incore(Pr), Head, Module, Mode),
     ( Mode = incore(Pr) ->
           compile_clause(Head, Body) % in pl2wam
     ; compile_clause_in_mode(ql(Pr), Head, Body),
@@ -2188,12 +2190,14 @@ compile_clause(incoreql(Pr), Head, Body, Module) :- !,
       compile_clause_incore(Mode, Head, Body, Module)
     ).
 compile_clause(Mode, Head, Body, Module) :- % incore(Pr) or interpreted
-    incore_mode(Mode, Head, NewMode),
+    incore_mode(Mode, Head, Module, NewMode),
     compile_clause_incore(NewMode, Head, Body, Module).
           
+:- if(defined(use_renamed_multifile)).
 compile_clause_incore(multifile(Mode), Head, Body, Module) :- !,
     add_multifile_clause(Head, Body, Module, Mode).
-compile_clause_incore(interpreted, Head, Body, _) :- !,
+:- endif.
+compile_clause_incore(interpreted, Head, Body, _Module) :- !,
     assert_clause(Head, Body).
 compile_clause_incore(Mode, Head, Body, _) :-
     compile_clause_in_mode(Mode, Head, Body).
@@ -2381,11 +2385,16 @@ low_dyn_decl(concurrent, concurrent).
 :- export(incore_mode_of/2). % TODO: temporarily exported (for pl2wam.pl)
 :- data incore_mode_of/2. % Predicate HEAD was compiled with MODE, one of
                       % {interpreted, incore(unprofiled), incore(profiled)}
+:- if(defined(use_renamed_multifile)).
                       % or multifile(Mode) been Mode one of that
+:- endif.
 
-:- export(pred_module/2).
+:- if(defined(use_renamed_multifile)).
 :- data pred_module/2. % Predicate HEAD was loaded from MODULE
                    % (does not include multifile predicates)
+:- else.
+:- data mod_pred/2. % MODULE loaded predicate HEAD
+:- endif.
 
 compile_decl(ql(_), Decl, P, F, A,_Module) :- !,
     proc_declaration(Decl, P, F, A). % in pl2wam
@@ -2407,8 +2416,9 @@ incore_decl_pred(multifile, P, F, A, Mode, Module) :- !,
       '$define_predicate'(F/A, IM),
       '$set_property'(P, multifile)
     ).
-incore_decl_pred(Dynamic, P,_F,_A,_Mode,_Module) :- % dynamic or concurrent
-    incore_mode(interpreted, P, Mode),
+:- if(defined(use_renamed_multifile)).
+incore_decl_pred(Dynamic, P,_F,_A,_Mode,Module) :- % dynamic or concurrent
+    incore_mode(interpreted, P, Module, Mode),
     ( Mode = interpreted ->
           '$set_property'(P, Dynamic)
     ; Mode = multifile(interpreted) ->
@@ -2418,6 +2428,14 @@ incore_decl_pred(Dynamic, P,_F,_A,_Mode,_Module) :- % dynamic or concurrent
           asserta_fact(incore_mode_of(P, multifile(interpreted)))
     ; true % errors are given by preceding clause
     ).
+:- else.
+incore_decl_pred(Dynamic, P,_F,_A,_Mode,Module) :- % dynamic or concurrent
+    incore_mode(interpreted, P, Module, Mode),
+    ( Mode = interpreted ->
+        '$set_property'(P, Dynamic)
+    ; error_in_lns(_,_,warning, ['ignoring incore_decl_pred for ',~~(_F/_A)]) % TODO: why
+    ).
+:- endif.
 
 check_multifile_type(Module, F, A, Bits) :-
     multifile_pred(F, F_),
@@ -2440,6 +2458,7 @@ incore_internal_mode(incore(Profiling), Profiling).
 % ---------------------------------------------------------------------------
 :- doc(section, "Add multifile clauses (at runtime)").
 
+:- if(defined(use_renamed_multifile)).
 add_multifile_clause(H, B, M, Mode) :-
     get_expanded_multifile(H, M, NH, Mode),
     % (asserted before M is instantianted in NH)
@@ -2477,13 +2496,15 @@ new_mp_name(Base, P) :-
     atom_codes(Base, S),
     append(S, N, PS),
     atom_codes(P, PS).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Compilation mode for incore predicates").
 
 % Determines the compilation mode of a predicate
-incore_mode(_, Head, Mode) :- incore_mode_of(Head, Mode), !.
-incore_mode(CurrMode, Head, Mode) :-
+incore_mode(_, Head, _, Mode) :- incore_mode_of(Head, Mode), !.
+:- if(defined(use_renamed_multifile)).
+incore_mode(CurrMode, Head, _, Mode) :-
     functor(Head, F, A),
     functor(Head0, F, A),
     ( '$predicate_property'(Head0, Enter, Bits) ->
@@ -2492,11 +2513,11 @@ incore_mode(CurrMode, Head, Mode) :-
             mode_from_enter(Enter, MMode),
             Mode = multifile(MMode)
       ; ( retract_fact(pred_module(Head0, Module)) ->
-              Place = Module
+            Place = Module
         ; Place = 'this executable'
         ),
         error_in_lns(_,_,warning, ['predicate ',~~(F/A),' from ',Place,
-                     ' is being redefined']),
+                                   ' is being redefined']),
         '$abolish'(Head0),
         incore_internal_mode(CurrMode, IM),
         '$define_predicate'(F/A, IM),
@@ -2513,6 +2534,41 @@ mode_from_enter(1, incore(unprofiled)). % COMPACTCODE_INDEXED
 mode_from_enter(2, incore(profiled)).   % PROFILEDCODE           
 mode_from_enter(3, incore(profiled)).   % PROFILEDCODE_INDEXED   
 mode_from_enter(8, interpreted).        % INTERPRETED            
+:- else.
+incore_mode(CurrMode, Head, Module, Mode) :-
+    functor(Head, F, A),
+    functor(Head0, F, A),
+    ( '$predicate_property'(Head0, _Enter, Bits) ->
+      % Existing predicate, should be multifile or from user
+      ( Bits/\8 =:= 8 -> % multifile
+          % display(user_error, abolish_multifile_from_incore(Head0, Module)), nl(user_error),
+          flatten_mod_name(Module, FlatModule), % TODO: use flat name in more places?
+          % TODO: if predicate is abolished (no more clauses), should we define it?
+          '$abolish_multifile'(Head0, FlatModule),
+          ( '$predicate_property'(Head0, _, _) -> true 
+          ; % abolished due to empty clauses, redefine
+            incore_internal_mode(CurrMode, IM),
+            '$define_predicate'(F/A, IM),
+            '$set_property'(Head0, multifile)
+          ), 
+          Mode = CurrMode
+      ; ( retract_fact(mod_pred(Module0, Head0)) -> % TODO: linear search! (rare case)
+            Place = Module0
+        ; Place = 'this executable'
+        ),
+        error_in_lns(_,_,warning, ['predicate ',~~(F/A),' from ',Place,
+                                   ' is being redefined']),
+        '$abolish'(Head0),
+        incore_internal_mode(CurrMode, IM),
+        '$define_predicate'(F/A, IM),
+        Mode = CurrMode
+      )
+    ; incore_internal_mode(CurrMode, IM),
+      '$define_predicate'(F/A, IM),
+      Mode = CurrMode
+    ),
+    asserta_fact(incore_mode_of(Head0, Mode)).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Data for compiler_pass state").
@@ -2632,6 +2688,7 @@ mexpand_defines(M, F, N) :-
 mexpand_multifile(M, F, N) :-
     multifile(M, F, N).
 
+:- export(multifile/3).
 multifile(M, F, N) :- multifile(M, F, N, _DynMode).
 
 % ---------------------------------------------------------------------------
@@ -2676,9 +2733,23 @@ head_expansion0(H, _, _, M, NH):-
 % (defined as multifile/2 with addmodule)
 :- meta_predicate multifile(addmodule).
 
+:- if(defined(use_renamed_multifile)).
 multifile(F/A, Mod) :-
+    % TODO: make sure that this is added only once!
     functor(_P, F, A), % Check if valid
-    compile_clause(interpreted, 'multifile:$multifile'(Mod, F, A), 'basiccontrol:true', Mod).
+%    compile_clause(interpreted, 'multifile:$multifile'(Mod, F, A), 'basiccontrol:true', Mod). % TODO:[oc-merge] conflict with dynamic $multifile
+    assert_clause('multifile:$multifile'(Mod, F, A), 'basiccontrol:true').
+:- else.
+multifile(F/A, Mod) :-
+    % TODO: make sure that this is added only once!
+    functor(_P, F, A), % Check if valid
+    % TODO: using compile_clause/3 erases the previous definitions!
+%     flatten_mod_name(Mod, FlatModule), % TODO: use flat name in more places?
+%     '$set_currmod'(FlatModule), % TODO: push/pop?
+%     compile_clause(interpreted, 'multifile:$multifile'(Mod, F, A), 'basiccontrol:true', Mod),
+%     '$set_currmod'(0).
+    assert_clause('multifile:$multifile'(Mod, F, A), 'basiccontrol:true').
+:- endif.
 
 :- set_prolog_flag(multi_arity_warnings, on).
 
@@ -2999,10 +3070,16 @@ load_so(Base) :- % JFMC
 :- trust pred do_on_abolish(G) : cgoal(G).
 :- multifile do_on_abolish/1.
 
+:- if(defined(use_renamed_multifile)).
 do_on_abolish(Head) :- retract_fact(pred_module(Head, _M)).
+:- else.
+do_on_abolish(Head) :- retract_fact(mod_pred(_M, Head)), !. % TODO: linear search! (rare case?)
+:- endif.
 
+:- if(defined(use_renamed_multifile)).
 :- data renamed_multifile/4. % Predicate HEAD was renamed to F/A in MODULE
 :- data pending_renamed_mf/4. % Pending renaming (generate wrapper clauses only when needed)
+:- endif.
 
 :- export(abolish_module/1).
 abolish_module(Module) :-
@@ -3012,6 +3089,7 @@ abolish_module(Module) :-
     retract_fact(dyn_imports(M, Module)),
     retract_clause('multifile:$imports'(M, Module, _, _, _), 'basiccontrol:true'),
     fail.
+:- if(defined(use_renamed_multifile)).
 abolish_module(Module) :-
     expanded_multifile(_, P),
     functor(P, _, A),
@@ -3030,6 +3108,19 @@ abolish_module(Module) :-
     retract_fact(pred_module(Pred, Module)),
     '$abolish'(Pred),
     fail.
+:- else.
+abolish_module(Module) :-
+    % display(user_error, abolish_module0(Module)), nl(user_error),
+    flatten_mod_name(Module, FlatModule), % TODO: use flat name in more places?
+    retract_fact(mod_pred(Module, Pred)), % (enumerate all preds defined in Module)
+    ( '$predicate_property'(Pred, _, Bits), Bits/\8 =:= 8 -> % multifile
+        % display(user_error, abolish_multifile_pred(Pred, Module)), nl(user_error),
+        '$abolish_multifile'(Pred, FlatModule)
+    ; % display(user_error, abolish_pred(Pred, Module)), nl(user_error),
+      '$abolish'(Pred)
+    ),
+    fail.
+:- endif.
 abolish_module(Module) :-
     check_dynunlink(Module), % JFMC
     fail.
@@ -3101,11 +3192,18 @@ load_make_po(Base, Source, PoName, Profiling, Module) :-
     end_doing,
     compute_pred_module(Module).
 
+:- if(defined(use_renamed_multifile)).
 compute_pred_module(M) :-
     retract_fact(incore_mode_of(Head, Mode)),
       \+ Mode = multifile(_),
         asserta_fact(pred_module(Head, M)),
     fail.
+:- else.
+compute_pred_module(M) :-
+    retract_fact(incore_mode_of(Head, _Mode)),
+      assertz_fact(mod_pred(M, Head)),
+    fail.
+:- endif.
 compute_pred_module(_).
 
 % ---------------------------------------------------------------------------
@@ -3137,10 +3235,17 @@ qload_dyn_s(Stream, Module) :-
 
 ql_step('internals:$set_currmod'(Mod), _Module) :- !,
     '$set_currmod'(Mod).
+:- if(defined(use_renamed_multifile)).
 ql_step('internals:$define_predicate'(N/A, Profiling), Module) :-
     functor(Head, N, A), !,
-    incore_mode(incore(Profiling), Head, Mode),
+    incore_mode(incore(Profiling), Head, Module, Mode),
     handle_multifile_ql(Mode, Head, Profiling, Module).
+:- else.
+ql_step('internals:$define_predicate'(N/A, Profiling), Module) :-
+    functor(Head, N, A), !,
+    incore_mode(incore(Profiling), Head, Module, _Mode).
+:- endif.
+:- if(defined(use_renamed_multifile)).
 ql_step('internals:$define_predicate'(Pred, Profiling), Module) :-
     ql_basepred(Pred, Base), !,
     ( get_renamed_multifile(Base, N, A, Module) ->
@@ -3150,6 +3255,13 @@ ql_step('internals:$define_predicate'(Pred, Profiling), Module) :-
     ).
 ql_step('internals:$set_property'(Head,Prop), Module) :-
     ql_set_prop(Prop, Head, Module), !.
+:- else.
+ql_step('internals:$define_predicate'(Pred, Profiling), _Module) :- !,
+    '$define_predicate'(Pred, Profiling).
+ql_step('internals:$set_property'(Head,Prop), _Module) :- !,
+    '$set_property'(Head, Prop).
+:- endif.
+:- if(defined(use_renamed_multifile)).
 ql_step('internals:$interpreted_clause'(F/A,(H :- B)), Module) :-
     functor(Pred, F, A), !,
     ( get_renamed_multifile(Pred, N,_A, Module) -> % TODO: why _A?
@@ -3158,6 +3270,11 @@ ql_step('internals:$interpreted_clause'(F/A,(H :- B)), Module) :-
         assert_clause(NH, B)
     ; assert_clause(H, B)
     ).
+:- else.
+ql_step('internals:$interpreted_clause'(_,(H :- B)), _Module) :- !,
+    assert_clause(H, B). % TODO:[oc-merge] why not call it?
+:- endif.
+:- if(defined(use_renamed_multifile)).
 ql_step('internals:$compiled_clause'(Pred,Obj,Mode,Data), Module) :-
     ql_basepred(Pred, Base),  !,
     ( get_renamed_multifile(Base, N, A, Module) ->
@@ -3165,6 +3282,10 @@ ql_step('internals:$compiled_clause'(Pred,Obj,Mode,Data), Module) :-
         '$compiled_clause'(NewPred, Obj, Mode, Data)
     ; '$compiled_clause'(Pred,Obj,Mode,Data)
     ).
+:- else.
+ql_step('internals:$compiled_clause'(Pred,Obj,Mode,Data), _Module) :- !,
+    '$compiled_clause'(Pred,Obj,Mode,Data). % TODO:[oc-merge] _Module not used, added from currmod
+:- endif.
 % % if gauge
 % ql_step(install_clause_model(Pred/I,Counters),_Module) :-
 %       ql_basepred(Pred, Base), !,
@@ -3177,6 +3298,7 @@ ql_step('internals:$compiled_clause'(Pred,Obj,Mode,Data), Module) :-
 ql_step(Goal, _) :-
     error_in_lns(_,_,warning, ['Invalid po item ',Goal]).
 
+:- if(defined(use_renamed_multifile)).
 ql_set_prop(multifile, Head, Module) :-
     functor(Head, F, A),
     ( pending_renamed_mf(Head, Module, _, _) -> true % do nothing, wait until it really exists
@@ -3208,14 +3330,18 @@ ql_set_prop(Prop, Head, Module) :-
         '$set_property'(NHead, Prop)
     ; '$set_property'(Head, Prop)
     ).
+:- endif.
 
 % TODO: backport 'regmod' and clause mark from optim-comp (it fixes multifile_chpt, multifile_retract bugs)
+:- if(defined(use_renamed_multifile)).
 handle_multifile_ql(incore(_), _, _, _).
 handle_multifile_ql(multifile(Mode), Head, IM, Module) :-
     % Just mark that we need a renamed clause
     asserta_fact(pending_renamed_mf(Head, Module, Mode, IM)).
 %       get_renamed_multifile(Head, _N, _A, Module). % NOTE: uncomment to undo partial fix for multifile_chpt
+:- endif.
 
+:- if(defined(use_renamed_multifile)).
 % Get the renamed multifile, add wrapper the first time
 get_renamed_multifile(Head, N, A, Module) :- 
     renamed_multifile(Head, N0, A0, Module),
@@ -3234,8 +3360,10 @@ get_renamed_multifile(Head, N, A, Module) :-
     functor(R, N, A),
     '$define_predicate'(N/A, IM),
     asserta_fact(renamed_multifile(Head, N, A, Module)).
+:- endif.
 
-
+:- if(defined(use_renamed_multifile)).
+% TODO:[oc-merge] not used anymore!
 ql_basepred((F/_-_)/_, Base) :- !,
     ql_basepred(F, Base).
 ql_basepred(N/A, Head) :-
@@ -3244,6 +3372,7 @@ ql_basepred(N/A, Head) :-
 subst_basepred((F/N-M)/L, R, (NF/N-M)/L) :- !,
     subst_basepred(F, R, NF).
 subst_basepred(_, R, R).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Error messages").
@@ -3262,7 +3391,7 @@ error_in_lns(L0, L1, Type, Msg) :-
 % ---------------------------------------------------------------------------
 :- doc(section, "Dynamic predicates (without module expansion)").
 
-assert_clause(Head, Body) :-
+assert_clause(Head, Body) :- % TODO:[oc-merge] Module not here, added from currmod
     '$compile_term'([Head|Body], Ptr), 
     '$current_clauses'(Head, Root),
     '$insertz'(Root, Ptr).
