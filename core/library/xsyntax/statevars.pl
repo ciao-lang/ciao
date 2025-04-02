@@ -12,8 +12,8 @@
 :- fun_eval(blkgoal(true)).
 
 % Reassignment and 'let' notation
-:- op(980, xfx, [(<-)]). % priority between (::) and (,)
+:- op(980, xfx, [(:=)]). % priority between (::) and (,) (must be the same as in fsyntax/ops.pl)
 :- op(985, fx, [(let)]). % TODO: check, only meaningful for blocks
 %
-:- fun_eval(notation((let Var<-Val), '\6\letvar'(Var,Val))).
-:- fun_eval(notation((Var<-Val), '\6\assign'(Var,Val))).
+:- fun_eval(notation((let Var:=Val), '\6\letvar'(Var,Val))).
+:- fun_eval(notation((Var:=Val), '\6\assign'(Var,Val))).

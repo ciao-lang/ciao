@@ -76,22 +76,22 @@
 % generic iterator
 :- fun_eval(notation('iter.new'(Xs), gen_iterable(Xs))).
 :- fun_eval(notation('iter.init'(gen_iterable(In), Curr),
-                     (Curr<-In))).
+                     (Curr:=In))).
 :- fun_eval(notation('iter.cond'(gen_iterable(_), X, Curr),
                      iter_cond(Curr, X))).
 :- fun_eval(notation('iter.next'(gen_iterable(_), Curr),
-                     (iter_next(Curr, Curr2), Curr<-Curr2))).
+                     (iter_next(Curr, Curr2), Curr:=Curr2))).
 
 % list iterator
 :- fun_eval(notation('iter.new'([]), list_iterable([]))).
 :- fun_eval(notation('iter.new'([X|Xs]), list_iterable([X|Xs]))).
 :- fun_eval(notation('iter.new'(list(Xs)), list_iterable(Xs))).
 :- fun_eval(notation('iter.init'(list_iterable(In), Curr),
-                     (Curr<-In))).
+                     (Curr:=In))).
 :- fun_eval(notation('iter.cond'(list_iterable(_), X, Curr),
                      (Curr=[X|_]))).
 :- fun_eval(notation('iter.next'(list_iterable(_), Curr),
-                     (Curr=[_|Xs], Curr<-Xs))). % TODO: optimize this unification
+                     (Curr=[_|Xs], Curr:=Xs))). % TODO: optimize this unification
 :- if(defined(def_gen_iter)).
 iter_cond([X|_], X).
 iter_next([_|Xs], Xs).
@@ -102,12 +102,12 @@ iter_next([_|Xs], Xs).
 :- fun_eval(notation('iter.new'(A..B), range_iterable(A, B, _, 1))).
 :- fun_eval(notation('iter.new'(A..Step..B), range_iterable(A, B, _, Step))).
 :- fun_eval(notation('iter.init'(range_iterable(A, B, End, Step), Curr),
-                     (End=B, Curr<-A))).
+                     (End=B, Curr:=A))).
 :- fun_eval(notation('iter.cond'(range_iterable(_, _, End, _), X, Curr),
                      (X=Curr, Curr=<End))).
 :- fun_eval(notation('iter.next'(range_iterable(_, _, _, Step), Curr),
-                     % (Curr<-Curr+Step)
-                     (Tmp is Curr+Step, Curr<-Tmp))).
+                     % (Curr:=Curr+Step)
+                     (Tmp is Curr+Step, Curr:=Tmp))).
 :- if(defined(def_gen_iter)).
 mk_iter_range(A, B, Step, range_iter(B, Step, A)).
 iter_cond(range_iter(B, _Step, X), X) :- X=<B.
@@ -117,12 +117,12 @@ iter_next(range_iter(B, Step, Curr), range_iter(B, Step, Curr2)) :- Curr2 is Cur
 % term argument iterator
 :- fun_eval(notation('iter.new'(args(T)), args_iterable(N, T))).
 :- fun_eval(notation('iter.init'(args_iterable(N, T), Curr),
-                     (functor(T, _, N), Curr<-1))).
+                     (functor(T, _, N), Curr:=1))).
 :- fun_eval(notation('iter.cond'(args_iterable(N, T), X, Curr),
                      (Curr=<N, arg(Curr,T,X)))).
 :- fun_eval(notation('iter.next'(args_iterable(N, T), Curr),
-                     % (Curr<-Curr+1)
-                     (Tmp is Curr+1, Curr<-Tmp))).
+                     % (Curr:=Curr+1)
+                     (Tmp is Curr+1, Curr:=Tmp))).
 :- if(defined(def_gen_iter)).
 mk_iter_args(T, args_iter(N, T, Curr)) :- functor(T, _, N), Curr=1.
 iter_cond(args_iter(N, T, Curr), X) :- Curr=<N, arg(Curr,T,X).

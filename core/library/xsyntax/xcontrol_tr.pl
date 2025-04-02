@@ -303,7 +303,7 @@ tr_block_expr(Goal, RetVar, Goal2) :-
 
 collect_let([], [], Vs, Vs, _RetVar).
 collect_let([X|Xs], [Y|Ys], Vs0, Vs, RetVar) :-
-    ( X = 'xcontrol_rt:\6\letvar'(V, Val) -> Vs1 = [V|Vs0], Y = 'term_basic:='(V,Val) % TODO: reuse <- ?
+    ( X = 'xcontrol_rt:\6\letvar'(V, Val) -> Vs1 = [V|Vs0], Y = 'term_basic:='(V,Val) % TODO: reuse := assignment ?
     ; X = 'xcontrol_rt:\6\return'(V) -> Vs1 = Vs0, Y = 'term_basic:='(RetVar,V) % TODO: errors?
     ; Vs1 = Vs0, Y = X
     ),
