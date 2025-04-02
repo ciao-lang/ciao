@@ -73,8 +73,8 @@ take(X, [H|T]) := [H | take(X-1, T)] :- X > 0.
    @var{P} is true".
 
 :- fun_eval takeWhile/2.
-takeWhile(P, [H|T]) := P(H) ? [H | takeWhile(P, T)]
-                 | [].
+takeWhile(P, [H|T]) := ( P(H) ? [H | takeWhile(P, T)]
+                       | [] ).
 
 :- pred drop(+X,+ListA,-ListR): counter * list(term) * term => counter *
    list(term) * list(term) # "@var{ListR} is unified with the infinite list

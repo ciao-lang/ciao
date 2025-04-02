@@ -124,8 +124,8 @@ fact(N) := N * ~fact(--N) :- N > 0.
    Note that guards can often be defined more compactly using conditional
    expressions:
 @begin{verbatim}
-fact(N) := N = 0 ? 1
-         | N > 0 ? N * ~fact(--N).
+fact(N) := ( N = 0 ? 1
+           | N > 0 ? N * ~fact(--N) ).
 @end{verbatim}
    The declaration @tt{:- fun_eval defined(true)} allows to locally
    define as evaluable functions being defined, so that the @tt{~}
