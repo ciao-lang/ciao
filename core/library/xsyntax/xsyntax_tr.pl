@@ -43,7 +43,13 @@ defunc(('SHELL' :- Decl), R, Mod) :- toplevel_decl(Decl), !, % declarations from
     defunc_decl(Decl, _, Mod), R = ('SHELL':-true).
 defunc((:- Decl), NewDecl, Mod) :- !,
     defunc_decl(Decl, NewDecl, Mod).
-% TODO: the following rule seems to be redundant (jfmc)
+defunc((FuncHeadVal | OptRest), Clauses, Mod) :- % move := outwards % TODO: new := priority (document)
+    nonvar(FuncHeadVal),
+    FuncHeadVal = (FuncHead := FuncVal1),
+    enabled_flag(funhead, Mod),
+    !,
+    defunc((FuncHead := (FuncVal1 | OptRest)), Clauses, Mod).
+% TODO: simplify? these rules are used to split into individual clauses (JFMC)
 defunc((FuncHead := FuncValOpts), Clauses, Mod) :-
     nonvar(FuncValOpts),
     FuncValOpts = (FuncVal1 | FuncValR),
@@ -313,9 +319,13 @@ norm_predabs_arity(B, Mod, N) :-
 
 split_shvs(F, Mod, MaybeShVs, F0) :-
     nonvar(F),
-    ( F = (ShVs -> Head := R :- Body), enabled_flag(funhead, Mod) ->
+    ( F = (ShVs -> (Head := R) :- Body), enabled_flag(funhead, Mod) -> % TODO: new := priority (parenthesis will not be needed)
         MaybeShVs = yes(ShVs), F0 = (Head := R :- Body)
-    ; F = (ShVs -> Head := R), enabled_flag(funhead, Mod) ->
+    ; F = (ShVs -> (Head := R)), enabled_flag(funhead, Mod) -> % TODO: new := priority (parenthesis will not be needed)
+        MaybeShVs = yes(ShVs), F0 = (Head := R)
+    ; F = ((ShVs -> Head) := R :- Body), enabled_flag(funhead, Mod) -> % TODO: old := priority (deprecate)
+        MaybeShVs = yes(ShVs), F0 = (Head := R :- Body)
+    ; F = ((ShVs -> Head) := R), enabled_flag(funhead, Mod) -> % TODO: old := priority (deprecate)
         MaybeShVs = yes(ShVs), F0 = (Head := R)
     ; F = (ShVs -> Head :- Body) ->
         MaybeShVs = yes(ShVs), F0 = (Head :- Body)
