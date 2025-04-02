@@ -2,7 +2,7 @@
 
 :- op(50, fx, [(~)]).
 
-:- op(980, xfx, [(<-)]). % priority between (::) and (,)
+:- op(980, xfx, [(<-)]). % priority between (::) and (,) % TODO: use (:=) (see new := priority in xsyntax_tr)
 
 % Infix dot as method/attribute accessor
 :- op(40, yfx, [(.)]).
