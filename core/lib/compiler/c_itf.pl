@@ -21,7 +21,7 @@
 :- compilation_fact(itf_sections). % (comment out to disable)
 
 % TODO: If disabled, uncomment "#define ABSMACH_OPT__regmod2 1" in core/engine/eng.h
-:- compilation_fact(use_renamed_multifile). % (old rename-based multifile handling)
+% :- compilation_fact(use_renamed_multifile). % (old rename-based multifile handling)
 
 % ---------------------------------------------------------------------------
 
