@@ -1105,6 +1105,10 @@ CBOOL__PROTO(compiled_clause)
   else if (TaggedIsSTR(key))
     key = TaggedToHeadfunctor(key);
 
+  if (f->predtyp == ENTER_INTERPRETED) {
+    MAJOR_FAULT("adding compiled_clause to interpreted predicate!!!");
+  }
+
   /* add a new clause. */
   d = f->code.incoreinfo;
 
