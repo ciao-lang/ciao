@@ -2184,7 +2184,7 @@ compile_clause(wam, Head, Body, _Module) :- !,
 compile_clause(incoreql(Pr), Head, Body, Module) :- !,
     incore_mode(incore(Pr), Head, Module, Mode),
     ( Mode = incore(Pr) ->
-          compile_clause(Head, Body) % in pl2wam
+        compile_clause(Head, Body) % in pl2wam
     ; compile_clause_in_mode(ql(Pr), Head, Body),
       % multifile or interpreted % TODO: repeating work?
       compile_clause_incore(Mode, Head, Body, Module)
@@ -2224,12 +2224,11 @@ compile_goal_decls_([loc(Decl,Src,Ln0,Ln1)|_], DeclM, Module, Mode) :-
     arg(1, Decl, Goal),
     body_expansion(Goal, Module, -, compile, Goal1),
     ( DeclM = initialization(XX) ->
-        DeclM2 = 'multifile:$initialization'(XX)
+        compile_clause_mt(Mode, 'multifile:$initialization'(XX), Goal1, Module)
     ; DeclM = on_abort(XX) ->
-        DeclM2 = 'multifile:$on_abort'(XX)
-    ; fail
+        compile_clause_mt(Mode, 'multifile:$on_abort'(XX), Goal1, Module)
+    ; true
     ),
-    compile_clause(Mode, DeclM2, Goal1, Module),
     erase(Ref),
     fail.
 compile_goal_decls_([_|Decls], DeclM, Module, Mode) :-
@@ -2242,7 +2241,7 @@ compile_goal_decls_([_|Decls], DeclM, Module, Mode) :-
 compile_ldlibs(Base, Module, Mode) :-
     findall('internals:load_lib'(M, F), module_lib(Base, F, M), LLibs),
     list_to_conjunction(LLibs, LoadLibs),
-    compile_clause(Mode, 'multifile:$ldlibs'(Module), LoadLibs, Module).
+    compile_clause_mt(Mode, 'multifile:$ldlibs'(Module), LoadLibs, Module).
 
 module_lib(Base, Lib, LibMod) :-
     Lib = library(_),
@@ -2261,12 +2260,12 @@ list_to_conjunction([],'basiccontrol:true').
 compile_dependences(Base, Module, Mode) :-
     uses_or_adds(Base, File2),
       base_name(File2, Base2), defines_module(Base2, Module2),
-      compile_clause(Mode, 'multifile:$u'(Module, Module2), 'basiccontrol:true', Module),
+      compile_clause_mt(Mode, 'multifile:$u'(Module, Module2), 'basiccontrol:true', Module),
     fail
       ; true.
 
 include_module_data(Mode, Module) :-
-    compile_clause(Mode, 'multifile:$current_module'(Module), 'basiccontrol:true', Module),
+    compile_clause_mt(Mode, 'multifile:$current_module'(Module), 'basiccontrol:true', Module),
     include_meta_args(Mode, Module),
     retract_fact(runtime_module_exp), !,
     include_runtime_data(Mode, Module).
@@ -2274,21 +2273,21 @@ include_module_data(_, _).
 
 include_meta_args(Mode, M) :-
     meta_args(M, P),
-      compile_clause(Mode, 'multifile:$meta_args'(M, P), 'basiccontrol:true', M),
+      compile_clause_mt(Mode, 'multifile:$meta_args'(M, P), 'basiccontrol:true', M),
     fail.
 include_meta_args(_, _).
 
 include_runtime_data(Mode, M) :-
     imports(M, IM, F, N, EM),
-      compile_clause(Mode, 'multifile:$imports'(M, IM, F, N, EM), 'basiccontrol:true', M),
+      compile_clause_mt(Mode, 'multifile:$imports'(M, IM, F, N, EM), 'basiccontrol:true', M),
     fail.
 include_runtime_data(Mode, M) :-
     multifile(M, F, N),
-      compile_clause(Mode, 'multifile:$multifile'(M, F, N), 'basiccontrol:true', M),
+      compile_clause_mt(Mode, 'multifile:$multifile'(M, F, N), 'basiccontrol:true', M),
     fail.
 include_runtime_data(Mode, M) :-
     defines(M, F, N),
-      compile_clause(Mode, 'multifile:$defines'(M, F, N), 'basiccontrol:true', M),
+      compile_clause_mt(Mode, 'multifile:$defines'(M, F, N), 'basiccontrol:true', M),
     fail.
 include_runtime_data(_, _).
 
@@ -2328,6 +2327,26 @@ c_itf_internal_pred_decl(Decl) :-
     nonvar(FA),
     FA = Pred/Arity,
     c_itf_internal_pred(Pred,Arity).
+
+:- if(defined(use_renamed_multifile)).
+compile_clause_mt(Mode, Head, Body, Mod) :-
+    compile_clause(Mode, Head, Body, Mod).
+:- else.
+% TODO: keep sync with initial.pl; make it cleaner
+% Internal predicates that must not be compiled as 'interpreted'
+compile_clause_mt(interpreted, Head, Body, Mod) :- static_internal_pred(Head), !,
+    % (force incore unprofiled)
+    compile_clause(incore(unprofiled), Head, Body, Mod).
+compile_clause_mt(Mode, Head, Body, Mod) :-
+    compile_clause(Mode, Head, Body, Mod).
+
+static_internal_pred('multifile:$initialization'(_)).
+static_internal_pred('multifile:$on_abort'(_)).
+static_internal_pred('multifile:$ldlibs'(_)).
+static_internal_pred('multifile:$load_libs').
+static_internal_pred('multifile:$u'(_,_)).
+static_internal_pred('multifile:$defines'(_,_,_)).
+:- endif.
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Compile mod name").
@@ -2378,9 +2397,15 @@ compile_dyn_decls(Base, Module, Mode) :-
     fail.
 compile_dyn_decls(_, _, _).
 
+% TODO: merge with low_deftype? just negate 'static' when needed
 low_dyn_decl(data,       dynamic).
 low_dyn_decl(dynamic,    dynamic).
 low_dyn_decl(concurrent, concurrent).
+
+low_deftype(static,     static).
+low_deftype(data,       dynamic).
+low_deftype(dynamic,    dynamic).
+low_deftype(concurrent, concurrent).
 
 :- export(incore_mode_of/2). % TODO: temporarily exported (for pl2wam.pl)
 :- data incore_mode_of/2. % Predicate HEAD was compiled with MODE, one of
@@ -2438,9 +2463,10 @@ incore_decl_pred(Dynamic, P,_F,_A,_Mode,Module) :- % dynamic or concurrent
 :- endif.
 
 check_multifile_type(Module, F, A, Bits) :-
+    % Bits: deftype for existing definition
     multifile_pred(F, F_),
-    multifile(Module, F_, A, Dyn),
-    low_dyn_decl(Dyn, DynMode),
+    multifile(Module, F_, A, Dyn), % TODO: Dyn is really DefType (expected)
+    low_deftype(Dyn, DynMode),
     \+ dynmode_has_bit(DynMode, Bits), !,
     error_in_lns(_,_,error, ['Multifile predicate ',~~(F_/A),' defined ',
                  DynMode,' in ',Module,' but currently is not']).
@@ -2449,6 +2475,7 @@ check_multifile_type(_, _, _, _).
 % MF is the module qualified name for multifile predicate F
 multifile_pred(MF, F) :- atom_concat('multifile:', F, MF).
 
+dynmode_has_bit(static, Bits) :- Bits/\3 =:= 0.
 dynmode_has_bit(dynamic, Bits) :- Bits/\2 =:= 2.
 dynmode_has_bit(concurrent, Bits) :- Bits/\1 =:= 1.
 
@@ -2528,12 +2555,6 @@ incore_mode(CurrMode, Head, _, Mode) :-
       Mode = CurrMode
     ),
     asserta_fact(incore_mode_of(Head0, Mode)).
-
-mode_from_enter(0, incore(unprofiled)). % COMPACTCODE            
-mode_from_enter(1, incore(unprofiled)). % COMPACTCODE_INDEXED    
-mode_from_enter(2, incore(profiled)).   % PROFILEDCODE           
-mode_from_enter(3, incore(profiled)).   % PROFILEDCODE_INDEXED   
-mode_from_enter(8, interpreted).        % INTERPRETED            
 :- else.
 incore_mode(CurrMode, Head, Module, Mode) :-
     functor(Head, F, A),
@@ -2545,13 +2566,15 @@ incore_mode(CurrMode, Head, Module, Mode) :-
           flatten_mod_name(Module, FlatModule), % TODO: use flat name in more places?
           % TODO: if predicate is abolished (no more clauses), should we define it?
           '$abolish_multifile'(Head0, FlatModule),
-          ( '$predicate_property'(Head0, _, _) -> true 
+          ( '$predicate_property'(Head0, Enter, _) ->
+              % TODO: horrible hack: keep existing mode just in case the code was marked for debugging and interpreted mode was forced (or viceversa); otherwise we may drop definitions
+              mode_from_enter(Enter, Mode)
           ; % abolished due to empty clauses, redefine
             incore_internal_mode(CurrMode, IM),
             '$define_predicate'(F/A, IM),
-            '$set_property'(Head0, multifile)
-          ), 
-          Mode = CurrMode
+            '$set_property'(Head0, multifile),
+            Mode = CurrMode
+          )
       ; ( retract_fact(mod_pred(Module0, Head0)) -> % TODO: linear search! (rare case)
             Place = Module0
         ; Place = 'this executable'
@@ -2569,6 +2592,12 @@ incore_mode(CurrMode, Head, Module, Mode) :-
     ),
     asserta_fact(incore_mode_of(Head0, Mode)).
 :- endif.
+
+mode_from_enter(0, incore(unprofiled)). % COMPACTCODE            
+mode_from_enter(1, incore(unprofiled)). % COMPACTCODE_INDEXED    
+mode_from_enter(2, incore(profiled)).   % PROFILEDCODE           
+mode_from_enter(3, incore(profiled)).   % PROFILEDCODE_INDEXED   
+mode_from_enter(8, interpreted).        % INTERPRETED            
 
 % ---------------------------------------------------------------------------
 :- doc(section, "Data for compiler_pass state").
