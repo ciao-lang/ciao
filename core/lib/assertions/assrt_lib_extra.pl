@@ -111,6 +111,7 @@ list_to_prod_([A|As], Acc, R) :-
 % Extended assrt_lib:norm_body/3 with 'is' for comments.
 % TODO: factorize using operator priority?
 % ------------ A  B   C  D  E --FormatId--------------------------- %ABCDE
+% TODO:[xsyntax] new :: and => priorities
 norm_body_extra((PD::DP:CP=>AP is GP#CO),p,(PD::DP  :CP  =>AP  +GP  #CO)):-!.%11111I
 norm_body_extra((PD::DP:CP=>AP  + GP#CO),p,(PD::DP  :CP  =>AP  +GP  #CO)):-!.%11111
 norm_body_extra((PD::DP:CP=>AP is GP   ),p,(PD::DP  :CP  =>AP  +GP  #"")):-!.%11110I
@@ -188,6 +189,7 @@ assrt_replace_pd(Assrt, NewPD, Assrt2, OldPD) :-
     ).
 
 % Replace PD in an assertion body without normalizing it
+% TODO:[xsyntax] new :: and => priorities
 replace_pd((PD0::DP:CP=>AP+GP#CO),(PD1::DP:CP=>AP+GP#CO),PD0,PD1):-!.%11111
 replace_pd((PD0::DP:CP=>AP+GP   ),(PD1::DP:CP=>AP+GP   ),PD0,PD1):-!.%11110
 replace_pd((PD0::DP:CP=>AP   #CO),(PD1::DP:CP=>AP   #CO),PD0,PD1):-!.%11101

@@ -350,6 +350,7 @@ complex_goal_property(CP) :-
 :- prop nabody(ABody)
     # "@var{ABody} is a normalized assertion body.".
 
+% TODO:[xsyntax] new :: and => priorities
 nabody((Pred::Compat:Call=>Succ+Comp#Comm)):-
     head_pattern(Pred),
     list(property,Compat),

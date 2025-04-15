@@ -35,6 +35,7 @@ foreign_interface_tr(Assertion, Decls, _Mod) :-
 
 is_assertion((:- _ pred _)).
 
+% TODO:[xsyntax] new :: and => priorities
 assertion_pred((:- _ pred Pred + _ # _), Pred) :- !.
 assertion_pred((:- _ pred Pred # _), Pred) :- !.
 assertion_pred((:- _ pred Pred :: _), Pred) :- !.

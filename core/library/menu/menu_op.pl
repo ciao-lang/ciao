@@ -4,6 +4,7 @@
 %:- op(  500 , yfx, '-'  ). % Defined somehwere :S
 %:- op(  550 , xfx, ':'  ). % Defined somehwere :S
 %:- op(  978 , xfx, '::' ). % 978 to avoid clash with assertions package
+% TODO:[xsyntax] new :: and => priorities
 :- op(  970 , xfx, '::' ). % 978 to avoid clash with assertions package
 :- op(  971 , xfx, '<-' ). % priority has to be less than 972 because 
                        % this op is defined as unary in make_ops

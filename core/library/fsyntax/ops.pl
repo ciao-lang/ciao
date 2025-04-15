@@ -5,6 +5,7 @@
 % Old := priority
 % :- op(1130, xfx, (:=)).
 % New := priority
+% TODO:[xsyntax] new :: and => priorities
 :- op( 980, xfx, (:=)). % priority between (::) and (,) (must be the same as in statevars.pl)
 :- op(  50,  fx, (~)).
 :- op( 910,  fx, (^^)).

@@ -278,6 +278,7 @@ assrt_format_code(t).
 %% MH: No comments allowed now in basic assertions (difficult to document).
 
 % ------------ A  B   C  D  E --FormatId--------------------------- %ABCDE
+% TODO:[xsyntax] new :: and => priorities
 norm_body((PD::DP:CP=>AP+GP#CO),p,(PD::DP  :CP  =>AP  +GP  #CO)):-!.%11111
 norm_body((PD::DP:CP=>AP+GP   ),p,(PD::DP  :CP  =>AP  +GP  #"")):-!.%11110
 norm_body((PD::DP:CP=>AP   #CO),p,(PD::DP  :CP  =>AP  +true#CO)):-!.%11101
@@ -450,6 +451,7 @@ get_arg_props(PDA,NPDA,NDP,NCP,NAP,NGP,NPD,_F,_A,M,Opts,AType,S,LB,LE) :-
        NPDA = PDA, NDP=DL-DL, NCP=CL-CL, NAP=AL-AL, NGP=GL-GL
     ;  %% Assumed that the Props have already been put in list form!
        NPDA = NNPDA,
+       % TODO:[xsyntax] new :: and => priorities
        NPropAss= ((_Prop::CompatProps:CallProps=>AnswerProps+GoalProps#_)),
        !,
        resolve_applications(CompatProps,ACompatProps,S,LB,LE),

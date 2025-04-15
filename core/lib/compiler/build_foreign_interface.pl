@@ -219,6 +219,7 @@ get_foreign_predicates([]) := [] :- % Fails if error.
     \+ retract_fact(foreign_predicate_error).
 
 try_assertion(assertion(Status, Body, VarNames, Loc)) := PredDescription :-
+    % TODO:[xsyntax] new :: and => priorities
     Body = ::(Pr, =>(DP:CP, AP+GP#_)), 
     functor(Pr, PrologName, Arity), 
     PredName = PrologName/Arity, 
