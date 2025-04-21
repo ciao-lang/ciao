@@ -239,6 +239,7 @@ tagged_t functor_Dstream;
 tagged_t functor_Dlock;
 tagged_t functor_Dhandler;
 tagged_t functor_Dsetarg;
+tagged_t functor_Dsetargstr;
 tagged_t functor_large;
 tagged_t functor_long;
 
@@ -1436,6 +1437,7 @@ void init_once(void) {
   functor_Dlock = deffunctor("$lock",2);
   functor_Dhandler = deffunctor("$goal_info",1);
   functor_Dsetarg = deffunctor("internals:$setarg",4);
+  functor_Dsetargstr = deffunctor("$$$setargstr$$$",1); // (users should not create this!)
   functor_large = deffunctor("large",2);
   functor_long = deffunctor("long",1);
 

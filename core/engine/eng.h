@@ -1972,6 +1972,7 @@ extern tagged_t functor_Dstream;
 extern tagged_t functor_Dlock;
 extern tagged_t functor_Dhandler;
 extern tagged_t functor_Dsetarg;
+extern tagged_t functor_Dsetargstr;
 extern tagged_t functor_large;
 extern tagged_t functor_long;
 

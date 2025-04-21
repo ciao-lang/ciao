@@ -1864,6 +1864,19 @@ CBOOL__PROTO(unknown)
   return TRUE;
 }
 
+// When the structure lives in the unconditional region, no trailing is
+// needed. Otherwise, SETARG_TRAIL_MODE implements different approaches:
+// 
+//  - 0: trail anyway (even if done before)
+//  - 1: scan trail to avoid trailing twice (linear scan, too costly!)
+//  - 2: point to a copied cell in the uncond region (consumes a bit of
+//       heap for each setarg but it is cheaper than trailing everytime)
+//  - 3: same as 2, but creates a reusable structure (consumes a bit
+//       more heap than 2, but only for the first modification)
+#define SETARG_TRAIL_MODE 3
+
+// #define DEBUG__TRACEsetarg(FMT, ...) fprintf(stderr, FMT, ## __VA_ARGS__)
+#define DEBUG__TRACEsetarg(FMT, ...)
 
 /* $setarg(+I, +Term, +Newarg, +Mode):
  * Replace (destructively) I:th arg of Term by Newarg.
@@ -1876,7 +1889,7 @@ CBOOL__PROTO(unknown)
 CBOOL__PROTO(setarg)
 {
   tagged_t t1, t2, *ptr;
-  tagged_t oldarg, number, complex, newarg, *x;
+  tagged_t oldarg, number, complex, newarg;
   
   number = X(0);
   complex = X(1);
@@ -1914,24 +1927,62 @@ CBOOL__PROTO(setarg)
     else
       goto barf1;
   } else goto barf2;
-  
-  RefHeap(oldarg,ptr);
-  *ptr = newarg;
-  
   if ((X(3)==atom_on) && CondHVA(Tagp(HVA,ptr))) {
-    /* undo setarg upon backtracking */
-    tagged_t *limit = TrailTopUnmark(w->choice->trail_top);
-    
-    /* check first if location already trailed is same segment */
+    RefHeap(oldarg,ptr);
+#if SETARG_TRAIL_MODE == 2
+    /* Create a single cell copy in the unconditional region */
+    tagged_t *p = w->heap_top;
+    tagged_t uncondcopy = Tagp(HVA,p);
+    HeapPush(p,newarg);
+    w->heap_top = p;
+    newarg = uncondcopy;
+#endif
+#if SETARG_TRAIL_MODE == 3
+    /* Check if it points to an argument of a "structure in the unconditional region" */
+    if (TaggedIsHVA(oldarg) && !CondHVA(oldarg)) {
+      DEBUG__TRACEsetarg("setarg: oldarg points to uncond\n");
+      tagged_t *p = TagpPtr(HVA,oldarg);
+      if (*(p-1) == functor_Dsetargstr) {
+        /* It was our structure! Reuse it and finish */
+        DEBUG__TRACEsetarg("setarg: oldarg points to an uncond indirection structure, reuse\n");
+        *p = newarg;
+        goto done;
+      }
+    }
+    /* Create a reusable structure in the unconditional region */
+    DEBUG__TRACEsetarg("setarg: create an uncond indirection structure\n");
+    tagged_t *p = w->heap_top;
+    HeapPush(p,functor_Dsetargstr);
+    tagged_t uncondcopy = Tagp(HVA,p); /* point directly to the first arg */
+    HeapPush(p,newarg);
+    w->heap_top = p;
+    newarg = uncondcopy;
+#endif    
+    *ptr = newarg;
+#if (SETARG_TRAIL_MODE == 2) || (SETARG_TRAIL_MODE == 3)
+    if (TaggedIsHVA(oldarg) && !CondHVA(oldarg)) {
+      DEBUG__TRACEsetarg("setarg: oldarg points to uncond, do not trail\n");
+      /* If oldarg already points to the unconditional region,
+         it must have already been trailed, avoid trailing here! */
+      goto done;
+    }
+#endif
+  
     t1 = Tagp(HVA,ptr);
-    
+
+#if SETARG_TRAIL_MODE == 1
+    /* check first if location already trailed is same segment */
+    tagged_t *limit = TrailTopUnmark(w->choice->trail_top);
+    tagged_t *x;
     for (x=w->trail_top; TrailYounger(x,limit);) {
       TrailDec(x);
       t2 = *x; // (x points to the popped element)
-      if (t1 == t2)
-        return TRUE;
+      if (t1 == t2) goto done;
     }
+#endif
     
+    DEBUG__TRACEsetarg("setarg: trail\n");
+    /* undo setarg upon backtracking */
     ptr = w->heap_top;
     t2 = Tagp(STR,ptr);
     HeapPush(ptr,functor_Dsetarg);
@@ -1945,10 +1996,16 @@ CBOOL__PROTO(setarg)
     /* trail smashed location for segmented GC */
     TrailPush(w->trail_top,t1);
     
-    if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top))
+    if (ChoiceYounger(ChoiceOffset(w->choice,CHOICEPAD),w->trail_top)) {
       choice_overflow(Arg,2*CHOICEPAD*sizeof(tagged_t),TRUE);
+    }
+  } else {
+    DEBUG__TRACEsetarg("setarg: uncond, no trail\n");
+    *ptr = newarg;
   }
-  
+  goto done;
+
+ done:
   return TRUE;
   
  barf1:
