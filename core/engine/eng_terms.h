@@ -112,7 +112,8 @@
 // #define ARITYSIZE 20 /* 1<<20 = 1048576 */
 // #define ARITYSIZE 27 /* 1<<27 = 134217728 */
 #define ARITYOFFSET (tagged__size-tagged__tag_size-1-ARITYSIZE)
-#define ARITYLIMIT (1<<ARITYSIZE)
+#define MAXARITY1 (1<<ARITYSIZE)
+#define MAXPROCARITY1 (1<<ARITYSIZE)
 
 #define tagged__num_size (tagged__size - tagged__tag_size - 1 - tagged__num_offset)
 

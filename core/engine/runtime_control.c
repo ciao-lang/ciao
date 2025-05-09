@@ -245,11 +245,12 @@ CBOOL__PROTO(statistics) {
   StreamPrintf(s, " (ATM=0x%016llx)\n", Tagn(ATM,0));
   StreamPrintf(s, "  ArityMask: 0x%016llx\n", MakeMask(uintmach_t, ARITYSIZE, ARITYOFFSET));
   StreamPrintf(s, "  IndexMask: 0x%016llx\n", MakeMask(uintmach_t, ARITYOFFSET-tagged__atm_offset, tagged__atm_offset));
-  StreamPrintf(s, "  (ARITYLIMIT=%lld)\n", (uintmach_t)ARITYLIMIT);
+  StreamPrintf(s, "  (MAXARITY=%lld)\n", (uintmach_t)MAXARITY1 - 1);
+  StreamPrintf(s, "  (MAXPROCARITY=%lld)\n", (uintmach_t)MAXPROCARITY1 - 1);
   StreamPrintf(s, "  (MaxAtomCount=%lld)\n", (uintmach_t)MaxAtomCount);
   StreamPrintf(s, " (NUM=0x%016llx)\n", Tagn(NUM,0));
   StreamPrintf(s, "  NumMask: 0x%016llx\n", MakeMask(uintmach_t, tagged__num_size, tagged__num_offset));
-  StreamPrintf(s, "Max structure size: %.6f MB\n", (double)ARITYLIMIT*sizeof(tagged_t)/(1024*1024));
+  StreamPrintf(s, "Max structure size: %.6f MB\n", (double)MAXARITY1*sizeof(tagged_t)/(1024*1024));
   StreamPrintf(s, "Min atom size: 0x%llx bytes\n", (uintmach_t)sizeof(atom_t));
   StreamPrintf(s, "Max alloc of min atoms: %.6f MB\n", (double)sizeof(atom_t)*MaxAtomCount/(1024*1024));
 #endif

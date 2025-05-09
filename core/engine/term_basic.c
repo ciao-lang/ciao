@@ -95,6 +95,7 @@
 #define GetAbsPtr(X) HeapOffset(TopOfOldHeap,(X))
 #endif
 
+/* TODO:[arity-limit] all GCTEST should happen before arity loops */
 #if defined(OPTIM_COMP)
 // TODO:[oc-merge] 2* was missing in OC
 #define GCTEST(Pad) { \
@@ -797,7 +798,7 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t term) {
     }, {
       /* large number, saturate to max arity plus 1 so that we can
          continue checking the other arguments */
-      i = ARITYLIMIT + 1;
+      i = MAXARITY1 + 1;
     }, {
       BUILTIN_ERROR(ERR_type_error(integer), number, 1);
     });
@@ -876,6 +877,8 @@ CFUN__PROTO(fu2_arg, tagged_t, tagged_t number, tagged_t term) {
 #define USE_BU3_FUNCTOR_EXCEPTIONS 1 /* ISO compatibility */
 // TODO: deprecate old behavior
 
+// TODO:[arity-limit] see pl2wam_tables.pl; we cannot do heap overflow check here
+
 CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
 #if defined(USE_BU3_FUNCTOR_EXCEPTIONS)
   ERR__FUNCTOR("term_basic:functor", 3);
@@ -899,7 +902,7 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
       /* large number, saturate to -1 or max arity plus 1 so that we can
          continue checking the other arguments */
       if (bn_positive(TaggedToBignum(arity))) {
-        arity_n = ARITYLIMIT + 1;
+        arity_n = MAXARITY1 + 1;
       } else {
         arity_n = -1;
       }
@@ -909,7 +912,7 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
     if (arity_n < 0) {
       BUILTIN_ERROR(ERR_domain_error(not_less_than_zero), arity, 3);
     }
-    if (arity_n >= ARITYLIMIT) {
+    if (arity_n >= MAXARITY1) {
       BUILTIN_ERROR(ERR_representation_error(max_arity), arity, 3);
     }
 
@@ -956,7 +959,7 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
     if (TermIsAtomic(name) && (arity==MakeSmall(0))) {
       CBOOL__LASTUNIFY(name,term);
     } else if (TaggedIsATM(name) &&
-               (arity>MakeSmall(0)) && (arity<MakeSmall(ARITYLIMIT))) {
+               (arity>MakeSmall(0)) && (arity<MakeSmall(MAXARITY1))) {
       CBOOL__LASTUNIFY(CFUN__EVAL(make_structure, SetArity(name,GetSmall(arity))), term);
     } else {
       CBOOL__FAIL;
@@ -992,6 +995,8 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
 
 // TODO: required for ISO compatibility; this seems to be OK with our codebase
 #define USE_BU2_UNIV_EXCEPTIONS 1
+
+// TODO:[arity-limit] see pl2wam_tables.pl; we cannot do heap overflow check here
 
 CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
 #if defined(USE_BU2_UNIV_EXCEPTIONS)
@@ -1086,7 +1091,7 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
   arity = 0;
   argp = G->heap_top;
   HeapPush(G->heap_top,f);
-  while (TaggedIsLST(cdr) && arity<ARITYLIMIT) {
+  while (TaggedIsLST(cdr) && arity<MAXARITY1) {
     DerefCar(car,cdr);
     DerefCdr(cdr,cdr);
     HeapPush(G->heap_top,car);
@@ -1094,14 +1099,14 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
   }
   if (IsVar(cdr)) goto bomb;
 #if defined(USE_BU2_UNIV_EXCEPTIONS)
-  if (arity==ARITYLIMIT) {
+  if (arity==MAXARITY1) {
     BUILTIN_ERROR(ERR_representation_error(max_arity), list, 2);
   }
   if (cdr!=atom_nil) {
     BUILTIN_ERROR(ERR_type_error(list), list, 2);
   }
 #else
-  if (cdr!=atom_nil || arity==ARITYLIMIT) {
+  if (cdr!=atom_nil || arity==MAXARITY1) {
     MINOR_FAULT("=../2: incorrect 2nd argument");
   }
 #endif

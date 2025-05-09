@@ -42,10 +42,10 @@
 #define STATIC_CALLPAD (2*(STATICMAXATOM)*sizeof(tagged_t) + CONTPAD)
 
 /* min. amount of stack at allocate */
-#define STACKPAD (2*ARITYLIMIT + 16)
+#define STACKPAD (2*MAXPROCARITY1 + 16)
 
 /* min. amount of trail/choice at try */
-#define CHOICEPAD (2*ARITYLIMIT)
+#define CHOICEPAD (2*MAXPROCARITY1)
 
 #define ATMTABSIZE  (4*kCells)  /* size of global atom table  */
 #define QLOADSIZE   (2*kCells)  /* plenty at present */
@@ -62,7 +62,7 @@
 #define TRAILSTKSIZE    (4*kCells-1)
 #endif
 
-#define XREGBANKSIZE    ARITYLIMIT
+#define XREGBANKSIZE    MAXPROCARITY1
 
 /* =========================================================================== */
 /* Principal WAM areas and registers. */

@@ -68,7 +68,7 @@ name_of_builtin('term_compare:compare'(Value,X,Y), 42, X, Y, Value).
 name_of_builtin('term_basic:functor'(X,Y,Z), 43, X, Y, Z).
 
 
-
+% TODO:[arity-limit] depends on MAXPROCARITY1
 builtin_heap_usage(40, H) :- !, H=512.          % max arity is 255
 builtin_heap_usage(43, H) :- !, H=256.          % max arity is 255
 builtin_heap_usage(_, 0).

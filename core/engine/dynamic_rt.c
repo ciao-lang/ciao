@@ -631,7 +631,7 @@ CBOOL__PROTO(current_key) {
 
     if (!(hnode->key & QTAGMASK)){
       if (inst && (hnode->key & mask) == (X(2) & mask)) {
-        if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD+ARITYLIMIT*sizeof(tagged_t)+3*sizeof(tagged_t)) {
+        if (HeapCharDifference(w->heap_top,Heap_End)<CONTPAD+MAXPROCARITY1*sizeof(tagged_t)+3*sizeof(tagged_t)) {
           explicit_heap_overflow(Arg,CALLPAD*2,5);
         }
 

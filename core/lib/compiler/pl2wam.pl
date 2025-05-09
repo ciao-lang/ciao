@@ -2192,6 +2192,8 @@ peep_1(put_y_variable(Y,A), Env, Env1, _) --> !,
     [put_y_variable(Y,A)].
 peep_1(Insn, Env, Env, _) --> peep_heap_usage(Insn).
 
+% TODO:[arity-limit] depends on MAXPROCARITY1
+% TODO:[arity-limit] compilation errors if arity is not in MAXARITY (MAXARITY1 - 1) bounds
 emit_ensure_space(Kind, EffAr, H) -->
     (   {Kind=cont, H>128} -> [heapmargin_call(H, 0)]
     ;   {H>1152} -> [heapmargin_call(H, EffAr)] % 1152=4*256+128 % TODO: relate with eng_terms.h defs

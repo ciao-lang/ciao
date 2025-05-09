@@ -361,10 +361,10 @@ void init_some_bytecode(void) {
                        (FTYPE_size(f_e)+
                         FTYPE_size(f_o)+
                         FTYPE_size(f_i) /* TODO: needed? */
-                        )*ARITYLIMIT);
+                        )*MAXPROCARITY1);
     int i;
     contcode = BCoff(P, FTYPE_size(f_e));
-    for (i=0; i<ARITYLIMIT; i++) {
+    for (i=0; i<MAXPROCARITY1; i++) {
       EMIT_e((EToY0+i)*sizeof(tagged_t)); /* FrameSize */
       EMIT_o(KONTINUE);
     }
@@ -643,6 +643,7 @@ static CVOID__PROTO(c_term_mark,
       if (*maxtemps < temps) {
         *maxtemps = temps;
       }
+      /* TODO:[arity-limit] limit to (MAXPROCARITY1-1) to avoid overflows in X register encoding; use copy_term based compile_term instead? */
       for (i=1; i<arity; i++) {
         Tr("m:o"); /* (from *bsize+=) */
         t1 = *TaggedToArg(t,i);
@@ -1026,6 +1027,7 @@ CFUN__PROTO(compile_term_aux, instance_t *,
   if (x_variables+maxtemps > reg_bank_size) {
     int size0 = reg_bank_size;
       
+    /* TODO:[arity-limit] check overflows in X reg encoding */
     if (x_variables+maxtemps > (1<<14) - WToX0 - maxtemps) /* TODO: ad-hoc size */
       goto sizebomb;
 
