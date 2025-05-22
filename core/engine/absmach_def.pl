@@ -1372,6 +1372,12 @@ builtin_2(A,B,C) => cblt_semidet(call_fC(cbool2,C,[A,B])).
 
 builtin_3(A,B,C,D) => cblt_semidet(call_fC(cbool3,D,[A,B,C])).
 
+builtin_1_env(A,B,Li) => (~w)^.liveinfo <- Li, cblt_semidet(call_fC(cbool1,B,[A])).
+
+builtin_2_env(A,B,C,Li) => (~w)^.liveinfo <- Li, cblt_semidet(call_fC(cbool2,C,[A,B])).
+
+builtin_3_env(A,B,C,D,Li) => (~w)^.liveinfo <- Li, cblt_semidet(call_fC(cbool3,D,[A,B,C])).
+
 % backtracking into clause/2
 retry_instance =>
     % Take into account 'open' predicates.  (MCL)
@@ -2891,6 +2897,11 @@ iset_blt =>
     ins_entry(-, 227, builtin_1(f_x,f_C), [qqall,in_mode(r)]),
     ins_entry(-, 229, builtin_2(f_x,f_x,f_C), [qqall,in_mode(r)]),
     ins_entry(-, 231, builtin_3(f_x,f_x,f_x,f_C), [qqall,in_mode(r)]),
+    %
+    % ins_entry(-, 239, builtin_1_env(f_x,f_C,f_g), [qqall,in_mode(r)]), % TODO: unused
+    ins_entry(-, 241, builtin_2_env(f_x,f_x,f_C,f_g), [qqall,in_mode(r)]),
+    ins_entry(-, 243, builtin_3_env(f_x,f_x,f_x,f_C,f_g), [qqall,in_mode(r)]),
+    %
     ins_entry(-, 232, retry_instance, exported(retry_instance)+[in_mode(r)]).
 
 iset_get1 =>
