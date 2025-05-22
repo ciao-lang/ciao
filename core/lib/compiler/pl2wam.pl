@@ -65,6 +65,9 @@ E_GAUGE ***/
 %               builtin_1(Name,Arg1);
 %               builtin_2(Name,Arg1,Arg2);
 %               builtin_3(Name,Arg1,Arg2,Arg3);
+%               builtin_1_env(Name,Arg1,N,EffAr); % [JF] new (but unused)
+%               builtin_2_env(Name,Arg1,Arg2,N,EffAr); % [JF] new
+%               builtin_3_env(Name,Arg1,Arg2,Arg3,N,EffAr); % [JF] new
 %               function_1(Name,Value,Arg1,N,EffAr);
 %               function_2(Name,Value,Arg1,Arg2,N,EffAr);
 %               put_x_variable(Arg,Arg);
@@ -1273,7 +1276,7 @@ open_code(Builtin, Dic) -->
 open_code(Builtin, Dic) -->
     {name_of_builtin(Builtin, Name, X)}, !,
     c_put_arg(X, Xreg, 1000, Dic, _),
-    [builtin_1(Name, Xreg)].
+    ( { builtin_use_env(Builtin) } -> [builtin_1_env(Name, Xreg, _, _)] ; [builtin_1(Name, Xreg)] ).
 open_code(Builtin, Dic) -->
     {name_of_builtin(Builtin, Name, X, Y)}, !,
     (   {eval_builtin(Builtin)} ->
@@ -1285,13 +1288,13 @@ open_code(Builtin, Dic) -->
          c_put_arg(X, Xreg, 1000, Dic, _),
          c_put_arg(Y, Yreg, 1000, Dic, _)
     ),
-    [builtin_2(Name, Xreg, Yreg)].
+    ( { builtin_use_env(Builtin) } -> [builtin_2_env(Name, Xreg, Yreg, _, _)] ; [builtin_2(Name, Xreg, Yreg)] ).
 open_code(Builtin, Dic) -->
-    {name_of_builtin(Builtin, Name, X, Y, Z)},
+    {name_of_builtin(Builtin, Name, X, Y, Z)}, !,
     c_put_arg(X, Xreg, 1000, Dic, _),
     c_put_arg(Y, Yreg, 1000, Dic, _),
     c_put_arg(Z, Zreg, 1000, Dic, _),
-    [builtin_3(Name, Xreg, Yreg, Zreg)].
+    ( { builtin_use_env(Builtin) } -> [builtin_3_env(Name, Xreg, Yreg, Zreg, _, _)] ; [builtin_3(Name, Xreg, Yreg, Zreg)] ).
 
 c_expr_top(Expr0, Expr, Dic) -->
     {c_expr(Expr0, Expr, Dic, S0, S),
@@ -1459,6 +1462,7 @@ c_profiled_guards(Fu, Kind, Gs, N0, N, Dic) -->
 E_GAUGE ***/
 
 builtin_uses_heap('arithmetic:is'(_,_)).
+builtin_uses_heap(Builtin) :- builtin_use_env(Builtin).
 builtin_uses_heap(Fu) :-
     eval_builtin(Fu),
     arg(1, Fu, structure(_,_)).
@@ -1840,6 +1844,18 @@ lifetime_map__(x_d0u3(A,B,C), I, I1, Map) :-
     lifetime_map_u(A, I, Map),
     lifetime_map_u(B, I, Map),
     lifetime_map_u(C, I, Map).
+lifetime_map__(x_d0u1live(A,_), I, I1, Map) :-
+    I1 is I-1,
+    lifetime_map_u(A, I, Map).
+lifetime_map__(x_d0u2live(A,B,_), I, I1, Map) :-
+    I1 is I-1,
+    lifetime_map_u(A, I, Map),
+    lifetime_map_u(B, I, Map).
+lifetime_map__(x_d0u3live(A,B,C,_), I, I1, Map) :-
+    I1 is I-1,
+    lifetime_map_u(A, I, Map),
+    lifetime_map_u(B, I, Map),
+    lifetime_map_u(C, I, Map).
 lifetime_map__(x_d0un(A), I, I1, Map) :-
     I1 is I-1,
     lifetime_map_un(0, A, I, Map).
@@ -1935,6 +1951,15 @@ simple_x_alloc(x_d0u2(A,B), Set0, Set, Max) :-
     x_alloc(Set0, A, Set1, Max),
     x_alloc(Set1, B, Set, Max).
 simple_x_alloc(x_d0u3(A,B,C), Set0, Set, Max) :-
+    x_alloc(Set0, A, Set1, Max),
+    x_alloc(Set1, B, Set2, Max),
+    x_alloc(Set2, C, Set, Max).
+simple_x_alloc(x_d0u1live(A,Set), Set0, Set, Max) :-
+    x_alloc(Set0, A, Set, Max).
+simple_x_alloc(x_d0u2live(A,B,Set), Set0, Set, Max) :-
+    x_alloc(Set0, A, Set1, Max),
+    x_alloc(Set1, B, Set, Max).
+simple_x_alloc(x_d0u3live(A,B,C,Set), Set0, Set, Max) :-
     x_alloc(Set0, A, Set1, Max),
     x_alloc(Set1, B, Set2, Max),
     x_alloc(Set2, C, Set, Max).
@@ -2036,12 +2061,12 @@ x_def_use_heap(neck(N), x_d0un(N), 0) :- !.
 x_def_use_heap(cut_x(A), x_d0u1(A), 0) :- !.
 x_def_use_heap(function_1(_,V,X,_,L), x_d1u1live(V,X,L), 0) :- !.
 x_def_use_heap(function_2(_,V,X,Y,_,L), x_d1u2live(V,X,Y,L), 0) :- !.
-x_def_use_heap(builtin_1(N,X), x_d0u1(X), H) :- !,
-    builtin_heap_usage(N, H).
-x_def_use_heap(builtin_2(N,X,Y), x_d0u2(X,Y), H) :- !,
-    builtin_heap_usage(N, H).
-x_def_use_heap(builtin_3(N,X,Y,Z), x_d0u3(X,Y,Z), H) :- !,
-    builtin_heap_usage(N, H).
+x_def_use_heap(builtin_1(N,X), x_d0u1(X), H) :- !, builtin_heap_usage(N, H).
+x_def_use_heap(builtin_2(N,X,Y), x_d0u2(X,Y), H) :- !, builtin_heap_usage(N, H).
+x_def_use_heap(builtin_3(N,X,Y,Z), x_d0u3(X,Y,Z), H) :- !, builtin_heap_usage(N, H).
+x_def_use_heap(builtin_1_env(_,X,_,L), x_d0u1live(X,L), 0) :- !.
+x_def_use_heap(builtin_2_env(_,X,Y,_,L), x_d0u2live(X,Y,L), 0) :- !.
+x_def_use_heap(builtin_3_env(_,X,Y,Z,_,L), x_d0u3live(X,Y,Z,L), 0) :- !.
 x_def_use_heap(get_x_variable(V,A), x_d1u1p(V,A), 0) :- !.
 x_def_use_heap(get_y_variable(_,A), x_d0u1(A), 0) :- !.
 x_def_use_heap(get_x_value(V,A), x_d0u2(V,A), 0) :- !.
@@ -2082,6 +2107,9 @@ x_def_use_heap(_, x_d0u0, 0).
 % Which instructions have operands encoding heap requirements?
 insn_heap_usage(function_1(_,_,_,H,_), H) :- !.
 insn_heap_usage(function_2(_,_,_,_,H,_), H) :- !.
+insn_heap_usage(builtin_1_env(_,_,H,_), H) :- !.
+insn_heap_usage(builtin_2_env(_,_,_,H,_), H) :- !.
+insn_heap_usage(builtin_3_env(_,_,_,_,H,_), H) :- !.
 insn_heap_usage(_, _).
 
 large_heap_usage(F, 4) :- float(F), !.
@@ -2133,6 +2161,15 @@ peep_heap_usage(function_1(A,B,C,H,Set)) --> !,
     {live_arity(Set, 0, Arity)}.
 peep_heap_usage(function_2(A,B,C,D,H,Set)) --> !,
     [function_2(A,B,C,D,H,Arity)],
+    {live_arity(Set, 0, Arity)}.
+peep_heap_usage(builtin_1_env(A,B,H,Set)) --> !,
+    [builtin_1_env(A,B,H,Arity)],
+    {live_arity(Set, 0, Arity)}.
+peep_heap_usage(builtin_2_env(A,B,C,H,Set)) --> !,
+    [builtin_2_env(A,B,C,H,Arity)],
+    {live_arity(Set, 0, Arity)}.
+peep_heap_usage(builtin_3_env(A,B,C,D,H,Set)) --> !,
+    [builtin_3_env(A,B,C,D,H,Arity)],
     {live_arity(Set, 0, Arity)}.
 peep_heap_usage(Insn) --> [Insn].
 

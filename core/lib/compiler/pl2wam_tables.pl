@@ -3,12 +3,15 @@
         builtin_heap_usage/2,
         inline_codable/1,
         eval_builtin/1,
+        builtin_use_env/1,
         name_of_builtin/3,
         name_of_builtin/4,
         name_of_builtin/5,
         name_of_function/3,
         name_of_function/4
     ], []).
+
+% :- compilation_fact(use_builtin_env). % see eng_predef.h (USE_BUILTIN_ENV) % TODO: experimental
 
 %-----------------------------------------------------------------------------
 %                              TABLES
@@ -67,11 +70,20 @@ name_of_builtin('term_basic:arg'(X,Y,Value), 41, X, Y, Value).
 name_of_builtin('term_compare:compare'(Value,X,Y), 42, X, Y, Value).
 name_of_builtin('term_basic:functor'(X,Y,Z), 43, X, Y, Z).
 
-
 % TODO:[arity-limit] depends on MAXPROCARITY1
+:- if(defined(use_builtin_env)).
+:- else.
 builtin_heap_usage(40, H) :- !, H=512.          % max arity is 255
 builtin_heap_usage(43, H) :- !, H=256.          % max arity is 255
+:- endif.
 builtin_heap_usage(_, 0).
+
+:- if(defined(use_builtin_env)).
+builtin_use_env('term_basic:=..'(_,_)).
+builtin_use_env('term_basic:functor'(_,_,_)).
+:- else.
+builtin_use_env(_) :- fail.
+:- endif.
 
 eval_builtin('arithmetic:=:='(_,_)).
 eval_builtin('arithmetic:=\\='(_,_)).

@@ -230,6 +230,12 @@ collapse_(builtin_2(A,B,C), Insns) --> !,
     [builtin_x_x(229 ,A,B,C)], collapse(Insns).
 collapse_(builtin_3(A,B,C,D), Insns) --> !,
     [builtin_x_x_x(231 ,A,B,C,D)], collapse(Insns).
+collapse_(builtin_1_env(A,B,C,D), Insns) --> !,
+    [builtin_x_env(239 ,A,B,C,D)], collapse(Insns).
+collapse_(builtin_2_env(A,B,C,D,E), Insns) --> !,
+    [builtin_x_x_env(241 ,A,B,C,D,E)], collapse(Insns).
+collapse_(builtin_3_env(A,B,C,D,E,F), Insns) --> !,
+    [builtin_x_x_x_env(243 ,A,B,C,D,E,F)], collapse(Insns).
 collapse_(ci_call(A,B), Insns) --> !,
     [i_i(241 ,A,B)], collapse(Insns).
 collapse_(ci_inarg(A,B), Insns) --> !,
@@ -534,6 +540,21 @@ asm_args(builtin_x_x_x(Opcode,Op,A,B,C), Off, Off1) -->
     {Off1 is Off0+10},
     xop(A), xop(B), xop(C),
     [builtin(Op)].
+asm_args(builtin_x_env(Opcode,Op,A,Heap,Arg), Off, Off1) -->
+    evenop(Opcode, Off, Off0), % odd?
+    {Off1 is Off0+12},
+    xop(A),
+    [builtin(Op),long(Heap),Arg].
+asm_args(builtin_x_x_env(Opcode,Op,A,B,Heap,Arg), Off, Off1) -->
+    oddop(Opcode, Off, Off0), % even?
+    {Off1 is Off0+14},
+    xop(A), xop(B),
+    [builtin(Op),long(Heap),Arg].
+asm_args(builtin_x_x_x_env(Opcode,Op,A,B,C,Heap,Arg), Off, Off1) -->
+    evenop(Opcode, Off, Off0), % odd?
+    {Off1 is Off0+16},
+    xop(A), xop(B), xop(C),
+    [builtin(Op),long(Heap),Arg].
 asm_args(function_x_x(Opcode,Op,A,B,Heap,Arg), Off, Off1) -->
     oddop(Opcode, Off, Off0),
     {Off1 is Off0+14},
