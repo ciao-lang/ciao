@@ -895,7 +895,7 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
     },{});
 
     /* Get and check arity */
-    intval_t arity_n;
+    arity_t arity_n;
     Sw_NUM_Large_Other(arity, { /* NUM */
       arity_n = GetSmall(arity);
     }, { /* Large */
@@ -925,6 +925,9 @@ CBOOL__PROTO(bu3_functor, tagged_t term, tagged_t name, tagged_t arity) {
       if (!TaggedIsATM(name)) {
         BUILTIN_ERROR(ERR_type_error(atom), name, 2);
       }
+#if defined(USE_BUILTIN_ENV)
+      HeapMargin_GC((arity_n+1)*sizeof(tagged_t), term); /* (name is an atom, not collected) */
+#endif
       CBOOL__LASTUNIFY(CFUN__EVAL(make_structure, SetArity(name,arity_n)), term);
     }
   },{ /* NUM ATM */
@@ -1007,40 +1010,44 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
   tagged_t *argp;
   tagged_t *argq;
   arity_t arity;
-  tagged_t f;
+  tagged_t fname;
 
   DerefSw_HVAorCVAorSVA_NUMorATM_LST_STR(term, { /* HVA CVA SVA */
     goto construct;
   }, { /* NUM ATM */
-    goto nil_list;
+    arity = 0;
+    fname = term;
   }, { /* LST */
-    f = functor_lst;
-    argp = TaggedToCar(term);
-    argq = HeapCharOffset(argp,2*sizeof(tagged_t));
-    goto build_list;
+    arity = 2;
+    fname = FUNCTOR_NAME(functor_lst);
   }, { /* STR */
     SwStruct(hf, term, { /* STR(blob) */
-      goto nil_list;
+      arity = 0;
+      fname = term;
     }, { /* STR(struct) */
-      f = hf;
-      argp = TaggedToArg(term,1);
-      argq = HeapCharOffset(argp,Arity(f)*sizeof(tagged_t));
-      goto build_list;
+      arity = Arity(hf);
+      fname = FUNCTOR_NAME(hf);
     });
   });
 
- nil_list:
-  MakeLST(cdr,term,atom_nil);
-  CBOOL__LASTUNIFY(cdr,list);
-
- build_list:
+#if defined(USE_BUILTIN_ENV)
+  HeapMargin_GC((arity+1)*(2*sizeof(tagged_t)), term, list);
+#endif
   cdr = atom_nil;
-  while (HeapYounger(argq,argp)) {
-    argq--;
-    car = *argq;
-    MakeLST(cdr,car,cdr);
+  if (arity > 0) {
+    if (TaggedIsLST(term)) {
+      argp = TaggedToCar(term);
+    } else {
+      argp = TaggedToArg(term,1);
+    }
+    argq = HeapCharOffset(argp,arity*sizeof(tagged_t));
+    while (HeapYounger(argq,argp)) {
+      argq--;
+      car = *argq;
+      MakeLST(cdr,car,cdr);
+    }
   }
-  MakeLST(cdr,FUNCTOR_NAME(f),cdr);
+  MakeLST(cdr,fname,cdr);
   CBOOL__LASTUNIFY(cdr,list);
 
  construct:
@@ -1064,6 +1071,7 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
     MINOR_FAULT("=../2: incorrect 2nd argument");
 #endif
   }
+  tagged_t f;
   DerefCar(f,cdr);
   DerefCdr(cdr,cdr);
 #if defined(USE_BU2_UNIV_EXCEPTIONS)
@@ -1088,6 +1096,45 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
   }
 #endif
 
+#if defined(USE_BUILTIN_ENV)
+  /* compute arity first */
+  arity = 0;
+  HeapPush(G->heap_top,f);
+  tagged_t p = cdr;
+  while (TaggedIsLST(p) && arity<MAXARITY1) {
+    DerefCdr(p,p);
+    arity++;
+  }
+  if (IsVar(p)) goto bomb;
+  if (arity==MAXARITY1) {
+    BUILTIN_ERROR(ERR_representation_error(max_arity), list, 2);
+  }
+  if (p!=atom_nil) {
+    BUILTIN_ERROR(ERR_type_error(list), list, 2);
+  }
+
+  HeapMargin_GC((arity+1)*sizeof(tagged_t));
+
+  f = SetArity(f,arity);
+  argp = G->heap_top;
+  if (f==functor_lst) {
+    DerefCar(car,cdr); // first elem
+    DerefCdr(cdr,cdr);
+    DerefCar(cdr,cdr); // second elem
+    HeapPush(G->heap_top,car);
+    HeapPush(G->heap_top,cdr);
+    CBOOL__LASTUNIFY(Tagp(LST,argp),term);
+  } else {
+    HeapPush(G->heap_top,f);
+    while (TaggedIsLST(cdr)) {
+      DerefCar(car,cdr);
+      DerefCdr(cdr,cdr);
+      HeapPush(G->heap_top,car);
+    }
+    CBOOL__LASTUNIFY(Tagp(STR,argp),term);
+  }
+#else
+  /* compute arity and build term simultaneously */
   arity = 0;
   argp = G->heap_top;
   HeapPush(G->heap_top,f);
@@ -1126,6 +1173,7 @@ CBOOL__PROTO(bu2_univ, tagged_t term, tagged_t list) {
     *argp = f;
     CBOOL__LASTUNIFY(Tagp(STR,argp),term);
   }
+#endif
 
  bomb:
 #if defined(USE_BU2_UNIV_EXCEPTIONS)
