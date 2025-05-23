@@ -43,7 +43,7 @@
 #define USE_BUILTIN_ENV 1 /* enable GC in functor/3 and =../2 */
 
 /* Enable larger arity in terms (not in procedures) if possible */
-// #define USE_BIG_ARITY 1
+#define USE_BIG_ARITY 1
 
 /* ------------------------------------------------------------------------- */
 /* Function and variable attributes */
