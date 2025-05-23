@@ -257,3 +257,9 @@ CBOOL__PROTO(statistics) {
 
   return TRUE;
 }
+
+/* ------------------------------------------------------------------------- */
+
+CBOOL__PROTO(get_max_arity) {
+  CBOOL__LASTUNIFY(X(0), MakeSmall(MAXARITY1 - 1));
+}

@@ -1761,6 +1761,7 @@ void init_once(void) {
   define_c_mod_predicate("internals","$close_predicate",1,close_predicate);
   define_c_mod_predicate("internals","$open_predicate",1,open_predicate);
   define_c_mod_predicate("runtime_control", "new_atom", 1, prolog_new_atom);
+  define_c_mod_predicate("internals","$max_arity",1,get_max_arity);
   // (experimental)
   define_c_mod_predicate("internals", "$yield", 0, prolog_yield);
 

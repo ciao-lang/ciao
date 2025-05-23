@@ -683,6 +683,13 @@ int_list3([I1,I2,I3]) :- int(I1), int(I2), int(I3).
 :- impl_defined('$total_usage'/1).
 :- endif.
 
+:- export('$max_arity'/1).
+% :- if(defined(optim_comp)).
+% :- '$props'('$max_arity'/1, [impnat=cbool(get_max_arity)]).
+% :- else.
+:- impl_defined('$max_arity'/1).
+% :- endif.
+
 % ---------------------------------------------------------------------------
 :- doc(section, "Low level global variables").
 

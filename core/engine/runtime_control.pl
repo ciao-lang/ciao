@@ -732,7 +732,8 @@ prolog_flag_2(main_module, Old, New) :- % TODO: why?
 prolog_flag_2(bounded, false, false). % ISO 
 prolog_flag_2(double_quotes, chars, chars). % ISO
 prolog_flag_2(integer_rounding_function, toward_zero, toward_zero). % ISO
-prolog_flag_2(max_arity, 255, 255). % ISO
+prolog_flag_2(max_arity, X, X) :- '$max_arity'(X). % ISO (for terms)
+prolog_flag_2(max_procedure_arity, 255, 255). % not ISO (for predicates) 
 prolog_flag_2(Flag, Old, New) :-
     define_flag(Flag, Values, Default),
     flag_value(Old, New, Values),
