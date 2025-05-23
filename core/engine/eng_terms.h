@@ -107,13 +107,24 @@
 #define tagged__atm_offset SMALLPTR_LOWERBITS 
 #define tagged__ptr_offset SMALLPTR_LOWERBITS 
 
-// NOTE: see hardwired constants in pl2wam.pl
-#define ARITYSIZE 8 /* 1<<8 = 256 */
+#if defined(USE_BIG_ARITY)
+#if tagged__size == 64
 // #define ARITYSIZE 20 /* 1<<20 = 1048576 */
-// #define ARITYSIZE 27 /* 1<<27 = 134217728 */
+#define ARITYSIZE 27 /* 1<<27 = 134217728 */
+#else
+#warning "currently USE_BIG_ARITY has no effect in 32-bit builds"
+#define ARITYSIZE 8 /* 1<<8 = 256 */
+#endif
+#else
+#define ARITYSIZE 8 /* 1<<8 = 256 */
+#endif
 #define ARITYOFFSET (tagged__size-tagged__tag_size-1-ARITYSIZE)
 #define MAXARITY1 (1<<ARITYSIZE)
-#define MAXPROCARITY1 (1<<ARITYSIZE)
+
+/* NOTE: It is not reasonable to have large arity here (e.g., CALLPAD,
+   etc.)  Moreover, there are some hardwired constants in
+   pl2wam.pl. */
+#define MAXPROCARITY1 256 /* (1<<ARITYSIZE) */
 
 #define tagged__num_size (tagged__size - tagged__tag_size - 1 - tagged__num_offset)
 
