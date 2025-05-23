@@ -11,7 +11,7 @@
         name_of_function/4
     ], []).
 
-% :- compilation_fact(use_builtin_env). % see eng_predef.h (USE_BUILTIN_ENV) % TODO: experimental
+:- compilation_fact(use_builtin_env). % see eng_predef.h (USE_BUILTIN_ENV) % TODO: experimental
 
 %-----------------------------------------------------------------------------
 %                              TABLES
