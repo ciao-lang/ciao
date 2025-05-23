@@ -188,19 +188,6 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
 /* --------------------------------------------------------------------------- */
 
 #if defined(OPTIM_COMP)
-#define ENSURE_LIVEINFO \
-  RTCHECK({if (w->liveinfo == NULL) { PANIC_FAULT("null liveinfo"); }})
-#else
-#if defined(DEBUG_TRACE)
-#define ENSURE_LIVEINFO ({ \
-  if (w->liveinfo == NULL) { PANIC_FAULT("null liveinfo"); } \
-})
-#else
-#define ENSURE_LIVEINFO
-#endif
-#endif
-
-#if defined(OPTIM_COMP)
 #if IntvalRequires64
 /* intval_t = int64_t */
 #define BIGNUM_FOR_INTVAL_SIZE sizeof(functor_t) + sizeof(int64_t)

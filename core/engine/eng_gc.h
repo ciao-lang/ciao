@@ -77,6 +77,19 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);
   CONCAT(POP_GC,GCLen) GCRegs; \
 })
 
+#if defined(OPTIM_COMP)
+#define ENSURE_LIVEINFO \
+  RTCHECK({if (w->liveinfo == NULL) { PANIC_FAULT("null liveinfo"); }})
+#else
+#if defined(DEBUG_TRACE)
+#define ENSURE_LIVEINFO ({ \
+  if (w->liveinfo == NULL) { PANIC_FAULT("null liveinfo"); } \
+})
+#else
+#define ENSURE_LIVEINFO
+#endif
+#endif
+
 /* Heap_Warn that considers LIVEINFO__HEAP */
 #define Heap_Warn_GC Heap_Warn_Pad(LIVEINFO__HEAP(w->liveinfo))
 
