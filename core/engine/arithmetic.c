@@ -200,9 +200,6 @@ static CFUN__PROTO(evaluate, tagged_t, tagged_t v) {
 #endif
 #endif
 
-/* Heap_Warn that considers LIVEINFO__HEAP */
-#define Heap_Warn_GC Heap_Warn_Pad(LIVEINFO__HEAP(w->liveinfo))
-
 #if defined(OPTIM_COMP)
 #if IntvalRequires64
 /* intval_t = int64_t */

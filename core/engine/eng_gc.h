@@ -77,6 +77,9 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);
   CONCAT(POP_GC,GCLen) GCRegs; \
 })
 
+/* Heap_Warn that considers LIVEINFO__HEAP */
+#define Heap_Warn_GC Heap_Warn_Pad(LIVEINFO__HEAP(w->liveinfo))
+
 /* Call explicit_heap_overflow, where additional arguments are GC roots. */
 #define HeapOverflow_GC(REQ, ...) HeapOverflow_GC_(REQ, VA_NARGS(__VA_ARGS__), (__VA_ARGS__)) 
 #define HeapOverflow_GC_(REQ, GCLen, GCRegs) ({ \
