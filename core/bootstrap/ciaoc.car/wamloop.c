@@ -1730,6 +1730,42 @@ goto fail;
 
 P+=Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C);
 goto r_dispatch;
+case 240:
+r_op240:
+w->liveinfo = &BcP(f_l,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_C));
+if (!((cbool2_t)BcP(f_C,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_Q))),Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x))))) {
+goto fail;
+    }
+
+P+=Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_C)+Fs(f_g);
+goto r_dispatch;
+case 241:
+r_op241:
+w->liveinfo = &BcP(f_l,0+Fs(f_x)+Fs(f_x)+Fs(f_C));
+if (!((cbool2_t)BcP(f_C,0+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0)),Xb(BcP(f_x,0+Fs(f_x))))) {
+goto fail;
+    }
+
+P+=Fs(f_x)+Fs(f_x)+Fs(f_C)+Fs(f_g);
+goto r_dispatch;
+case 242:
+r_op242:
+w->liveinfo = &BcP(f_l,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C));
+if (!((cbool3_t)BcP(f_C,0+Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0+Fs(f_Q))),Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x))),Xb(BcP(f_x,0+Fs(f_Q)+Fs(f_x)+Fs(f_x))))) {
+goto fail;
+    }
+
+P+=Fs(f_Q)+Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C)+Fs(f_g);
+goto r_dispatch;
+case 243:
+r_op243:
+w->liveinfo = &BcP(f_l,0+Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C));
+if (!((cbool3_t)BcP(f_C,0+Fs(f_x)+Fs(f_x)+Fs(f_x)))(w,Xb(BcP(f_x,0)),Xb(BcP(f_x,0+Fs(f_x))),Xb(BcP(f_x,0+Fs(f_x)+Fs(f_x))))) {
+goto fail;
+    }
+
+P+=Fs(f_x)+Fs(f_x)+Fs(f_x)+Fs(f_C)+Fs(f_g);
+goto r_dispatch;
 case 232:
 r_op232:
 if ((TaggedToRoot(X(RootArg))->behavior_on_failure!=DYNAMIC&&!next_instance_conc(w,&w->misc->ins))||(TaggedToRoot(X(RootArg))->behavior_on_failure==DYNAMIC&&!next_instance(w,&w->misc->ins))) {
@@ -4321,6 +4357,18 @@ goto r_op230;
 case 231:
 w->heap_top = H;
 goto r_op231;
+case 240:
+w->heap_top = H;
+goto r_op240;
+case 241:
+w->heap_top = H;
+goto r_op241;
+case 242:
+w->heap_top = H;
+goto r_op242;
+case 243:
+w->heap_top = H;
+goto r_op243;
 case 232:
 w->heap_top = H;
 goto r_op232;
