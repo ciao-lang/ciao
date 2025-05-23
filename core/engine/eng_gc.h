@@ -89,6 +89,17 @@ CVOID__PROTO(stack_overflow_adjust_wam, intmach_t reloc_factor);
   CONCAT(RESTORE_XS,GCLen) GCRegs; \
 })
 
+/* Call explicit_heap_overflow if needed, where additional arguments are GC roots. */
+/* TODO:[JF] HeapOverflow_GC uses 2*REQ in HeapOverflow_GC for bignums, needed for term_basic.c? */
+#define HeapMargin_GC(REQ, ...) HeapMargin_GC_(REQ, VA_NARGS(__VA_ARGS__), (__VA_ARGS__)) 
+#define HeapMargin_GC_(REQ, GCLen, GCRegs) ({ \
+  ENSURE_LIVEINFO; \
+  intmach_t req_ = (REQ); \
+  if (HeapCharDifference(w->heap_top,Heap_Warn_GC)<req_) { \
+    HeapOverflow_GC_(req_, GCLen, GCRegs); \
+  } \
+})
+
 /* TODO: improve LIVEINFO support? */
 /* TODO: document why a->x[0] is reserved for TaggedZero (see eng_gc.c) */
 /* TODO: use a frame instead of temporary X beyond liveinfo arity? */
