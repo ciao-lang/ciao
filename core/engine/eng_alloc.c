@@ -108,7 +108,7 @@ void dump_memory_free(char *p, intmach_t size) {
   if (debug_mem) printf("tryalloc returned %p, %" PRIdm " chars\n", p, size); \
 }
 #define DEBUG__TRACE_REALLOC(ptr, decr, p, size) { \
-  if (debug_mem) printf("tryrealloc returned %p, %" PRIdm " chars\n", p, size);
+  if (debug_mem) printf("tryrealloc returned %p, %" PRIdm " chars\n", p, size); \
 }
 #define DEBUG__TRACE_FREE(ptr, decr) { \
   if (debug_mem) printf("checkdealloc freed %p, %" PRIdm " chars\n", ptr, decr); \

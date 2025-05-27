@@ -39,6 +39,15 @@ Example: execute `ciaopp` with profiling:
 CIAODBG=profile CIAORTOPTS="--profile-calls --profile-roughtime" ciaopp -A guardians.pl
 ```
 
+## Helper script to debug with lldb
+
+Example: rebuild engine in debug mode and start a `ciaosh` process
+```
+builder/etc/build-eng-debug.sh --rebuild all
+builder/etc/ciao-lldb "$(which ciaosh)"
+# the call 'run' from lldb
+```
+
 # Benchmarking
 
 Some engine performance benchmarks can be run (use the pipe for a
