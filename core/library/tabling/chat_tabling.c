@@ -640,7 +640,8 @@ CBOOL__PROTO(tabled_call_c) {
       if (tabling_trace == atom_on) {
         callid->realcall = X(0);
         printf("Call no constraints id = %ld \t\t ", (long)callid->id);
-        PRINT_TERM(Arg, " ", X(0)); }
+        PRINT_TERM(Arg, " ", X(0));
+      }
       //#endif
 
       node->child = (TrNode) callid;
@@ -706,9 +707,7 @@ CBOOL__PROTO(nd_consume_answer_c)
   
   if(l_ans->next == NULL) 
     {
-      checkdealloc(sf->vars,sf->size * sizeof(tagged_t));               
-      checkdealloc(sf->attrs,sf->attr_size * sizeof(tagged_t)); 
-      checkdealloc((tagged_t *)sf,sizeof(struct sf));
+      checkdealloc_sf(sf);
       //check for swapping
 #if defined(SWAPPING)
       struct gen *callid = (struct gen*) X(2);
@@ -1062,7 +1061,7 @@ CBOOL__PROTO(consume_attr_answer_c)
         result = FALSE;   // Do not apply NO valid ansers
       }
       
-      checkdealloc(attrs->attrs, attrs->size * sizeof(tagged_t));
+      checkdealloc_ARRAY(tagged_t, attrs->size, attrs->attrs);
     }
   else // attrs->size == 0 
     { 
@@ -1070,7 +1069,7 @@ CBOOL__PROTO(consume_attr_answer_c)
     }
 
   //  printf("Dealloc attrs %d\n", (int)attrs);
-  checkdealloc((tagged_t *)attrs, sizeof(struct attrs));
+  checkdealloc_TYPE(struct attrs, attrs);
 
   return result;
 
@@ -1094,9 +1093,7 @@ CBOOL__PROTO(nd_consume_answer_attr_c) {
 
   if(l_ans->next == NULL) 
     {
-      checkdealloc(sf->vars,sf->size * sizeof(tagged_t));
-      checkdealloc(sf->attrs,sf->attr_size * sizeof(tagged_t)); 
-      checkdealloc((tagged_t *)sf,sizeof(struct sf));   
+      checkdealloc_sf(sf);
       pop_choicept(Arg);
 
       return FALSE;
@@ -1656,40 +1653,39 @@ CBOOL__PROTO(initial_tabling_c) {
   INIT_NODE_TR(initial_node_tr);
   INIT_NODE_TR(LastNodeTR);
 
-  if (Heap_End != HeapCharOffset(Heap_Start, TABLING_GLOBALSTKSIZE*sizeof(tagged_t)))
-    {
-      intmach_t size = (TABLING_GLOBALSTKSIZE*sizeof(tagged_t) -
-                  HeapCharDifference(Heap_Start, w->heap_top))/2;
-      heap_overflow(Arg,2*size); // TODO:[oc-merge] pad was multiplied inside heap_overflow
-    }
+  // ---------------------------------------------------------------------------
+  // TODO:[JF] fix this horrible hack that forces stack resizes!
 
-  if (Stack_End != StackOffset(Stack_Start, TABLING_LOCALSTKSIZE))
-    {
-      tagged_t *new_Stack_Start;
-      intmach_t reloc_factor;
+  if (Heap_End != HeapCharOffset(Heap_Start, TABLING_GLOBALSTKSIZE*sizeof(tagged_t))) {
+    intmach_t size = (TABLING_GLOBALSTKSIZE*sizeof(tagged_t) - HeapCharDifference(Heap_Start, w->heap_top))/2;
+    heap_overflow(Arg,2*size); // TODO:[oc-merge] pad was multiplied inside heap_overflow
+  }
 
-      new_Stack_Start = checkrealloc
-        (Stack_Start, StackDifference(Stack_Start,Stack_End)*sizeof(tagged_t),
-         TABLING_LOCALSTKSIZE*sizeof(tagged_t));
+  if (Stack_End != StackOffset(Stack_Start, TABLING_LOCALSTKSIZE)) {
+    tagged_t *new_Stack_Start;
+    intmach_t reloc_factor;
 
-      reloc_factor = (char *)new_Stack_Start - (char *)Stack_Start;
-      stack_overflow_adjust_wam(w, reloc_factor);
+    new_Stack_Start = REALLOC_AREA(Stack_Start,
+                                   StackDifference(Stack_Start,Stack_End)*sizeof(tagged_t),
+                                   TABLING_LOCALSTKSIZE*sizeof(tagged_t));
 
-      /* Final adjustments */
-      Stack_Start = new_Stack_Start;            /* new bounds */
-      Stack_End = StackOffset(new_Stack_Start,TABLING_LOCALSTKSIZE);
-    }
+    reloc_factor = (char *)new_Stack_Start - (char *)Stack_Start;
+    stack_overflow_adjust_wam(w, reloc_factor);
 
-  if (Trail_End != TrailOffset(Trail_Start, TABLING_CHOICESTKSIZE +
-                               TABLING_TRAILSTKSIZE))
-    {
-      tagged_t *choice_top = ChoiceTopFromChoice(w->choice);
-      intmach_t size = (TABLING_CHOICESTKSIZE + TABLING_TRAILSTKSIZE -
-                  ChoiceDifference(Choice_Start, choice_top) -
-                  TrailDifference(Trail_Start, w->trail_top)) / 2;
-      CVOID__CALL(choice_overflow,2*size*sizeof(tagged_t),TRUE);
-    }  
+    /* Final adjustments */
+    Stack_Start = new_Stack_Start;            /* new bounds */
+    Stack_End = StackOffset(new_Stack_Start,TABLING_LOCALSTKSIZE);
+  }
 
+  if (Trail_End != TrailOffset(Trail_Start, TABLING_CHOICESTKSIZE + TABLING_TRAILSTKSIZE)) {
+    tagged_t *choice_top = ChoiceTopFromChoice(w->choice);
+    intmach_t size = (TABLING_CHOICESTKSIZE + TABLING_TRAILSTKSIZE -
+                      ChoiceDifference(Choice_Start, choice_top) -
+                      TrailDifference(Trail_Start, w->trail_top)) / 2;
+    CVOID__CALL(choice_overflow,2*size*sizeof(tagged_t),TRUE);
+  }  
+
+  // ---------------------------------------------------------------------------
 
 #if defined(ANS_COUNTER)
   ans_no_saved=0;

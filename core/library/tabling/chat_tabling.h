@@ -141,12 +141,16 @@ extern tagged_t atom_gen_tree_backtracking;
               }                                                         \
             return TRUE;                                                \
           }                                                             \
-        checkdealloc((SF)->vars,(SF)->size * sizeof(tagged_t));         \
-        checkdealloc((SF)->attrs,(SF)->attr_size * sizeof(tagged_t));   \
-        checkdealloc((tagged_t *)(SF),sizeof(struct sf));               \
+        checkdealloc_sf((SF));                                          \
         return FALSE;                                                   \
       }                                                                 \
   }
+
+#define checkdealloc_sf(SF) ({ \
+  checkdealloc_ARRAY(tagged_t, (SF)->size, (SF)->vars); \
+  checkdealloc_ARRAY(tagged_t, (SF)->attr_size, (SF)->attrs); \
+  checkdealloc_TYPE(struct sf, (SF)); \
+})
 
 #define INSERT_CONSUMER(GEN,CONS)                                       \
   {                                                                     \
