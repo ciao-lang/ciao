@@ -6,13 +6,12 @@
 /*          Includes          */
 /* -------------------------- */
 
-
 /* -------------- */
 /*      Tags      */
 /* -------------- */
 /* WARNING: these macros need Ciao tag scheme */
 
-#if defined(x86_64) || defined(Sparc64) || defined(ppc64) || defined(ppc64le) /* 64-bit */
+#if tagged__size == 64
 #define PairInitTag  0xC000000000000001  //to mark the begining of a list in trie.c
 #define PairEndTag   0xD000000000000001  //to mark the end of a list in trie.c
 
@@ -34,7 +33,7 @@
 #define INTEGER_MARK 0xB000000000000008
 #define FLOAT_MARK   0x900000000000000C
 
-# else /* 32-bit */
+#elif tagged__size == 32
 
 #define PairInitTag  0xC0000001  //to mark the begining of a list in trie.c
 #define PairEndTag   0xD0000001  //to mark the end of a list in trie.c
@@ -56,10 +55,11 @@
 //#define EMPTY_LIST   0xA00000E0
 #define INTEGER_MARK 0xB0000008
 #define FLOAT_MARK   0x9000000C
-# endif /* end if 64-bit else 32-bits*/
+#else
+#error "undefined tagged size in tabling/engine.h"
+#endif
 
 #define NOEXECUTING  atom_off
-
 
 //---------------------------//
 
@@ -107,13 +107,14 @@
 #define IsNonVarTerm(TERM) (!IsVar(TERM))
 #define IsFreeVar(X) (IsVar(X) && ((X) == *TaggedToPointer(X)))
 
-#if defined(x86_64) || defined(Sparc64) || defined(ppc64) || defined(ppc64le) /* 64-bit */
+#if tagged__size == 64
 #define IsTrieVar(TERM)   (((TERM) & 0xF000000000000003) == VarTrie)
 #define IsTrieAttr(TERM)  (((TERM) & 0xF000000000000003) == AttrTrie)
-#else /* 32-bit */
+#elif tagged__size == 32
 #define IsTrieVar(TERM)   (((TERM) & 0xF0000003) == VarTrie)
 #define IsTrieAttr(TERM)  (((TERM) & 0xF0000003) == AttrTrie)
-#endif  /* end if 64-bit else 32-bit */
+#error "undefined tagged size in tabling/engine.h"
+#endif
 
 /* -------------------- */
 /*      Unification     */
