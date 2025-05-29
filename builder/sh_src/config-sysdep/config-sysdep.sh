@@ -473,23 +473,30 @@ case "$CIAOOS$CIAOARCH" in
         # It needs source dir in the include path (probably a bug:
         # emcc does not locate included files from some symlinked .c
         # files)
-        CFLAGS="-I$bld_srcdir $CFLAGS"
+        CFLAGS="-I$bld_srcdir $CFLAGS" # TODO: Debug flags: -g -gsource-map
         # Optimization flags must be included during link
         LDFLAGS="$LDFLAGS $OPTIM_FLAGS"
         # Other hardwired options (see ciaowasm)
         # TODO: customize
+        # TODO: Debug flags: -sSAFE_HEAP=1 -gsource-map -g
+        #   surprisingly "-s ASSERTIONS=0" makes it slower
+        # TODO: future flags: -sJSPI (node requires --experimental-wasm-jspi, performance seems OK)
+        # TODO: future flags: -sMEMORY64=1 (wasm64) or -sMEMORY64=2 (lowered to wasm32)
         LDFLAGS="$LDFLAGS \
+-s ASSERTIONS=2 \
+-s SAFE_HEAP=0 \
 -s MAIN_MODULE=2 \
 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['\$Browser'] \
 -s LZ4=1 \
 -s FORCE_FILESYSTEM=1 \
--s TOTAL_MEMORY=20971520 \
+-s INITIAL_MEMORY=20971520 \
 -s ALLOW_MEMORY_GROWTH=1 \
 -s NODEJS_CATCH_EXIT=0 \
 -s NODEJS_CATCH_REJECTION=0 \
 -s EXPORTED_FUNCTIONS='[\
   \"_free\"]' \
 -s EXPORTED_RUNTIME_METHODS='[\
+  \"FS\",\
   \"FS_createPath\",\
   \"addRunDependency\",\
   \"removeRunDependency\",\
