@@ -399,7 +399,7 @@ get_option(Opt,Options,Value) :-
     arg(2,Option,Value).
 get_option(times,_,1).
 get_option(try_sols,_,2). % enough to capture determinism
-get_option(timeout,_,Timeout) :- get_arch(wasm32), !, % TODO: fix timeout for this arch
+get_option(timeout,_,Timeout) :- get_arch(Arch), ( Arch = wasm32 ; Arch = wasm64 ), !, % TODO: fix timeout for this arch
     Timeout = 0.
 get_option(timeout,_,Timeout) :-
     default_timeout(Timeout).

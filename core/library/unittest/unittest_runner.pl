@@ -73,7 +73,7 @@ invoke_runner(Cont0, Opts, RecvData, Cont) :-
     ; Cont = end % end
     ).
 
-use_sameproc(_Opts) :- get_arch(wasm32), !. % by default when separate processes are not available 
+use_sameproc(_Opts) :- get_arch(Arch), ( Arch = wasm32 ; Arch = wasm64 ), !. % by default when separate processes are not available 
 use_sameproc(Opts) :- member(sameproc, Opts).
 
 :- use_module(ciaobld(config_common), [cmd_path/4]).
