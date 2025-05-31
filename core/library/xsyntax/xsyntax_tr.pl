@@ -126,7 +126,9 @@ defunc_decl(on_abort(Goal), (:- on_abort(NGoal)), Mod) :- !,
     normalize(Goal, Mod, NGoal).
 
 is_flag(arith(Val), arith, Val) :- nonvar(Val), valid_arith(Val).
+is_flag(defined(Val), deffun, Val) :- nonvar(Val), is_bool(Val).
 is_flag(hiord(Val), hiord, Val) :- nonvar(Val), is_bool(Val).
+% (internal, use packages)
 is_flag(blkgoal(Val), blkgoal, Val) :- nonvar(Val), is_bool(Val).
 is_flag(statevars(Val), statevars, Val) :- nonvar(Val), is_bool(Val).
 is_flag(funhead(Val), funhead, Val) :- nonvar(Val), is_bool(Val).
@@ -135,7 +137,6 @@ is_flag(arithfunexp(Val), arithfunexp, Val) :- nonvar(Val), is_bool(Val).
 is_flag(condexp(Val), condexp, Val) :- nonvar(Val), is_bool(Val).
 is_flag(blkexp(Val), blkexp, Val) :- nonvar(Val), is_bool(Val).
 is_flag(quote(Val), quote, Val) :- nonvar(Val), is_bool(Val).
-is_flag(defined(Val), deffun, Val) :- nonvar(Val), is_bool(Val).
 
 is_bool(true).
 is_bool(false).
