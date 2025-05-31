@@ -238,7 +238,7 @@ eng_bin(lib_a, M, _Eng, objdir, ext(~get_a_ext), ~atom_concat('lib', M)).
 % Extension for the engine executable
 eng_ext(Eng, EngExt) :-
     EngOpts = ~eng_opts(Eng),
-    ( member(cross('EMSCRIPTEN', 'wasm32'), EngOpts) ->
+    ( member(cross('EMSCRIPTEN', Arch), EngOpts), ( Arch = wasm32 ; Arch = wasm64 ) ->
         EngExt = ext('.js')
     ; EngExt = exec
     ).

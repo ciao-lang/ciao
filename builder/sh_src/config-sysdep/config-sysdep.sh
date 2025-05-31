@@ -50,6 +50,10 @@ case "$eng_cross_os$eng_cross_arch" in
         CIAOOS=EMSCRIPTEN
         CIAOARCH=wasm32 # uname() in Emscripten
         ;;
+    EMSCRIPTENwasm64)
+        CIAOOS=EMSCRIPTEN
+        CIAOARCH=wasm64 # uname() in Emscripten
+        ;;
     *)
         CIAOOS=$core__OS
         CIAOARCH=$core__ARCH
@@ -120,7 +124,7 @@ else
         LINUXarmv5tel)    CC=arm-linux-gcc; LD=arm-linux-gcc ;; # TODO: Recover cross compilation
 #       crossWin32i686)   CC=i386-mingw32-gcc; LD=i386-mingw32-gcc ;; # TODO: Recover cross compilation
         DARWIN*)          CC=clang; LD=clang ;;
-        EMSCRIPTENwasm32) CC=emcc; LD=emcc ;; # Emscripten
+        EMSCRIPTEN*)      CC=emcc; LD=emcc ;; # Emscripten
         *)
             # The rest of the systems just use plain 'gcc'
             CC=gcc; LD=gcc ;;
@@ -140,7 +144,7 @@ fi
 
 # Override core__USE_THREADS if needed
 case "$CIAOOS$CIAOARCH" in
-    EMSCRIPTENwasm32) core__USE_THREADS=no ;;
+    EMSCRIPTEN*) core__USE_THREADS=no ;;
 esac
 
 # Libraries and flags to use threads
@@ -227,7 +231,7 @@ case "$core__DEBUG_LEVEL" in
     *) ;;
 esac
 # C level debugging information
-# TODO: EMSCRIPTENwasm32: add ASSERTIONS=2 for debugging
+# TODO: EMSCRIPTENwasm32 or EMSCRIPTENwasm64: add ASSERTIONS=2 for debugging
 case "$core__DEBUG_LEVEL" in
     paranoid-debug|debug|profile-debug)
         DEBUG_FLAGS="$DEBUG_FLAGS -g"
@@ -256,7 +260,7 @@ ALIGN_FLAGS=""
 OPTIM_FLAGS0="-fomit-frame-pointer $ALIGN_FLAGS"
 if test x"$core__OPTIM_LEVEL" = x"optimized"; then
     case "$CIAOOS$CIAOARCH" in
-        EMSCRIPTENwasm32) OPTIM_FLAGS="-fno-strict-aliasing -Oz -O3 $OPTIM_FLAGS0" ;;
+        EMSCRIPTEN*) OPTIM_FLAGS="-fno-strict-aliasing -Oz -O3 $OPTIM_FLAGS0" ;;
         *) OPTIM_FLAGS="-fno-strict-aliasing -O2 $OPTIM_FLAGS0"
     esac
 else
@@ -268,7 +272,7 @@ case "$CIAOOS$CIAOARCH" in
     LINUXx86_64)  OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
     LINUXaarch64) OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
     BSDx86_64)    OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
-    EMSCRIPTENwasm32)  OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
+    EMSCRIPTEN*)  OPTIM_FLAGS="-fPIC $OPTIM_FLAGS" ;;
 esac
 # Workaround bug in Darwin19/Xcode 11 (Catalina) # TODO: remove when they fix it
 OPTIM_FLAGS="-fno-stack-check $OPTIM_FLAGS"
@@ -323,7 +327,7 @@ case "$CIAOOS$CIAOARCH" in
     # LIBS=-ldl
     DARWIN*)      LIBS0= ;;
     Solaris*)     LIBS0="-ldl -lm -lnsl" ;;
-    EMSCRIPTENwasm32)  LIBS0="-lnodefs.js" ;; # add NODEFS support
+    EMSCRIPTEN*)  LIBS0="-lnodefs.js" ;; # add NODEFS support
     *) LIBS0="-ldl -lm" ;;
 esac
 
@@ -370,7 +374,7 @@ emit_cdefs() {
     if test x"$core__PROFILE_STATS" = x"yes"; then emit_cdef "PROFILE_STATS"; fi
     # Enable dynamic linking
     case "$CIAOOS$CIAOARCH" in
-        EMSCRIPTENwasm32) true ;;
+        EMSCRIPTEN*) true ;;
         *) emit_cdef "FOREIGN_FILES" ;;
     esac
     # WAM level debugging
@@ -391,6 +395,7 @@ emit_cdefs() {
         *Sparc64)        emit_cdef "USE_OWN_MALLOC" ;;
         *x86_64)         emit_cdef "USE_OWN_MALLOC" ;;
         *wasm32)         true ;;
+        *wasm64)         true ;;
         *ppc64)          emit_cdef "USE_OWN_MALLOC" ;;
         *ppc64le)        emit_cdef "USE_OWN_MALLOC" ;;
         *aarch64)        emit_cdef "USE_OWN_MALLOC" ;;
@@ -450,12 +455,14 @@ esac
 # Compile as dynamic library
 case "$CIAOOS$CIAOARCH" in
     EMSCRIPTENwasm32) ENG_DYNLIB=0 ;;
+    EMSCRIPTENwasm64) ENG_DYNLIB=0 ;;
     *)           ENG_DYNLIB=1 ;;
 esac
 
 # Fix computed size in executable
 case "$CIAOOS$CIAOARCH" in
     EMSCRIPTENwasm32) ENG_FIXSIZE=0 ;;
+    EMSCRIPTENwasm64) ENG_FIXSIZE=0 ;;
     *)           ENG_FIXSIZE=1 ;;
 esac
 
@@ -469,7 +476,7 @@ CFLAGS="-I$bld_hdir $CFLAGS"
 # Patch configuration for Emscripten (EMSCRIPTENwasm32)
 
 case "$CIAOOS$CIAOARCH" in
-    EMSCRIPTENwasm32)
+    EMSCRIPTEN*)
         # It needs source dir in the include path (probably a bug:
         # emcc does not locate included files from some symlinked .c
         # files)
@@ -481,7 +488,6 @@ case "$CIAOOS$CIAOARCH" in
         # TODO: Debug flags: -sSAFE_HEAP=1 -gsource-map -g
         #   surprisingly "-s ASSERTIONS=0" makes it slower
         # TODO: future flags: -sJSPI (node requires --experimental-wasm-jspi, performance seems OK)
-        # TODO: future flags: -sMEMORY64=1 (wasm64) or -sMEMORY64=2 (lowered to wasm32)
         LDFLAGS="$LDFLAGS \
 -s ASSERTIONS=2 \
 -s SAFE_HEAP=0 \
@@ -503,6 +509,14 @@ case "$CIAOOS$CIAOARCH" in
   \"stringToNewUTF8\",\
   \"ccall\",\
   \"cwrap\"]'"
+        ;;
+esac
+
+case "$CIAOOS$CIAOARCH" in
+    *wasm64)
+        # TODO: allow -sMEMORY64=2 (lowered to wasm32)?
+        CFLAGS="$CFLAGS -sMEMORY64=1"
+        LDFLAGS="$LDFLAGS -sMEMORY64=1 -sWASM_BIGINT=1" #   -sMODULARIZE=1
         ;;
 esac
 
