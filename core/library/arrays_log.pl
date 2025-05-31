@@ -1,20 +1,4 @@
-/*             Copyright (C)1990-2002 UPM-CLIP                               */
-/*                          1994-1995 Katholieke Universiteit Leuven.        */
-/* Copyright(C) 1988, Swedish Institute of Computer Science                  */
- 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%  Name: arrays.pl
-%  Author: Lena Flood
-%  Date: 8 November 1988
-%  Purpose: Extendable arrays with logarithmic access time
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-%  Adapted from shared code written by David Warren and Fernando Pereira.
- 
-%  Array extends from 0 to 2**Size - 1, where Size is a multiple of 2.
-%  Note that 2**Size = 1<<Size.
- 
-:- module(arrays,
+:- module(arrays_log,
     [ new_array/1,
       is_array/1,
       aref/3,
@@ -26,6 +10,26 @@
     [ assertions,
       isomodes
     ]).
+
+:- doc(title,"Extendable arrays with logarithmic access time").
+
+:- doc(author,"Lena Flood").
+
+%   Original code by:
+%     - Lena Flood (8 November 1988)
+%     - Adapted later from shared code by David Warren and Fernando Pereira.
+% 
+%   Copyright (C):
+%     - 1988, Swedish Institute of Computer Science
+%     - 1990-2002 UPM-CLIP
+%     - 1994-1995 Katholieke Universiteit Leuven
+ 
+:- doc(module,"This module implements extendable arrays with
+   logarithmic access time. It has been adapted from shared code
+   written by David Warren and Fernando Pereira.").
+
+%  Array extends from 0 to 2**Size - 1, where Size is a multiple of 2.
+%  Note that 2**Size = 1<<Size.
 
 /*
 :- mode
@@ -43,14 +47,6 @@
     update_array_item(+, +, +, +, -),
     update_subarray(+, +, -, -, -).
 */
-
-:- doc(title,"Extendable arrays with logarithmic access time").
-
-:- doc(author,"Lena Flood").
-
-:- doc(module,"This module implements extendable arrays with
-   logarithmic access time. It has been adapted from shared code
-   written by David Warren and Fernando Pereira.").
 
 :- pred new_array(-Array) # "returns an empty new array @var{Array}.".
  
