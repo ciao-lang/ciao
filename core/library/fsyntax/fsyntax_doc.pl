@@ -423,7 +423,7 @@ get_elem(V,[I|Js]) := ~get_elem(~arg(I,V),Js).
 ```
 
 Rather than using @tt{get_elem/3} directly, we will use @tt{:-
-push_prolog_flag(read_postfix_blocks, on)} and @tt{fun_eval notation}
+push_prolog_flag(read_postfix_blocks, on)} and @tt{notation}
 (see @tt{array_ops.pl} later) to allow the more compact notation
 @tt{M[I1,...,In]} as a notation for @tt{~get_elem(M,[I1,...,In])}.
 

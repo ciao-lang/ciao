@@ -106,17 +106,16 @@ defunc_decl(fun_eval(Spec), _, Mod) :- !,
     ; function_output_arg(Spec, Fun, A, QM) ->
         asserta_fact(fun_return(Fun, A, Mod, QM)),
         make_fun_eval(Fun, Mod, QM)
-    ; Spec = notation(Pattern, Val) -> % TODO: document
-        asserta_fact(macro_rule(Pattern, Mod, Val, -, -))
-    ; Spec = macro(Pattern, Val, SubOut, SubExpr) -> % TODO: document
-        asserta_fact(macro_rule(Pattern, Mod, Val, SubOut, SubExpr))
     ; message(error, ['Invalid fun_eval specification: ',Spec])
     ).
+defunc_decl(notation(Pattern, Val), _, Mod) :- !, % TODO: document
+    asserta_fact(macro_rule(Pattern, Mod, Val, -, -)).
+defunc_decl(notation_macro(Pattern, Val, SubOut, SubExpr), _, Mod) :- !, % TODO: document
+    asserta_fact(macro_rule(Pattern, Mod, Val, SubOut, SubExpr)).
 defunc_decl(fun_return(FSpec), _, Mod) :- !,
     ( function_output_arg(FSpec, Fun, A, QM) ->
         asserta_fact(fun_return(Fun, A, Mod, QM))
-    ;
-        message(error, ['Invalid fun_return specification: ',FSpec])
+    ; message(error, ['Invalid fun_return specification: ',FSpec])
     ).
 defunc_decl(lazy(Decl), (:- lazy(LazySpec)), Mod) :- !,
     defunc_lazy_decl(Decl, LazySpec, Mod).
