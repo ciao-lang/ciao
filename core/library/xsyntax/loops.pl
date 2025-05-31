@@ -97,6 +97,15 @@ iter_cond([X|_], X).
 iter_next([_|Xs], Xs).
 :- endif.
 
+% pure list iterator (without cuts) % TODO: experimental!
+:- fun_eval(notation('iter.new'(pure_list(Xs)), pure_list_iterable(Xs))).
+:- fun_eval(notation('iter.init'(pure_list_iterable(In), Curr),
+                     (Curr:=In))).
+:- fun_eval(notation('iter.cond'(pure_list_iterable(_), X, Curr),
+                     ('\6\posneg'(Curr=[X|_], Curr=[])))).
+:- fun_eval(notation('iter.next'(pure_list_iterable(_), Curr),
+                     (Curr=[_|Xs], Curr:=Xs))). % TODO: optimize this unification
+
 % range iterator
 :- op(550, yfx, ..).
 :- fun_eval(notation('iter.new'(A..B), range_iterable(A, B, _, 1))).

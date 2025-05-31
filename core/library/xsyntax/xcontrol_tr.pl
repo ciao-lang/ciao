@@ -323,6 +323,7 @@ collect_let([X|Xs], [Y|Ys], Vs0, Vs, RetVar) :-
 %
 % `StLoopVs` are the loop state variables.
 
+% TODO: Goal and Next could be merged!
 % TODO: merge with optimcomp mexpand__loop
 % TODO: missing 'break' (early return) and 'continue' statements
 % TODO: add NegCond for declarative loops without cut
@@ -346,17 +347,16 @@ tr_loop(NegShVs, StLoopVs, Init, Cond, Goal, Next, G, M, Env0, Env) :-
             )
         ),
         BeginPA),
+    LoopIter = 'basiccontrol:,'(Goal, 'basiccontrol:,'(Next, 'hiord_rt:$pa_call'(LoopPA,LoopArgsP))),
+    ( Cond = 'xcontrol_rt:\6\posneg'(PosCond, NegCond) ->
+        LoopBody = 'basiccontrol:;'(NegCond, 'basiccontrol:,'(PosCond, LoopIter))
+    ; LoopBody = 'basiccontrol:;'('basiccontrol:->'(Cond, LoopIter), 'basiccontrol:true')
+    ),
     LoopDef = 'xcontrol_rt:\6\stpa_def'(
         PAMode,
         NegShVs, % variables local to loop iteration 
         LoopArgs,
-        'basiccontrol:;'(
-            'basiccontrol:->'(
-                Cond,
-                'basiccontrol:,'(Goal, 'basiccontrol:,'(Next, 'hiord_rt:$pa_call'(LoopPA,LoopArgsP))) 
-            ),
-            'basiccontrol:true'
-        ),
+        LoopBody,
         LoopPA),
     tr_body('basiccontrol:,'(
         BeginDef,
