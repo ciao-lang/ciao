@@ -1,4 +1,4 @@
-:- module(logarray,
+:- module(logarrays,
     [ new_array/1,
       is_array/1,
       aref/3,
