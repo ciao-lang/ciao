@@ -1,4 +1,4 @@
-:- module(hiordfun, _, [fsyntax,xsyntax/hiordx,assertions,regtypes,isomodes]).
+:- module(hiordfun, _, [fsyntax,hiordx,assertions,regtypes,isomodes]).
 
 %! \title Tests for hiord and fsyntax
 %  \author Jose F. Morales

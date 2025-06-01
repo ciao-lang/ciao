@@ -1,7 +1,7 @@
 :- package(arrays).
 
 :- use_package(fsyntax). % TODO: :- use_package(fsyntaxplus). ?
-:- use_package(xsyntax/statevars).
+:- use_package(statevars).
 
 % TODO: This notation could also be used for assocs as if they were Python dictionaries?
 

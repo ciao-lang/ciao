@@ -9,7 +9,7 @@
 
 :- use_package(xsyntax/'_xsyntax').
 :- use_package(xsyntax/'_xcontrol'). % (needed for statevars and loops)
-:- use_package(xsyntax/statevars). % statevars are required for iterators
+:- use_package(statevars). % statevars are required for iterators
 
 % Enable "Term { ... }" syntax
 :- set_prolog_flag(read_postfix_blocks, on).
@@ -68,7 +68,7 @@
 :- notation(for(A,B,C) { Goal }, for (A,B,C) { Goal }).
 
 % TODO: use traits
-:- if(defined(def_gen_iter)).
+:- if(defined(loops__def_gen_iter)).
 :- discontiguous iter_cond/2.
 :- discontiguous iter_next/2.
 :- endif.
@@ -86,7 +86,7 @@
 :- notation('iter.init'(list_iterable(In), Curr), (Curr:=In)).
 :- notation('iter.cond'(list_iterable(_), X, Curr), (Curr=[X|_])).
 :- notation('iter.next'(list_iterable(_), Curr), (Curr=[_|Xs], Curr:=Xs)). % TODO: optimize this unification
-:- if(defined(def_gen_iter)).
+:- if(defined(loops__def_gen_iter)).
 iter_cond([X|_], X).
 iter_next([_|Xs], Xs).
 :- endif.
@@ -106,7 +106,7 @@ iter_next([_|Xs], Xs).
 :- notation('iter.next'(range_iterable(_, _, _, Step), Curr),
                      % (Curr:=Curr+Step)
             (Tmp is Curr+Step, Curr:=Tmp)).
-:- if(defined(def_gen_iter)).
+:- if(defined(loops__def_gen_iter)).
 mk_iter_range(A, B, Step, range_iter(B, Step, A)).
 iter_cond(range_iter(B, _Step, X), X) :- X=<B.
 iter_next(range_iter(B, Step, Curr), range_iter(B, Step, Curr2)) :- Curr2 is Curr+Step.
@@ -119,7 +119,7 @@ iter_next(range_iter(B, Step, Curr), range_iter(B, Step, Curr2)) :- Curr2 is Cur
 :- notation('iter.next'(args_iterable(N, T), Curr),
             % (Curr:=Curr+1)
             (Tmp is Curr+1, Curr:=Tmp)).
-:- if(defined(def_gen_iter)).
+:- if(defined(loops__def_gen_iter)).
 mk_iter_args(T, args_iter(N, T, Curr)) :- functor(T, _, N), Curr=1.
 iter_cond(args_iter(N, T, Curr), X) :- Curr=<N, arg(Curr,T,X).
 iter_next(args_iter(N, T, Curr), args_iter(N, T, Curr2)) :- Curr2 is Curr+1.
