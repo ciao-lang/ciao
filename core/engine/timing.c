@@ -13,7 +13,7 @@
 #include <ciao/eng.h>
 #include <ciao/timing.h>
 
-#if (defined(Solaris)||defined(LINUX)||defined(EMSCRIPTEN)||defined(DARWIN)||defined(Win32)||defined(BSD)) \
+#if (defined(Solaris)||defined(LINUX)||defined(DARWIN)||defined(Win32)||defined(BSD)) \
     && !defined(_WIN32) && !defined(_WIN64)
 
 #include <sys/time.h>
@@ -29,6 +29,25 @@ inttime_t systemtick(void) {
   struct rusage rusage;
   getrusage(RUSAGE_SELF,&rusage);
   return ((inttime_t)rusage.ru_stime.tv_sec) * 1000000 + rusage.ru_stime.tv_usec;
+}
+
+static void init_frequency_info(void) {
+  ciao_stats.userclockfreq = 1000000;
+  ciao_stats.systemclockfreq = 1000000;
+}
+
+#elif defined(EMSCRIPTEN)
+
+#include <emscripten.h>
+
+inttime_t usertick(void) {
+  /* Returns time in milliseconds, convert to microseconds */
+  return (inttime_t)(emscripten_get_now() * 1000);
+}
+
+inttime_t systemtick(void) {
+  /* TODO: In browser context, no distinction between user/system time; is it possible in nodejs? */
+  return usertick();
 }
 
 static void init_frequency_info(void) {
@@ -207,12 +226,6 @@ static CBOOL__PROTO(generic_time,
 CBOOL__PROTO(prolog_walltime) {
   CBOOL__LASTCALL(generic_time, walltick, ciao_stats.startwalltick, &ciao_stats.lastwalltick, ciao_stats.wallclockfreq);
 }
-#if defined(EMSCRIPTEN)
-/* getrusage not implemented, rely on gettimeofday */
-CBOOL__PROTO(prolog_runtime) { CBOOL__LASTCALL(prolog_walltime); }
-CBOOL__PROTO(prolog_usertime) { CBOOL__LASTCALL(prolog_walltime); }
-CBOOL__PROTO(prolog_systemtime) { CBOOL__LASTCALL(prolog_walltime); }
-#else 
 CBOOL__PROTO(prolog_runtime) {
   CBOOL__LASTCALL(generic_time, RunTickFunc, ciao_stats.starttick, &ciao_stats.lasttick, RunClockFreq(ciao_stats));
 }
@@ -222,7 +235,6 @@ CBOOL__PROTO(prolog_usertime) {
 CBOOL__PROTO(prolog_systemtime) {
   CBOOL__LASTCALL(generic_time, systemtick, ciao_stats.startsystemtick, &ciao_stats.lastsystemtick, ciao_stats.systemclockfreq);
 }
-#endif
 
 /* New time medition functions */
 static CBOOL__PROTO(generic_tick,

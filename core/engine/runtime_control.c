@@ -142,12 +142,11 @@ CBOOL__PROTO(statistics) {
   intmach_t used, free;
   frame_t *newa;
 
-#if !defined(EMSCRIPTEN)
   inttime_t runtick0;
   inttime_t usertick0 = usertick();
   inttime_t systemtick0 = systemtick();
   runtick0=usertick0;
-#endif
+
   inttime_t walltick0 = walltick();
 
   StreamPrintf(s,
@@ -200,7 +199,6 @@ CBOOL__PROTO(statistics) {
              ciao_stats.gc_count,
              (intmach_t)ciao_stats.gc_acc);
 
-#if !defined(EMSCRIPTEN) /* not supported by emscripten */
   StreamPrintf(s,
              " runtime:    %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n",
              (flt64_t)(runtick0-ciao_stats.starttick)/RunClockFreq(ciao_stats),
@@ -216,7 +214,6 @@ CBOOL__PROTO(statistics) {
              (flt64_t)(systemtick0-ciao_stats.startsystemtick)/ciao_stats.systemclockfreq,
              systemtick0-ciao_stats.startsystemtick,
              ciao_stats.systemclockfreq);
-#endif
   StreamPrintf(s,
              " walltime:   %10.6f sec. %12" PRId64 " ticks at %12" PRId64 " Hz\n\n",
              (flt64_t)(walltick0-ciao_stats.startwalltick)/ciao_stats.wallclockfreq,
