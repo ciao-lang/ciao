@@ -516,6 +516,10 @@ CBOOL__PROTO(nd_atom_concat) {
 #endif
 
   s2 = GetString(X(2));
+  if (i == strlen(s2)) {
+    // pop choice point now (we may fail if X(0) and X(1) share)
+    CVOID__CALL(pop_choicept);
+  }
 
   s = Atom_Buffer;
 
@@ -526,11 +530,6 @@ CBOOL__PROTO(nd_atom_concat) {
   strcpy(s, s2);
   *(s+i) = '\0';
   CBOOL__UnifyCons(GET_ATOM(Atom_Buffer),X(0));
-
-  if (i == strlen(s2)) {
-    CVOID__CALL(pop_choicept);
-  }
-  
   CBOOL__PROCEED;
 }
 
