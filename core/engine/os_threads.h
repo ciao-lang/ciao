@@ -575,8 +575,8 @@ typedef LPTHREAD_START_ROUTINE  THREAD_START; /* The type of the routine */
 #include <sys/wait.h>
 #endif
 
-typedef int THREAD_T;
-typedef int THREAD_ID;  /* The unique identifier of a thread */
+typedef intptr_t THREAD_T;
+typedef intptr_t THREAD_ID;  /* The unique identifier of a thread */
 typedef void *THREAD_ARG;
 typedef void *THREAD_RES_T;
 typedef void *(*THREAD_START)(void *);
