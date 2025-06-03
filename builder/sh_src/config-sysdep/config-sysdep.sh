@@ -473,7 +473,7 @@ CFLAGS="-I$bld_hdir $CFLAGS"
 
 # ===========================================================================
 
-# Patch configuration for Emscripten (EMSCRIPTENwasm32)
+# Patch configuration for Emscripten (EMSCRIPTEN)
 
 case "$CIAOOS$CIAOARCH" in
     EMSCRIPTEN*)
@@ -506,6 +506,7 @@ case "$CIAOOS$CIAOARCH" in
   \"FS_createPath\",\
   \"addRunDependency\",\
   \"removeRunDependency\",\
+  \"POINTER_SIZE\",\
   \"stringToNewUTF8\",\
   \"ccall\",\
   \"cwrap\"]'"
