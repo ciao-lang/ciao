@@ -8,7 +8,8 @@
     get_exec_ext/1,
     get_so_ext/1,
     get_a_ext/1,
-    ciao_c_headers_dir/1
+    ciao_c_headers_dir/1,
+    eng_supports/1
     ],
     [assertions, nortchecks, isomodes]).
 
@@ -132,3 +133,22 @@ get_a_ext('.a'). % TODO: '.a' is fine for MinGW but this is typically '.lib' in 
     C.".
 :- impl_defined(ciao_c_headers_dir/1).
 
+% ---------------------------------------------------------------------------
+
+:- trust pred eng_supports(?Feature) => atm # "@var{Feature} is
+   supported in the current engine and architecture.".
+
+eng_supports(timeouts) :- 
+    ( get_arch(Arch), arch_is_wasm(Arch) -> % TODO: obtain from build, some Emscripten options may enable them in the future
+        fail
+    ; true
+    ).
+eng_supports(processes) :-
+    ( get_arch(Arch), arch_is_wasm(Arch) -> % TODO: obtain from build, some Emscripten options may enable them in the future
+        fail
+    ; true
+    ).
+
+arch_is_wasm(wasm32).
+arch_is_wasm(wasm64).
+arch_is_wasm(wasm32p64).
