@@ -69,7 +69,7 @@ typedef double flt64_t;
 /* ------------------------------------------------------------------------- */
 /* TODO:[oc-merge] generated in basiccontrol.native.h from eng_predef.pl */
 
-#if defined(x86_64) || defined(Sparc64) || defined(ppc64) || defined(ppc64le) || defined(aarch64) || defined(wasm64) /* 64-bit */
+#if defined(x86_64) || defined(Sparc64) || defined(ppc64) || defined(ppc64le) || defined(aarch64) || defined(wasm64) || defined(wasm32p64) /* 64-bit */
 /* Definitions for 64-bit tag scheme */
 typedef int64_t intmach_t;
 typedef uint64_t uintmach_t;

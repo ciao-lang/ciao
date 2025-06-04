@@ -46,13 +46,9 @@ bld_objdir="$cardir/objs/$eng_cfg"
 
 # Select target architecture
 case "$eng_cross_os$eng_cross_arch" in
-    EMSCRIPTENwasm32)
-        CIAOOS=EMSCRIPTEN
-        CIAOARCH=wasm32 # uname() in Emscripten
-        ;;
-    EMSCRIPTENwasm64)
-        CIAOOS=EMSCRIPTEN
-        CIAOARCH=wasm64 # uname() in Emscripten
+    EMSCRIPTEN*)
+        CIAOOS=$eng_cross_os
+        CIAOARCH=$eng_cross_arch # uname() in Emscripten
         ;;
     *)
         CIAOOS=$core__OS
@@ -231,7 +227,7 @@ case "$core__DEBUG_LEVEL" in
     *) ;;
 esac
 # C level debugging information
-# TODO: EMSCRIPTENwasm32 or EMSCRIPTENwasm64: add ASSERTIONS=2 for debugging
+# TODO: EMSCRIPTEN: add ASSERTIONS=2 for debugging
 case "$core__DEBUG_LEVEL" in
     paranoid-debug|debug|profile-debug)
         DEBUG_FLAGS="$DEBUG_FLAGS -g"
@@ -396,6 +392,7 @@ emit_cdefs() {
         *x86_64)         emit_cdef "USE_OWN_MALLOC" ;;
         *wasm32)         true ;;
         *wasm64)         true ;;
+        *wasm32p64)      true ;;
         *ppc64)          emit_cdef "USE_OWN_MALLOC" ;;
         *ppc64le)        emit_cdef "USE_OWN_MALLOC" ;;
         *aarch64)        emit_cdef "USE_OWN_MALLOC" ;;
@@ -454,15 +451,13 @@ esac
 
 # Compile as dynamic library
 case "$CIAOOS$CIAOARCH" in
-    EMSCRIPTENwasm32) ENG_DYNLIB=0 ;;
-    EMSCRIPTENwasm64) ENG_DYNLIB=0 ;;
+    EMSCRIPTEN*) ENG_DYNLIB=0 ;;
     *)           ENG_DYNLIB=1 ;;
 esac
 
 # Fix computed size in executable
 case "$CIAOOS$CIAOARCH" in
-    EMSCRIPTENwasm32) ENG_FIXSIZE=0 ;;
-    EMSCRIPTENwasm64) ENG_FIXSIZE=0 ;;
+    EMSCRIPTEN*) ENG_FIXSIZE=0 ;;
     *)           ENG_FIXSIZE=1 ;;
 esac
 
@@ -515,9 +510,12 @@ esac
 
 case "$CIAOOS$CIAOARCH" in
     *wasm64)
-        # TODO: allow -sMEMORY64=2 (lowered to wasm32)?
         CFLAGS="$CFLAGS -sMEMORY64=1"
-        LDFLAGS="$LDFLAGS -sMEMORY64=1 -sWASM_BIGINT=1" #   -sMODULARIZE=1
+        LDFLAGS="$LDFLAGS -sMEMORY64=1 -sWASM_BIGINT=1" # -sMODULARIZE=1
+        ;;
+    *wasm32p64) # hybrid, LP64 compiled to wasm32
+        CFLAGS="$CFLAGS -sMEMORY64=2"
+        LDFLAGS="$LDFLAGS -sMEMORY64=2 -sWASM_BIGINT=1" # -sMODULARIZE=1
         ;;
 esac
 
