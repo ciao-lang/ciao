@@ -12,7 +12,7 @@
 :- use_module(library(process), [process_join/1, process_kill/1]).
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
 :- use_module(library(stream_wait), [input_wait/2, input_set_unbuf/1]).
-:- use_module(engine(system_info), [get_arch/1]).
+:- use_module(engine(system_info), [eng_supports/1]).
 :- use_module(library(lists), [member/2]).
 
 :- use_module(library(unittest/unittest_db), [read_data/2]).
@@ -73,7 +73,7 @@ invoke_runner(Cont0, Opts, RecvData, Cont) :-
     ; Cont = end % end
     ).
 
-use_sameproc(_Opts) :- get_arch(Arch), ( Arch = wasm32 ; Arch = wasm64 ), !. % by default when separate processes are not available 
+use_sameproc(_Opts) :- \+ eng_supports(processes), !. % by default when separate processes are not available 
 use_sameproc(Opts) :- member(sameproc, Opts).
 
 :- use_module(ciaobld(config_common), [cmd_path/4]).

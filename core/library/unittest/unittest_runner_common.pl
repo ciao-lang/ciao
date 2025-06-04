@@ -391,7 +391,7 @@ run_test_custom(What, TestId, Options, Result):-
 
 exception_custom(What, E, exception(What, E)).
 
-:- use_module(engine(system_info), [get_arch/1]).
+:- use_module(engine(system_info), [eng_supports/1]).
 
 get_option(Opt,Options,Value) :-
     functor(Option,Opt,2),
@@ -399,7 +399,7 @@ get_option(Opt,Options,Value) :-
     arg(2,Option,Value).
 get_option(times,_,1).
 get_option(try_sols,_,2). % enough to capture determinism
-get_option(timeout,_,Timeout) :- get_arch(Arch), ( Arch = wasm32 ; Arch = wasm64 ), !, % TODO: fix timeout for this arch
+get_option(timeout,_,Timeout) :- \+ eng_supports(timeouts), !, % TODO: fix timeout for this arch
     Timeout = 0.
 get_option(timeout,_,Timeout) :-
     default_timeout(Timeout).
