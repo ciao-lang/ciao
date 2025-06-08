@@ -23,7 +23,7 @@ different `debug_level` options.
 You can select different engine versions and control their runtime
 options in the following way:
 
- - Export `DBGENG=<debug_level>` (where `<level>` is one of `debug`,
+ - Export `CIAODBG=<debug_level>` (where `<level>` is one of `debug`,
    `profile-debug`, or `profile`)
  - Use the `CIAORTOPTS` environment variable to pass engine options.
    See `eng_debug.c` and `eng_profile.c` for different debugging and
