@@ -1,11 +1,110 @@
 # Changelog
 
-## [1.24.0] - 2024-10-13
+## [1.25.0] - 2025-6-10
 
 @begin{alert}
-The release of 1.24 is in progress. The highlights in this list are in
+The release of 1.25 is in progress. The highlights in this list are in
 a draft state.
 @end{alert}
+
+## [1.24.0] - 2024-10-13
+
+Compiler:
+
+ - CHANGED: `primitive_meta_predicate` replaced by `primitive(_)` metatype
+ - IMPROVED: (experimental) support for more efficient predicate abstractions
+ - IMPROVED: predicates from modules imported later have priority
+ - IMPROVED: `dynamic_clauses` improvements (source preserving dynamic
+   predicates): work in toplevel, preserving indexing, no `clause/2`
+   duplication
+ - FIXED: same visibility rules in toplevel and compiler (latest imported wins)
+ - IMPROVED: updated rtchecks documentation
+ - IMPROVED: better rtcheck messages when checking program points
+ - FIXED: fix rtchecks for empty calls assertions
+ - FIXED: do not generate rtchecks for data/dynamic predicates
+ - FIXED: do not ignore empty calls assertions (it was a wrong fix for issue above)
+ - FIXED: rtcheck for `gnd/1` is `ground/1`
+
+Engine:
+
+ - ADDED: recover naive (low-overhead) profiler 
+ - ADDED: (disabled) experimental code to raise arity limit
+ - IMPROVED: naive (cheap) builtin profiler
+ - IMPROVED: select engine variant and options with CIAODBG, CIAORTOPTS
+ - IMPROVED: better options for profile engine build (no need for
+   debugging or C level profiling)
+ - IMPROVED: `functor/3` and `arg/3` are ISO compliant
+ - FIXED: fix `prolog_wait` for win32
+ - FIXED: `select()` is not available in mingw64, dummy version of `$input_wait`
+ - FIXED: avoid warning for unused var in `get_execpath()` for some architectures
+ - FIXED: setup `SIGINT` handler when forcing interactive
+ - FIXED: fix ciaowasm build for more recent Emscripten (emcc 3.1.69)
+
+Libraries:
+
+ - ADDED: new `io_port_reify:call_with_std_redirect/3` predicate
+   (fine-grained redirection of stdout/stderr)
+ - IMPROVED: dependencies for installation under Guix and Termux
+ - IMPROVED: better modes package documentation
+ - IMPROVED: `markdown_parser`: richer language ids in fenced code blocks
+ - IMPROVED: `stream_wait` moved into engine
+ - IMPROVED: `system:wait(Pid,Status)` unifies `Status` with negative
+   number if the process terminated due to a signal, instead of
+   failing.
+ - IMPROVED: `system:shell/\{0,1,2\}` simplified based on a common
+   `'$exec_shell'/2` predicate and `wait/2`.
+ - FIXED: fsyntax: `^X` (with X variable) is kept as it is
+ - FIXED: fsyntax do not expand inside CLP(Q,R,fd) constraints
+ - FIXED: allow `;/2`, `=/2`, `false/0` in 'pure' package 
+ - FIXED: clpfd: fix labeling option bisect, fix `clpfd:maximize/2`
+ - FIXED: missing check in `atom_chars/2`
+ - FIXED: Fixed several errors in documentation: dangling references
+   to sections, wrong commands, syntactic errors, etc. Also some local
+   improvements in the text itself as part of these fixes.
+
+Documentation:
+
+ - ADDED: added `openpg` library to the manual
+ - ADDED: added `library(profile)` (naive profiler) to the manual
+
+ISO conformance:
+
+ - IMPROVED: iso_strict: using `dynamic_clauses` by default
+ - IMPROVED: using ISO semantics for `functor/3` and `arg/3` in compiler and libraries
+ - FIXED: `iso_strict`: fix `stream_property/2`, fix checks in `io_mode`
+   type for `open/\{3,4\}`, `eof_action` in `open/4`, (dummy) reposition
+   properties, `current_input/1` works with stream aliases too.
+
+Ciao emacs mode:
+
+ - FIXED: Associate temporary directory for LPdoc generation to full path, not basename
+ - FIXED: set `text-quoting-style` to 'straight' (needed for `emacs_mode`
+   doc generation for Emacs>=25.1)
+
+Unit Tests:
+
+ - ADDED: `setup/2` and `cleanup/2` test properties
+ - ADDED: regexp and label filters
+ - IMPROVED: unittest moved to core bundle
+ - IMPROVED: Allow lists of targets in `run_tests/3` (which can be modules or
+   directories)
+ - IMPROVED: Major pass over unittest runner and driver implementation
+ - IMPROVED: use `ciaosh` as loader for unittest runner (no longer an executable)
+ - IMPROVED: Fine-grained communication with runner process (one test at a time)
+ - IMPROVED: Better pretty print solutions and cases in test reports
+ - FIXED: Warning if a target is a directory and `dir_rec` is not specified.
+ - FIXED: Fixed treatment of filters (and multiple modules) when
+   computing/showing summaries.
+ - FIXED: Handling of variables shared in calls/success parts but not appearing
+   in the predicate head.
+ - FIXED: Mark tests with missing output as aborted in all cases
+ - FIXED: Set unbuffered input in runner process
+
+Debugger:
+
+ - IMPROVED: document the new d/w/p <av> commands.
+ - IMPROVED: print option 'v' shows all variables in scope (not only uninstantiated)
+ - IMPROVED: new source var printing (p a, p av, p ao)
 
 ## [1.23.0] - 2024-3-04
 
@@ -18,7 +117,7 @@ Build system:
 Compiler:
 
  - ADDED: Experimental support for clause translation after module expansion.
- - ADDED: '$meta_exp'/3 builtin (explicit meta expansions).
+ - ADDED: `'$meta_exp'/3` builtin (explicit meta expansions).
  - ADDED: Hooks to customize handling source debugging information.
  - ADDED: Hooks for toplevel get line.
  - CHANGED: Factorized toplevel and debugger IO (`toplevel_io:top_get_line/1`).
