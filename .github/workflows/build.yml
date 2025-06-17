@@ -25,7 +25,8 @@ jobs:
 #          - { os: ubuntu-latest,  arch: i686,   inskind: minciao }
           - { os: macos-latest,   arch: x86_64, inskind: minciao }
           - { os: macos-latest,   arch: x86_64, inskind: devenv-nodocs }
-          - { os: windows-2019,   arch: x86_64, inskind: minciao }
+          - { os: windows-2025,   arch: x86_64, inskind: minciao }
+#          - { os: windows-2019,   arch: x86_64, inskind: minciao }
 #          - { os: windows-2019,   arch: i686,   inskind: minciao }
 #       compiler:
 #         - { cc: gcc,   cxx: g++ }
