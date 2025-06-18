@@ -18,7 +18,7 @@ mult(s(X),Y,Z) :- add(W,Y,Z), mult(X,Y,W).
 
 nat_square(X,Y) :- nat(X), nat(Y), mult(X,X,Y).
 
-sol(X) :- nat(Y), le(Y,s(s(s(s(s(0)))))), nat_square(Y,X).
+solution(X) :- nat(Y), le(Y,s(s(s(s(s(0)))))), nat_square(Y,X).
 
 %  Some examples of queries. Copy on the right, hit 
 %  ENTER to execute, and then ; for other solutions.
