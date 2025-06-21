@@ -34,6 +34,7 @@
 :- notation(if (Cond) { Then },
             ( Cond -> Then ; true )).
 
+% TODO: include 'break' and 'continue' (note that Next must be explicitly separated from Goal!)
 % While loops
 :- notation(while (Cond) { Goal },
             '\6\loop'([], true, Cond, Goal, true)).
