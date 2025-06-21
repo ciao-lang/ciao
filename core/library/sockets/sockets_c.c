@@ -219,10 +219,10 @@ CBOOL__PROTO(prolog_bind_socket)
 /* socket_accept(+Sock, -Stream) */
 CBOOL__PROTO(prolog_socket_accept) {
   ERR__FUNCTOR("sockets:socket_accept", 2);
-  int socket, new_s;
+  int socket, new_s; // TODO: int for LP64?
   struct sockaddr isa;
   unsigned int isalen;
-  char new_s_name[16];
+  char new_s_name[32];
   
   DEREF(X(0), X(0));
   if (!TaggedIsSmall(X(0)))
